@@ -4,32 +4,32 @@ Currently it supports only xhr-polling transport.
 
 #Usage example
 
-SocketIOListener handler = new SocketIOListener() {
+	SocketIOListener handler = new SocketIOListener() {
 
-	@Override
-	public void onMessage(SocketIOClient client, String message) {
-		System.out.println("onMessage: " + message);
-	}
+		@Override
+		public void onMessage(SocketIOClient client, String message) {
+			System.out.println("onMessage: " + message);
+		}
 	
-	@Override
-	public void onDisconnect(SocketIOClient client) {
-		System.out.println("onDisconnect: " + client.getSessionId());
-	}
+		@Override
+		public void onDisconnect(SocketIOClient client) {
+			System.out.println("onDisconnect: " + client.getSessionId());
+		}
 	
-	@Override
-	public void onConnect(final SocketIOClient client) {
-		System.out.println("onConnect: " + client.getSessionId());
-	}
+		@Override
+		public void onConnect(final SocketIOClient client) {
+			System.out.println("onConnect: " + client.getSessionId());
+		}
 
-	@Override
-	public void onJsonObject(SocketIOClient client, Object obj) {
-		System.out.println("onJsonObject: " + obj);
-	}
-};
+		@Override
+		public void onJsonObject(SocketIOClient client, Object obj) {
+			System.out.println("onJsonObject: " + obj);
+		}
+	};
 
-SocketIOServer server = new SocketIOServer();
-server.setHostname("localhost");
-server.setPort(81);
-server.setObjectMapper(createObjectMapper());
-server.setListener(handler);
-server.start();
+	SocketIOServer server = new SocketIOServer();
+	server.setHostname("localhost");
+	server.setPort(81);
+	server.setObjectMapper(createObjectMapper());
+	server.setListener(handler);
+	server.start();
