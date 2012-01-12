@@ -148,7 +148,6 @@ public class SocketIORouter {
 		client.doReconnect(channel, msg);
 		log.debug("New sessionId: {} authorized", sessionId);
 		heartbeatHandler.scheduleHeartbeatCheck(sessionId, new Runnable() {
-			@Override
 			public void run() {
 				authorizedSessionIds.remove(sessionId);
 				log.debug("Authorized sessionId: {} cleared due to connect timeout", sessionId);

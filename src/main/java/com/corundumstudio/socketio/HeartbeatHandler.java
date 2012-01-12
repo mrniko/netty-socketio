@@ -45,7 +45,6 @@ public class HeartbeatHandler {
 		cancelHeartbeatCheck(client);
 		
 		executorService.schedule(new Runnable() {
-			@Override
 			public void run() {
 				sendHeartbeat(client);
 			}
@@ -62,7 +61,6 @@ public class HeartbeatHandler {
 	public void sendHeartbeat(final SocketIOClient client) {
 		client.send(new Packet(PacketType.HEARTBEAT));
 		scheduleHeartbeatCheck(client.getSessionId(), new Runnable() {
-			@Override
 			public void run() {
 				client.disconnect();
 				UUID sessionId = client.getSessionId();

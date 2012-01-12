@@ -64,7 +64,6 @@ public class XHRPollingTransport implements SocketIOTransport {
 		this.packetListener = packetListener;
 	}
 	
-	@Override
 	public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) throws Exception {
         Object msg = e.getMessage();
         if (msg instanceof HttpRequest) {
@@ -89,7 +88,10 @@ public class XHRPollingTransport implements SocketIOTransport {
 		if (parts.length > 3) {
 			UUID sessionId = UUID.fromString(parts[4]);
 			XHRPollingClient client = sessionId2Client.get(sessionId);
-			
+			if (client == null) {
+				// client was disconnected
+				return;
+			}
 			String content = msg.getContent().toString(CharsetUtil.UTF_8);
 			log.trace("Request content: {}", content);
 			List<Packet> packets = decoder.decodePayload(content);

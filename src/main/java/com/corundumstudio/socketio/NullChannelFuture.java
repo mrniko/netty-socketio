@@ -24,52 +24,42 @@ public class NullChannelFuture implements ChannelFuture {
 	
 	private final Logger log = LoggerFactory.getLogger(getClass());
 	
-	@Override
 	public Channel getChannel() {
 		throw new UnsupportedOperationException();
 	}
 
-	@Override
 	public boolean isDone() {
 		return true;
 	}
 
-	@Override
 	public boolean isCancelled() {
 		return false;
 	}
 
-	@Override
 	public boolean isSuccess() {
 		return false;
 	}
 
-	@Override
 	public Throwable getCause() {
 		return null;
 	}
 
-	@Override
 	public boolean cancel() {
 		return false;
 	}
 
-	@Override
 	public boolean setSuccess() {
 		return false;
 	}
 
-	@Override
 	public boolean setFailure(Throwable cause) {
 		return false;
 	}
 
-	@Override
 	public boolean setProgress(long amount, long current, long total) {
 		return false;
 	}
 
-	@Override
 	public void addListener(ChannelFutureListener listener) {
 		try {
 			listener.operationComplete(this);
@@ -78,37 +68,30 @@ public class NullChannelFuture implements ChannelFuture {
 		}
 	}
 
-	@Override
 	public void removeListener(ChannelFutureListener listener) {
 	}
 
-	@Override
 	public ChannelFuture await() throws InterruptedException {
 		return this;
 	}
 
-	@Override
 	public ChannelFuture awaitUninterruptibly() {
 		return this;
 	}
 
-	@Override
 	public boolean await(long timeout, TimeUnit unit)
 			throws InterruptedException {
 		return true;
 	}
 
-	@Override
 	public boolean await(long timeoutMillis) throws InterruptedException {
 		return true;
 	}
 
-	@Override
 	public boolean awaitUninterruptibly(long timeout, TimeUnit unit) {
 		return true;
 	}
 
-	@Override
 	public boolean awaitUninterruptibly(long timeoutMillis) {
 		return true;
 	}
