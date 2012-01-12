@@ -1,0 +1,54 @@
+/**
+ * Copyright (c) 2012 Nikita Koksharov
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ */
+package com.corundumstudio.socketio;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.corundumstudio.socketio.parser.Packet;
+import com.corundumstudio.socketio.transport.XHRPollingClient;
+
+public class PacketListener {
+
+	private final Logger log = LoggerFactory.getLogger(getClass());
+	
+	private final SocketIORouter socketIORouter;
+	private final HeartbeatHandler heartbeatHandler;
+	private final SocketIOListener socketIOHandler;
+	
+	public PacketListener(SocketIOListener socketIOHandler, SocketIORouter socketIORouter, HeartbeatHandler heartbeatHandler) {
+		this.socketIORouter = socketIORouter;
+		this.socketIOHandler = socketIOHandler;
+		this.heartbeatHandler = heartbeatHandler;
+	}		
+
+	public void onPacket(Packet packet, XHRPollingClient client) {
+		switch (packet.getType()) {
+			case HEARTBEAT:
+				heartbeatHandler.onHeartbeat(client);
+				break;
+	
+			case MESSAGE:
+				socketIOHandler.onMessage(client, packet.getData().toString());
+				break;
+			
+			case JSON:
+				socketIOHandler.onJsonObject(client, packet.getData());
+				break;
+				
+			case DISCONNECT:
+				log.debug("Client with sessionId: {} disconnected by client request", client.getSessionId());
+				socketIORouter.disconnect(client.getSessionId());
+				break;
+		}
+	}
+
+}

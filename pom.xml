@@ -1,0 +1,70 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+ <modelVersion>4.0.0</modelVersion>
+
+ <groupId>com.corundumstudio.socketio</groupId>
+ <artifactId>netty-socketio</artifactId>
+ <version>1.0.0-SNAPSHOT</version>
+ <packaging>jar</packaging>
+
+ <properties>
+     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+ </properties>
+
+ <dependencies>
+  <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.10</version>
+      <scope>test</scope>
+  </dependency>
+  <dependency>
+      <groupId>org.jboss.netty</groupId>
+      <artifactId>netty</artifactId>
+      <version>3.2.7.Final</version>
+      <scope>compile</scope>
+  </dependency>
+  <dependency>
+      <groupId>org.codehaus.jackson</groupId>
+      <artifactId>jackson-core-asl</artifactId>
+      <version>1.9.3</version>
+  </dependency>
+  <dependency>
+      <groupId>org.codehaus.jackson</groupId>
+      <artifactId>jackson-mapper-asl</artifactId>
+      <version>1.9.3</version>
+  </dependency>
+  <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>1.6.4</version>
+  </dependency>
+ </dependencies>
+
+
+ <build>
+  <plugins>
+       <plugin>
+           <groupId>org.apache.maven.plugins</groupId>
+           <artifactId>maven-eclipse-plugin</artifactId>
+           <version>2.6</version>
+           <configuration>
+               <downloadSources>true</downloadSources>
+               <forceRecheck>true</forceRecheck>
+           </configuration>
+       </plugin>
+       <plugin>
+         <artifactId>maven-compiler-plugin</artifactId>
+         <version>2.3.2</version>
+         <configuration>
+           <source>1.5</source>
+           <target>1.5</target>
+           <debug>true</debug>
+           <optimize>true</optimize>
+           <showDeprecations>true</showDeprecations>
+         </configuration>
+       </plugin>
+  </plugins>
+ </build>
+
+</project>
