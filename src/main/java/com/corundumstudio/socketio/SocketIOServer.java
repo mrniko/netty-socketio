@@ -28,6 +28,7 @@ public class SocketIOServer {
 
 	private final Logger log = LoggerFactory.getLogger(getClass());
 	
+	private int destroyBufferSize = 10000000;
 	private int heartbeatThreadPoolSize = 4;
 	private int heartbeatTimeout = 15;
 	private int heartbeatInterval = 20;
@@ -52,6 +53,7 @@ public class SocketIOServer {
 		bootstrap = new ServerBootstrap(factory);
 		
 		socketIORouter = new SocketIORouter(listener, objectMapper);
+		socketIORouter.setDestroyBufferSize(destroyBufferSize);
 		socketIORouter.setHeartbeatInterval(heartbeatInterval);
 		socketIORouter.setHeartbeatTimeout(heartbeatTimeout);
 		socketIORouter.setHeartbeatThreadPoolSize(heartbeatThreadPoolSize);
@@ -72,6 +74,15 @@ public class SocketIOServer {
 	
 	public void setBossThreadPoolSize(int bossThreadPoolSize) {
 		this.bossThreadPoolSize = bossThreadPoolSize;
+	}
+	
+	/**
+	 * POST request content size limit
+	 * 
+	 * @param destroyBufferSize - limit in bytes
+	 */
+	public void setDestroyBufferSize(int destroyBufferSize) {
+		this.destroyBufferSize = destroyBufferSize;
 	}
 
 	/**

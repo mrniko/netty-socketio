@@ -49,6 +49,7 @@ public class XHRPollingTransport implements SocketIOTransport {
 	
 	private final Map<UUID, XHRPollingClient> sessionId2Client = new ConcurrentHashMap<UUID, XHRPollingClient>();
 	
+	private int destroyBufferSize;
 	private final SocketIORouter socketIORouter;
 	private final PacketListener packetListener;
 	private final Decoder decoder;
@@ -62,6 +63,10 @@ public class XHRPollingTransport implements SocketIOTransport {
 		this.encoder = encoder;
 		this.socketIORouter = socketIORouter;
 		this.packetListener = packetListener;
+	}
+	
+	public void setDestroyBufferSize(int destroyBufferSize) {
+		this.destroyBufferSize = destroyBufferSize;
 	}
 	
 	public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) throws Exception {
@@ -80,18 +85,31 @@ public class XHRPollingTransport implements SocketIOTransport {
 	}
 	
 	private void onPost(QueryStringDecoder queryDecoder, Channel channel, HttpRequest msg) throws IOException {
-		String path = queryDecoder.getPath();
-		if (!path.startsWith(pollingPath)) {
+		if (msg.getContent().readableBytes() >= destroyBufferSize) {
+			log.warn("Too big POST request: {} bytes, from ip: {}. Channel closed!", 
+					new Object[] {msg.getContent().readableBytes(), channel.getRemoteAddress()});
+			channel.close();
 			return;
 		}
+		
+		String path = queryDecoder.getPath();
+		if (!path.startsWith(pollingPath)) {
+			log.warn("Wrong POST request path: {}, from ip: {}. Channel closed!", 
+					new Object[] {path, channel.getRemoteAddress()});
+			channel.close();
+			return;
+		}
+		
 		String[] parts = path.split("/");
 		if (parts.length > 3) {
 			UUID sessionId = UUID.fromString(parts[4]);
 			XHRPollingClient client = sessionId2Client.get(sessionId);
 			if (client == null) {
-				// client was disconnected
+				log.debug("Client with sessionId: {} was already disconnected. Channel closed!", sessionId);
+				channel.close();
 				return;
 			}
+			
 			String content = msg.getContent().toString(CharsetUtil.UTF_8);
 			log.trace("Request content: {}", content);
 			List<Packet> packets = decoder.decodePayload(content);
@@ -104,14 +122,22 @@ public class XHRPollingTransport implements SocketIOTransport {
             HttpResponse resp = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
             resp.addHeader("Access-Control-Allow-Origin", "*");
             sendHttpResponse(channel, msg, resp);
+		} else {
+			log.warn("Wrong POST request path: {}, from ip: {}. Channel closed!", 
+					new Object[] {path, channel.getRemoteAddress()});
+			channel.close();
 		}
 	}
 	
 	private void onGet(QueryStringDecoder queryDecoder, Channel channel, HttpRequest msg) throws IOException {
 		String path = queryDecoder.getPath();
 		if (!path.startsWith(pollingPath)) {
+			log.warn("Wrong GET request path: {}, from ip: {}. Channel closed!", 
+					new Object[] {path, channel.getRemoteAddress()});
+			channel.close();
 			return;
 		}
+		
 		String[] parts = path.split("/");
 		if (parts.length > 3) {
 			UUID sessionId = UUID.fromString(parts[4]);
@@ -124,6 +150,10 @@ public class XHRPollingTransport implements SocketIOTransport {
 			} else {
 				sendError(channel, msg, sessionId);
 			}
+		} else {
+			log.warn("Wrong GET request path: {}, from ip: {}. Channel closed!", 
+					new Object[] {path, channel.getRemoteAddress()});
+			channel.close();
 		}
 	}
 

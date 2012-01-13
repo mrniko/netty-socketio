@@ -30,6 +30,5 @@ Currently it supports only xhr-polling transport.
 	SocketIOServer server = new SocketIOServer();
 	server.setHostname("localhost");
 	server.setPort(81);
-	server.setObjectMapper(createObjectMapper());
 	server.setListener(handler);
 	server.start();
