@@ -49,7 +49,6 @@ public class XHRPollingTransport implements SocketIOTransport {
 	
 	private final Map<UUID, XHRPollingClient> sessionId2Client = new ConcurrentHashMap<UUID, XHRPollingClient>();
 	
-	private int destroyBufferSize;
 	private final SocketIORouter socketIORouter;
 	private final PacketListener packetListener;
 	private final Decoder decoder;
@@ -63,10 +62,6 @@ public class XHRPollingTransport implements SocketIOTransport {
 		this.encoder = encoder;
 		this.socketIORouter = socketIORouter;
 		this.packetListener = packetListener;
-	}
-	
-	public void setDestroyBufferSize(int destroyBufferSize) {
-		this.destroyBufferSize = destroyBufferSize;
 	}
 	
 	public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) throws Exception {
@@ -85,13 +80,6 @@ public class XHRPollingTransport implements SocketIOTransport {
 	}
 	
 	private void onPost(QueryStringDecoder queryDecoder, Channel channel, HttpRequest msg) {
-		if (msg.getContent().readableBytes() >= destroyBufferSize) {
-			log.warn("Too big POST request: {} bytes, from ip: {}. Channel closed!", 
-					new Object[] {msg.getContent().readableBytes(), channel.getRemoteAddress()});
-			channel.close();
-			return;
-		}
-		
 		String path = queryDecoder.getPath();
 		if (!path.startsWith(pollingPath)) {
 			log.warn("Wrong POST request path: {}, from ip: {}. Channel closed!", 
@@ -151,6 +139,9 @@ public class XHRPollingTransport implements SocketIOTransport {
 					client = createClient(sessionId);
 				}
 				client.doReconnect(channel, msg);
+				if (queryDecoder.getParameters().containsKey("disconnect")) {
+					disconnect(sessionId);
+				}
 			} else {
 				sendError(channel, msg, sessionId);
 			}
@@ -181,7 +172,6 @@ public class XHRPollingTransport implements SocketIOTransport {
 	}
 
     private void sendHttpResponse(Channel channel, HttpRequest req, HttpResponse res) {
-        // Generate an error page if response status code is not OK (200).
         if (res.getStatus().getCode() != 200) {
             res.setContent(
                     ChannelBuffers.copiedBuffer(
@@ -189,7 +179,6 @@ public class XHRPollingTransport implements SocketIOTransport {
             HttpHeaders.setContentLength(res, res.getContent().readableBytes());
         }
 
-        // Send the response and close the connection if necessary.
         ChannelFuture f = channel.write(res);
         if (!HttpHeaders.isKeepAlive(req) || res.getStatus().getCode() != 200) {
             f.addListener(ChannelFutureListener.CLOSE);

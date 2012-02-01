@@ -39,8 +39,6 @@ public class SocketIORouter {
 
 	private final Logger log = LoggerFactory.getLogger(getClass());
 
-	private int destroyBufferSize;
-	
 	private int closeTimeoutSecs = 25;
 	private int heartbeatThreadPoolSize;
 	private int heartbeatTimeout;
@@ -70,18 +68,8 @@ public class SocketIORouter {
 		heartbeatHandler = new HeartbeatHandler(heartbeatThreadPoolSize, heartbeatTimeout, heartbeatInterval);
 		PacketListener packetListener = new PacketListener(socketIOHandler, this, heartbeatHandler);
 		xhrPollingTransport = new XHRPollingTransport(protocol, decoder, encoder, this, packetListener);
-		xhrPollingTransport.setDestroyBufferSize(destroyBufferSize);
 	}
 
-	/**
-	 * POST request content size limit
-	 * 
-	 * @param destroyBufferSize - limit in bytes
-	 */
-	public void setDestroyBufferSize(int destroyBufferSize) {
-		this.destroyBufferSize = destroyBufferSize;
-	}
-	
 	/**
 	 * Heartbeat interval
 	 * 
