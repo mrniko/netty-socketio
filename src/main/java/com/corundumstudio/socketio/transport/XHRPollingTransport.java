@@ -84,7 +84,7 @@ public class XHRPollingTransport implements SocketIOTransport {
         }
 	}
 	
-	private void onPost(QueryStringDecoder queryDecoder, Channel channel, HttpRequest msg) throws IOException {
+	private void onPost(QueryStringDecoder queryDecoder, Channel channel, HttpRequest msg) {
 		if (msg.getContent().readableBytes() >= destroyBufferSize) {
 			log.warn("Too big POST request: {} bytes, from ip: {}. Channel closed!", 
 					new Object[] {msg.getContent().readableBytes(), channel.getRemoteAddress()});
@@ -112,16 +112,20 @@ public class XHRPollingTransport implements SocketIOTransport {
 			
 			String content = msg.getContent().toString(CharsetUtil.UTF_8);
 			log.trace("Request content: {}", content);
-			List<Packet> packets = decoder.decodePayload(content);
-			for (Packet packet : packets) {
-				packetListener.onPacket(packet, client);
+			try {
+				List<Packet> packets = decoder.decodePayload(content);
+				for (Packet packet : packets) {
+					packetListener.onPacket(packet, client);
+				}
+			} catch (IOException e) {
+				
 			}
-            HttpHeaders.setKeepAlive(msg, false);
-
-            //send a response that allows for cross domain access
-            HttpResponse resp = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
-            resp.addHeader("Access-Control-Allow-Origin", "*");
-            sendHttpResponse(channel, msg, resp);
+			HttpHeaders.setKeepAlive(msg, false);
+			
+			//send a response that allows for cross domain access
+			HttpResponse resp = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
+			resp.addHeader("Access-Control-Allow-Origin", "*");
+			sendHttpResponse(channel, msg, resp);
 		} else {
 			log.warn("Wrong POST request path: {}, from ip: {}. Channel closed!", 
 					new Object[] {path, channel.getRemoteAddress()});
@@ -194,6 +198,7 @@ public class XHRPollingTransport implements SocketIOTransport {
 
 	public void disconnect(UUID sessionId) {
 		XHRPollingClient client = sessionId2Client.remove(sessionId);
+		client.send(new Packet(PacketType.DISCONNECT));
 		socketIORouter.disconnect(client);
 	}
 	

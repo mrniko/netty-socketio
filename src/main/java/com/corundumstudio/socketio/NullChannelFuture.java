@@ -96,4 +96,8 @@ public class NullChannelFuture implements ChannelFuture {
 		return true;
 	}
 
+	public ChannelFuture rethrowIfFailed() throws Exception {
+		return this;
+	}
+
 }
