@@ -76,12 +76,12 @@ public class XHRPollingClient implements SocketIOClient {
         if(!connected || messages.isEmpty()) {
         	return NullChannelFuture.INSTANCE;
         }
-    	String data = encoder.encodePayload(messages);
+    	CharSequence data = encoder.encodePayload(messages);
     	messages.clear();
         return write(data);
     }
 
-    private ChannelFuture write(String message) {
+    private ChannelFuture write(CharSequence message) {
         HttpResponse res = new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.OK);
 
         res.addHeader(CONTENT_TYPE, "text/plain; charset=UTF-8");
@@ -125,15 +125,14 @@ public class XHRPollingClient implements SocketIOClient {
 		}
     }
     
-    public ChannelFuture sendUnencoded(String message) {
+    public synchronized ChannelFuture sendUnencoded(String message) {
         messages.add(message);
         return sendPayload();
     }
 
 	public ChannelFuture sendJsonp(String message) {
 		jsonp = true;
-        messages.add(message);
-        return sendPayload();
+		return sendUnencoded(message);
 	}
 	
 	public void disconnect() {

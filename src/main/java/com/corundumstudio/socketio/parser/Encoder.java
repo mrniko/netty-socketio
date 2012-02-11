@@ -25,7 +25,7 @@ public class Encoder {
 		this.objectMapper = objectMapper;
 	}
 	
-	public String encodePayload(List<String> packets) {
+	public CharSequence encodePayload(List<String> packets) {
 		if (packets.size() == 1) {
 			return packets.get(0);
 		}
@@ -33,7 +33,7 @@ public class Encoder {
 		for (String packet : packets) {
 			result.append('\ufffd').append(packet.length()).append('\ufffd').append(packet);
 		}
-		return result.toString();
+		return result;
 	}
 
 	public String encodePacket(Packet packet) throws IOException {
@@ -91,12 +91,12 @@ public class Encoder {
 						errorData.append("+").append(adviceCode);
 					}
 				}
-				data = errorData.toString();
+				data = errorData;
 				break;
 				
 		}
 		
-		List<Object> params = new ArrayList<Object>();
+		List<Object> params = new ArrayList<Object>(4);
 		params.add(type);
 		if ("data".equals(ack)) {
 			params.add(id + "+");
@@ -114,7 +114,7 @@ public class Encoder {
 	private String join(String delimiter, List<Object> args) {
 		StringBuilder result = new StringBuilder();
 		for (Object arg : args) {
-			result.append(arg).append(":");
+			result.append(arg).append(delimiter);
 		}
 		return result.substring(0, result.length()-1);
 	}
