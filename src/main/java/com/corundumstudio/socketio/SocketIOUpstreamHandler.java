@@ -13,8 +13,6 @@ package com.corundumstudio.socketio;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class SocketIOUpstreamHandler extends SimpleChannelUpstreamHandler {
 

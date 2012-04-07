@@ -29,8 +29,8 @@ public class SocketIOServer {
 	private final Logger log = LoggerFactory.getLogger(getClass());
 	
 	private int heartbeatThreadPoolSize = 4;
-	private int heartbeatTimeout = 15;
-	private int heartbeatInterval = 20;
+	private int heartbeatTimeout = 60;
+	private int heartbeatInterval = 25;
 	private int bossThreadPoolSize = 8;
 	private int workerThreadPoolSize = 16;
 	
