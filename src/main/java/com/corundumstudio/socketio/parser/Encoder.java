@@ -31,7 +31,7 @@ public class Encoder {
 		}
 		StringBuilder result = new StringBuilder();
 		for (String packet : packets) {
-			result.append('\ufffd').append(packet.length()).append('\ufffd').append(packet);
+			result.append(Packet.DELIMITER).append(packet.length()).append(Packet.DELIMITER).append(packet);
 		}
 		return result;
 	}

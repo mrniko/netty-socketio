@@ -14,6 +14,7 @@ import java.util.List;
 
 public class Packet {
 
+	public static final char DELIMITER = '\ufffd';
 	public static final Packet NULL_INSTANCE = new Packet(null);
 	
 	private final PacketType type;

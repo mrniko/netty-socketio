@@ -32,12 +32,12 @@ public class Decoder {
 	
 	public List<Packet> decodePayload(String data) throws IOException {
 		List<Packet> result = new ArrayList<Packet>();
-		if (data.charAt(0) == '\ufffd') {
+		if (data.charAt(0) == Packet.DELIMITER) {
 			// TODO optimize
 			for (int i = 1; i < data.length(); i++) {
 				String length = "";
-				if (data.charAt(i) == '\ufffd') {
-					String packetStr = data.substring(i + 1).substring(0, Integer.valueOf(length));
+				if (data.charAt(i) == Packet.DELIMITER) {
+					String packetStr = data.substring(i + 1, Integer.valueOf(length));
 					Packet packet = decodePacket(packetStr);
 					result.add(packet);
 					i += Integer.valueOf(length) + 1;
