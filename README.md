@@ -1,6 +1,12 @@
-This project is inspired by https://github.com/ibdknox/socket.io-netty work.
-Supports 0.8.7+ version of socket.io-client https://github.com/LearnBoost/socket.io-client
-Currently it supports only xhr-polling transport.
+#Overview
+
+This project is an open-source Java implementation of [Socket.IO](http://repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-core/) server.
+Based on [Netty](http://netty.io/) server framework.
+
+### Features
+
+* Supports 0.7+ version of [Socket.IO-client](https://github.com/LearnBoost/socket.io-client) up to latest - 0.9.5
+* Supports xhr-polling transport
 
 #Usage example
 
