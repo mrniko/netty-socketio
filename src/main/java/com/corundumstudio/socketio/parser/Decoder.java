@@ -99,10 +99,8 @@ public class Decoder {
 			case EVENT:
 				Event event = objectMapper.readValue(data, Event.class);
 				packet.setName(event.getName());
-				packet.setArgs(event.getArgs());
-				if (packet.getArgs() == null) {
-					List<String> list = Collections.emptyList();
-					packet.setArgs(list);
+				if (event.getArgs() != null) {
+					packet.setArgs(event.getArgs());
 				}
 				break;
 				
@@ -120,11 +118,10 @@ public class Decoder {
 					Matcher ackMatcher = ackPattern.matcher(data);
 					if (ackMatcher.matches()) {
 						packet.setAckId(ackMatcher.group(1));
-						List<String> args = Collections.emptyList();
-						packet.setArgs(args);
-						String ackArgsJSON = extract(matcher, 3);
-						if (ackArgsJSON != null) {
-							args = objectMapper.readValue(ackArgsJSON, List.class);
+						String ackArgsJSON = extract(ackMatcher, 3);
+						if (ackArgsJSON != null && ackArgsJSON.trim().length() > 0) {
+							List<String> args = objectMapper.readValue(ackArgsJSON, List.class);
+							packet.setArgs(args);
 						}
 					}
 				}

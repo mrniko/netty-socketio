@@ -10,6 +10,7 @@
  */
 package com.corundumstudio.socketio.parser;
 
+import java.util.Collections;
 import java.util.List;
 
 public class Packet {
@@ -18,7 +19,7 @@ public class Packet {
 	public static final Packet NULL_INSTANCE = new Packet(null);
 	
 	private final PacketType type;
-	private List<String> args = null;
+	private List<String> args = Collections.emptyList();
 	private String qs;
 	private String ack;
 	private String ackId;
