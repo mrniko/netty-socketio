@@ -103,7 +103,7 @@ public class XHRPollingClient implements SocketIOClient {
         jsonp = false;
         origin = null;
 
-        if(channel.isOpen()) {
+        if(channel.isConnected()) {
         	log.trace("Sending message: {} to client with sessionId: {}", new Object[] {message, sessionId});
             ChannelFuture f = channel.write(res);
             if (!isKeepAlive || res.getStatus().getCode() != 200) {

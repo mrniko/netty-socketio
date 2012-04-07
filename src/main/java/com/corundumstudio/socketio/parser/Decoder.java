@@ -77,12 +77,14 @@ public class Decoder {
 		
 		switch (type) {
 			case ERROR:
-				String[] pieces = data.split("+");
-				ErrorReason reason = ErrorReason.valueOf(Integer.valueOf(pieces[0]));
-				packet.setReason(reason);
-				if (pieces.length > 1) {
-					ErrorAdvice advice = ErrorAdvice.valueOf(Integer.valueOf(pieces[1]));
-					packet.setAdvice(advice);
+				String[] pieces = data.split("\\+");
+				if (pieces.length > 0 && pieces[0].trim().length() > 0) {
+					ErrorReason reason = ErrorReason.valueOf(Integer.valueOf(pieces[0]));
+					packet.setReason(reason);
+					if (pieces.length > 1) {
+						ErrorAdvice advice = ErrorAdvice.valueOf(Integer.valueOf(pieces[1]));
+						packet.setAdvice(advice);
+					}
 				}
 				break;
 

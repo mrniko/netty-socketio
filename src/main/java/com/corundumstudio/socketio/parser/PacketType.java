@@ -25,12 +25,7 @@ public enum PacketType {
 	}
 	
 	public static PacketType valueOf(int value) {
-		for (PacketType packet : values()) {
-			if (packet.getValue() == value) {
-				return packet;
-			}
-		}
-		throw new RuntimeException("Can't find packet by code " + value);
+		return values()[value];
 	}
 
 	

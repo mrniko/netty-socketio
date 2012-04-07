@@ -12,6 +12,7 @@ package com.corundumstudio.socketio.parser;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import org.codehaus.jackson.map.ObjectMapper;
@@ -113,10 +114,14 @@ public class Encoder {
 	
 	private String join(String delimiter, List<Object> args) {
 		StringBuilder result = new StringBuilder();
-		for (Object arg : args) {
-			result.append(arg).append(delimiter);
+		for (Iterator<Object> iterator = args.iterator(); iterator.hasNext();) {
+			Object arg = iterator.next();
+			result.append(arg);
+			if (iterator.hasNext()) {
+				result.append(delimiter);
+			}
 		}
-		return result.substring(0, result.length()-1);
+		return result.toString();
 	}
 	
 }

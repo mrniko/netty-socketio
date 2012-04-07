@@ -25,12 +25,7 @@ public enum ErrorReason {
 	}
 	
 	public static ErrorReason valueOf(int value) {
-		for (ErrorReason packet : values()) {
-			if (packet.getValue() == value) {
-				return packet;
-			}
-		}
-		throw new RuntimeException("Can't find error reason by code " + value);
+		return values()[value];
 	}
 	
 }

@@ -25,12 +25,7 @@ public enum ErrorAdvice {
 	}
 	
 	public static ErrorAdvice valueOf(int value) {
-		for (ErrorAdvice packet : values()) {
-			if (packet.getValue() == value) {
-				return packet;
-			}
-		}
-		throw new RuntimeException("Can't find error advice by code " + value);
+		return values()[value];
 	}
 	
 }
