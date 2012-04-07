@@ -1,6 +1,6 @@
 #Overview
 
-This project is an open-source Java implementation of [Socket.IO](http://repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-core/) server. Based on [Netty](http://netty.io/) server framework.
+This project is an open-source Java implementation of [Socket.IO](http://socket.io/) server. Based on [Netty](http://netty.io/) server framework.
 
 Licensed under the MIT license.
 

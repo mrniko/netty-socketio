@@ -33,15 +33,17 @@ public class Decoder {
 		List<Packet> result = new ArrayList<Packet>();
 		if (data.charAt(0) == Packet.DELIMITER) {
 			// TODO optimize
+			StringBuilder length = new StringBuilder();
 			for (int i = 1; i < data.length(); i++) {
-				String length = "";
 				if (data.charAt(i) == Packet.DELIMITER) {
-					String packetStr = data.substring(i + 1, Integer.valueOf(length));
+					Integer len = Integer.valueOf(length.toString());
+					String packetStr = data.substring(i + 1, i + 1 + len);
 					Packet packet = decodePacket(packetStr);
 					result.add(packet);
-					i += Integer.valueOf(length) + 1;
+					i += len + 1;
+					length.setLength(0);
 				} else {
-					length += data.charAt(i);
+					length.append(data.charAt(i));
 				}
 			}
 		} else {
