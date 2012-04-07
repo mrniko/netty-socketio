@@ -79,7 +79,7 @@ public class XHRPollingTransport implements SocketIOTransport {
         }
 	}
 	
-	private void onPost(QueryStringDecoder queryDecoder, Channel channel, HttpRequest msg) {
+	private void onPost(QueryStringDecoder queryDecoder, Channel channel, HttpRequest req) {
 		String path = queryDecoder.getPath();
 		if (!path.startsWith(pollingPath)) {
 			log.warn("Wrong POST request path: {}, from ip: {}. Channel closed!", 
@@ -98,7 +98,7 @@ public class XHRPollingTransport implements SocketIOTransport {
 				return;
 			}
 			
-			String content = msg.getContent().toString(CharsetUtil.UTF_8);
+			String content = req.getContent().toString(CharsetUtil.UTF_8);
 			log.trace("Request content: {}", content);
 			try {
 				List<Packet> packets = decoder.decodePayload(content);
@@ -108,12 +108,16 @@ public class XHRPollingTransport implements SocketIOTransport {
 			} catch (IOException e) {
 				
 			}
-			HttpHeaders.setKeepAlive(msg, false);
+			HttpHeaders.setKeepAlive(req, false);
 			
 			//send a response that allows for cross domain access
 			HttpResponse resp = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
-			resp.addHeader("Access-Control-Allow-Origin", "*");
-			sendHttpResponse(channel, msg, resp);
+			String origin = req.getHeader(HttpHeaders.Names.ORIGIN);
+			if (origin != null) {
+				resp.addHeader("Access-Control-Allow-Origin", origin);
+				resp.addHeader("Access-Control-Allow-Credentials", "true");
+			}
+			sendHttpResponse(channel, req, resp);
 		} else {
 			log.warn("Wrong POST request path: {}, from ip: {}. Channel closed!", 
 					new Object[] {path, channel.getRemoteAddress()});
@@ -121,7 +125,7 @@ public class XHRPollingTransport implements SocketIOTransport {
 		}
 	}
 	
-	private void onGet(QueryStringDecoder queryDecoder, Channel channel, HttpRequest msg) throws IOException {
+	private void onGet(QueryStringDecoder queryDecoder, Channel channel, HttpRequest req) throws IOException {
 		String path = queryDecoder.getPath();
 		if (!path.startsWith(pollingPath)) {
 			log.warn("Wrong GET request path: {}, from ip: {}. Channel closed!", 
@@ -138,12 +142,12 @@ public class XHRPollingTransport implements SocketIOTransport {
 				if (client == null) {
 					client = createClient(sessionId);
 				}
-				client.doReconnect(channel, msg);
+				client.doReconnect(channel, req);
 				if (queryDecoder.getParameters().containsKey("disconnect")) {
 					disconnect(sessionId);
 				}
 			} else {
-				sendError(channel, msg, sessionId);
+				sendError(channel, req, sessionId);
 			}
 		} else {
 			log.warn("Wrong GET request path: {}, from ip: {}. Channel closed!", 
@@ -161,14 +165,14 @@ public class XHRPollingTransport implements SocketIOTransport {
 		return client;
 	}
 
-	private void sendError(Channel channel, HttpRequest msg, UUID sessionId) {
+	private void sendError(Channel channel, HttpRequest req, UUID sessionId) {
 		log.debug("Client with sessionId: {} was not found! Reconnect error response sended", sessionId);
 		XHRPollingClient client = new XHRPollingClient(encoder, socketIORouter, null);
 		Packet packet = new Packet(PacketType.ERROR);
 		packet.setReason(ErrorReason.CLIENT_NOT_HANDSHAKEN);
 		packet.setAdvice(ErrorAdvice.RECONNECT);
 		client.send(packet);
-		client.doReconnect(channel, msg);
+		client.doReconnect(channel, req);
 	}
 
     private void sendHttpResponse(Channel channel, HttpRequest req, HttpResponse res) {

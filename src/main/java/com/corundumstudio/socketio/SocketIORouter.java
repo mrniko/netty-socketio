@@ -138,10 +138,10 @@ public class SocketIORouter {
 		String transports = "xhr-polling";
 		String hs = sessionId + ":" + heartbeatTimeout + ":" + closeTimeoutSecs + ":" + transports;
 		
-		List<String> jsonp = params.get("jsonp");
-		if (jsonp != null) {
-			hs = "io.j[" + jsonp.get(0) + "](" + objectMapper.writeValueAsString(hs) + ");";
-			client.sendJsonp(hs);
+		List<String> jsonpParam = params.get("jsonp");
+		if (jsonpParam != null) {
+			String jsonpResponse = "io.j[" + jsonpParam.get(0) + "](" + objectMapper.writeValueAsString(hs) + ");";
+			client.sendJsonp(jsonpResponse);
 		} else {
 			client.sendUnencoded(hs);
 		}

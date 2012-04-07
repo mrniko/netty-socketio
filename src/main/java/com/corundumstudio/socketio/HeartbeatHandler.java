@@ -51,7 +51,7 @@ public class HeartbeatHandler {
 		}, heartbeatIntervalSecs, TimeUnit.SECONDS);
 	}
 
-	public void cancelHeartbeatCheck(final SocketIOClient client) {
+	public void cancelHeartbeatCheck(SocketIOClient client) {
 		Future<?> future = scheduledHeartbeatFutures.remove(client.getSessionId());
 		if (future != null) {
 			future.cancel(false);
@@ -62,16 +62,19 @@ public class HeartbeatHandler {
 		client.send(new Packet(PacketType.HEARTBEAT));
 		scheduleHeartbeatCheck(client.getSessionId(), new Runnable() {
 			public void run() {
-				client.disconnect();
-				UUID sessionId = client.getSessionId();
-				scheduledHeartbeatFutures.remove(sessionId);
-				log.debug("Client with sessionId: {} disconnected due to heartbeat timeout", sessionId);
+				try {
+					client.disconnect();
+				} finally {
+					UUID sessionId = client.getSessionId();
+					scheduledHeartbeatFutures.remove(sessionId);
+					log.debug("Client with sessionId: {} disconnected due to heartbeat timeout", sessionId);
+				}
 			}
 		});
 	}
 	
-	public void scheduleHeartbeatCheck(final UUID sessionId, Runnable runnable) {
-		Future<?> future = executorService.schedule(runnable, heartbeatTimeoutSecs+2, TimeUnit.SECONDS);
+	public void scheduleHeartbeatCheck(UUID sessionId, Runnable runnable) {
+		Future<?> future = executorService.schedule(runnable, heartbeatTimeoutSecs, TimeUnit.SECONDS);
 		scheduledHeartbeatFutures.put(sessionId, future);
 	}
 

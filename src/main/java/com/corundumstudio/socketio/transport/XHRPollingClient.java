@@ -10,9 +10,8 @@
  */
 package com.corundumstudio.socketio.transport;
 
-import static org.jboss.netty.handler.codec.http.HttpHeaders.isKeepAlive;
-import static org.jboss.netty.handler.codec.http.HttpHeaders.setContentLength;
-import static org.jboss.netty.handler.codec.http.HttpHeaders.Names.CONTENT_TYPE;
+import static org.jboss.netty.handler.codec.http.HttpHeaders.Names.*;
+import static org.jboss.netty.handler.codec.http.HttpHeaders.Values.*;
 import static org.jboss.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 
 import java.io.IOException;
@@ -26,6 +25,7 @@ import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelFuture;
 import org.jboss.netty.channel.ChannelFutureListener;
 import org.jboss.netty.handler.codec.http.DefaultHttpResponse;
+import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.HttpResponse;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
@@ -48,6 +48,7 @@ public class XHRPollingClient implements SocketIOClient {
 	private final List<String> messages = new LinkedList<String>();
 	private final UUID sessionId;
 
+	private String origin;
 	private boolean isKeepAlive;
 	private boolean connected;
 	private Channel channel;
@@ -66,13 +67,14 @@ public class XHRPollingClient implements SocketIOClient {
 	}
 	
     public void doReconnect(Channel channel, HttpRequest req) {
-    	isKeepAlive = isKeepAlive(req);
+    	this.isKeepAlive = HttpHeaders.isKeepAlive(req);
+    	this.origin = req.getHeader(HttpHeaders.Names.ORIGIN);
     	this.channel = channel;
         this.connected = true;
         sendPayload();
     }
 
-    private ChannelFuture sendPayload() {
+    private synchronized ChannelFuture sendPayload() {
         if(!connected || messages.isEmpty()) {
         	return NullChannelFuture.INSTANCE;
         }
@@ -85,19 +87,21 @@ public class XHRPollingClient implements SocketIOClient {
         HttpResponse res = new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.OK);
 
         res.addHeader(CONTENT_TYPE, "text/plain; charset=UTF-8");
-        res.addHeader("Access-Control-Allow-Origin", "*");
-        res.addHeader("Access-Control-Allow-Credentials", "true");
-        res.addHeader("Connection", "keep-alive");
+        res.addHeader(CONNECTION, KEEP_ALIVE);
+        if (origin != null) {
+        	res.addHeader("Access-Control-Allow-Origin", origin);
+        	res.addHeader("Access-Control-Allow-Credentials", "true");
+        }
         if (jsonp) {
-        	res.addHeader("Content-Type", "application/javascript");
+        	res.addHeader(CONTENT_TYPE, "application/javascript");
         }
 
         res.setContent(ChannelBuffers.copiedBuffer(message, CharsetUtil.UTF_8));
-        setContentLength(res, res.getContent().readableBytes());
-
+        HttpHeaders.setContentLength(res, res.getContent().readableBytes());
         
         connected = false;
         jsonp = false;
+        origin = null;
 
         if(channel.isOpen()) {
         	log.trace("Sending message: {} to client with sessionId: {}", new Object[] {message, sessionId});
