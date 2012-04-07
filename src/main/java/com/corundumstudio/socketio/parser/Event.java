@@ -15,15 +15,18 @@ import java.util.List;
 public class Event {
 
 	private String name;
-	private List<String> args;
+	private List<Object> args;
 	
-	public Event(String name, List<String> args) {
+	public Event() {
+	}
+	
+	public Event(String name, List<Object> args) {
 		super();
 		this.name = name;
 		this.args = args;
 	}
 	
-	public List<String> getArgs() {
+	public List<Object> getArgs() {
 		return args;
 	}
 	
