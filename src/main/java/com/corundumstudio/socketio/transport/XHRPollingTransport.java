@@ -79,7 +79,7 @@ public class XHRPollingTransport implements SocketIOTransport {
         }
 	}
 	
-	private void onPost(QueryStringDecoder queryDecoder, Channel channel, HttpRequest req) {
+	private void onPost(QueryStringDecoder queryDecoder, Channel channel, HttpRequest req) throws IOException {
 		String path = queryDecoder.getPath();
 		if (!path.startsWith(pollingPath)) {
 			log.warn("Wrong POST request path: {}, from ip: {}. Channel closed!", 
@@ -100,24 +100,13 @@ public class XHRPollingTransport implements SocketIOTransport {
 			
 			String content = req.getContent().toString(CharsetUtil.UTF_8);
 			log.trace("Request content: {}", content);
-			try {
-				List<Packet> packets = decoder.decodePayload(content);
-				for (Packet packet : packets) {
-					packetListener.onPacket(packet, client);
-				}
-			} catch (IOException e) {
-				
+			List<Packet> packets = decoder.decodePayload(content);
+			for (Packet packet : packets) {
+				packetListener.onPacket(packet, client);
 			}
 			HttpHeaders.setKeepAlive(req, false);
 			
-			//send a response that allows for cross domain access
-			HttpResponse resp = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
-			String origin = req.getHeader(HttpHeaders.Names.ORIGIN);
-			if (origin != null) {
-				resp.addHeader("Access-Control-Allow-Origin", origin);
-				resp.addHeader("Access-Control-Allow-Credentials", "true");
-			}
-			sendHttpResponse(channel, req, resp);
+			sendHttpResponse(channel, req);
 		} else {
 			log.warn("Wrong POST request path: {}, from ip: {}. Channel closed!", 
 					new Object[] {path, channel.getRemoteAddress()});
@@ -175,7 +164,14 @@ public class XHRPollingTransport implements SocketIOTransport {
 		client.doReconnect(channel, req);
 	}
 
-    private void sendHttpResponse(Channel channel, HttpRequest req, HttpResponse res) {
+    private void sendHttpResponse(Channel channel, HttpRequest req) {
+		HttpResponse res = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
+		String origin = req.getHeader(HttpHeaders.Names.ORIGIN);
+		if (origin != null) {
+			res.addHeader("Access-Control-Allow-Origin", origin);
+			res.addHeader("Access-Control-Allow-Credentials", "true");
+		}
+    	
         if (res.getStatus().getCode() != 200) {
             res.setContent(
                     ChannelBuffers.copiedBuffer(

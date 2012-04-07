@@ -6,7 +6,7 @@ Licensed under the MIT license.
 
 ### Features
 
-* Supports 0.7+ version of [Socket.IO-client](https://github.com/LearnBoost/socket.io-client) up to latest - 0.9.5
+* Supports 0.8+ version of [Socket.IO-client](https://github.com/LearnBoost/socket.io-client) up to latest - 0.9.5
 * Supports xhr-polling transport
 
 #Usage example
