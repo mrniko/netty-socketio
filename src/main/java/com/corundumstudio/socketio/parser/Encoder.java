@@ -67,7 +67,7 @@ public class Encoder {
 				
 			case ACK:
 				String dataStr = packet.getAckId();
-				if (packet.getArgs() != null) {
+				if (!packet.getArgs().isEmpty()) {
 					dataStr += "+" + objectMapper.writeValueAsString(packet.getArgs());
 				}
 				data = dataStr;

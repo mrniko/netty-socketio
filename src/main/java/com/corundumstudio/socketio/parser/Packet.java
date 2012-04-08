@@ -19,7 +19,7 @@ public class Packet {
 	public static final Packet NULL_INSTANCE = new Packet(null);
 	
 	private final PacketType type;
-	private List<Object> args = Collections.emptyList();
+	private List<?> args = Collections.emptyList();
 	private String qs;
 	private Object ack;
 	private String ackId;
@@ -75,10 +75,10 @@ public class Packet {
 		this.name = name;
 	}
 
-	public List<Object> getArgs() {
+	public List<?> getArgs() {
 		return args;
 	}
-	public void setArgs(List<Object> args) {
+	public void setArgs(List<?> args) {
 		this.args = args;
 	}
 
