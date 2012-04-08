@@ -41,7 +41,7 @@ public class Encoder {
 		int type = packet.getType().getValue();
 		String id = packet.getId();
 		String endpoint = packet.getEndpoint();
-		String ack = packet.getAck();
+		Object ack = packet.getAck();
 		Object data = packet.getData();
 		
 		switch(packet.getType()) {
@@ -83,16 +83,16 @@ public class Encoder {
 					adviceCode = packet.getAdvice().getValue();
 				}
 				
-				StringBuilder errorData = new StringBuilder();
 				if (reasonCode != -1 || adviceCode != -1) {
+					StringBuilder errorData = new StringBuilder();
 					if (reasonCode != -1) {
 						errorData.append(reasonCode);
 					}
 					if (adviceCode != -1) {
 						errorData.append("+").append(adviceCode);
 					}
+					data = errorData;
 				}
-				data = errorData;
 				break;
 				
 		}
