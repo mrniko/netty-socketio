@@ -31,5 +31,11 @@ public class DecoderConnectionPacketTest {
 		Assert.assertEquals("?test=1", packet.getQs());
 	}
 
+	@Test
+	public void testDecodeDisconnection() throws IOException {
+		Packet packet = decoder.decodePacket("0::/woot");
+		Assert.assertEquals(PacketType.DISCONNECT, packet.getType());
+		Assert.assertEquals("/woot", packet.getEndpoint());
+	}
 	
 }
