@@ -21,7 +21,7 @@ public class Packet {
 	private final PacketType type;
 	private List<Object> args = Collections.emptyList();
 	private String qs;
-	private String ack;
+	private Object ack;
 	private String ackId;
 	private String name;
 	private String id = "";
@@ -61,10 +61,10 @@ public class Packet {
 		this.id = id;
 	}
 	
-	public void setAck(String ack) {
+	public void setAck(Object ack) {
 		this.ack = ack;
 	}
-	public String getAck() {
+	public Object getAck() {
 		return ack;
 	}
 

@@ -12,6 +12,7 @@ package com.corundumstudio.socketio.parser;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -30,10 +31,13 @@ public class Decoder {
 	}
 	
 	public List<Packet> decodePayload(String data) throws IOException {
+		if (data.isEmpty()) {
+			return Collections.emptyList();
+		}
 		List<Packet> result = new ArrayList<Packet>();
 		if (data.charAt(0) == Packet.DELIMITER) {
-			// TODO optimize
-			StringBuilder length = new StringBuilder();
+			// TODO use ForkJoin
+			StringBuilder length = new StringBuilder(4);
 			for (int i = 1; i < data.length(); i++) {
 				if (data.charAt(i) == Packet.DELIMITER) {
 					Integer len = Integer.valueOf(length.toString());
@@ -72,7 +76,7 @@ public class Decoder {
 			if (ackData != null) {
 				packet.setAck("data");
 			} else {
-				packet.setAck(""); // TODO ack = true ?
+				packet.setAck(true);
 			}
 		}
 		
