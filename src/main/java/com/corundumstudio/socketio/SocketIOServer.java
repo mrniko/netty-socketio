@@ -14,6 +14,7 @@ import java.net.InetSocketAddress;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
+import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.jboss.netty.bootstrap.ServerBootstrap;
 import org.jboss.netty.channel.Channel;
@@ -43,6 +44,10 @@ public class SocketIOServer {
 	private String hostname;
 	private int port;
 
+	public SocketIOServer() {
+		objectMapper.setSerializationInclusion(JsonSerialize.Inclusion.NON_NULL);
+	}
+	
 	public void start() {
 		InternalLoggerFactory.setDefaultFactory(new Slf4JLoggerFactory());
 

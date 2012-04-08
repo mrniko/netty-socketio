@@ -61,7 +61,6 @@ public class SocketIORouter {
 		this.objectMapper = objectMapper;
 		encoder = new Encoder(objectMapper);
 		decoder = new Decoder(objectMapper);
-		
 	}
 	
 	public void start() {

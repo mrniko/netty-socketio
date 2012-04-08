@@ -53,7 +53,11 @@ public class Encoder {
 				break;
 		
 			case EVENT:
-				Event event = new Event(packet.getName(), packet.getArgs());
+				List<?> args = packet.getArgs();
+				if (args.isEmpty()) {
+					args = null;
+				}
+				Event event = new Event(packet.getName(), args);
 				data = objectMapper.writeValueAsString(event);
 				break;
 			

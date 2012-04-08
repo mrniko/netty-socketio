@@ -1,6 +1,7 @@
 package com.corundumstudio.socketio.parser;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -12,6 +13,7 @@ import org.junit.Test;
 public class PayloadTest {
 
 	private final Decoder decoder = new Decoder(new ObjectMapper());
+	private final Encoder encoder = new Encoder(new ObjectMapper());
 
 	//@Test
 	public void testPayloadDecodePerf() throws IOException {
@@ -36,6 +38,23 @@ public class PayloadTest {
 		Assert.assertEquals("53d", msg2.getData());
 		Packet msg3 = payload.get(2);
 		Assert.assertEquals(PacketType.DISCONNECT, msg3.getType());
+	}
+
+	@Test
+	public void testPayloadEncode() throws IOException {
+		Packet packet1 = new Packet(PacketType.MESSAGE);
+		packet1.setData("5");
+		Packet packet2 = new Packet(PacketType.MESSAGE);
+		packet2.setData("53d");
+		CharSequence result = encoder.encodePayload(Arrays.asList(encoder.encodePacket(packet1), encoder.encodePacket(packet2)));
+		Assert.assertEquals("\ufffd5\ufffd3:::5\ufffd7\ufffd3:::53d", result.toString());
+	}
+
+	@Test
+	public void testDecodingNewline() throws IOException {
+		Packet packet = decoder.decodePacket("3:::\n");
+		Assert.assertEquals(PacketType.MESSAGE, packet.getType());
+		Assert.assertEquals("\n", packet.getData());
 	}
 	
 }
