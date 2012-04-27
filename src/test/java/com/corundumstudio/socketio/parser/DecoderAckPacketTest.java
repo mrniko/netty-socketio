@@ -10,28 +10,27 @@ import org.junit.Test;
 
 public class DecoderAckPacketTest {
 
-	private final Decoder decoder = new Decoder(new ObjectMapper());
-	
-	@Test
-	public void testDecode() throws IOException {
-		Packet packet = decoder.decodePacket("6:::140");
-		Assert.assertEquals(PacketType.ACK, packet.getType());
-		Assert.assertEquals("140", packet.getAckId());
-		Assert.assertTrue(packet.getArgs().isEmpty());
-	}
+    private final Decoder decoder = new Decoder(new ObjectMapper());
 
-	@Test
-	public void testDecodeWithArgs() throws IOException {
-		Packet packet = decoder.decodePacket("6:::12+[\"woot\",\"wa\"]");
-		Assert.assertEquals(PacketType.ACK, packet.getType());
-		Assert.assertEquals("12", packet.getAckId());
-		Assert.assertEquals(Arrays.asList("woot", "wa"), packet.getArgs());
-	}
+    @Test
+    public void testDecode() throws IOException {
+        Packet packet = decoder.decodePacket("6:::140");
+        Assert.assertEquals(PacketType.ACK, packet.getType());
+        Assert.assertEquals("140", packet.getAckId());
+        Assert.assertTrue(packet.getArgs().isEmpty());
+    }
 
-	@Test(expected=JsonMappingException.class)
-	public void testDecodeWithBadJson() throws IOException {
-		decoder.decodePacket("6:::1+{\"++]");
-	}
+    @Test
+    public void testDecodeWithArgs() throws IOException {
+        Packet packet = decoder.decodePacket("6:::12+[\"woot\",\"wa\"]");
+        Assert.assertEquals(PacketType.ACK, packet.getType());
+        Assert.assertEquals("12", packet.getAckId());
+        Assert.assertEquals(Arrays.asList("woot", "wa"), packet.getArgs());
+    }
 
-	
+    @Test(expected = JsonMappingException.class)
+    public void testDecodeWithBadJson() throws IOException {
+        decoder.decodePacket("6:::1+{\"++]");
+    }
+
 }

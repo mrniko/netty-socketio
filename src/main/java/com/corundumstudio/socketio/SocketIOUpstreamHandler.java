@@ -16,15 +16,15 @@ import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
 
 public class SocketIOUpstreamHandler extends SimpleChannelUpstreamHandler {
 
-	private final SocketIORouter socketIORouter;
-	
-	public SocketIOUpstreamHandler(SocketIORouter socketIORouter) {
-		this.socketIORouter = socketIORouter;
-	}
-	
-	@Override
-	public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) throws Exception {
-		socketIORouter.messageReceived(ctx, e);
-	}
-	
+    private final SocketIORouter socketIORouter;
+
+    public SocketIOUpstreamHandler(SocketIORouter socketIORouter) {
+        this.socketIORouter = socketIORouter;
+    }
+
+    @Override
+    public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) throws Exception {
+        socketIORouter.messageReceived(ctx, e);
+    }
+
 }

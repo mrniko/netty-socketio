@@ -19,14 +19,14 @@ import com.corundumstudio.socketio.parser.Packet;
 
 public interface SocketIOClient {
 
-	UUID getSessionId();
+    UUID getSessionId();
 
-	ChannelFuture sendJsonObject(Object object);
-	
-	ChannelFuture send(Packet packet);
+    ChannelFuture sendJsonObject(Object object);
 
-	void disconnect();
-	
-	SocketAddress getRemoteAddress();
-	
+    ChannelFuture send(Packet packet);
+
+    void disconnect();
+
+    SocketAddress getRemoteAddress();
+
 }

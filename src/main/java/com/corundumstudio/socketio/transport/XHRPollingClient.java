@@ -42,44 +42,44 @@ import com.corundumstudio.socketio.parser.PacketType;
 
 public class XHRPollingClient implements SocketIOClient {
 
-	private final Logger log = LoggerFactory.getLogger(getClass());
-	
-	private boolean jsonp;
-	private final List<String> messages = new LinkedList<String>();
-	private final UUID sessionId;
+    private final Logger log = LoggerFactory.getLogger(getClass());
 
-	private String origin;
-	private boolean isKeepAlive;
-	private boolean connected;
-	private Channel channel;
-	
-	private final SocketIORouter socketIORouter;
-	private final Encoder encoder;
-	
-	public XHRPollingClient(Encoder encoder, SocketIORouter socketIORouter, UUID sessionId) {
-		this.encoder = encoder;
-		this.socketIORouter = socketIORouter;
-		this.sessionId = sessionId;
-	}
-	
-	public UUID getSessionId() {
-		return sessionId;
-	}
-	
+    private boolean jsonp;
+    private final List<String> messages = new LinkedList<String>();
+    private final UUID sessionId;
+
+    private String origin;
+    private boolean isKeepAlive;
+    private boolean connected;
+    private Channel channel;
+
+    private final SocketIORouter socketIORouter;
+    private final Encoder encoder;
+
+    public XHRPollingClient(Encoder encoder, SocketIORouter socketIORouter, UUID sessionId) {
+        this.encoder = encoder;
+        this.socketIORouter = socketIORouter;
+        this.sessionId = sessionId;
+    }
+
+    public UUID getSessionId() {
+        return sessionId;
+    }
+
     public void doReconnect(Channel channel, HttpRequest req) {
-    	this.isKeepAlive = HttpHeaders.isKeepAlive(req);
-    	this.origin = req.getHeader(HttpHeaders.Names.ORIGIN);
-    	this.channel = channel;
+        this.isKeepAlive = HttpHeaders.isKeepAlive(req);
+        this.origin = req.getHeader(HttpHeaders.Names.ORIGIN);
+        this.channel = channel;
         this.connected = true;
         sendPayload();
     }
 
     private synchronized ChannelFuture sendPayload() {
-        if(!connected || messages.isEmpty()) {
-        	return NullChannelFuture.INSTANCE;
+        if (!connected || messages.isEmpty()) {
+            return NullChannelFuture.INSTANCE;
         }
-    	CharSequence data = encoder.encodePayload(messages);
-    	messages.clear();
+        CharSequence data = encoder.encodePayload(messages);
+        messages.clear();
         return write(data);
     }
 
@@ -89,62 +89,62 @@ public class XHRPollingClient implements SocketIOClient {
         res.addHeader(CONTENT_TYPE, "text/plain; charset=UTF-8");
         res.addHeader(CONNECTION, KEEP_ALIVE);
         if (origin != null) {
-        	res.addHeader("Access-Control-Allow-Origin", origin);
-        	res.addHeader("Access-Control-Allow-Credentials", "true");
+            res.addHeader("Access-Control-Allow-Origin", origin);
+            res.addHeader("Access-Control-Allow-Credentials", "true");
         }
         if (jsonp) {
-        	res.addHeader(CONTENT_TYPE, "application/javascript");
+            res.addHeader(CONTENT_TYPE, "application/javascript");
         }
 
         res.setContent(ChannelBuffers.copiedBuffer(message, CharsetUtil.UTF_8));
         HttpHeaders.setContentLength(res, res.getContent().readableBytes());
-        
+
         connected = false;
         jsonp = false;
         origin = null;
 
-        if(channel.isConnected()) {
-        	log.trace("Sending message: {} to client with sessionId: {}", new Object[] {message, sessionId});
+        if (channel.isConnected()) {
+            log.trace("Sending message: {} to client with sessionId: {}", new Object[] {message, sessionId});
             ChannelFuture f = channel.write(res);
             if (!isKeepAlive || res.getStatus().getCode() != 200) {
                 f.addListener(ChannelFutureListener.CLOSE);
             }
             return f;
         }
-    	return NullChannelFuture.INSTANCE;
+        return NullChannelFuture.INSTANCE;
     }
 
     public ChannelFuture sendJsonObject(Object object) {
-		Packet packet = new Packet(PacketType.JSON);
-		packet.setData(object);
-		return send(packet);
+        Packet packet = new Packet(PacketType.JSON);
+        packet.setData(object);
+        return send(packet);
     }
-    
+
     public ChannelFuture send(Packet packet) {
-		try {
-			String message = encoder.encodePacket(packet);
-			return sendUnencoded(message);
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
+        try {
+            String message = encoder.encodePacket(packet);
+            return sendUnencoded(message);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
-    
+
     public synchronized ChannelFuture sendUnencoded(String message) {
         messages.add(message);
         return sendPayload();
     }
 
-	public ChannelFuture sendJsonp(String message) {
-		jsonp = true;
-		return sendUnencoded(message);
-	}
-	
-	public void disconnect() {
-		socketIORouter.disconnect(sessionId);
-	}
+    public ChannelFuture sendJsonp(String message) {
+        jsonp = true;
+        return sendUnencoded(message);
+    }
 
-	public SocketAddress getRemoteAddress() {
-		return channel.getRemoteAddress();
-	}
-	
+    public void disconnect() {
+        socketIORouter.disconnect(sessionId);
+    }
+
+    public SocketAddress getRemoteAddress() {
+        return channel.getRemoteAddress();
+    }
+
 }

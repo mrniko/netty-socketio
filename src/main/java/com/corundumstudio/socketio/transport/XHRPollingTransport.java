@@ -45,137 +45,140 @@ import com.corundumstudio.socketio.parser.PacketType;
 
 public class XHRPollingTransport implements SocketIOTransport {
 
-	private final Logger log = LoggerFactory.getLogger(getClass());
-	
-	private final Map<UUID, XHRPollingClient> sessionId2Client = new ConcurrentHashMap<UUID, XHRPollingClient>();
-	
-	private final SocketIORouter socketIORouter;
-	private final PacketListener packetListener;
-	private final Decoder decoder;
-	private final Encoder encoder;
-	private final String pollingPath;
-	
-	public XHRPollingTransport(int protocol, Decoder decoder, Encoder encoder, 
-			SocketIORouter socketIORouter, PacketListener packetListener) {
-		this.pollingPath = "/socket.io/" + protocol + "/xhr-polling/";
-		this.decoder = decoder;
-		this.encoder = encoder;
-		this.socketIORouter = socketIORouter;
-		this.packetListener = packetListener;
-	}
-	
-	public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) throws Exception {
+    private final Logger log = LoggerFactory.getLogger(getClass());
+
+    private final Map<UUID, XHRPollingClient> sessionId2Client = new ConcurrentHashMap<UUID, XHRPollingClient>();
+
+    private final SocketIORouter socketIORouter;
+    private final PacketListener packetListener;
+    private final Decoder decoder;
+    private final Encoder encoder;
+    private final String pollingPath;
+
+    public XHRPollingTransport(int protocol, Decoder decoder, Encoder encoder, SocketIORouter socketIORouter,
+            PacketListener packetListener) {
+        this.pollingPath = "/socket.io/" + protocol + "/xhr-polling/";
+        this.decoder = decoder;
+        this.encoder = encoder;
+        this.socketIORouter = socketIORouter;
+        this.packetListener = packetListener;
+    }
+
+    public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) throws Exception {
         Object msg = e.getMessage();
         if (msg instanceof HttpRequest) {
-        	HttpRequest req = (HttpRequest) msg;
-        	QueryStringDecoder queryDecoder = new QueryStringDecoder(req.getUri());
-        	
-        	Channel channel = ctx.getChannel();
-			if (HttpMethod.POST.equals(req.getMethod())) {
-        		onPost(queryDecoder, channel, req);
-        	} else if (HttpMethod.GET.equals(req.getMethod())) {
-        		onGet(queryDecoder, channel, req);
-        	}
+            HttpRequest req = (HttpRequest) msg;
+            QueryStringDecoder queryDecoder = new QueryStringDecoder(req.getUri());
+
+            Channel channel = ctx.getChannel();
+            if (HttpMethod.POST.equals(req.getMethod())) {
+                onPost(queryDecoder, channel, req);
+            } else if (HttpMethod.GET.equals(req.getMethod())) {
+                onGet(queryDecoder, channel, req);
+            }
         }
-	}
-	
-	private void onPost(QueryStringDecoder queryDecoder, Channel channel, HttpRequest req) throws IOException {
-		String path = queryDecoder.getPath();
-		if (!path.startsWith(pollingPath)) {
-			log.warn("Wrong POST request path: {}, from ip: {}. Channel closed!", 
-					new Object[] {path, channel.getRemoteAddress()});
-			channel.close();
-			return;
-		}
-		
-		String[] parts = path.split("/");
-		if (parts.length > 3) {
-			UUID sessionId = UUID.fromString(parts[4]);
-			XHRPollingClient client = sessionId2Client.get(sessionId);
-			if (client == null) {
-				log.debug("Client with sessionId: {} was already disconnected. Channel closed!", sessionId);
-				channel.close();
-				return;
-			}
-			
-			String content = req.getContent().toString(CharsetUtil.UTF_8);
-			log.trace("Request content: {}", content);
-			List<Packet> packets = decoder.decodePayload(content);
-			for (Packet packet : packets) {
-				packetListener.onPacket(packet, client);
-			}
-			HttpHeaders.setKeepAlive(req, false);
-			
-			sendHttpResponse(channel, req);
-		} else {
-			log.warn("Wrong POST request path: {}, from ip: {}. Channel closed!", 
-					new Object[] {path, channel.getRemoteAddress()});
-			channel.close();
-		}
-	}
-	
-	private void onGet(QueryStringDecoder queryDecoder, Channel channel, HttpRequest req) throws IOException {
-		String path = queryDecoder.getPath();
-		if (!path.startsWith(pollingPath)) {
-			log.warn("Wrong GET request path: {}, from ip: {}. Channel closed!", 
-					new Object[] {path, channel.getRemoteAddress()});
-			channel.close();
-			return;
-		}
-		
-		String[] parts = path.split("/");
-		if (parts.length > 3) {
-			UUID sessionId = UUID.fromString(parts[4]);
-			if (socketIORouter.isSessionAuthorized(sessionId)) {
-				XHRPollingClient client = sessionId2Client.get(sessionId);
-				if (client == null) {
-					client = createClient(sessionId);
-				}
-				client.doReconnect(channel, req);
-				if (queryDecoder.getParameters().containsKey("disconnect")) {
-					disconnect(sessionId);
-				}
-			} else {
-				sendError(channel, req, sessionId);
-			}
-		} else {
-			log.warn("Wrong GET request path: {}, from ip: {}. Channel closed!", 
-					new Object[] {path, channel.getRemoteAddress()});
-			channel.close();
-		}
-	}
+    }
 
-	private XHRPollingClient createClient(UUID sessionId) {
-		XHRPollingClient client = new XHRPollingClient(encoder, socketIORouter, sessionId);
-		sessionId2Client.put(sessionId, client);
+    private void onPost(QueryStringDecoder queryDecoder, Channel channel, HttpRequest req) throws IOException {
+        String path = queryDecoder.getPath();
+        if (!path.startsWith(pollingPath)) {
+            log.warn("Wrong POST request path: {}, from ip: {}. Channel closed!",
+                    new Object[] {path, channel.getRemoteAddress()});
+            channel.close();
+            return;
+        }
 
-		socketIORouter.connect(client);
-		log.debug("Client for sessionId: {} was created", sessionId);
-		return client;
-	}
+        String[] parts = path.split("/");
+        if (parts.length > 3) {
+            UUID sessionId = UUID.fromString(parts[4]);
+            XHRPollingClient client = sessionId2Client.get(sessionId);
+            if (client == null) {
+                log.debug("Client with sessionId: {} was already disconnected. Channel closed!", sessionId);
+                channel.close();
+                return;
+            }
 
-	private void sendError(Channel channel, HttpRequest req, UUID sessionId) {
-		log.debug("Client with sessionId: {} was not found! Reconnect error response sended", sessionId);
-		XHRPollingClient client = new XHRPollingClient(encoder, socketIORouter, null);
-		Packet packet = new Packet(PacketType.ERROR);
-		packet.setReason(ErrorReason.CLIENT_NOT_HANDSHAKEN);
-		packet.setAdvice(ErrorAdvice.RECONNECT);
-		client.send(packet);
-		client.doReconnect(channel, req);
-	}
+            String content = req.getContent().toString(CharsetUtil.UTF_8);
+            log.trace("Request content: {}", content);
+            List<Packet> packets = decoder.decodePayload(content);
+            for (Packet packet : packets) {
+                packetListener.onPacket(packet, client);
+            }
+            HttpHeaders.setKeepAlive(req, false);
+
+            sendHttpResponse(channel, req);
+        } else {
+            log.warn("Wrong POST request path: {}, from ip: {}. Channel closed!",
+                    new Object[] {path, channel.getRemoteAddress()});
+            channel.close();
+        }
+    }
+
+    private void onGet(QueryStringDecoder queryDecoder, Channel channel, HttpRequest req) throws IOException {
+        String path = queryDecoder.getPath();
+        if (!path.startsWith(pollingPath)) {
+            log.warn("Wrong GET request path: {}, from ip: {}. Channel closed!",
+                    new Object[] {path, channel.getRemoteAddress()});
+            channel.close();
+            return;
+        }
+
+        String[] parts = path.split("/");
+        if (parts.length > 3) {
+            UUID sessionId = UUID.fromString(parts[4]);
+            handleGetRequest(queryDecoder, channel, req, sessionId);
+        } else {
+            log.warn("Wrong GET request path: {}, from ip: {}. Channel closed!",
+                    new Object[] {path, channel.getRemoteAddress()});
+            channel.close();
+        }
+    }
+
+    private void handleGetRequest(QueryStringDecoder queryDecoder, Channel channel, HttpRequest req,
+            UUID sessionId) {
+        if (socketIORouter.isSessionAuthorized(sessionId)) {
+            XHRPollingClient client = sessionId2Client.get(sessionId);
+            if (client == null) {
+                client = createClient(sessionId);
+            }
+            client.doReconnect(channel, req);
+            if (queryDecoder.getParameters().containsKey("disconnect")) {
+                disconnect(sessionId);
+            }
+        } else {
+            sendError(channel, req, sessionId);
+        }
+    }
+
+    private XHRPollingClient createClient(UUID sessionId) {
+        XHRPollingClient client = new XHRPollingClient(encoder, socketIORouter, sessionId);
+        sessionId2Client.put(sessionId, client);
+
+        socketIORouter.connect(client);
+        log.debug("Client for sessionId: {} was created", sessionId);
+        return client;
+    }
+
+    private void sendError(Channel channel, HttpRequest req, UUID sessionId) {
+        log.debug("Client with sessionId: {} was not found! Reconnect error response sended", sessionId);
+        XHRPollingClient client = new XHRPollingClient(encoder, socketIORouter, null);
+        Packet packet = new Packet(PacketType.ERROR);
+        packet.setReason(ErrorReason.CLIENT_NOT_HANDSHAKEN);
+        packet.setAdvice(ErrorAdvice.RECONNECT);
+        client.send(packet);
+        client.doReconnect(channel, req);
+    }
 
     private void sendHttpResponse(Channel channel, HttpRequest req) {
-		HttpResponse res = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
-		String origin = req.getHeader(HttpHeaders.Names.ORIGIN);
-		if (origin != null) {
-			res.addHeader("Access-Control-Allow-Origin", origin);
-			res.addHeader("Access-Control-Allow-Credentials", "true");
-		}
-    	
+        HttpResponse res = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
+        String origin = req.getHeader(HttpHeaders.Names.ORIGIN);
+        if (origin != null) {
+            res.addHeader("Access-Control-Allow-Origin", origin);
+            res.addHeader("Access-Control-Allow-Credentials", "true");
+        }
+
         if (res.getStatus().getCode() != 200) {
-            res.setContent(
-                    ChannelBuffers.copiedBuffer(
-                        res.getStatus().toString(), CharsetUtil.UTF_8));
+            res.setContent(ChannelBuffers.copiedBuffer(res.getStatus().toString(), CharsetUtil.UTF_8));
             HttpHeaders.setContentLength(res, res.getContent().readableBytes());
         }
 
@@ -185,10 +188,10 @@ public class XHRPollingTransport implements SocketIOTransport {
         }
     }
 
-	public void disconnect(UUID sessionId) {
-		XHRPollingClient client = sessionId2Client.remove(sessionId);
-		client.send(new Packet(PacketType.DISCONNECT));
-		socketIORouter.disconnect(client);
-	}
-	
+    public void disconnect(UUID sessionId) {
+        XHRPollingClient client = sessionId2Client.remove(sessionId);
+        client.send(new Packet(PacketType.DISCONNECT));
+        socketIORouter.disconnect(client);
+    }
+
 }

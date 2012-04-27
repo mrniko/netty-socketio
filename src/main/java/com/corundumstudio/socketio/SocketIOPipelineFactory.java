@@ -28,7 +28,6 @@ public class SocketIOPipelineFactory implements ChannelPipelineFactory {
     }
 
     public ChannelPipeline getPipeline() throws Exception {
-        // Create a default pipeline implementation.
         ChannelPipeline pipeline = pipeline();
         pipeline.addLast("decoder", new HttpRequestDecoder());
         pipeline.addLast("aggregator", new HttpChunkAggregator(65536));
@@ -36,5 +35,5 @@ public class SocketIOPipelineFactory implements ChannelPipelineFactory {
         pipeline.addLast("handler", upstreamHandler);
         return pipeline;
     }
-	
+
 }

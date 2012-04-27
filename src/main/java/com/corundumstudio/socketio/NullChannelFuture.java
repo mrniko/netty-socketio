@@ -20,84 +20,83 @@ import org.slf4j.LoggerFactory;
 
 public class NullChannelFuture implements ChannelFuture {
 
-	public static final ChannelFuture INSTANCE = new NullChannelFuture();
-	
-	private final Logger log = LoggerFactory.getLogger(getClass());
-	
-	public Channel getChannel() {
-		throw new UnsupportedOperationException();
-	}
+    public static final ChannelFuture INSTANCE = new NullChannelFuture();
 
-	public boolean isDone() {
-		return true;
-	}
+    private final Logger log = LoggerFactory.getLogger(getClass());
 
-	public boolean isCancelled() {
-		return false;
-	}
+    public Channel getChannel() {
+        throw new UnsupportedOperationException();
+    }
 
-	public boolean isSuccess() {
-		return false;
-	}
+    public boolean isDone() {
+        return true;
+    }
 
-	public Throwable getCause() {
-		return null;
-	}
+    public boolean isCancelled() {
+        return false;
+    }
 
-	public boolean cancel() {
-		return false;
-	}
+    public boolean isSuccess() {
+        return false;
+    }
 
-	public boolean setSuccess() {
-		return false;
-	}
+    public Throwable getCause() {
+        return null;
+    }
 
-	public boolean setFailure(Throwable cause) {
-		return false;
-	}
+    public boolean cancel() {
+        return false;
+    }
 
-	public boolean setProgress(long amount, long current, long total) {
-		return false;
-	}
+    public boolean setSuccess() {
+        return false;
+    }
 
-	public void addListener(ChannelFutureListener listener) {
-		try {
-			listener.operationComplete(this);
-		} catch (Exception e) {
-			log.error("Can't execute ChannelFutureListener ", e);
-		}
-	}
+    public boolean setFailure(Throwable cause) {
+        return false;
+    }
 
-	public void removeListener(ChannelFutureListener listener) {
-	}
+    public boolean setProgress(long amount, long current, long total) {
+        return false;
+    }
 
-	public ChannelFuture await() throws InterruptedException {
-		return this;
-	}
+    public void addListener(ChannelFutureListener listener) {
+        try {
+            listener.operationComplete(this);
+        } catch (Exception e) {
+            log.error("Can't execute ChannelFutureListener ", e);
+        }
+    }
 
-	public ChannelFuture awaitUninterruptibly() {
-		return this;
-	}
+    public void removeListener(ChannelFutureListener listener) {
+    }
 
-	public boolean await(long timeout, TimeUnit unit)
-			throws InterruptedException {
-		return true;
-	}
+    public ChannelFuture await() throws InterruptedException {
+        return this;
+    }
 
-	public boolean await(long timeoutMillis) throws InterruptedException {
-		return true;
-	}
+    public ChannelFuture awaitUninterruptibly() {
+        return this;
+    }
 
-	public boolean awaitUninterruptibly(long timeout, TimeUnit unit) {
-		return true;
-	}
+    public boolean await(long timeout, TimeUnit unit) throws InterruptedException {
+        return true;
+    }
 
-	public boolean awaitUninterruptibly(long timeoutMillis) {
-		return true;
-	}
+    public boolean await(long timeoutMillis) throws InterruptedException {
+        return true;
+    }
 
-	public ChannelFuture rethrowIfFailed() throws Exception {
-		return this;
-	}
+    public boolean awaitUninterruptibly(long timeout, TimeUnit unit) {
+        return true;
+    }
+
+    public boolean awaitUninterruptibly(long timeoutMillis) {
+        return true;
+    }
+
+    public ChannelFuture rethrowIfFailed() throws Exception {
+        return this;
+    }
 
 }

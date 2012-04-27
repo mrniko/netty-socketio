@@ -53,6 +53,47 @@
                <forceRecheck>true</forceRecheck>
            </configuration>
        </plugin>
+
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-pmd-plugin</artifactId>
+          <version>2.7.1</version>
+          <executions>
+            <execution>
+              <phase>verify</phase>
+              <goals>
+                <goal>pmd</goal>
+                <goal>cpd</goal>
+              </goals>
+            </execution>
+          </executions>
+          <configuration>
+            <linkXref>true</linkXref>
+            <minimumTokens>100</minimumTokens>
+            <targetJdk>1.5</targetJdk>
+            <verbose>true</verbose>
+          </configuration>
+        </plugin>
+
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-checkstyle-plugin</artifactId>
+          <version>2.9.1</version>
+          <executions>
+            <execution>
+              <phase>verify</phase>
+              <goals>
+                <goal>checkstyle</goal>
+              </goals>
+            </execution>
+          </executions>
+          <configuration>
+            <consoleOutput>true</consoleOutput>
+            <enableRSS>false</enableRSS>
+            <configLocation>/checkstyle.xml</configLocation>
+          </configuration>
+        </plugin>
+
        <plugin>
          <artifactId>maven-compiler-plugin</artifactId>
          <version>2.3.2</version>

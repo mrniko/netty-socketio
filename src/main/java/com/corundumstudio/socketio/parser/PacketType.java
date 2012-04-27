@@ -12,21 +12,20 @@ package com.corundumstudio.socketio.parser;
 
 public enum PacketType {
 
-	DISCONNECT(0), CONNECT(1), HEARTBEAT(2), MESSAGE(3), JSON(4), EVENT(5), ACK(6), ERROR(7), NOOP(8);
-	
-	int value;
-	
-	PacketType(int value) {
-		this.value = value;
-	}
-	
-	public int getValue() {
-		return value;
-	}
-	
-	public static PacketType valueOf(int value) {
-		return values()[value];
-	}
+    DISCONNECT(0), CONNECT(1), HEARTBEAT(2), MESSAGE(3), JSON(4), EVENT(5), ACK(6), ERROR(7), NOOP(8);
 
-	
+    private int value;
+
+    PacketType(int value) {
+        this.value = value;
+    }
+
+    public int getValue() {
+        return value;
+    }
+
+    public static PacketType valueOf(int value) {
+        return values()[value];
+    }
+
 }

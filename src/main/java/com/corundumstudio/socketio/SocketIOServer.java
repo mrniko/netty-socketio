@@ -27,104 +27,107 @@ import org.slf4j.LoggerFactory;
 
 public class SocketIOServer {
 
-	private final Logger log = LoggerFactory.getLogger(getClass());
-	
-	private int heartbeatThreadPoolSize = 4;
-	private int heartbeatTimeout = 60;
-	private int heartbeatInterval = 25;
-	private int bossThreadPoolSize = 8;
-	private int workerThreadPoolSize = 16;
-	
-	private ServerBootstrap bootstrap;
-	private Channel mainChannel;
+    private final Logger log = LoggerFactory.getLogger(getClass());
 
-	private ObjectMapper objectMapper = new ObjectMapper();
-	private SocketIOListener listener;
-	private SocketIORouter socketIORouter;
-	private String hostname;
-	private int port;
+    private int heartbeatThreadPoolSize = 4;
+    private int heartbeatTimeout = 60;
+    private int heartbeatInterval = 25;
+    private int bossThreadPoolSize = 8;
+    private int workerThreadPoolSize = 16;
 
-	public SocketIOServer() {
-		objectMapper.setSerializationInclusion(JsonSerialize.Inclusion.NON_NULL);
-	}
-	
-	public void start() {
-		InternalLoggerFactory.setDefaultFactory(new Slf4JLoggerFactory());
+    private ServerBootstrap bootstrap;
+    private Channel mainChannel;
 
-		Executor bossExecutor = Executors.newFixedThreadPool(bossThreadPoolSize);
-		Executor workerExecutor = Executors.newFixedThreadPool(workerThreadPoolSize);
-		ChannelFactory factory = new NioServerSocketChannelFactory(bossExecutor, workerExecutor);
-		bootstrap = new ServerBootstrap(factory);
-		
-		socketIORouter = new SocketIORouter(listener, objectMapper);
-		socketIORouter.setHeartbeatInterval(heartbeatInterval);
-		socketIORouter.setHeartbeatTimeout(heartbeatTimeout);
-		socketIORouter.setHeartbeatThreadPoolSize(heartbeatThreadPoolSize);
-		socketIORouter.start();
-		
-		SocketIOUpstreamHandler upstreamHandler = new SocketIOUpstreamHandler(socketIORouter);
-		SocketIOPipelineFactory pipelineFactory = new SocketIOPipelineFactory(upstreamHandler);
-		bootstrap.setPipelineFactory(pipelineFactory);
-		bootstrap.setOption("child.tcpNoDelay", true);
-		bootstrap.setOption("child.keepAlive", true);
-		mainChannel = bootstrap.bind(new InetSocketAddress(hostname, port));
-		log.info("SocketIO server started at port: {}", port);
-	}
-	
-	public void setWorkerThreadPoolSize(int workerThreadPoolSize) {
-		this.workerThreadPoolSize = workerThreadPoolSize;
-	}
-	
-	public void setBossThreadPoolSize(int bossThreadPoolSize) {
-		this.bossThreadPoolSize = bossThreadPoolSize;
-	}
-	
-	/**
-	 * Heartbeat interval
-	 * 
-	 * @param value - time in seconds
-	 */
-	public void setHeartbeatInterval(int heartbeatIntervalSecs) {
-		this.heartbeatInterval = heartbeatIntervalSecs;
-	}
+    private ObjectMapper objectMapper = new ObjectMapper();
+    private SocketIOListener listener;
+    private SocketIORouter socketIORouter;
+    private String hostname;
+    private int port;
 
-	/**
-	 * Heartbeat timeout
-	 * 
-	 * @param value - time in seconds
-	 */
-	public void setHeartbeatTimeout(int heartbeatTimeoutSecs) {
-		this.heartbeatTimeout = heartbeatTimeoutSecs;
-	}
+    public SocketIOServer() {
+        objectMapper.setSerializationInclusion(JsonSerialize.Inclusion.NON_NULL);
+    }
 
-	/**
-	 * Heartbeat thread pool size
-	 * 
-	 * @param value - threads amount
-	 */
-	public void setHeartbeatThreadPoolSize(int heartbeatThreadPoolSize) {
-		this.heartbeatThreadPoolSize = heartbeatThreadPoolSize;
-	}
-	
-	public void stop() {
-		socketIORouter.stop();
-		bootstrap.releaseExternalResources();
-	}
+    public void start() {
+        InternalLoggerFactory.setDefaultFactory(new Slf4JLoggerFactory());
 
-	public void setHostname(String hostname) {
-		this.hostname = hostname;
-	}
+        Executor bossExecutor = Executors.newFixedThreadPool(bossThreadPoolSize);
+        Executor workerExecutor = Executors.newFixedThreadPool(workerThreadPoolSize);
+        ChannelFactory factory = new NioServerSocketChannelFactory(bossExecutor, workerExecutor);
+        bootstrap = new ServerBootstrap(factory);
 
-	public void setPort(int port) {
-		this.port = port;
-	}
-	
-	public void setListener(SocketIOListener socketIOHandler) {
-		this.listener = socketIOHandler;
-	}
-	
-	public void setObjectMapper(ObjectMapper objectMapper) {
-		this.objectMapper = objectMapper;
-	}
+        socketIORouter = new SocketIORouter(listener, objectMapper);
+        socketIORouter.setHeartbeatInterval(heartbeatInterval);
+        socketIORouter.setHeartbeatTimeout(heartbeatTimeout);
+        socketIORouter.setHeartbeatThreadPoolSize(heartbeatThreadPoolSize);
+        socketIORouter.start();
+
+        SocketIOUpstreamHandler upstreamHandler = new SocketIOUpstreamHandler(socketIORouter);
+        SocketIOPipelineFactory pipelineFactory = new SocketIOPipelineFactory(upstreamHandler);
+        bootstrap.setPipelineFactory(pipelineFactory);
+        bootstrap.setOption("child.tcpNoDelay", true);
+        bootstrap.setOption("child.keepAlive", true);
+        mainChannel = bootstrap.bind(new InetSocketAddress(hostname, port));
+        log.info("SocketIO server started at port: {}", port);
+    }
+
+    public void setWorkerThreadPoolSize(int workerThreadPoolSize) {
+        this.workerThreadPoolSize = workerThreadPoolSize;
+    }
+
+    public void setBossThreadPoolSize(int bossThreadPoolSize) {
+        this.bossThreadPoolSize = bossThreadPoolSize;
+    }
+
+    /**
+     * Heartbeat interval
+     *
+     * @param value
+     *            - time in seconds
+     */
+    public void setHeartbeatInterval(int heartbeatIntervalSecs) {
+        this.heartbeatInterval = heartbeatIntervalSecs;
+    }
+
+    /**
+     * Heartbeat timeout
+     *
+     * @param value
+     *            - time in seconds
+     */
+    public void setHeartbeatTimeout(int heartbeatTimeoutSecs) {
+        this.heartbeatTimeout = heartbeatTimeoutSecs;
+    }
+
+    /**
+     * Heartbeat thread pool size
+     *
+     * @param value
+     *            - threads amount
+     */
+    public void setHeartbeatThreadPoolSize(int heartbeatThreadPoolSize) {
+        this.heartbeatThreadPoolSize = heartbeatThreadPoolSize;
+    }
+
+    public void stop() {
+        socketIORouter.stop();
+        bootstrap.releaseExternalResources();
+    }
+
+    public void setHostname(String hostname) {
+        this.hostname = hostname;
+    }
+
+    public void setPort(int port) {
+        this.port = port;
+    }
+
+    public void setListener(SocketIOListener socketIOHandler) {
+        this.listener = socketIOHandler;
+    }
+
+    public void setObjectMapper(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+    }
 
 }

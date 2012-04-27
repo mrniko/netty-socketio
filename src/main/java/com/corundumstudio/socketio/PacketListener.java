@@ -18,37 +18,38 @@ import com.corundumstudio.socketio.transport.XHRPollingClient;
 
 public class PacketListener {
 
-	private final Logger log = LoggerFactory.getLogger(getClass());
-	
-	private final SocketIORouter socketIORouter;
-	private final HeartbeatHandler heartbeatHandler;
-	private final SocketIOListener socketIOHandler;
-	
-	public PacketListener(SocketIOListener socketIOHandler, SocketIORouter socketIORouter, HeartbeatHandler heartbeatHandler) {
-		this.socketIORouter = socketIORouter;
-		this.socketIOHandler = socketIOHandler;
-		this.heartbeatHandler = heartbeatHandler;
-	}		
+    private final Logger log = LoggerFactory.getLogger(getClass());
 
-	public void onPacket(Packet packet, XHRPollingClient client) {
-		switch (packet.getType()) {
-			case HEARTBEAT:
-				heartbeatHandler.onHeartbeat(client);
-				break;
-	
-			case MESSAGE:
-				socketIOHandler.onMessage(client, packet.getData().toString());
-				break;
-			
-			case JSON:
-				socketIOHandler.onJsonObject(client, packet.getData());
-				break;
-				
-			case DISCONNECT:
-				log.debug("Client with sessionId: {} disconnected by client request", client.getSessionId());
-				socketIORouter.disconnect(client.getSessionId());
-				break;
-		}
-	}
+    private final SocketIORouter socketIORouter;
+    private final HeartbeatHandler heartbeatHandler;
+    private final SocketIOListener socketIOHandler;
+
+    public PacketListener(SocketIOListener socketIOHandler, SocketIORouter socketIORouter,
+            HeartbeatHandler heartbeatHandler) {
+        this.socketIORouter = socketIORouter;
+        this.socketIOHandler = socketIOHandler;
+        this.heartbeatHandler = heartbeatHandler;
+    }
+
+    public void onPacket(Packet packet, XHRPollingClient client) {
+        switch (packet.getType()) {
+        case HEARTBEAT:
+            heartbeatHandler.onHeartbeat(client);
+            break;
+
+        case MESSAGE:
+            socketIOHandler.onMessage(client, packet.getData().toString());
+            break;
+
+        case JSON:
+            socketIOHandler.onJsonObject(client, packet.getData());
+            break;
+
+        case DISCONNECT:
+            log.debug("Client with sessionId: {} disconnected by client request", client.getSessionId());
+            socketIORouter.disconnect(client.getSessionId());
+            break;
+        }
+    }
 
 }

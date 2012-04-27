@@ -17,8 +17,8 @@ import org.jboss.netty.channel.MessageEvent;
 
 public interface SocketIOTransport {
 
-	void messageReceived(ChannelHandlerContext ctx, MessageEvent e) throws Exception;
-	
-	void disconnect(UUID sessionId);
-	
+    void messageReceived(ChannelHandlerContext ctx, MessageEvent e) throws Exception;
+
+    void disconnect(UUID sessionId);
+
 }

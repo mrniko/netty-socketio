@@ -14,24 +14,24 @@ import java.util.List;
 
 public class Event {
 
-	private String name;
-	private List<?> args;
-	
-	public Event() {
-	}
-	
-	public Event(String name, List<?> args) {
-		super();
-		this.name = name;
-		this.args = args;
-	}
-	
-	public List<?> getArgs() {
-		return args;
-	}
-	
-	public String getName() {
-		return name;
-	}
-	
+    private String name;
+    private List<?> args;
+
+    public Event() {
+    }
+
+    public Event(String name, List<?> args) {
+        super();
+        this.name = name;
+        this.args = args;
+    }
+
+    public List<?> getArgs() {
+        return args;
+    }
+
+    public String getName() {
+        return name;
+    }
+
 }

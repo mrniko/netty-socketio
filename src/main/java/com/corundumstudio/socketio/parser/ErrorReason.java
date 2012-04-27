@@ -12,20 +12,20 @@ package com.corundumstudio.socketio.parser;
 
 public enum ErrorReason {
 
-	TRANSPORT_NOT_SUPPORTED(0), CLIENT_NOT_HANDSHAKEN(1), UNAUTHORIZED(2);
-	
-	int value;
-	
-	ErrorReason(int value) {
-		this.value = value;
-	}
-	
-	public int getValue() {
-		return value;
-	}
-	
-	public static ErrorReason valueOf(int value) {
-		return values()[value];
-	}
-	
+    TRANSPORT_NOT_SUPPORTED(0), CLIENT_NOT_HANDSHAKEN(1), UNAUTHORIZED(2);
+
+    private int value;
+
+    ErrorReason(int value) {
+        this.value = value;
+    }
+
+    public int getValue() {
+        return value;
+    }
+
+    public static ErrorReason valueOf(int value) {
+        return values()[value];
+    }
+
 }

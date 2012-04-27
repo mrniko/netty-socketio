@@ -24,62 +24,61 @@ import org.slf4j.LoggerFactory;
 import com.corundumstudio.socketio.parser.Packet;
 import com.corundumstudio.socketio.parser.PacketType;
 
-
 public class HeartbeatHandler {
-	
-	private final Logger log = LoggerFactory.getLogger(getClass());
 
-	private final int heartbeatIntervalSecs;
-	private final int heartbeatTimeoutSecs;
-	
-	private final ScheduledExecutorService executorService;
-	private final Map<UUID, Future<?>> scheduledHeartbeatFutures = new ConcurrentHashMap<UUID, Future<?>>();
-	
-	public HeartbeatHandler(int threadPoolSize, int heartbeatTimeoutSecs, int heartbeatIntervalSecs) {
-		this.executorService = Executors.newScheduledThreadPool(threadPoolSize);
-		this.heartbeatIntervalSecs = heartbeatIntervalSecs;
-		this.heartbeatTimeoutSecs = heartbeatTimeoutSecs;
-	}
-	
-	public void onHeartbeat(final SocketIOClient client) {
-		cancelHeartbeatCheck(client);
-		
-		executorService.schedule(new Runnable() {
-			public void run() {
-				sendHeartbeat(client);
-			}
-		}, heartbeatIntervalSecs, TimeUnit.SECONDS);
-	}
+    private final Logger log = LoggerFactory.getLogger(getClass());
 
-	public void cancelHeartbeatCheck(SocketIOClient client) {
-		Future<?> future = scheduledHeartbeatFutures.remove(client.getSessionId());
-		if (future != null) {
-			future.cancel(false);
-		}
-	}
-	
-	public void sendHeartbeat(final SocketIOClient client) {
-		client.send(new Packet(PacketType.HEARTBEAT));
-		scheduleHeartbeatCheck(client.getSessionId(), new Runnable() {
-			public void run() {
-				try {
-					client.disconnect();
-				} finally {
-					UUID sessionId = client.getSessionId();
-					scheduledHeartbeatFutures.remove(sessionId);
-					log.debug("Client with sessionId: {} disconnected due to heartbeat timeout", sessionId);
-				}
-			}
-		});
-	}
-	
-	public void scheduleHeartbeatCheck(UUID sessionId, Runnable runnable) {
-		Future<?> future = executorService.schedule(runnable, heartbeatTimeoutSecs, TimeUnit.SECONDS);
-		scheduledHeartbeatFutures.put(sessionId, future);
-	}
+    private final int heartbeatIntervalSecs;
+    private final int heartbeatTimeoutSecs;
 
-	public void shutdown() {
-		executorService.shutdown();
-	}
-	
+    private final ScheduledExecutorService executorService;
+    private final Map<UUID, Future<?>> scheduledHeartbeatFutures = new ConcurrentHashMap<UUID, Future<?>>();
+
+    public HeartbeatHandler(int threadPoolSize, int heartbeatTimeoutSecs, int heartbeatIntervalSecs) {
+        this.executorService = Executors.newScheduledThreadPool(threadPoolSize);
+        this.heartbeatIntervalSecs = heartbeatIntervalSecs;
+        this.heartbeatTimeoutSecs = heartbeatTimeoutSecs;
+    }
+
+    public void onHeartbeat(final SocketIOClient client) {
+        cancelHeartbeatCheck(client);
+
+        executorService.schedule(new Runnable() {
+            public void run() {
+                sendHeartbeat(client);
+            }
+        }, heartbeatIntervalSecs, TimeUnit.SECONDS);
+    }
+
+    public void cancelHeartbeatCheck(SocketIOClient client) {
+        Future<?> future = scheduledHeartbeatFutures.remove(client.getSessionId());
+        if (future != null) {
+            future.cancel(false);
+        }
+    }
+
+    public void sendHeartbeat(final SocketIOClient client) {
+        client.send(new Packet(PacketType.HEARTBEAT));
+        scheduleHeartbeatCheck(client.getSessionId(), new Runnable() {
+            public void run() {
+                try {
+                    client.disconnect();
+                } finally {
+                    UUID sessionId = client.getSessionId();
+                    scheduledHeartbeatFutures.remove(sessionId);
+                    log.debug("Client with sessionId: {} disconnected due to heartbeat timeout", sessionId);
+                }
+            }
+        });
+    }
+
+    public void scheduleHeartbeatCheck(UUID sessionId, Runnable runnable) {
+        Future<?> future = executorService.schedule(runnable, heartbeatTimeoutSecs, TimeUnit.SECONDS);
+        scheduledHeartbeatFutures.put(sessionId, future);
+    }
+
+    public void shutdown() {
+        executorService.shutdown();
+    }
+
 }

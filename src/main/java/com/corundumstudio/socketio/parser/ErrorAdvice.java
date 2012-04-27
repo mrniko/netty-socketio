@@ -12,20 +12,20 @@ package com.corundumstudio.socketio.parser;
 
 public enum ErrorAdvice {
 
-	RECONNECT(0);
-	
-	int value;
-	
-	ErrorAdvice(int value) {
-		this.value = value;
-	}
-	
-	public int getValue() {
-		return value;
-	}
-	
-	public static ErrorAdvice valueOf(int value) {
-		return values()[value];
-	}
-	
+    RECONNECT(0);
+
+    private int value;
+
+    ErrorAdvice(int value) {
+        this.value = value;
+    }
+
+    public int getValue() {
+        return value;
+    }
+
+    public static ErrorAdvice valueOf(int value) {
+        return values()[value];
+    }
+
 }
