@@ -1,8 +1,9 @@
 #Overview
 
 This project is an open-source Java implementation of [Socket.IO](http://socket.io/) server. Based on [Netty](http://netty.io/) server framework.
+Required JDK 1.5 (or above).
 
-Licensed under the MIT license.
+Licensed under the Apache License 2.0.
 
 ### Features
 
