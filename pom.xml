@@ -104,6 +104,39 @@
            <showDeprecations>true</showDeprecations>
          </configuration>
        </plugin>
+       
+       <plugin>
+            <groupId>com.mycila.maven-license-plugin</groupId>
+            <artifactId>maven-license-plugin</artifactId>
+            <version>1.10.b1</version>
+            <configuration>
+                <basedir>${basedir}</basedir>
+                <header>${basedir}/header.txt</header>
+                <quiet>false</quiet>
+                <failIfMissing>true</failIfMissing>
+                <aggregate>false</aggregate>
+                <includes>
+                    <include>src/**</include>
+                </includes>
+                <excludes>
+                    <exclude>target/**</exclude>
+                </excludes>
+                <useDefaultExcludes>true</useDefaultExcludes>
+                <mapping>
+                    <java>JAVADOC_STYLE</java>
+                </mapping>
+                <strictCheck>true</strictCheck>
+                <useDefaultMapping>true</useDefaultMapping>
+                <encoding>UTF-8</encoding>
+            </configuration>
+            <executions>
+                <execution>
+                    <goals>
+                        <goal>check</goal>
+                    </goals>
+                </execution>
+            </executions>
+        </plugin>
   </plugins>
  </build>
 
