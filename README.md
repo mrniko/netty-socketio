@@ -12,26 +12,31 @@ Licensed under the Apache License 2.0.
 
 #Usage example
 
+##Server
+
 	SocketIOListener handler = new SocketIOListener() {
 
 		@Override
 		public void onMessage(SocketIOClient client, String message) {
-			System.out.println("onMessage: " + message);
+			...
 		}
 	
 		@Override
 		public void onDisconnect(SocketIOClient client) {
-			System.out.println("onDisconnect: " + client.getSessionId());
+			...
 		}
 	
 		@Override
 		public void onConnect(final SocketIOClient client) {
-			System.out.println("onConnect: " + client.getSessionId());
+			...
 		}
 
 		@Override
 		public void onJsonObject(SocketIOClient client, Object obj) {
-			System.out.println("onJsonObject: " + obj);
+			...
+                        SampleObject obj = new SampleObject();
+                        // send object to socket.io client
+                        client.sendJsonObject(obj);
 		}
 	};
 
@@ -47,3 +52,22 @@ Licensed under the Apache License 2.0.
 	...
 	
 	server.stop();
+
+##Client
+
+        <script type="text/javascript" src="socket.io.js" charset="utf-8"></script>
+
+        <script type="text/javascript">
+               var socket = io.connect('http://localhost:81', {
+                 'transports' : [ 'xhr-polling' ],
+                 'reconnection delay' : 2000,
+                 'force new connection' : true
+               });
+               socket.on('message', function(data) {
+                    // here is your handler on messages from server
+               });
+
+               // send json-object to server
+               var obj = ...
+               socket.json.send(obj);
+        </script>
