@@ -195,8 +195,10 @@ public class XHRPollingTransport implements SocketIOTransport {
 
     public void disconnect(UUID sessionId) {
         XHRPollingClient client = sessionId2Client.remove(sessionId);
-        client.send(new Packet(PacketType.DISCONNECT));
-        socketIORouter.disconnect(client);
+        if (client != null) {
+            client.send(new Packet(PacketType.DISCONNECT));
+            socketIORouter.disconnect(client);
+        }
     }
 
 }

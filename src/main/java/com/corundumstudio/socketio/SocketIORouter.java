@@ -48,6 +48,7 @@ public class SocketIORouter {
     private int heartbeatThreadPoolSize;
     private int heartbeatTimeout;
     private int heartbeatInterval;
+    private int heartbeatIntervalDiff;
 
     private final int protocol = 1;
     private final String connectPath = "/socket.io/" + protocol + "/";
@@ -70,9 +71,13 @@ public class SocketIORouter {
     }
 
     public void start() {
-        heartbeatHandler = new HeartbeatHandler(heartbeatThreadPoolSize, heartbeatTimeout, heartbeatInterval);
+        heartbeatHandler = new HeartbeatHandler(heartbeatThreadPoolSize, heartbeatTimeout, heartbeatInterval, heartbeatIntervalDiff);
         PacketListener packetListener = new PacketListener(socketIOHandler, this, heartbeatHandler);
         xhrPollingTransport = new XHRPollingTransport(protocol, decoder, encoder, this, packetListener);
+    }
+
+    public void setHeartbeatIntervalDiff(int heartbeatIntervalDiff) {
+        this.heartbeatIntervalDiff = heartbeatIntervalDiff;
     }
 
     /**

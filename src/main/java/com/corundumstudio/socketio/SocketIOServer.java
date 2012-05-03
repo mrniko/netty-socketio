@@ -19,14 +19,12 @@ import java.net.InetSocketAddress;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
-import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.jboss.netty.bootstrap.ServerBootstrap;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelFactory;
 import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
-import org.jboss.netty.logging.InternalLoggerFactory;
-import org.jboss.netty.logging.Slf4JLoggerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,6 +35,7 @@ public class SocketIOServer {
     private int heartbeatThreadPoolSize = 4;
     private int heartbeatTimeout = 60;
     private int heartbeatInterval = 25;
+    private int heartbeatIntervalDiff = 5;
     private int bossThreadPoolSize = 8;
     private int workerThreadPoolSize = 16;
 
@@ -54,8 +53,6 @@ public class SocketIOServer {
     }
 
     public void start() {
-        InternalLoggerFactory.setDefaultFactory(new Slf4JLoggerFactory());
-
         Executor bossExecutor = Executors.newFixedThreadPool(bossThreadPoolSize);
         Executor workerExecutor = Executors.newFixedThreadPool(workerThreadPoolSize);
         ChannelFactory factory = new NioServerSocketChannelFactory(bossExecutor, workerExecutor);
@@ -65,6 +62,7 @@ public class SocketIOServer {
         socketIORouter.setHeartbeatInterval(heartbeatInterval);
         socketIORouter.setHeartbeatTimeout(heartbeatTimeout);
         socketIORouter.setHeartbeatThreadPoolSize(heartbeatThreadPoolSize);
+        socketIORouter.setHeartbeatIntervalDiff(heartbeatIntervalDiff);
         socketIORouter.start();
 
         SocketIOUpstreamHandler upstreamHandler = new SocketIOUpstreamHandler(socketIORouter);
@@ -82,6 +80,16 @@ public class SocketIOServer {
 
     public void setBossThreadPoolSize(int bossThreadPoolSize) {
         this.bossThreadPoolSize = bossThreadPoolSize;
+    }
+
+    /**
+     * Heartbeat interval difference, because server should send response a little bit earlier
+     *
+     * @param value
+     *            - time in seconds
+     */
+    public void setHeartbeatIntervalDiff(int heartbeatIntervalDiff) {
+        this.heartbeatIntervalDiff = heartbeatIntervalDiff;
     }
 
     /**

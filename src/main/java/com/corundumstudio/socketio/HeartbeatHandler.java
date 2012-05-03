@@ -33,15 +33,19 @@ public class HeartbeatHandler {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
+    // 'heartbeatDiff' needed to send heartbeat reply before client timeout occures
+    // (because client heartbeat == server heartbeat,)
+    private final int heartbeatIntervalDiffSecs;
     private final int heartbeatIntervalSecs;
     private final int heartbeatTimeoutSecs;
 
     private final ScheduledExecutorService executorService;
     private final Map<UUID, Future<?>> scheduledHeartbeatFutures = new ConcurrentHashMap<UUID, Future<?>>();
 
-    public HeartbeatHandler(int threadPoolSize, int heartbeatTimeoutSecs, int heartbeatIntervalSecs) {
+    public HeartbeatHandler(int threadPoolSize, int heartbeatTimeoutSecs, int heartbeatIntervalSecs, int heartbeatIntervalDiffSecs) {
         this.executorService = Executors.newScheduledThreadPool(threadPoolSize);
         this.heartbeatIntervalSecs = heartbeatIntervalSecs;
+        this.heartbeatIntervalDiffSecs = heartbeatIntervalDiffSecs;
         this.heartbeatTimeoutSecs = heartbeatTimeoutSecs;
     }
 
@@ -52,7 +56,7 @@ public class HeartbeatHandler {
             public void run() {
                 sendHeartbeat(client);
             }
-        }, heartbeatIntervalSecs, TimeUnit.SECONDS);
+        }, heartbeatIntervalSecs-heartbeatIntervalDiffSecs, TimeUnit.SECONDS);
     }
 
     public void cancelHeartbeatCheck(SocketIOClient client) {
