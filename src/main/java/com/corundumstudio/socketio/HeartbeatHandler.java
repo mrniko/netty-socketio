@@ -21,6 +21,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
@@ -47,7 +48,7 @@ public class HeartbeatHandler {
             return;
         }
 
-        cancelHeartbeatCheck(client);
+        cancelClientHeartbeatCheck(client);
 
         executorService.schedule(new Runnable() {
             public void run() {
@@ -56,7 +57,7 @@ public class HeartbeatHandler {
         }, configuration.getHeartbeatInterval(), TimeUnit.SECONDS);
     }
 
-    public void cancelHeartbeatCheck(SocketIOClient client) {
+    public void cancelClientHeartbeatCheck(SocketIOClient client) {
         Future<?> future = scheduledHeartbeatFutures.remove(client.getSessionId());
         if (future != null) {
             future.cancel(false);
@@ -65,7 +66,7 @@ public class HeartbeatHandler {
 
     public void sendHeartbeat(final SocketIOClient client) {
         client.send(new Packet(PacketType.HEARTBEAT));
-        scheduleHeartbeatCheck(client.getSessionId(), new Runnable() {
+        scheduleClientHeartbeatCheck(client.getSessionId(), new Runnable() {
             public void run() {
                 try {
                     client.disconnect();
@@ -78,7 +79,7 @@ public class HeartbeatHandler {
         });
     }
 
-    public void scheduleHeartbeatCheck(UUID sessionId, Runnable runnable) {
+    public void scheduleClientHeartbeatCheck(UUID sessionId, Runnable runnable) {
         if (configuration.getHeartbeatTimeout() == 0) {
             return;
         }

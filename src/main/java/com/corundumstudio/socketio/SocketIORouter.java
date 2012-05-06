@@ -50,8 +50,7 @@ public class SocketIORouter {
     private final ObjectMapper objectMapper;
     private final Decoder decoder;
     private final Encoder encoder;
-    private final Set<UUID> authorizedSessionIds = Collections
-            .newSetFromMap(new ConcurrentHashMap<UUID, Boolean>());
+    private final Set<UUID> authorizedSessionIds = Collections.newSetFromMap(new ConcurrentHashMap<UUID, Boolean>());
 
     private final Configuration configuration;
     private final SocketIOListener socketIOHandler;
@@ -95,7 +94,8 @@ public class SocketIORouter {
     }
 
     public void connect(SocketIOClient client) {
-        heartbeatHandler.cancelHeartbeatCheck(client);
+        // cancel heartbeat check scheduled after 'authorize' method
+        heartbeatHandler.cancelClientHeartbeatCheck(client);
 
         client.send(new Packet(PacketType.CONNECT));
         heartbeatHandler.sendHeartbeat(client);
@@ -127,7 +127,7 @@ public class SocketIORouter {
         }
         client.doReconnect(channel, msg);
         log.debug("New sessionId: {} authorized", sessionId);
-        heartbeatHandler.scheduleHeartbeatCheck(sessionId, new Runnable() {
+        heartbeatHandler.scheduleClientHeartbeatCheck(sessionId, new Runnable() {
             public void run() {
                 authorizedSessionIds.remove(sessionId);
                 log.debug("Authorized sessionId: {} cleared due to connect timeout", sessionId);
