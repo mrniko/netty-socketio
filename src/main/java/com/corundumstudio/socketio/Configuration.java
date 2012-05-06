@@ -10,7 +10,7 @@ public class Configuration {
     private Executor bossExecutor = Executors.newCachedThreadPool();
     private Executor workerExecutor = Executors.newCachedThreadPool();
 
-    private int heartbeatThreadPoolSize = 4;
+    private int heartbeatThreadPoolSize = Runtime.getRuntime().availableProcessors() * 2;
     private int heartbeatTimeout = 60;
     private int heartbeatInterval = 25;
     private int closeTimeout = 60;

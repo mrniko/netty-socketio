@@ -40,15 +40,13 @@ Licensed under the Apache License 2.0.
 		}
 	};
 
-	SocketIOServer server = new SocketIOServer();
-	server.setHostname("localhost");
-	server.setPort(81);
-	server.setHeartbeatThreadPoolSize(8);
-	server.setWorkerThreadPoolSize(8);
-	server.setBossThreadPoolSize(4);
-	server.setListener(handler);
-	server.start();
+    Configuration config = new Configuration();
+    config.setHostname("localhost");
+    config.setPort(81);
+    config.setListener(handler);
 
+	SocketIOServer server = new SocketIOServer(config);
+	server.start();
 	...
 	
 	server.stop();
