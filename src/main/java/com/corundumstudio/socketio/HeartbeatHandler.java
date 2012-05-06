@@ -33,30 +33,27 @@ public class HeartbeatHandler {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    // 'heartbeatDiff' needed to send heartbeat reply before client timeout occures
-    // (because client heartbeat == server heartbeat,)
-    private final int heartbeatIntervalDiffSecs;
-    private final int heartbeatIntervalSecs;
-    private final int heartbeatTimeoutSecs;
-
-    private final ScheduledExecutorService executorService;
     private final Map<UUID, Future<?>> scheduledHeartbeatFutures = new ConcurrentHashMap<UUID, Future<?>>();
+    private final ScheduledExecutorService executorService;
+    private final Configuration configuration;
 
-    public HeartbeatHandler(int threadPoolSize, int heartbeatTimeoutSecs, int heartbeatIntervalSecs, int heartbeatIntervalDiffSecs) {
-        this.executorService = Executors.newScheduledThreadPool(threadPoolSize);
-        this.heartbeatIntervalSecs = heartbeatIntervalSecs;
-        this.heartbeatIntervalDiffSecs = heartbeatIntervalDiffSecs;
-        this.heartbeatTimeoutSecs = heartbeatTimeoutSecs;
+    public HeartbeatHandler(Configuration configuration) {
+        this.executorService = Executors.newScheduledThreadPool(configuration.getHeartbeatThreadPoolSize());
+        this.configuration = configuration;
     }
 
     public void onHeartbeat(final SocketIOClient client) {
+        if (configuration.getHeartbeatTimeout() == 0) {
+            return;
+        }
+
         cancelHeartbeatCheck(client);
 
         executorService.schedule(new Runnable() {
             public void run() {
                 sendHeartbeat(client);
             }
-        }, heartbeatIntervalSecs-heartbeatIntervalDiffSecs, TimeUnit.SECONDS);
+        }, configuration.getHeartbeatInterval(), TimeUnit.SECONDS);
     }
 
     public void cancelHeartbeatCheck(SocketIOClient client) {
@@ -82,7 +79,11 @@ public class HeartbeatHandler {
     }
 
     public void scheduleHeartbeatCheck(UUID sessionId, Runnable runnable) {
-        Future<?> future = executorService.schedule(runnable, heartbeatTimeoutSecs, TimeUnit.SECONDS);
+        if (configuration.getHeartbeatTimeout() == 0) {
+            return;
+        }
+
+        Future<?> future = executorService.schedule(runnable, configuration.getHeartbeatTimeout(), TimeUnit.SECONDS);
         scheduledHeartbeatFutures.put(sessionId, future);
     }
 

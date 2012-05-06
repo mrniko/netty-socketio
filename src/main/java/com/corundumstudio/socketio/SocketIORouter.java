@@ -44,12 +44,6 @@ public class SocketIORouter {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private int closeTimeoutSecs = 25;
-    private int heartbeatThreadPoolSize;
-    private int heartbeatTimeout;
-    private int heartbeatInterval;
-    private int heartbeatIntervalDiff;
-
     private final int protocol = 1;
     private final String connectPath = "/socket.io/" + protocol + "/";
 
@@ -59,55 +53,23 @@ public class SocketIORouter {
     private final Set<UUID> authorizedSessionIds = Collections
             .newSetFromMap(new ConcurrentHashMap<UUID, Boolean>());
 
-    private HeartbeatHandler heartbeatHandler;
+    private final Configuration configuration;
     private final SocketIOListener socketIOHandler;
+    private HeartbeatHandler heartbeatHandler;
     private XHRPollingTransport xhrPollingTransport;
 
-    public SocketIORouter(SocketIOListener socketIOHandler, ObjectMapper objectMapper) {
-        this.socketIOHandler = socketIOHandler;
-        this.objectMapper = objectMapper;
+    public SocketIORouter(Configuration configuration) {
+        this.configuration = configuration;
+        this.socketIOHandler = configuration.getListener();
+        this.objectMapper = configuration.getObjectMapper();
         encoder = new Encoder(objectMapper);
         decoder = new Decoder(objectMapper);
     }
 
     public void start() {
-        heartbeatHandler = new HeartbeatHandler(heartbeatThreadPoolSize, heartbeatTimeout, heartbeatInterval, heartbeatIntervalDiff);
+        heartbeatHandler = new HeartbeatHandler(configuration);
         PacketListener packetListener = new PacketListener(socketIOHandler, this, heartbeatHandler);
-        xhrPollingTransport = new XHRPollingTransport(protocol, decoder, encoder, this, packetListener);
-    }
-
-    public void setHeartbeatIntervalDiff(int heartbeatIntervalDiff) {
-        this.heartbeatIntervalDiff = heartbeatIntervalDiff;
-    }
-
-    /**
-     * Heartbeat interval
-     *
-     * @param value
-     *            - time in seconds
-     */
-    public void setHeartbeatInterval(int heartbeatIntervalSecs) {
-        this.heartbeatInterval = heartbeatIntervalSecs;
-    }
-
-    /**
-     * Heartbeat timeout
-     *
-     * @param value
-     *            - time in seconds
-     */
-    public void setHeartbeatTimeout(int heartbeatTimeoutSecs) {
-        this.heartbeatTimeout = heartbeatTimeoutSecs;
-    }
-
-    /**
-     * Heartbeat thread pool size
-     *
-     * @param value
-     *            - threads amount
-     */
-    public void setHeartbeatThreadPoolSize(int heartbeatThreadPoolSize) {
-        this.heartbeatThreadPoolSize = heartbeatThreadPoolSize;
+        xhrPollingTransport = new XHRPollingTransport(connectPath, decoder, encoder, this, packetListener);
     }
 
     public void stop() {
@@ -148,7 +110,12 @@ public class SocketIORouter {
         authorizedSessionIds.add(sessionId);
 
         String transports = "xhr-polling";
-        String hs = sessionId + ":" + heartbeatTimeout + ":" + closeTimeoutSecs + ":" + transports;
+        String heartbeatTimeoutVal = String.valueOf(configuration.getHeartbeatTimeout());
+        if (configuration.getHeartbeatTimeout() == 0) {
+            heartbeatTimeoutVal = "";
+        }
+
+        String hs = sessionId + ":" + heartbeatTimeoutVal + ":" + configuration.getCloseTimeout() + ":" + transports;
 
         List<String> jsonpParam = params.get("jsonp");
         if (jsonpParam != null) {

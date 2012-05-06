@@ -60,9 +60,9 @@ public class XHRPollingTransport implements SocketIOTransport {
     private final Encoder encoder;
     private final String pollingPath;
 
-    public XHRPollingTransport(int protocol, Decoder decoder, Encoder encoder, SocketIORouter socketIORouter,
-            PacketListener packetListener) {
-        this.pollingPath = "/socket.io/" + protocol + "/xhr-polling/";
+    public XHRPollingTransport(String connectPath, Decoder decoder, Encoder encoder,
+                                SocketIORouter socketIORouter, PacketListener packetListener) {
+        this.pollingPath = connectPath + "xhr-polling/";
         this.decoder = decoder;
         this.encoder = encoder;
         this.socketIORouter = socketIORouter;
@@ -142,8 +142,8 @@ public class XHRPollingTransport implements SocketIOTransport {
     private void handleGetRequest(QueryStringDecoder queryDecoder, Channel channel, HttpRequest req,
             UUID sessionId) {
         if (!socketIORouter.isSessionAuthorized(sessionId)) {
-        	sendError(channel, req, sessionId);
-        	return;
+            sendError(channel, req, sessionId);
+            return;
         }
         XHRPollingClient client = sessionId2Client.get(sessionId);
         if (client == null) {
