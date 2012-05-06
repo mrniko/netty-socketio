@@ -36,8 +36,6 @@ public class SocketIOServer {
     private int heartbeatTimeout = 60;
     private int heartbeatInterval = 25;
     private int heartbeatIntervalDiff = 5;
-    private int bossThreadPoolSize = 8;
-    private int workerThreadPoolSize = 16;
 
     private ServerBootstrap bootstrap;
     private Channel mainChannel;
@@ -48,13 +46,14 @@ public class SocketIOServer {
     private String hostname;
     private int port;
 
+    private Executor bossExecutor = Executors.newCachedThreadPool();
+    private Executor workerExecutor = Executors.newCachedThreadPool();
+
     public SocketIOServer() {
         objectMapper.setSerializationInclusion(JsonSerialize.Inclusion.NON_NULL);
     }
 
     public void start() {
-        Executor bossExecutor = Executors.newFixedThreadPool(bossThreadPoolSize);
-        Executor workerExecutor = Executors.newFixedThreadPool(workerThreadPoolSize);
         ChannelFactory factory = new NioServerSocketChannelFactory(bossExecutor, workerExecutor);
         bootstrap = new ServerBootstrap(factory);
 
@@ -74,12 +73,12 @@ public class SocketIOServer {
         log.info("SocketIO server started at port: {}", port);
     }
 
-    public void setWorkerThreadPoolSize(int workerThreadPoolSize) {
-        this.workerThreadPoolSize = workerThreadPoolSize;
+    public void setBossExecutor(Executor bossExecutor) {
+        this.bossExecutor = bossExecutor;
     }
 
-    public void setBossThreadPoolSize(int bossThreadPoolSize) {
-        this.bossThreadPoolSize = bossThreadPoolSize;
+    public void setWorkerExecutor(Executor workerExecutor) {
+        this.workerExecutor = workerExecutor;
     }
 
     /**
