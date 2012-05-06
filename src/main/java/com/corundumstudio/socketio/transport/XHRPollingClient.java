@@ -25,15 +25,19 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
 
+import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelFuture;
 import org.jboss.netty.channel.ChannelFutureListener;
+import org.jboss.netty.channel.Channels;
+import org.jboss.netty.handler.codec.http.DefaultHttpChunk;
 import org.jboss.netty.handler.codec.http.DefaultHttpResponse;
 import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.HttpResponse;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
+import org.jboss.netty.handler.codec.http.HttpVersion;
 import org.jboss.netty.util.CharsetUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -89,20 +93,11 @@ public class XHRPollingClient implements SocketIOClient {
     }
 
     private ChannelFuture write(CharSequence message) {
-        HttpResponse res = new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.OK);
+		HttpResponse res = new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.OK);
+		addHeaders(res);
 
-        res.addHeader(CONTENT_TYPE, "text/plain; charset=UTF-8");
-        res.addHeader(CONNECTION, KEEP_ALIVE);
-        if (origin != null) {
-            res.addHeader("Access-Control-Allow-Origin", origin);
-            res.addHeader("Access-Control-Allow-Credentials", "true");
-        }
-        if (jsonp) {
-            res.addHeader(CONTENT_TYPE, "application/javascript");
-        }
-
-        res.setContent(ChannelBuffers.copiedBuffer(message, CharsetUtil.UTF_8));
-        HttpHeaders.setContentLength(res, res.getContent().readableBytes());
+		res.setContent(ChannelBuffers.copiedBuffer(message, CharsetUtil.UTF_8));
+		HttpHeaders.setContentLength(res, res.getContent().readableBytes());
 
         connected = false;
         jsonp = false;
@@ -111,13 +106,25 @@ public class XHRPollingClient implements SocketIOClient {
         if (channel.isConnected()) {
             log.trace("Sending message: {} to client with sessionId: {}", new Object[] {message, sessionId});
             ChannelFuture f = channel.write(res);
-            if (!isKeepAlive || res.getStatus().getCode() != 200) {
+            if (!isKeepAlive) {
                 f.addListener(ChannelFutureListener.CLOSE);
             }
             return f;
         }
         return NullChannelFuture.INSTANCE;
     }
+
+	private void addHeaders(HttpResponse res) {
+		res.addHeader(CONTENT_TYPE, "text/plain; charset=UTF-8");
+        res.addHeader(CONNECTION, KEEP_ALIVE);
+        if (origin != null) {
+            res.addHeader("Access-Control-Allow-Origin", origin);
+            res.addHeader("Access-Control-Allow-Credentials", "true");
+        }
+        if (jsonp) {
+            res.addHeader(CONTENT_TYPE, "application/javascript");
+        }
+	}
 
     public ChannelFuture sendJsonObject(Object object) {
         Packet packet = new Packet(PacketType.JSON);

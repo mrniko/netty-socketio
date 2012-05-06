@@ -141,17 +141,17 @@ public class XHRPollingTransport implements SocketIOTransport {
 
     private void handleGetRequest(QueryStringDecoder queryDecoder, Channel channel, HttpRequest req,
             UUID sessionId) {
-        if (socketIORouter.isSessionAuthorized(sessionId)) {
-            XHRPollingClient client = sessionId2Client.get(sessionId);
-            if (client == null) {
-                client = createClient(sessionId);
-            }
-            client.doReconnect(channel, req);
-            if (queryDecoder.getParameters().containsKey("disconnect")) {
-                disconnect(sessionId);
-            }
-        } else {
-            sendError(channel, req, sessionId);
+        if (!socketIORouter.isSessionAuthorized(sessionId)) {
+        	sendError(channel, req, sessionId);
+        	return;
+        }
+        XHRPollingClient client = sessionId2Client.get(sessionId);
+        if (client == null) {
+            client = createClient(sessionId);
+        }
+        client.doReconnect(channel, req);
+        if (queryDecoder.getParameters().containsKey("disconnect")) {
+            disconnect(sessionId);
         }
     }
 
