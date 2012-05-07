@@ -20,9 +20,13 @@ import java.util.UUID;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.MessageEvent;
 
+import com.corundumstudio.socketio.SocketIOClient;
+
 public interface SocketIOTransport {
 
     void messageReceived(ChannelHandlerContext ctx, MessageEvent e) throws Exception;
+
+    void onDisconnect(SocketIOClient client);
 
     void disconnect(UUID sessionId);
 

@@ -40,6 +40,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.corundumstudio.socketio.PacketListener;
+import com.corundumstudio.socketio.SocketIOClient;
 import com.corundumstudio.socketio.SocketIORouter;
 import com.corundumstudio.socketio.parser.Decoder;
 import com.corundumstudio.socketio.parser.Encoder;
@@ -58,11 +59,11 @@ public class XHRPollingTransport implements SocketIOTransport {
     private final PacketListener packetListener;
     private final Decoder decoder;
     private final Encoder encoder;
-    private final String pollingPath;
+    private final String path;
 
     public XHRPollingTransport(String connectPath, Decoder decoder, Encoder encoder,
                                 SocketIORouter socketIORouter, PacketListener packetListener) {
-        this.pollingPath = connectPath + "xhr-polling/";
+        this.path = connectPath + "xhr-polling/";
         this.decoder = decoder;
         this.encoder = encoder;
         this.socketIORouter = socketIORouter;
@@ -86,7 +87,7 @@ public class XHRPollingTransport implements SocketIOTransport {
 
     private void onPost(QueryStringDecoder queryDecoder, Channel channel, HttpRequest req) throws IOException {
         String path = queryDecoder.getPath();
-        if (!path.startsWith(pollingPath)) {
+        if (!path.startsWith(path)) {
             log.warn("Wrong POST request path: {}, from ip: {}. Channel closed!",
                     new Object[] {path, channel.getRemoteAddress()});
             channel.close();
@@ -104,7 +105,7 @@ public class XHRPollingTransport implements SocketIOTransport {
             }
 
             String content = req.getContent().toString(CharsetUtil.UTF_8);
-            log.trace("Request content: {}", content);
+            log.trace("In message: {} sessionId: {}", new Object[] {content, sessionId});
             List<Packet> packets = decoder.decodePayload(content);
             for (Packet packet : packets) {
                 packetListener.onPacket(packet, client);
@@ -121,10 +122,7 @@ public class XHRPollingTransport implements SocketIOTransport {
 
     private void onGet(QueryStringDecoder queryDecoder, Channel channel, HttpRequest req) throws IOException {
         String path = queryDecoder.getPath();
-        if (!path.startsWith(pollingPath)) {
-            log.warn("Wrong GET request path: {}, from ip: {}. Channel closed!",
-                    new Object[] {path, channel.getRemoteAddress()});
-            channel.close();
+        if (!path.startsWith(this.path)) {
             return;
         }
 
@@ -199,6 +197,11 @@ public class XHRPollingTransport implements SocketIOTransport {
             client.send(new Packet(PacketType.DISCONNECT));
             socketIORouter.disconnect(client);
         }
+    }
+
+    @Override
+    public void onDisconnect(SocketIOClient client) {
+        sessionId2Client.remove(client.getSessionId());
     }
 
 }

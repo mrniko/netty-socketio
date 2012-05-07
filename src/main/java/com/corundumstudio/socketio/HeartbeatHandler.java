@@ -21,7 +21,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
@@ -44,10 +43,6 @@ public class HeartbeatHandler {
     }
 
     public void onHeartbeat(final SocketIOClient client) {
-        if (configuration.getHeartbeatTimeout() == 0) {
-            return;
-        }
-
         cancelClientHeartbeatCheck(client);
 
         executorService.schedule(new Runnable() {
@@ -57,16 +52,20 @@ public class HeartbeatHandler {
         }, configuration.getHeartbeatInterval(), TimeUnit.SECONDS);
     }
 
-    public void cancelClientHeartbeatCheck(SocketIOClient client) {
+    public void sendHeartbeat(SocketIOClient client) {
+        client.send(new Packet(PacketType.HEARTBEAT));
+        scheduleClientHeartbeatCheck(client);
+    }
+
+    private void cancelClientHeartbeatCheck(SocketIOClient client) {
         Future<?> future = scheduledHeartbeatFutures.remove(client.getSessionId());
         if (future != null) {
             future.cancel(false);
         }
     }
 
-    public void sendHeartbeat(final SocketIOClient client) {
-        client.send(new Packet(PacketType.HEARTBEAT));
-        scheduleClientHeartbeatCheck(client.getSessionId(), new Runnable() {
+    private void scheduleClientHeartbeatCheck(final SocketIOClient client) {
+        Future<?> future = executorService.schedule(new Runnable() {
             public void run() {
                 try {
                     client.disconnect();
@@ -76,16 +75,8 @@ public class HeartbeatHandler {
                     log.debug("Client with sessionId: {} disconnected due to heartbeat timeout", sessionId);
                 }
             }
-        });
-    }
-
-    public void scheduleClientHeartbeatCheck(UUID sessionId, Runnable runnable) {
-        if (configuration.getHeartbeatTimeout() == 0) {
-            return;
-        }
-
-        Future<?> future = executorService.schedule(runnable, configuration.getHeartbeatTimeout(), TimeUnit.SECONDS);
-        scheduledHeartbeatFutures.put(sessionId, future);
+        }, configuration.getHeartbeatTimeout(), TimeUnit.SECONDS);
+        scheduledHeartbeatFutures.put(client.getSessionId(), future);
     }
 
     public void shutdown() {

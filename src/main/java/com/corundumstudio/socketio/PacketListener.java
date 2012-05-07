@@ -15,15 +15,9 @@
  */
 package com.corundumstudio.socketio;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.corundumstudio.socketio.parser.Packet;
-import com.corundumstudio.socketio.transport.XHRPollingClient;
 
 public class PacketListener {
-
-    private final Logger log = LoggerFactory.getLogger(getClass());
 
     private final SocketIORouter socketIORouter;
     private final HeartbeatHandler heartbeatHandler;
@@ -36,7 +30,7 @@ public class PacketListener {
         this.heartbeatHandler = heartbeatHandler;
     }
 
-    public void onPacket(Packet packet, XHRPollingClient client) {
+    public void onPacket(Packet packet, SocketIOClient client) {
         switch (packet.getType()) {
         case HEARTBEAT:
             heartbeatHandler.onHeartbeat(client);
@@ -51,8 +45,7 @@ public class PacketListener {
             break;
 
         case DISCONNECT:
-            log.debug("Client with sessionId: {} disconnected by client request", client.getSessionId());
-            socketIORouter.disconnect(client.getSessionId());
+            socketIORouter.onDisconnect(client);
             break;
         }
     }

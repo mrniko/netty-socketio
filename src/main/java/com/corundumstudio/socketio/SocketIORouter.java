@@ -17,8 +17,10 @@ package com.corundumstudio.socketio;
 
 import java.io.IOException;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -37,6 +39,9 @@ import com.corundumstudio.socketio.parser.Decoder;
 import com.corundumstudio.socketio.parser.Encoder;
 import com.corundumstudio.socketio.parser.Packet;
 import com.corundumstudio.socketio.parser.PacketType;
+import com.corundumstudio.socketio.transport.SocketIOTransport;
+import com.corundumstudio.socketio.transport.WebSocketClient;
+import com.corundumstudio.socketio.transport.WebSocketTransport;
 import com.corundumstudio.socketio.transport.XHRPollingClient;
 import com.corundumstudio.socketio.transport.XHRPollingTransport;
 
@@ -44,18 +49,25 @@ public class SocketIORouter {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
+    // 'UUID' to 'timestamp' mapping
+    // this map will be always smaller than 'connectedSessionIds'
+    private final Map<UUID, Long> authorizedSessionIds = new ConcurrentHashMap<UUID, Long>();
+    private final Set<UUID> connectedSessionIds = Collections.newSetFromMap(new ConcurrentHashMap<UUID, Boolean>());
+
     private final int protocol = 1;
     private final String connectPath = "/socket.io/" + protocol + "/";
 
     private final ObjectMapper objectMapper;
     private final Decoder decoder;
     private final Encoder encoder;
-    private final Set<UUID> authorizedSessionIds = Collections.newSetFromMap(new ConcurrentHashMap<UUID, Boolean>());
 
     private final Configuration configuration;
     private final SocketIOListener socketIOHandler;
+
     private HeartbeatHandler heartbeatHandler;
-    private XHRPollingTransport xhrPollingTransport;
+
+    private SocketIOTransport xhrPollingTransport;
+    private SocketIOTransport webSocketTransport;
 
     public SocketIORouter(Configuration configuration) {
         this.configuration = configuration;
@@ -69,6 +81,7 @@ public class SocketIORouter {
         heartbeatHandler = new HeartbeatHandler(configuration);
         PacketListener packetListener = new PacketListener(socketIOHandler, this, heartbeatHandler);
         xhrPollingTransport = new XHRPollingTransport(connectPath, decoder, encoder, this, packetListener);
+        webSocketTransport = new WebSocketTransport(connectPath, decoder, encoder, this, packetListener);
     }
 
     public void stop() {
@@ -87,29 +100,35 @@ public class SocketIORouter {
             }
         }
         xhrPollingTransport.messageReceived(ctx, e);
+        webSocketTransport.messageReceived(ctx, e);
     }
 
     public boolean isSessionAuthorized(UUID sessionId) {
-        return authorizedSessionIds.contains(sessionId);
+        return connectedSessionIds.contains(sessionId)
+                    || authorizedSessionIds.containsKey(sessionId);
     }
 
     public void connect(SocketIOClient client) {
-        // cancel heartbeat check scheduled after 'authorize' method
-        heartbeatHandler.cancelClientHeartbeatCheck(client);
+        authorizedSessionIds.remove(client.getSessionId());
+        connectedSessionIds.add(client.getSessionId());
 
         client.send(new Packet(PacketType.CONNECT));
-        heartbeatHandler.sendHeartbeat(client);
+        if (configuration.isHeartbeatsEnabled()
+                && !(client instanceof WebSocketClient)) {
+            heartbeatHandler.sendHeartbeat(client);
+        }
         socketIOHandler.onConnect(client);
     }
 
     private void authorize(Channel channel, HttpRequest msg, Map<String, List<String>> params)
             throws IOException {
+        removeStaleAuthorizedIds();
         // TODO use common client
         final UUID sessionId = UUID.randomUUID();
         XHRPollingClient client = new XHRPollingClient(encoder, this, null);
-        authorizedSessionIds.add(sessionId);
+        authorizedSessionIds.put(sessionId, System.currentTimeMillis());
 
-        String transports = "xhr-polling";
+        String transports = "xhr-polling,websocket";
         String heartbeatTimeoutVal = String.valueOf(configuration.getHeartbeatTimeout());
         if (configuration.getHeartbeatTimeout() == 0) {
             heartbeatTimeoutVal = "";
@@ -127,12 +146,27 @@ public class SocketIORouter {
         }
         client.doReconnect(channel, msg);
         log.debug("New sessionId: {} authorized", sessionId);
-        heartbeatHandler.scheduleClientHeartbeatCheck(sessionId, new Runnable() {
-            public void run() {
-                authorizedSessionIds.remove(sessionId);
-                log.debug("Authorized sessionId: {} cleared due to connect timeout", sessionId);
+    }
+
+    /**
+     * Remove stale authorized client ids which
+     * has not connected during some timeout
+     */
+    private void removeStaleAuthorizedIds() {
+        for (Iterator<Entry<UUID, Long>> iterator = authorizedSessionIds.entrySet().iterator(); iterator.hasNext();) {
+            Entry<UUID, Long> entry = iterator.next();
+            if (System.currentTimeMillis() - entry.getValue() > 60*1000) {
+                iterator.remove();
+                log.debug("Authorized sessionId: {} cleared due to connection timeout", entry.getKey());
             }
-        });
+        }
+    }
+
+    public void onDisconnect(SocketIOClient client) {
+        log.debug("Client with sessionId: {} disconnected by client request", client.getSessionId());
+        xhrPollingTransport.onDisconnect(client);
+        webSocketTransport.onDisconnect(client);
+        disconnect(client);
     }
 
     public void disconnect(SocketIOClient client) {
@@ -140,8 +174,9 @@ public class SocketIORouter {
     }
 
     public void disconnect(UUID sessionId) {
-        authorizedSessionIds.remove(sessionId);
+        connectedSessionIds.remove(sessionId);
         xhrPollingTransport.disconnect(sessionId);
+        webSocketTransport.disconnect(sessionId);
     }
 
 }

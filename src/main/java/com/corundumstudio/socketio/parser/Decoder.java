@@ -132,6 +132,7 @@ public class Decoder {
                 packet.setAckId(ackMatcher.group(1));
                 String ackArgsJSON = extract(ackMatcher, 3);
                 if (ackArgsJSON != null && ackArgsJSON.trim().length() > 0) {
+                    @SuppressWarnings("unchecked")
                     List<Object> args = objectMapper.readValue(ackArgsJSON, List.class);
                     packet.setArgs(args);
                 }

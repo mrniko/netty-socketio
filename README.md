@@ -7,8 +7,9 @@ Licensed under the Apache License 2.0.
 
 ### Features
 
-* Supports 0.8+ version of [Socket.IO-client](https://github.com/LearnBoost/socket.io-client) up to latest - 0.9.5
+* Supports 0.7+ version of [Socket.IO-client](https://github.com/LearnBoost/socket.io-client) up to latest - 0.9.6
 * Supports xhr-polling transport
+* Supports websocket transport (Hixie-75/76/Hybi-00, Hybi-10..Hybi-13)
 
 #Usage example
 
@@ -40,10 +41,10 @@ Licensed under the Apache License 2.0.
 		}
 	};
 
-    Configuration config = new Configuration();
-    config.setHostname("localhost");
-    config.setPort(81);
-    config.setListener(handler);
+	Configuration config = new Configuration();
+	config.setHostname("localhost");
+	config.setPort(81);
+	config.setListener(handler);
 
 	SocketIOServer server = new SocketIOServer(config);
 	server.start();
@@ -57,7 +58,6 @@ Licensed under the Apache License 2.0.
 
         <script type="text/javascript">
                var socket = io.connect('http://localhost:81', {
-                 'transports' : [ 'xhr-polling' ],
                  'reconnection delay' : 2000,
                  'force new connection' : true
                });
