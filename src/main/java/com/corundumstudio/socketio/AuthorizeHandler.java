@@ -91,8 +91,8 @@ public class AuthorizeHandler extends SimpleChannelUpstreamHandler implements Di
         XHRPollingClient client = new XHRPollingClient(encoder, this, null);
         authorizedSessionIds.put(sessionId, System.currentTimeMillis());
 
-        //String transports = "xhr-polling,websocket";
-        String transports = "websocket";
+        String transports = "xhr-polling,websocket";
+        //String transports = "websocket";
         String heartbeatTimeoutVal = String.valueOf(configuration.getHeartbeatTimeout());
         if (configuration.getHeartbeatTimeout() == 0) {
             heartbeatTimeoutVal = "";
