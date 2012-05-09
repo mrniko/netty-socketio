@@ -125,7 +125,7 @@ public class Configuration {
         return heartbeatTimeout;
     }
     public boolean isHeartbeatsEnabled() {
-        return heartbeatTimeout != 0;
+        return heartbeatTimeout > 0;
     }
 
     /**

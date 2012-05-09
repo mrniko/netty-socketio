@@ -1,18 +1,3 @@
-/**
- * Copyright 2012 Nikita Koksharov
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package com.corundumstudio.socketio;
 
 import java.io.IOException;
@@ -29,23 +14,19 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.MessageEvent;
+import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
 import org.jboss.netty.handler.codec.http.HttpMethod;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.QueryStringDecoder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.corundumstudio.socketio.parser.Decoder;
 import com.corundumstudio.socketio.parser.Encoder;
 import com.corundumstudio.socketio.parser.Packet;
 import com.corundumstudio.socketio.parser.PacketType;
-import com.corundumstudio.socketio.transport.SocketIOTransport;
-import com.corundumstudio.socketio.transport.WebSocketClient;
-import com.corundumstudio.socketio.transport.WebSocketTransport;
 import com.corundumstudio.socketio.transport.XHRPollingClient;
-import com.corundumstudio.socketio.transport.XHRPollingTransport;
 
-public class SocketIORouter {
+public class AuthorizeHandler extends SimpleChannelUpstreamHandler implements Disconnectable {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -54,40 +35,25 @@ public class SocketIORouter {
     private final Map<UUID, Long> authorizedSessionIds = new ConcurrentHashMap<UUID, Long>();
     private final Set<UUID> connectedSessionIds = Collections.newSetFromMap(new ConcurrentHashMap<UUID, Boolean>());
 
-    private final int protocol = 1;
-    private final String connectPath = "/socket.io/" + protocol + "/";
+    private final String connectPath;
 
     private final ObjectMapper objectMapper;
-    private final Decoder decoder;
     private final Encoder encoder;
 
     private final Configuration configuration;
-    private final SocketIOListener socketIOHandler;
+    private final SocketIOListener socketIOListener;
 
-    private HeartbeatHandler heartbeatHandler;
-
-    private SocketIOTransport xhrPollingTransport;
-    private SocketIOTransport webSocketTransport;
-
-    public SocketIORouter(Configuration configuration) {
+    public AuthorizeHandler(String connectPath, ObjectMapper objectMapper, Encoder encoder,
+            SocketIOListener socketIOListener, Configuration configuration) {
+        super();
+        this.connectPath = connectPath;
+        this.objectMapper = objectMapper;
+        this.socketIOListener = socketIOListener;
+        this.encoder = encoder;
         this.configuration = configuration;
-        this.socketIOHandler = configuration.getListener();
-        this.objectMapper = configuration.getObjectMapper();
-        encoder = new Encoder(objectMapper);
-        decoder = new Decoder(objectMapper);
     }
 
-    public void start() {
-        heartbeatHandler = new HeartbeatHandler(configuration);
-        PacketListener packetListener = new PacketListener(socketIOHandler, this, heartbeatHandler);
-        xhrPollingTransport = new XHRPollingTransport(connectPath, decoder, encoder, this, packetListener);
-        webSocketTransport = new WebSocketTransport(connectPath, decoder, encoder, this, packetListener);
-    }
-
-    public void stop() {
-        heartbeatHandler.shutdown();
-    }
-
+    @Override
     public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) throws Exception {
         Object msg = e.getMessage();
         if (msg instanceof HttpRequest) {
@@ -99,25 +65,7 @@ public class SocketIORouter {
                 return;
             }
         }
-        xhrPollingTransport.messageReceived(ctx, e);
-        webSocketTransport.messageReceived(ctx, e);
-    }
-
-    public boolean isSessionAuthorized(UUID sessionId) {
-        return connectedSessionIds.contains(sessionId)
-                    || authorizedSessionIds.containsKey(sessionId);
-    }
-
-    public void connect(SocketIOClient client) {
-        authorizedSessionIds.remove(client.getSessionId());
-        connectedSessionIds.add(client.getSessionId());
-
-        client.send(new Packet(PacketType.CONNECT));
-        if (configuration.isHeartbeatsEnabled()
-                && !(client instanceof WebSocketClient)) {
-            heartbeatHandler.sendHeartbeat(client);
-        }
-        socketIOHandler.onConnect(client);
+        ctx.sendUpstream(e);
     }
 
     private void authorize(Channel channel, HttpRequest msg, Map<String, List<String>> params)
@@ -128,7 +76,8 @@ public class SocketIORouter {
         XHRPollingClient client = new XHRPollingClient(encoder, this, null);
         authorizedSessionIds.put(sessionId, System.currentTimeMillis());
 
-        String transports = "xhr-polling,websocket";
+        //String transports = "xhr-polling,websocket";
+        String transports = "websocket";
         String heartbeatTimeoutVal = String.valueOf(configuration.getHeartbeatTimeout());
         if (configuration.getHeartbeatTimeout() == 0) {
             heartbeatTimeoutVal = "";
@@ -138,14 +87,18 @@ public class SocketIORouter {
 
         List<String> jsonpParam = params.get("jsonp");
         if (jsonpParam != null) {
-            String jsonpResponse = "io.j[" + jsonpParam.get(0) + "](" + objectMapper.writeValueAsString(hs)
-                    + ");";
+            String jsonpResponse = "io.j[" + jsonpParam.get(0) + "](" + objectMapper.writeValueAsString(hs) + ");";
             client.sendJsonp(jsonpResponse);
         } else {
             client.sendUnencoded(hs);
         }
         client.doReconnect(channel, msg);
         log.debug("New sessionId: {} authorized", sessionId);
+    }
+
+    public boolean isSessionAuthorized(UUID sessionId) {
+        return connectedSessionIds.contains(sessionId)
+                    || authorizedSessionIds.containsKey(sessionId);
     }
 
     /**
@@ -162,21 +115,17 @@ public class SocketIORouter {
         }
     }
 
+    public void connect(SocketIOClient client) {
+        authorizedSessionIds.remove(client.getSessionId());
+        connectedSessionIds.add(client.getSessionId());
+
+        client.send(new Packet(PacketType.CONNECT));
+        socketIOListener.onConnect(client);
+    }
+
+    @Override
     public void onDisconnect(SocketIOClient client) {
-        log.debug("Client with sessionId: {} disconnected by client request", client.getSessionId());
-        xhrPollingTransport.onDisconnect(client);
-        webSocketTransport.onDisconnect(client);
-        disconnect(client);
-    }
-
-    public void disconnect(SocketIOClient client) {
-        socketIOHandler.onDisconnect(client);
-    }
-
-    public void disconnect(UUID sessionId) {
-        connectedSessionIds.remove(sessionId);
-        xhrPollingTransport.disconnect(sessionId);
-        webSocketTransport.disconnect(sessionId);
+        connectedSessionIds.remove(client.getSessionId());
     }
 
 }

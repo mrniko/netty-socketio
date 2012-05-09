@@ -25,10 +25,9 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.jboss.netty.channel.Channel;
-import org.jboss.netty.channel.ChannelFuture;
-import org.jboss.netty.channel.ChannelFutureListener;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.MessageEvent;
+import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
 import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.jboss.netty.handler.codec.http.HttpHeaders.Names;
 import org.jboss.netty.handler.codec.http.HttpHeaders.Values;
@@ -42,33 +41,36 @@ import org.jboss.netty.handler.codec.http.websocketx.WebSocketServerHandshaker13
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.corundumstudio.socketio.AuthorizeHandler;
+import com.corundumstudio.socketio.Disconnectable;
 import com.corundumstudio.socketio.PacketListener;
 import com.corundumstudio.socketio.SocketIOClient;
-import com.corundumstudio.socketio.SocketIORouter;
 import com.corundumstudio.socketio.parser.Decoder;
 import com.corundumstudio.socketio.parser.Encoder;
 import com.corundumstudio.socketio.parser.Packet;
-import com.corundumstudio.socketio.parser.PacketType;
 
-public class WebSocketTransport implements SocketIOTransport {
+public class WebSocketTransport extends SimpleChannelUpstreamHandler implements Disconnectable {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     private final Map<UUID, WebSocketClient> sessionId2Client = new ConcurrentHashMap<UUID, WebSocketClient>();
     private final Map<Integer, WebSocketClient> channelId2Client = new ConcurrentHashMap<Integer, WebSocketClient>();
 
-    private final SocketIORouter socketIORouter;
+    private final AuthorizeHandler authorizeHandler;
+    private final Disconnectable disconnectable;
     private final PacketListener packetListener;
     private final Decoder decoder;
     private final Encoder encoder;
     private final String path;
 
+
     public WebSocketTransport(String connectPath, Decoder decoder, Encoder encoder,
-            SocketIORouter socketIORouter, PacketListener packetListener) {
+            Disconnectable disconnectable, PacketListener packetListener, AuthorizeHandler authorizeHandler) {
         this.path = connectPath + "websocket";
         this.decoder = decoder;
         this.encoder = encoder;
-        this.socketIORouter = socketIORouter;
+        this.authorizeHandler = authorizeHandler;
+        this.disconnectable = disconnectable;
         this.packetListener = packetListener;
     }
 
@@ -90,8 +92,8 @@ public class WebSocketTransport implements SocketIOTransport {
             }
         } else if (msg instanceof HttpRequest) {
             HttpRequest req = (HttpRequest) msg;
-            if (req.containsHeader(CONNECTION) && req.getHeader(CONNECTION).contains(Values.UPGRADE)
-                    && req.containsHeader(WEBSOCKET) && WEBSOCKET.equalsIgnoreCase(req.getHeader(Names.UPGRADE))) {
+            if (req.containsHeader(Names.CONNECTION) && req.getHeader(Names.CONNECTION).contains(Values.UPGRADE)
+                    && req.containsHeader(Names.UPGRADE) && WEBSOCKET.equalsIgnoreCase(req.getHeader(Names.UPGRADE))) {
                 WebSocketServerHandshaker handshaker = null;
                 if (req.containsHeader(SEC_WEBSOCKET_KEY)) {
                     handshaker = new WebSocketServerHandshaker13(getWebSocketLocation(req), null, false);
@@ -103,6 +105,8 @@ public class WebSocketTransport implements SocketIOTransport {
                 QueryStringDecoder queryDecoder = new QueryStringDecoder(req.getUri());
                 connectClient(ctx.getChannel(), queryDecoder);
             }
+        } else {
+            ctx.sendUpstream(e);
         }
     }
 
@@ -115,17 +119,17 @@ public class WebSocketTransport implements SocketIOTransport {
         String[] parts = path.split("/");
         if (parts.length > 3) {
             UUID sessionId = UUID.fromString(parts[4]);
-            if (!socketIORouter.isSessionAuthorized(sessionId)) {
+            if (!authorizeHandler.isSessionAuthorized(sessionId)) {
                 log.warn("Unauthorized client with sessionId: {}, from ip: {}. Channel closed!",
                         new Object[] {sessionId, channel.getRemoteAddress()});
                 channel.close();
                 return;
             }
 
-            WebSocketClient client = new WebSocketClient(channel, encoder, socketIORouter, sessionId);
+            WebSocketClient client = new WebSocketClient(channel, encoder, disconnectable, sessionId);
             channelId2Client.put(channel.getId(), client);
             sessionId2Client.put(sessionId, client);
-            socketIORouter.connect(client);
+            authorizeHandler.connect(client);
         } else {
             log.warn("Wrong GET request path: {}, from ip: {}. Channel closed!",
                     new Object[] {path, channel.getRemoteAddress()});
@@ -133,17 +137,6 @@ public class WebSocketTransport implements SocketIOTransport {
         }
 
 
-    }
-
-    @Override
-    public void disconnect(UUID sessionId) {
-        WebSocketClient client = sessionId2Client.remove(sessionId);
-        if (client != null) {
-            ChannelFuture future = client.send(new Packet(PacketType.DISCONNECT));
-            future.addListener(ChannelFutureListener.CLOSE);
-            socketIORouter.disconnect(client);
-            channelId2Client.remove(client.getChannel().getId());
-        }
     }
 
     private String getWebSocketLocation(HttpRequest req) {

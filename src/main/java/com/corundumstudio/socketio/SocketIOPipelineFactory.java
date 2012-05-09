@@ -17,28 +17,71 @@ package com.corundumstudio.socketio;
 
 import static org.jboss.netty.channel.Channels.pipeline;
 
+import org.codehaus.jackson.map.ObjectMapper;
 import org.jboss.netty.channel.ChannelPipeline;
 import org.jboss.netty.channel.ChannelPipelineFactory;
-import org.jboss.netty.channel.ChannelUpstreamHandler;
 import org.jboss.netty.handler.codec.http.HttpChunkAggregator;
 import org.jboss.netty.handler.codec.http.HttpRequestDecoder;
 import org.jboss.netty.handler.codec.http.HttpResponseEncoder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-public class SocketIOPipelineFactory implements ChannelPipelineFactory {
+import com.corundumstudio.socketio.parser.Decoder;
+import com.corundumstudio.socketio.parser.Encoder;
+import com.corundumstudio.socketio.transport.WebSocketTransport;
+import com.corundumstudio.socketio.transport.XHRPollingTransport;
 
-    private final ChannelUpstreamHandler upstreamHandler;
+public class SocketIOPipelineFactory implements ChannelPipelineFactory, Disconnectable {
 
-    public SocketIOPipelineFactory(ChannelUpstreamHandler upstreamHandler) {
-        this.upstreamHandler = upstreamHandler;
+    private final Logger log = LoggerFactory.getLogger(getClass());
+
+    private final int protocol = 1;
+    private final String connectPath = "/socket.io/" + protocol + "/";
+
+    private final AuthorizeHandler authorizeHandler;
+    private XHRPollingTransport xhrPollingTransport;
+    private WebSocketTransport webSocketTransport;
+
+    private SocketIOListener socketIOHandler;
+    private HeartbeatHandler heartbeatHandler;
+
+    public SocketIOPipelineFactory(Configuration configuration) {
+        this.socketIOHandler = configuration.getListener();
+        ObjectMapper objectMapper = configuration.getObjectMapper();
+        Encoder encoder = new Encoder(objectMapper);
+        Decoder decoder = new Decoder(objectMapper);
+        this.heartbeatHandler = new HeartbeatHandler(configuration);
+        PacketListener packetListener = new PacketListener(socketIOHandler, this, heartbeatHandler);
+
+        authorizeHandler = new AuthorizeHandler(connectPath, objectMapper, encoder, socketIOHandler, configuration);
+        xhrPollingTransport = new XHRPollingTransport(connectPath, decoder, encoder, packetListener, this, heartbeatHandler, authorizeHandler, configuration);
+        webSocketTransport = new WebSocketTransport(connectPath, decoder, encoder, this, packetListener, authorizeHandler);
     }
 
     public ChannelPipeline getPipeline() throws Exception {
         ChannelPipeline pipeline = pipeline();
+
         pipeline.addLast("decoder", new HttpRequestDecoder());
         pipeline.addLast("aggregator", new HttpChunkAggregator(65536));
         pipeline.addLast("encoder", new HttpResponseEncoder());
-        pipeline.addLast("handler", upstreamHandler);
+
+        pipeline.addLast("authorizeHandler", authorizeHandler);
+        pipeline.addLast("xhrPollingTransport", xhrPollingTransport);
+        pipeline.addLast("webSocketTransport", webSocketTransport);
+
         return pipeline;
+    }
+
+    public void onDisconnect(SocketIOClient client) {
+        log.debug("Client with sessionId: {} disconnected by client request", client.getSessionId());
+        xhrPollingTransport.onDisconnect(client);
+        webSocketTransport.onDisconnect(client);
+        authorizeHandler.onDisconnect(client);
+        socketIOHandler.onDisconnect(client);
+    }
+
+    public void stop() {
+        heartbeatHandler.shutdown();
     }
 
 }

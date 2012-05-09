@@ -19,13 +19,13 @@ import com.corundumstudio.socketio.parser.Packet;
 
 public class PacketListener {
 
-    private final SocketIORouter socketIORouter;
-    private final HeartbeatHandler heartbeatHandler;
     private final SocketIOListener socketIOHandler;
+    private final HeartbeatHandler heartbeatHandler;
+    private final Disconnectable disconnectHandler;
 
-    public PacketListener(SocketIOListener socketIOHandler, SocketIORouter socketIORouter,
+    public PacketListener(SocketIOListener socketIOHandler, Disconnectable disconnectHandler,
             HeartbeatHandler heartbeatHandler) {
-        this.socketIORouter = socketIORouter;
+        this.disconnectHandler = disconnectHandler;
         this.socketIOHandler = socketIOHandler;
         this.heartbeatHandler = heartbeatHandler;
     }
@@ -45,7 +45,7 @@ public class PacketListener {
             break;
 
         case DISCONNECT:
-            socketIORouter.onDisconnect(client);
+            disconnectHandler.onDisconnect(client);
             break;
         }
     }

@@ -27,6 +27,7 @@ import org.jboss.netty.channel.ChannelFuture;
 import org.jboss.netty.channel.ChannelFutureListener;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.MessageEvent;
+import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
 import org.jboss.netty.handler.codec.http.DefaultHttpResponse;
 import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.jboss.netty.handler.codec.http.HttpMethod;
@@ -39,9 +40,12 @@ import org.jboss.netty.util.CharsetUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.corundumstudio.socketio.AuthorizeHandler;
+import com.corundumstudio.socketio.Configuration;
+import com.corundumstudio.socketio.Disconnectable;
+import com.corundumstudio.socketio.HeartbeatHandler;
 import com.corundumstudio.socketio.PacketListener;
 import com.corundumstudio.socketio.SocketIOClient;
-import com.corundumstudio.socketio.SocketIORouter;
 import com.corundumstudio.socketio.parser.Decoder;
 import com.corundumstudio.socketio.parser.Encoder;
 import com.corundumstudio.socketio.parser.ErrorAdvice;
@@ -49,24 +53,31 @@ import com.corundumstudio.socketio.parser.ErrorReason;
 import com.corundumstudio.socketio.parser.Packet;
 import com.corundumstudio.socketio.parser.PacketType;
 
-public class XHRPollingTransport implements SocketIOTransport {
+public class XHRPollingTransport extends SimpleChannelUpstreamHandler implements Disconnectable {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     private final Map<UUID, XHRPollingClient> sessionId2Client = new ConcurrentHashMap<UUID, XHRPollingClient>();
 
-    private final SocketIORouter socketIORouter;
+    private final AuthorizeHandler authorizeHandler;
+    private final HeartbeatHandler heartbeatHandler;
     private final PacketListener packetListener;
+    private final Disconnectable disconnectable;
     private final Decoder decoder;
     private final Encoder encoder;
     private final String path;
+    private final Configuration configuration;
 
     public XHRPollingTransport(String connectPath, Decoder decoder, Encoder encoder,
-                                SocketIORouter socketIORouter, PacketListener packetListener) {
+                                PacketListener packetListener, Disconnectable disconnectable,
+                                HeartbeatHandler heartbeatHandler, AuthorizeHandler authorizeHandler, Configuration configuration) {
         this.path = connectPath + "xhr-polling/";
+        this.authorizeHandler = authorizeHandler;
+        this.configuration = configuration;
+        this.heartbeatHandler = heartbeatHandler;
+        this.disconnectable = disconnectable;
         this.decoder = decoder;
         this.encoder = encoder;
-        this.socketIORouter = socketIORouter;
         this.packetListener = packetListener;
     }
 
@@ -77,69 +88,50 @@ public class XHRPollingTransport implements SocketIOTransport {
             QueryStringDecoder queryDecoder = new QueryStringDecoder(req.getUri());
 
             Channel channel = ctx.getChannel();
-            if (HttpMethod.POST.equals(req.getMethod())) {
-                onPost(queryDecoder, channel, req);
-            } else if (HttpMethod.GET.equals(req.getMethod())) {
-                onGet(queryDecoder, channel, req);
-            }
-        }
-    }
-
-    private void onPost(QueryStringDecoder queryDecoder, Channel channel, HttpRequest req) throws IOException {
-        String path = queryDecoder.getPath();
-        if (!path.startsWith(path)) {
-            log.warn("Wrong POST request path: {}, from ip: {}. Channel closed!",
-                    new Object[] {path, channel.getRemoteAddress()});
-            channel.close();
-            return;
-        }
-
-        String[] parts = path.split("/");
-        if (parts.length > 3) {
-            UUID sessionId = UUID.fromString(parts[4]);
-            XHRPollingClient client = sessionId2Client.get(sessionId);
-            if (client == null) {
-                log.debug("Client with sessionId: {} was already disconnected. Channel closed!", sessionId);
-                channel.close();
+            if (queryDecoder.getPath().startsWith(path)) {
+                String[] parts = queryDecoder.getPath().split("/");
+                if (parts.length > 3) {
+                    UUID sessionId = UUID.fromString(parts[4]);
+                    if (HttpMethod.POST.equals(req.getMethod())) {
+                        onPost(sessionId, channel, req);
+                    } else if (HttpMethod.GET.equals(req.getMethod())) {
+                        onGet(sessionId, channel, req);
+                    }
+                    if (queryDecoder.getParameters().containsKey("disconnect")) {
+                        XHRPollingClient client = sessionId2Client.get(sessionId);
+                        disconnectable.onDisconnect(client);
+                    }
+                } else {
+                    log.warn("Wrong {} method request path: {}, from ip: {}. Channel closed!",
+                            new Object[] {req.getMethod(), path, channel.getRemoteAddress()});
+                    channel.close();
+                }
                 return;
             }
-
-            String content = req.getContent().toString(CharsetUtil.UTF_8);
-            log.trace("In message: {} sessionId: {}", new Object[] {content, sessionId});
-            List<Packet> packets = decoder.decodePayload(content);
-            for (Packet packet : packets) {
-                packetListener.onPacket(packet, client);
-            }
-            HttpHeaders.setKeepAlive(req, false);
-
-            sendHttpResponse(channel, req);
-        } else {
-            log.warn("Wrong POST request path: {}, from ip: {}. Channel closed!",
-                    new Object[] {path, channel.getRemoteAddress()});
-            channel.close();
         }
+        ctx.sendUpstream(e);
     }
 
-    private void onGet(QueryStringDecoder queryDecoder, Channel channel, HttpRequest req) throws IOException {
-        String path = queryDecoder.getPath();
-        if (!path.startsWith(this.path)) {
+    private void onPost(UUID sessionId, Channel channel, HttpRequest req) throws IOException {
+        XHRPollingClient client = sessionId2Client.get(sessionId);
+        if (client == null) {
+            log.debug("Client with sessionId: {} was already disconnected. Channel closed!", sessionId);
+            channel.close();
             return;
         }
 
-        String[] parts = path.split("/");
-        if (parts.length > 3) {
-            UUID sessionId = UUID.fromString(parts[4]);
-            handleGetRequest(queryDecoder, channel, req, sessionId);
-        } else {
-            log.warn("Wrong GET request path: {}, from ip: {}. Channel closed!",
-                    new Object[] {path, channel.getRemoteAddress()});
-            channel.close();
+        String content = req.getContent().toString(CharsetUtil.UTF_8);
+        log.trace("In message: {} sessionId: {}", new Object[] {content, sessionId});
+        List<Packet> packets = decoder.decodePayload(content);
+        for (Packet packet : packets) {
+            packetListener.onPacket(packet, client);
         }
+
+        sendHttpResponse(channel, req);
     }
 
-    private void handleGetRequest(QueryStringDecoder queryDecoder, Channel channel, HttpRequest req,
-            UUID sessionId) {
-        if (!socketIORouter.isSessionAuthorized(sessionId)) {
+    private void onGet(UUID sessionId, Channel channel, HttpRequest req) {
+        if (!authorizeHandler.isSessionAuthorized(sessionId)) {
             sendError(channel, req, sessionId);
             return;
         }
@@ -148,23 +140,23 @@ public class XHRPollingTransport implements SocketIOTransport {
             client = createClient(sessionId);
         }
         client.doReconnect(channel, req);
-        if (queryDecoder.getParameters().containsKey("disconnect")) {
-            disconnect(sessionId);
-        }
     }
 
     private XHRPollingClient createClient(UUID sessionId) {
-        XHRPollingClient client = new XHRPollingClient(encoder, socketIORouter, sessionId);
+        XHRPollingClient client = new XHRPollingClient(encoder, authorizeHandler, sessionId);
         sessionId2Client.put(sessionId, client);
 
-        socketIORouter.connect(client);
+        authorizeHandler.connect(client);
+        if (configuration.isHeartbeatsEnabled()) {
+            heartbeatHandler.sendHeartbeat(client);
+        }
         log.debug("Client for sessionId: {} was created", sessionId);
         return client;
     }
 
     private void sendError(Channel channel, HttpRequest req, UUID sessionId) {
         log.debug("Client with sessionId: {} was not found! Reconnect error response sended", sessionId);
-        XHRPollingClient client = new XHRPollingClient(encoder, socketIORouter, null);
+        XHRPollingClient client = new XHRPollingClient(encoder, disconnectable, null);
         Packet packet = new Packet(PacketType.ERROR);
         packet.setReason(ErrorReason.CLIENT_NOT_HANDSHAKEN);
         packet.setAdvice(ErrorAdvice.RECONNECT);
@@ -186,17 +178,7 @@ public class XHRPollingTransport implements SocketIOTransport {
         }
 
         ChannelFuture f = channel.write(res);
-        if (!HttpHeaders.isKeepAlive(req) || res.getStatus().getCode() != 200) {
-            f.addListener(ChannelFutureListener.CLOSE);
-        }
-    }
-
-    public void disconnect(UUID sessionId) {
-        XHRPollingClient client = sessionId2Client.remove(sessionId);
-        if (client != null) {
-            client.send(new Packet(PacketType.DISCONNECT));
-            socketIORouter.disconnect(client);
-        }
+        f.addListener(ChannelFutureListener.CLOSE);
     }
 
     @Override

@@ -23,14 +23,15 @@ import java.util.UUID;
 
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelFuture;
+import org.jboss.netty.channel.ChannelFutureListener;
 import org.jboss.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import org.jboss.netty.handler.codec.http.websocketx.WebSocketFrame;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.corundumstudio.socketio.Disconnectable;
 import com.corundumstudio.socketio.NullChannelFuture;
 import com.corundumstudio.socketio.SocketIOClient;
-import com.corundumstudio.socketio.SocketIORouter;
 import com.corundumstudio.socketio.parser.Encoder;
 import com.corundumstudio.socketio.parser.Packet;
 import com.corundumstudio.socketio.parser.PacketType;
@@ -44,13 +45,13 @@ public class WebSocketClient implements SocketIOClient {
 
     private Channel channel;
 
-    private final SocketIORouter socketIORouter;
+    private final Disconnectable disconnectable;
     private final Encoder encoder;
 
-    public WebSocketClient(Channel channel, Encoder encoder, SocketIORouter socketIORouter, UUID sessionId) {
+    public WebSocketClient(Channel channel, Encoder encoder, Disconnectable disconnectable, UUID sessionId) {
         this.channel = channel;
         this.encoder = encoder;
-        this.socketIORouter = socketIORouter;
+        this.disconnectable = disconnectable;
         this.sessionId = sessionId;
     }
 
@@ -100,8 +101,10 @@ public class WebSocketClient implements SocketIOClient {
     }
 
     public void disconnect() {
-        socketIORouter.disconnect(sessionId);
-        
+        ChannelFuture future = send(new Packet(PacketType.DISCONNECT));
+        future.addListener(ChannelFutureListener.CLOSE);
+
+        disconnectable.onDisconnect(this);
     }
 
     public SocketAddress getRemoteAddress() {

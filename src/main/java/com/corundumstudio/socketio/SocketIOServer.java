@@ -30,7 +30,7 @@ public class SocketIOServer {
 
     private ServerBootstrap bootstrap;
 
-    private SocketIORouter socketIORouter;
+    private SocketIOPipelineFactory pipelineFactory;
 
     private Configuration config;
 
@@ -43,11 +43,7 @@ public class SocketIOServer {
         ChannelFactory factory = new NioServerSocketChannelFactory(config.getBossExecutor(), config.getWorkerExecutor());
         bootstrap = new ServerBootstrap(factory);
 
-        socketIORouter = new SocketIORouter(config);
-        socketIORouter.start();
-
-        SocketIOUpstreamHandler upstreamHandler = new SocketIOUpstreamHandler(socketIORouter);
-        SocketIOPipelineFactory pipelineFactory = new SocketIOPipelineFactory(upstreamHandler);
+        this.pipelineFactory = new SocketIOPipelineFactory(config);
         bootstrap.setPipelineFactory(pipelineFactory);
         bootstrap.setOption("child.tcpNoDelay", true);
         bootstrap.setOption("child.keepAlive", true);
@@ -57,7 +53,7 @@ public class SocketIOServer {
     }
 
     public void stop() {
-        socketIORouter.stop();
+        pipelineFactory.stop();
         bootstrap.releaseExternalResources();
     }
 

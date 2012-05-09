@@ -39,9 +39,9 @@ import org.jboss.netty.util.CharsetUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.corundumstudio.socketio.Disconnectable;
 import com.corundumstudio.socketio.NullChannelFuture;
 import com.corundumstudio.socketio.SocketIOClient;
-import com.corundumstudio.socketio.SocketIORouter;
 import com.corundumstudio.socketio.parser.Encoder;
 import com.corundumstudio.socketio.parser.Packet;
 import com.corundumstudio.socketio.parser.PacketType;
@@ -59,12 +59,12 @@ public class XHRPollingClient implements SocketIOClient {
     private boolean connected;
     private Channel channel;
 
-    private final SocketIORouter socketIORouter;
+    private final Disconnectable disconnectable;
     private final Encoder encoder;
 
-    public XHRPollingClient(Encoder encoder, SocketIORouter socketIORouter, UUID sessionId) {
+    public XHRPollingClient(Encoder encoder, Disconnectable disconnectable, UUID sessionId) {
         this.encoder = encoder;
-        this.socketIORouter = socketIORouter;
+        this.disconnectable = disconnectable;
         this.sessionId = sessionId;
     }
 
@@ -149,7 +149,8 @@ public class XHRPollingClient implements SocketIOClient {
     }
 
     public void disconnect() {
-        socketIORouter.disconnect(sessionId);
+        send(new Packet(PacketType.DISCONNECT));
+        disconnectable.onDisconnect(this);
     }
 
     public SocketAddress getRemoteAddress() {
