@@ -15,6 +15,10 @@
  */
 package com.corundumstudio.socketio;
 
+import static org.jboss.netty.handler.codec.http.HttpHeaders.Names.CONNECTION;
+import static org.jboss.netty.handler.codec.http.HttpHeaders.Names.CONTENT_TYPE;
+import static org.jboss.netty.handler.codec.http.HttpHeaders.Values.KEEP_ALIVE;
+
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Iterator;
@@ -26,13 +30,20 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.codehaus.jackson.map.ObjectMapper;
+import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
+import org.jboss.netty.handler.codec.http.DefaultHttpResponse;
+import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.jboss.netty.handler.codec.http.HttpMethod;
 import org.jboss.netty.handler.codec.http.HttpRequest;
+import org.jboss.netty.handler.codec.http.HttpResponse;
+import org.jboss.netty.handler.codec.http.HttpResponseStatus;
+import org.jboss.netty.handler.codec.http.HttpVersion;
 import org.jboss.netty.handler.codec.http.QueryStringDecoder;
+import org.jboss.netty.util.CharsetUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -83,12 +94,11 @@ public class AuthorizeHandler extends SimpleChannelUpstreamHandler implements Di
         ctx.sendUpstream(e);
     }
 
-    private void authorize(Channel channel, HttpRequest msg, Map<String, List<String>> params)
+    private void authorize(Channel channel, HttpRequest req, Map<String, List<String>> params)
             throws IOException {
         removeStaleAuthorizedIds();
         // TODO use common client
         final UUID sessionId = UUID.randomUUID();
-        XHRPollingClient client = new XHRPollingClient(encoder, this, null);
         authorizedSessionIds.put(sessionId, System.currentTimeMillis());
 
         String transports = "xhr-polling,websocket";
@@ -98,17 +108,41 @@ public class AuthorizeHandler extends SimpleChannelUpstreamHandler implements Di
             heartbeatTimeoutVal = "";
         }
 
-        String hs = sessionId + ":" + heartbeatTimeoutVal + ":" + configuration.getCloseTimeout() + ":" + transports;
+        boolean jsonp = false;
+        String msg = sessionId + ":" + heartbeatTimeoutVal + ":" + configuration.getCloseTimeout() + ":" + transports;
 
         List<String> jsonpParam = params.get("jsonp");
         if (jsonpParam != null) {
-            String jsonpResponse = "io.j[" + jsonpParam.get(0) + "](" + objectMapper.writeValueAsString(hs) + ");";
-            client.sendJsonp(jsonpResponse);
-        } else {
-            client.sendUnencoded(hs);
+            jsonp = true;
+            msg = "io.j[" + jsonpParam.get(0) + "](" + objectMapper.writeValueAsString(msg) + ");";
         }
-        client.doReconnect(channel, msg);
+
+        sendResponse(req, channel, sessionId, msg, jsonp);
         log.debug("New sessionId: {} authorized", sessionId);
+    }
+
+    private void addHeaders(HttpResponse res, String origin, boolean jsonp) {
+        res.addHeader(CONTENT_TYPE, "text/plain; charset=UTF-8");
+        res.addHeader(CONNECTION, KEEP_ALIVE);
+        if (origin != null) {
+            res.addHeader("Access-Control-Allow-Origin", origin);
+            res.addHeader("Access-Control-Allow-Credentials", "true");
+        }
+        if (jsonp) {
+            res.addHeader(CONTENT_TYPE, "application/javascript");
+        }
+    }
+
+    private void sendResponse(HttpRequest req, Channel channel, UUID sessionId, String message, boolean jsonp) {
+        HttpResponse res = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
+        String origin = req.getHeader(HttpHeaders.Names.ORIGIN);
+        addHeaders(res, origin, jsonp);
+
+        res.setContent(ChannelBuffers.copiedBuffer(message, CharsetUtil.UTF_8));
+        HttpHeaders.setContentLength(res, res.getContent().readableBytes());
+
+        log.trace("Out message: {} sessionId: {}", new Object[] {message, sessionId});
+        channel.write(res);
     }
 
     public boolean isSessionAuthorized(UUID sessionId) {

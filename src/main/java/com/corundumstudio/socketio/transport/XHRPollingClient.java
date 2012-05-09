@@ -55,7 +55,6 @@ public class XHRPollingClient implements SocketIOClient {
     private final UUID sessionId;
 
     private String origin;
-    private boolean isKeepAlive;
     private boolean connected;
     private Channel channel;
 
@@ -73,7 +72,6 @@ public class XHRPollingClient implements SocketIOClient {
     }
 
     public void doReconnect(Channel channel, HttpRequest req) {
-        this.isKeepAlive = HttpHeaders.isKeepAlive(req);
         this.origin = req.getHeader(HttpHeaders.Names.ORIGIN);
         this.channel = channel;
         this.connected = true;
@@ -103,9 +101,7 @@ public class XHRPollingClient implements SocketIOClient {
         if (channel.isConnected()) {
             log.trace("Out message: {} sessionId: {}", new Object[] {message, sessionId});
             ChannelFuture f = channel.write(res);
-            if (!isKeepAlive) {
-                f.addListener(ChannelFutureListener.CLOSE);
-            }
+            f.addListener(ChannelFutureListener.CLOSE);
             return f;
         }
         return NullChannelFuture.INSTANCE;
