@@ -41,6 +41,7 @@ public class SocketIOPipelineFactory implements ChannelPipelineFactory, Disconne
     private final AuthorizeHandler authorizeHandler;
     private XHRPollingTransport xhrPollingTransport;
     private WebSocketTransport webSocketTransport;
+    private SocketIOEncoder socketIOEncoder;
 
     private SocketIOListener socketIOHandler;
     private HeartbeatHandler heartbeatHandler;
@@ -53,9 +54,10 @@ public class SocketIOPipelineFactory implements ChannelPipelineFactory, Disconne
         this.heartbeatHandler = new HeartbeatHandler(configuration);
         PacketListener packetListener = new PacketListener(socketIOHandler, this, heartbeatHandler);
 
-        authorizeHandler = new AuthorizeHandler(connectPath, objectMapper, encoder, socketIOHandler, configuration);
-        xhrPollingTransport = new XHRPollingTransport(connectPath, decoder, encoder, packetListener, this, heartbeatHandler, authorizeHandler, configuration);
-        webSocketTransport = new WebSocketTransport(connectPath, decoder, encoder, this, packetListener, authorizeHandler);
+        authorizeHandler = new AuthorizeHandler(connectPath, socketIOHandler, configuration);
+        xhrPollingTransport = new XHRPollingTransport(connectPath, decoder, packetListener, this, heartbeatHandler, authorizeHandler, configuration);
+        webSocketTransport = new WebSocketTransport(connectPath, decoder, this, packetListener, authorizeHandler);
+        socketIOEncoder = new SocketIOEncoder(objectMapper, encoder, webSocketTransport, xhrPollingTransport);
     }
 
     public ChannelPipeline getPipeline() throws Exception {
@@ -68,6 +70,8 @@ public class SocketIOPipelineFactory implements ChannelPipelineFactory, Disconne
         pipeline.addLast("authorizeHandler", authorizeHandler);
         pipeline.addLast("xhrPollingTransport", xhrPollingTransport);
         pipeline.addLast("webSocketTransport", webSocketTransport);
+
+        pipeline.addLast("socketioEncoder", socketIOEncoder);
 
         return pipeline;
     }

@@ -45,10 +45,9 @@ import com.corundumstudio.socketio.Disconnectable;
 import com.corundumstudio.socketio.PacketListener;
 import com.corundumstudio.socketio.SocketIOClient;
 import com.corundumstudio.socketio.parser.Decoder;
-import com.corundumstudio.socketio.parser.Encoder;
 import com.corundumstudio.socketio.parser.Packet;
 
-public class WebSocketTransport extends SimpleChannelUpstreamHandler implements Disconnectable {
+public class WebSocketTransport extends SimpleChannelUpstreamHandler implements Transport, Disconnectable {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -59,15 +58,13 @@ public class WebSocketTransport extends SimpleChannelUpstreamHandler implements 
     private final Disconnectable disconnectable;
     private final PacketListener packetListener;
     private final Decoder decoder;
-    private final Encoder encoder;
     private final String path;
 
 
-    public WebSocketTransport(String connectPath, Decoder decoder, Encoder encoder,
+    public WebSocketTransport(String connectPath, Decoder decoder,
             Disconnectable disconnectable, PacketListener packetListener, AuthorizeHandler authorizeHandler) {
         this.path = connectPath + "websocket";
         this.decoder = decoder;
-        this.encoder = encoder;
         this.authorizeHandler = authorizeHandler;
         this.disconnectable = disconnectable;
         this.packetListener = packetListener;
@@ -125,7 +122,7 @@ public class WebSocketTransport extends SimpleChannelUpstreamHandler implements 
                 return;
             }
 
-            WebSocketClient client = new WebSocketClient(channel, encoder, disconnectable, sessionId);
+            WebSocketClient client = new WebSocketClient(channel, disconnectable, sessionId);
             channelId2Client.put(channel.getId(), client);
             sessionId2Client.put(sessionId, client);
             authorizeHandler.connect(client);
@@ -149,6 +146,15 @@ public class WebSocketTransport extends SimpleChannelUpstreamHandler implements 
             sessionId2Client.remove(webClient.getSessionId());
             channelId2Client.remove(webClient.getChannel().getId());
         }
+    }
+
+    @Override
+    public SocketIOClient getClient(Channel channel) {
+        WebSocketClient client = channelId2Client.get(channel.getId());
+        if (client != null) {
+            return client;
+        }
+        return null;
     }
 
 

@@ -42,6 +42,18 @@ public class Encoder {
         return result;
     }
 
+    public String encodePackets(List<Packet> packets) throws IOException {
+        if (packets.size() == 1) {
+            return encodePacket(packets.get(0));
+        }
+        StringBuilder result = new StringBuilder();
+        for (Packet packet : packets) {
+            String encPacket = encodePacket(packet);
+            result.append(Packet.DELIMITER).append(encPacket.length()).append(Packet.DELIMITER).append(encPacket);
+        }
+        return result.toString();
+    }
+
     public String encodePacket(Packet packet) throws IOException {
         int type = packet.getType().getValue();
         String id = packet.getId();

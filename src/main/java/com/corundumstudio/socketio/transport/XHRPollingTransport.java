@@ -21,20 +21,13 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.Channel;
-import org.jboss.netty.channel.ChannelFuture;
-import org.jboss.netty.channel.ChannelFutureListener;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
-import org.jboss.netty.handler.codec.http.DefaultHttpResponse;
 import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.jboss.netty.handler.codec.http.HttpMethod;
 import org.jboss.netty.handler.codec.http.HttpRequest;
-import org.jboss.netty.handler.codec.http.HttpResponse;
-import org.jboss.netty.handler.codec.http.HttpResponseStatus;
-import org.jboss.netty.handler.codec.http.HttpVersion;
 import org.jboss.netty.handler.codec.http.QueryStringDecoder;
 import org.jboss.netty.util.CharsetUtil;
 import org.slf4j.Logger;
@@ -43,20 +36,22 @@ import org.slf4j.LoggerFactory;
 import com.corundumstudio.socketio.AuthorizeHandler;
 import com.corundumstudio.socketio.Configuration;
 import com.corundumstudio.socketio.Disconnectable;
+import com.corundumstudio.socketio.ErrorMessage;
 import com.corundumstudio.socketio.HeartbeatHandler;
 import com.corundumstudio.socketio.PacketListener;
 import com.corundumstudio.socketio.SocketIOClient;
+import com.corundumstudio.socketio.XHRPostMessage;
 import com.corundumstudio.socketio.parser.Decoder;
-import com.corundumstudio.socketio.parser.Encoder;
 import com.corundumstudio.socketio.parser.ErrorAdvice;
 import com.corundumstudio.socketio.parser.ErrorReason;
 import com.corundumstudio.socketio.parser.Packet;
 import com.corundumstudio.socketio.parser.PacketType;
 
-public class XHRPollingTransport extends SimpleChannelUpstreamHandler implements Disconnectable {
+public class XHRPollingTransport extends SimpleChannelUpstreamHandler implements Transport, Disconnectable {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
+    private final Map<Integer, XHRPollingClient> channelId2Client = new ConcurrentHashMap<Integer, XHRPollingClient>();
     private final Map<UUID, XHRPollingClient> sessionId2Client = new ConcurrentHashMap<UUID, XHRPollingClient>();
 
     private final AuthorizeHandler authorizeHandler;
@@ -64,11 +59,10 @@ public class XHRPollingTransport extends SimpleChannelUpstreamHandler implements
     private final PacketListener packetListener;
     private final Disconnectable disconnectable;
     private final Decoder decoder;
-    private final Encoder encoder;
     private final String path;
     private final Configuration configuration;
 
-    public XHRPollingTransport(String connectPath, Decoder decoder, Encoder encoder,
+    public XHRPollingTransport(String connectPath, Decoder decoder,
                                 PacketListener packetListener, Disconnectable disconnectable,
                                 HeartbeatHandler heartbeatHandler, AuthorizeHandler authorizeHandler, Configuration configuration) {
         this.path = connectPath + "xhr-polling/";
@@ -77,7 +71,6 @@ public class XHRPollingTransport extends SimpleChannelUpstreamHandler implements
         this.heartbeatHandler = heartbeatHandler;
         this.disconnectable = disconnectable;
         this.decoder = decoder;
-        this.encoder = encoder;
         this.packetListener = packetListener;
     }
 
@@ -127,7 +120,8 @@ public class XHRPollingTransport extends SimpleChannelUpstreamHandler implements
             packetListener.onPacket(packet, client);
         }
 
-        sendHttpResponse(channel, req);
+        String origin = req.getHeader(HttpHeaders.Names.ORIGIN);
+        channel.write(new XHRPostMessage(origin));
     }
 
     private void onGet(UUID sessionId, Channel channel, HttpRequest req) {
@@ -137,14 +131,19 @@ public class XHRPollingTransport extends SimpleChannelUpstreamHandler implements
         }
         XHRPollingClient client = sessionId2Client.get(sessionId);
         if (client == null) {
-            client = createClient(sessionId);
+            client = createClient(req, channel, sessionId);
         }
-        client.doReconnect(channel, req);
+
+        channelId2Client.remove(client.getChannel().getId());
+        channelId2Client.put(channel.getId(), client);
+        client.update(channel, req);
     }
 
-    private XHRPollingClient createClient(UUID sessionId) {
-        XHRPollingClient client = new XHRPollingClient(encoder, authorizeHandler, sessionId);
+    private XHRPollingClient createClient(HttpRequest req, Channel channel, UUID sessionId) {
+        XHRPollingClient client = new XHRPollingClient(authorizeHandler, sessionId);
         sessionId2Client.put(sessionId, client);
+        channelId2Client.put(channel.getId(), client);
+        client.update(channel, req);
 
         authorizeHandler.connect(client);
         if (configuration.isHeartbeatsEnabled()) {
@@ -156,34 +155,28 @@ public class XHRPollingTransport extends SimpleChannelUpstreamHandler implements
 
     private void sendError(Channel channel, HttpRequest req, UUID sessionId) {
         log.debug("Client with sessionId: {} was not found! Reconnect error response sended", sessionId);
-        XHRPollingClient client = new XHRPollingClient(encoder, disconnectable, null);
         Packet packet = new Packet(PacketType.ERROR);
         packet.setReason(ErrorReason.CLIENT_NOT_HANDSHAKEN);
         packet.setAdvice(ErrorAdvice.RECONNECT);
-        client.send(packet);
-        client.doReconnect(channel, req);
-    }
-
-    private void sendHttpResponse(Channel channel, HttpRequest req) {
-        HttpResponse res = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
-        String origin = req.getHeader(HttpHeaders.Names.ORIGIN);
-        if (origin != null) {
-            res.addHeader("Access-Control-Allow-Origin", origin);
-            res.addHeader("Access-Control-Allow-Credentials", "true");
-        }
-
-        if (res.getStatus().getCode() != 200) {
-            res.setContent(ChannelBuffers.copiedBuffer(res.getStatus().toString(), CharsetUtil.UTF_8));
-            HttpHeaders.setContentLength(res, res.getContent().readableBytes());
-        }
-
-        ChannelFuture f = channel.write(res);
-        f.addListener(ChannelFutureListener.CLOSE);
+        channel.write(new ErrorMessage(ErrorMessage.Type.XHR, packet, req.getHeader(HttpHeaders.Names.ORIGIN)));
     }
 
     @Override
     public void onDisconnect(SocketIOClient client) {
-        sessionId2Client.remove(client.getSessionId());
+        if (client instanceof XHRPollingClient) {
+            XHRPollingClient xhrClient = (XHRPollingClient) client;
+            sessionId2Client.remove(xhrClient.getSessionId());
+            channelId2Client.remove(xhrClient.getChannel().getId());
+        }
+    }
+
+    @Override
+    public SocketIOClient getClient(Channel channel) {
+        XHRPollingClient client = channelId2Client.get(channel.getId());
+        if (client != null) {
+            return client;
+        }
+        return null;
     }
 
 }
