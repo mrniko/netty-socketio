@@ -15,7 +15,6 @@
  */
 package com.corundumstudio.socketio.transport;
 
-import java.net.SocketAddress;
 import java.util.UUID;
 
 import org.jboss.netty.channel.Channel;
@@ -24,28 +23,20 @@ import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 
 import com.corundumstudio.socketio.Disconnectable;
-import com.corundumstudio.socketio.SocketIOClient;
 import com.corundumstudio.socketio.messages.XHRNewChannelMessage;
 import com.corundumstudio.socketio.messages.XHRPacketMessage;
 import com.corundumstudio.socketio.parser.Packet;
 import com.corundumstudio.socketio.parser.PacketType;
 
-public class XHRPollingClient implements SocketIOClient {
-
-    private final UUID sessionId;
-
-    private String origin;
-    private Channel channel;
+public class XHRPollingClient extends BaseClient {
 
     private final Disconnectable disconnectable;
 
-    public XHRPollingClient(Disconnectable disconnectable, UUID sessionId) {
-        this.disconnectable = disconnectable;
-        this.sessionId = sessionId;
-    }
+    private String origin;
 
-    public UUID getSessionId() {
-        return sessionId;
+    public XHRPollingClient(Disconnectable disconnectable, UUID sessionId) {
+    	super(sessionId);
+        this.disconnectable = disconnectable;
     }
 
     public void update(Channel channel, HttpRequest req) {
@@ -58,12 +49,6 @@ public class XHRPollingClient implements SocketIOClient {
         return origin;
     }
 
-    public ChannelFuture sendJsonObject(Object object) {
-        Packet packet = new Packet(PacketType.JSON);
-        packet.setData(object);
-        return send(packet);
-    }
-
     public ChannelFuture send(Packet packet) {
         return channel.write(new XHRPacketMessage(sessionId, origin, packet));
     }
@@ -71,10 +56,6 @@ public class XHRPollingClient implements SocketIOClient {
     public void disconnect() {
         send(new Packet(PacketType.DISCONNECT));
         disconnectable.onDisconnect(this);
-    }
-
-    public SocketAddress getRemoteAddress() {
-        return channel.getRemoteAddress();
     }
 
 }

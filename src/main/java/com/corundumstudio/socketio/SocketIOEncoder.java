@@ -61,7 +61,7 @@ import com.corundumstudio.socketio.parser.Packet;
 
 public class SocketIOEncoder extends OneToOneEncoder implements MessageHandler {
 
-    class ClientEntry {
+    class XHRClientEntry {
 
         // AtomicInteger works faster than locking
         final AtomicInteger lastChannelId = new AtomicInteger();
@@ -79,6 +79,12 @@ public class SocketIOEncoder extends OneToOneEncoder implements MessageHandler {
             return !packets.isEmpty();
         }
 
+        /**
+         * We can write to channel only once.
+         *
+         * @param channel
+         * @return true - can write
+         */
         public boolean tryToWrite(Channel channel) {
             int prevVal = lastChannelId.get();
             return prevVal != channel.getId()
@@ -92,7 +98,7 @@ public class SocketIOEncoder extends OneToOneEncoder implements MessageHandler {
     private ObjectMapper objectMapper;
     private Encoder encoder;
 
-    private ConcurrentMap<UUID, ClientEntry> sessionId2ActiveChannelId = new ConcurrentHashMap<UUID, ClientEntry>();
+    private ConcurrentMap<UUID, XHRClientEntry> sessionId2ActiveChannelId = new ConcurrentHashMap<UUID, XHRClientEntry>();
 
     public SocketIOEncoder(ObjectMapper objectMapper, Encoder encoder) {
         super();
@@ -100,11 +106,11 @@ public class SocketIOEncoder extends OneToOneEncoder implements MessageHandler {
         this.encoder = encoder;
     }
 
-    private ClientEntry getClientEntry(Channel channel, UUID sessionId) {
-        ClientEntry clientEntry = sessionId2ActiveChannelId.get(sessionId);
+    private XHRClientEntry getXHRClientEntry(Channel channel, UUID sessionId) {
+        XHRClientEntry clientEntry = sessionId2ActiveChannelId.get(sessionId);
         if (clientEntry == null) {
-            clientEntry = new ClientEntry();
-            ClientEntry old = sessionId2ActiveChannelId.putIfAbsent(sessionId, clientEntry);
+            clientEntry = new XHRClientEntry();
+            XHRClientEntry old = sessionId2ActiveChannelId.putIfAbsent(sessionId, clientEntry);
             if (old != null) {
                 clientEntry = old;
             }
@@ -124,7 +130,7 @@ public class SocketIOEncoder extends OneToOneEncoder implements MessageHandler {
         f.addListener(ChannelFutureListener.CLOSE);
     }
 
-    private void write(UUID sessionId, String origin, ClientEntry clientEntry,
+    private void write(UUID sessionId, String origin, XHRClientEntry clientEntry,
             Channel channel) throws IOException {
         if (!channel.isConnected() || !clientEntry.hasPackets()
         			|| !clientEntry.tryToWrite(channel)) {
@@ -185,7 +191,7 @@ public class SocketIOEncoder extends OneToOneEncoder implements MessageHandler {
 
     @Override
     public Object handle(XHRNewChannelMessage xhrNewChannelMessage, Channel channel) throws IOException {
-        ClientEntry clientEntry = getClientEntry(channel, xhrNewChannelMessage.getSessionId());
+        XHRClientEntry clientEntry = getXHRClientEntry(channel, xhrNewChannelMessage.getSessionId());
 
         write(xhrNewChannelMessage.getSessionId(), xhrNewChannelMessage.getOrigin(), clientEntry, channel);
         return ChannelBuffers.EMPTY_BUFFER;
@@ -193,7 +199,7 @@ public class SocketIOEncoder extends OneToOneEncoder implements MessageHandler {
 
     @Override
     public Object handle(XHRPacketMessage xhrPacketMessage, Channel channel) throws IOException {
-        ClientEntry clientEntry = getClientEntry(channel, xhrPacketMessage.getSessionId());
+        XHRClientEntry clientEntry = getXHRClientEntry(channel, xhrPacketMessage.getSessionId());
         clientEntry.addPacket(xhrPacketMessage.getPacket());
 
         write(xhrPacketMessage.getSessionId(), xhrPacketMessage.getOrigin(), clientEntry, channel);

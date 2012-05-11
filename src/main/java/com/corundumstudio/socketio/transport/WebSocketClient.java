@@ -15,7 +15,6 @@
  */
 package com.corundumstudio.socketio.transport;
 
-import java.net.SocketAddress;
 import java.util.UUID;
 
 import org.jboss.netty.channel.Channel;
@@ -23,35 +22,22 @@ import org.jboss.netty.channel.ChannelFuture;
 import org.jboss.netty.channel.ChannelFutureListener;
 
 import com.corundumstudio.socketio.Disconnectable;
-import com.corundumstudio.socketio.SocketIOClient;
 import com.corundumstudio.socketio.messages.WebSocketPacketMessage;
 import com.corundumstudio.socketio.parser.Packet;
 import com.corundumstudio.socketio.parser.PacketType;
 
-public class WebSocketClient implements SocketIOClient {
+public class WebSocketClient extends BaseClient {
 
-    private final UUID sessionId;
-    private final Channel channel;
     private final Disconnectable disconnectable;
 
     public WebSocketClient(Channel channel, Disconnectable disconnectable, UUID sessionId) {
+        super(sessionId);
         this.channel = channel;
         this.disconnectable = disconnectable;
-        this.sessionId = sessionId;
     }
 
     public Channel getChannel() {
-        return channel;
-    }
-
-    public UUID getSessionId() {
-        return sessionId;
-    }
-
-    public ChannelFuture sendJsonObject(Object object) {
-        Packet packet = new Packet(PacketType.JSON);
-        packet.setData(object);
-        return send(packet);
+    	return channel;
     }
 
     public ChannelFuture send(Packet packet) {
@@ -63,10 +49,6 @@ public class WebSocketClient implements SocketIOClient {
         future.addListener(ChannelFutureListener.CLOSE);
 
         disconnectable.onDisconnect(this);
-    }
-
-    public SocketAddress getRemoteAddress() {
-        return channel.getRemoteAddress();
     }
 
 }
