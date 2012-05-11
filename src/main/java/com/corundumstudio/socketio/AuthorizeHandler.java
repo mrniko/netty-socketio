@@ -83,8 +83,8 @@ public class AuthorizeHandler extends SimpleChannelUpstreamHandler implements Di
         final UUID sessionId = UUID.randomUUID();
         authorizedSessionIds.put(sessionId, System.currentTimeMillis());
 
-        //String transports = "xhr-polling,websocket";
-        String transports = "websocket";
+        String transports = "xhr-polling,websocket";
+        //String transports = "websocket";
         String heartbeatTimeoutVal = String.valueOf(configuration.getHeartbeatTimeout());
         if (configuration.getHeartbeatTimeout() == 0) {
             heartbeatTimeoutVal = "";

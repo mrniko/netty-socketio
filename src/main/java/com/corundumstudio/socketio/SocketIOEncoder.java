@@ -126,9 +126,9 @@ public class SocketIOEncoder extends OneToOneEncoder implements MessageHandler {
 
     private void write(UUID sessionId, String origin, ClientEntry clientEntry,
             Channel channel) throws IOException {
-        if (!channel.isConnected()) {
-            log.trace("Connection closed!");
-            return;
+        if (!channel.isConnected() || !clientEntry.hasPackets()
+        			|| !clientEntry.tryToWrite(channel)) {
+        	return;
         }
 
         List<Packet> packets = new ArrayList<Packet>();
@@ -187,11 +187,8 @@ public class SocketIOEncoder extends OneToOneEncoder implements MessageHandler {
     public Object handle(XHRNewChannelMessage xhrNewChannelMessage, Channel channel) throws IOException {
         ClientEntry clientEntry = getClientEntry(channel, xhrNewChannelMessage.getSessionId());
 
-        if (clientEntry.hasPackets() && clientEntry.tryToWrite(channel)) {
-            write(xhrNewChannelMessage.getSessionId(), xhrNewChannelMessage.getOrigin(), clientEntry, channel);
-            return ChannelBuffers.EMPTY_BUFFER;
-        }
-        return null;
+        write(xhrNewChannelMessage.getSessionId(), xhrNewChannelMessage.getOrigin(), clientEntry, channel);
+        return ChannelBuffers.EMPTY_BUFFER;
     }
 
     @Override
@@ -199,9 +196,7 @@ public class SocketIOEncoder extends OneToOneEncoder implements MessageHandler {
         ClientEntry clientEntry = getClientEntry(channel, xhrPacketMessage.getSessionId());
         clientEntry.addPacket(xhrPacketMessage.getPacket());
 
-        if (clientEntry.hasPackets() && clientEntry.tryToWrite(channel)) {
-            write(xhrPacketMessage.getSessionId(), xhrPacketMessage.getOrigin(), clientEntry, channel);
-        }
+        write(xhrPacketMessage.getSessionId(), xhrPacketMessage.getOrigin(), clientEntry, channel);
         return ChannelBuffers.EMPTY_BUFFER;
     }
 
