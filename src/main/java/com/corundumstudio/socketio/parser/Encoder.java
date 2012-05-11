@@ -24,7 +24,7 @@ import org.codehaus.jackson.map.ObjectMapper;
 
 public class Encoder {
 
-    private ObjectMapper objectMapper;
+    private final ObjectMapper objectMapper;
 
     public Encoder(ObjectMapper objectMapper) {
         super();

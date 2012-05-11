@@ -24,8 +24,9 @@ import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 
 import com.corundumstudio.socketio.Disconnectable;
-import com.corundumstudio.socketio.XHRNewChannelMessage;
 import com.corundumstudio.socketio.SocketIOClient;
+import com.corundumstudio.socketio.messages.XHRNewChannelMessage;
+import com.corundumstudio.socketio.messages.XHRPacketMessage;
 import com.corundumstudio.socketio.parser.Packet;
 import com.corundumstudio.socketio.parser.PacketType;
 
@@ -43,10 +44,6 @@ public class XHRPollingClient implements SocketIOClient {
         this.sessionId = sessionId;
     }
 
-    public Channel getChannel() {
-        return channel;
-    }
-
     public UUID getSessionId() {
         return sessionId;
     }
@@ -54,7 +51,7 @@ public class XHRPollingClient implements SocketIOClient {
     public void update(Channel channel, HttpRequest req) {
         this.origin = req.getHeader(HttpHeaders.Names.ORIGIN);
         this.channel = channel;
-        channel.write(new XHRNewChannelMessage());
+        channel.write(new XHRNewChannelMessage(sessionId, origin));
     }
 
     public String getOrigin() {
@@ -68,7 +65,7 @@ public class XHRPollingClient implements SocketIOClient {
     }
 
     public ChannelFuture send(Packet packet) {
-        return channel.write(packet);
+        return channel.write(new XHRPacketMessage(sessionId, origin, packet));
     }
 
     public void disconnect() {

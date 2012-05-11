@@ -36,6 +36,7 @@ import org.jboss.netty.handler.codec.http.QueryStringDecoder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.corundumstudio.socketio.messages.AuthorizeMessage;
 import com.corundumstudio.socketio.parser.Packet;
 import com.corundumstudio.socketio.parser.PacketType;
 
@@ -82,8 +83,8 @@ public class AuthorizeHandler extends SimpleChannelUpstreamHandler implements Di
         final UUID sessionId = UUID.randomUUID();
         authorizedSessionIds.put(sessionId, System.currentTimeMillis());
 
-        String transports = "xhr-polling,websocket";
-        //String transports = "websocket";
+        //String transports = "xhr-polling,websocket";
+        String transports = "websocket";
         String heartbeatTimeoutVal = String.valueOf(configuration.getHeartbeatTimeout());
         if (configuration.getHeartbeatTimeout() == 0) {
             heartbeatTimeoutVal = "";

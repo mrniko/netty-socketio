@@ -15,9 +15,6 @@
  */
 package com.corundumstudio.socketio.transport;
 
-import static org.jboss.netty.handler.codec.http.HttpHeaders.Names.SEC_WEBSOCKET_KEY;
-import static org.jboss.netty.handler.codec.http.HttpHeaders.Values.WEBSOCKET;
-
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -28,15 +25,12 @@ import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
 import org.jboss.netty.handler.codec.http.HttpHeaders;
-import org.jboss.netty.handler.codec.http.HttpHeaders.Names;
-import org.jboss.netty.handler.codec.http.HttpHeaders.Values;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.QueryStringDecoder;
 import org.jboss.netty.handler.codec.http.websocketx.CloseWebSocketFrame;
 import org.jboss.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import org.jboss.netty.handler.codec.http.websocketx.WebSocketServerHandshaker;
-import org.jboss.netty.handler.codec.http.websocketx.WebSocketServerHandshaker00;
-import org.jboss.netty.handler.codec.http.websocketx.WebSocketServerHandshaker13;
+import org.jboss.netty.handler.codec.http.websocketx.WebSocketServerHandshakerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,7 +41,7 @@ import com.corundumstudio.socketio.SocketIOClient;
 import com.corundumstudio.socketio.parser.Decoder;
 import com.corundumstudio.socketio.parser.Packet;
 
-public class WebSocketTransport extends SimpleChannelUpstreamHandler implements Transport, Disconnectable {
+public class WebSocketTransport extends SimpleChannelUpstreamHandler implements Disconnectable {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -88,18 +82,15 @@ public class WebSocketTransport extends SimpleChannelUpstreamHandler implements 
             }
         } else if (msg instanceof HttpRequest) {
             HttpRequest req = (HttpRequest) msg;
-            if (req.containsHeader(Names.CONNECTION) && req.getHeader(Names.CONNECTION).contains(Values.UPGRADE)
-                    && req.containsHeader(Names.UPGRADE) && WEBSOCKET.equalsIgnoreCase(req.getHeader(Names.UPGRADE))) {
-                WebSocketServerHandshaker handshaker = null;
-                if (req.containsHeader(SEC_WEBSOCKET_KEY)) {
-                    handshaker = new WebSocketServerHandshaker13(getWebSocketLocation(req), null, false);
-                } else {
-                    handshaker = new WebSocketServerHandshaker00(getWebSocketLocation(req), null);
-                }
-                handshaker.handshake(ctx.getChannel(), req);
 
+            WebSocketServerHandshakerFactory factory = new WebSocketServerHandshakerFactory(getWebSocketLocation(req), null, false);
+            WebSocketServerHandshaker handshaker = factory.newHandshaker(req);
+            if (handshaker != null) {
+            	handshaker.handshake(ctx.getChannel(), req);
                 QueryStringDecoder queryDecoder = new QueryStringDecoder(req.getUri());
                 connectClient(ctx.getChannel(), queryDecoder);
+            } else {
+                factory.sendUnsupportedWebSocketVersionResponse(ctx.getChannel());
             }
         } else {
             ctx.sendUpstream(e);
@@ -131,8 +122,6 @@ public class WebSocketTransport extends SimpleChannelUpstreamHandler implements 
                     new Object[] {path, channel.getRemoteAddress()});
             channel.close();
         }
-
-
     }
 
     private String getWebSocketLocation(HttpRequest req) {
@@ -147,15 +136,5 @@ public class WebSocketTransport extends SimpleChannelUpstreamHandler implements 
             channelId2Client.remove(webClient.getChannel().getId());
         }
     }
-
-    @Override
-    public SocketIOClient getClient(Channel channel) {
-        WebSocketClient client = channelId2Client.get(channel.getId());
-        if (client != null) {
-            return client;
-        }
-        return null;
-    }
-
 
 }

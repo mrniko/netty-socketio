@@ -1,3 +1,18 @@
+/**
+ * Copyright 2012 Nikita Koksharov
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.corundumstudio.socketio;
 
 import static org.jboss.netty.handler.codec.http.HttpHeaders.Names.CONNECTION;
@@ -33,15 +48,22 @@ import org.jboss.netty.util.CharsetUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.corundumstudio.socketio.messages.AuthorizeMessage;
+import com.corundumstudio.socketio.messages.BaseMessage;
+import com.corundumstudio.socketio.messages.WebSocketPacketMessage;
+import com.corundumstudio.socketio.messages.WebsocketErrorMessage;
+import com.corundumstudio.socketio.messages.XHRErrorMessage;
+import com.corundumstudio.socketio.messages.XHRNewChannelMessage;
+import com.corundumstudio.socketio.messages.XHRPacketMessage;
+import com.corundumstudio.socketio.messages.XHRPostMessage;
 import com.corundumstudio.socketio.parser.Encoder;
 import com.corundumstudio.socketio.parser.Packet;
-import com.corundumstudio.socketio.transport.Transport;
-import com.corundumstudio.socketio.transport.XHRPollingClient;
 
-public class SocketIOEncoder extends OneToOneEncoder {
+public class SocketIOEncoder extends OneToOneEncoder implements MessageHandler {
 
     class ClientEntry {
 
+        // AtomicInteger works faster than locking
         final AtomicInteger lastChannelId = new AtomicInteger();
         final Queue<Packet> packets = new ConcurrentLinkedQueue<Packet>();
 
@@ -49,13 +71,18 @@ public class SocketIOEncoder extends OneToOneEncoder {
             packets.add(packet);
         }
 
-        public Packet getPacket() {
+        public Packet pollPacket() {
             return packets.poll();
+        }
+
+        public boolean hasPackets() {
+            return !packets.isEmpty();
         }
 
         public boolean tryToWrite(Channel channel) {
             int prevVal = lastChannelId.get();
-            return lastChannelId.compareAndSet(prevVal, channel.getId());
+            return prevVal != channel.getId()
+                            && lastChannelId.compareAndSet(prevVal, channel.getId());
         }
 
     }
@@ -65,18 +92,12 @@ public class SocketIOEncoder extends OneToOneEncoder {
     private ObjectMapper objectMapper;
     private Encoder encoder;
 
-    private Transport webSocketTransport;
-    private Transport xhrPoolingTransport;
-
     private ConcurrentMap<UUID, ClientEntry> sessionId2ActiveChannelId = new ConcurrentHashMap<UUID, ClientEntry>();
 
-    public SocketIOEncoder(ObjectMapper objectMapper, Encoder encoder,
-            Transport webSocketTransport, Transport xhrPoolingTransport) {
+    public SocketIOEncoder(ObjectMapper objectMapper, Encoder encoder) {
         super();
         this.objectMapper = objectMapper;
         this.encoder = encoder;
-        this.webSocketTransport = webSocketTransport;
-        this.xhrPoolingTransport = xhrPoolingTransport;
     }
 
     private ClientEntry getClientEntry(Channel channel, UUID sessionId) {
@@ -103,7 +124,7 @@ public class SocketIOEncoder extends OneToOneEncoder {
         f.addListener(ChannelFutureListener.CLOSE);
     }
 
-    private void write(XHRPollingClient client, ClientEntry clientEntry,
+    private void write(UUID sessionId, String origin, ClientEntry clientEntry,
             Channel channel) throws IOException {
         if (!channel.isConnected()) {
             log.trace("Connection closed!");
@@ -112,7 +133,7 @@ public class SocketIOEncoder extends OneToOneEncoder {
 
         List<Packet> packets = new ArrayList<Packet>();
         while (true) {
-            Packet packet = clientEntry.getPacket();
+            Packet packet = clientEntry.pollPacket();
             if (packet != null) {
                 packets.add(packet);
             } else {
@@ -122,9 +143,9 @@ public class SocketIOEncoder extends OneToOneEncoder {
         if (packets.isEmpty()) {
             return;
         }
-        String message = encoder.encodePackets(packets);
 
-        sendMessage(client.getOrigin(), client.getSessionId(), channel, message);
+        String message = encoder.encodePackets(packets);
+        sendMessage(origin, sessionId, channel, message);
     }
 
     private void sendMessage(String origin, UUID sessionId, Channel channel,
@@ -152,52 +173,75 @@ public class SocketIOEncoder extends OneToOneEncoder {
 
     @Override
     protected Object encode(ChannelHandlerContext ctx, Channel channel, Object msg) throws Exception {
-        if (msg instanceof AuthorizeMessage) {
-            AuthorizeMessage authMsg = (AuthorizeMessage) msg;
-            String message = authMsg.getMsg();
-            if (authMsg.getJsonpParam() != null) {
-                message = "io.j[" + authMsg.getJsonpParam() + "]("
-                        + objectMapper.writeValueAsString(message) + ");";
-            }
-            sendMessage(authMsg.getOrigin(), authMsg.getSessionId(), channel, message);
-            return ChannelBuffers.EMPTY_BUFFER;
-        } else if (msg instanceof ErrorMessage) {
-            ErrorMessage errorMsg = (ErrorMessage) msg;
-            if (errorMsg.getType() == ErrorMessage.Type.XHR) {
-                String message = encoder.encodePacket(errorMsg.getPacket());
-                sendMessage(errorMsg.getOrigin(), null, channel, message);
-            }
-            return ChannelBuffers.EMPTY_BUFFER;
-        } else if (msg instanceof XHRPostMessage) {
-            XHRPostMessage message = (XHRPostMessage) msg;
-            sendPostResponse(channel, message.getOrigin());
-            return ChannelBuffers.EMPTY_BUFFER;
-        } else if ((msg instanceof Packet) || (msg instanceof XHRNewChannelMessage)) {
-            if (webSocketTransport.getClient(channel) != null) {
-                SocketIOClient client = webSocketTransport.getClient(channel);
-                Packet packet = (Packet) msg;
-                String message = encoder.encodePacket(packet);
-                WebSocketFrame res = new TextWebSocketFrame(message.toString());
-                log.trace("Out message: {} sessionId: {}", new Object[] {
-                        message, client.getSessionId() });
-                channel.write(res);
-                return ChannelBuffers.EMPTY_BUFFER;
-            }
-            if (xhrPoolingTransport.getClient(channel) != null) {
-                XHRPollingClient client = (XHRPollingClient) xhrPoolingTransport.getClient(channel);
-                ClientEntry clientEntry = getClientEntry(channel, client.getSessionId());
-
-                if (msg instanceof Packet) {
-                    Packet packet = (Packet) msg;
-                    clientEntry.addPacket(packet);
-                }
-                if (clientEntry.tryToWrite(channel)) {
-                    write(client, clientEntry, channel);
-                    return ChannelBuffers.EMPTY_BUFFER;
-                }
+        if (msg instanceof BaseMessage) {
+            BaseMessage message = (BaseMessage) msg;
+            Object result = message.handleMessage(this, channel);
+            if (result != null) {
+                return result;
             }
         }
         return msg;
+    }
+
+    @Override
+    public Object handle(XHRNewChannelMessage xhrNewChannelMessage, Channel channel) throws IOException {
+        ClientEntry clientEntry = getClientEntry(channel, xhrNewChannelMessage.getSessionId());
+
+        if (clientEntry.hasPackets() && clientEntry.tryToWrite(channel)) {
+            write(xhrNewChannelMessage.getSessionId(), xhrNewChannelMessage.getOrigin(), clientEntry, channel);
+            return ChannelBuffers.EMPTY_BUFFER;
+        }
+        return null;
+    }
+
+    @Override
+    public Object handle(XHRPacketMessage xhrPacketMessage, Channel channel) throws IOException {
+        ClientEntry clientEntry = getClientEntry(channel, xhrPacketMessage.getSessionId());
+        clientEntry.addPacket(xhrPacketMessage.getPacket());
+
+        if (clientEntry.hasPackets() && clientEntry.tryToWrite(channel)) {
+            write(xhrPacketMessage.getSessionId(), xhrPacketMessage.getOrigin(), clientEntry, channel);
+        }
+        return ChannelBuffers.EMPTY_BUFFER;
+    }
+
+    @Override
+    public Object handle(XHRPostMessage xhrPostMessage, Channel channel) {
+        sendPostResponse(channel, xhrPostMessage.getOrigin());
+        return ChannelBuffers.EMPTY_BUFFER;
+    }
+
+    @Override
+    public Object handle(AuthorizeMessage authMsg, Channel channel) throws IOException {
+        String message = authMsg.getMsg();
+        if (authMsg.getJsonpParam() != null) {
+            message = "io.j[" + authMsg.getJsonpParam() + "]("
+                    + objectMapper.writeValueAsString(message) + ");";
+        }
+        sendMessage(authMsg.getOrigin(), authMsg.getSessionId(), channel, message);
+        return ChannelBuffers.EMPTY_BUFFER;
+    }
+
+    @Override
+    public Object handle(WebSocketPacketMessage webSocketPacketMessage, Channel channel) throws IOException {
+        String message = encoder.encodePacket(webSocketPacketMessage.getPacket());
+        WebSocketFrame res = new TextWebSocketFrame(message.toString());
+        log.trace("Out message: {} sessionId: {}", new Object[] {
+                message, webSocketPacketMessage.getSessionId() });
+        return res;
+    }
+
+    @Override
+    public Object handle(WebsocketErrorMessage websocketErrorMessage, Channel channel) throws IOException {
+        String message = encoder.encodePacket(websocketErrorMessage.getPacket());
+        return new TextWebSocketFrame(message.toString());
+    }
+
+    @Override
+    public Object handle(XHRErrorMessage xhrErrorMessage, Channel channel) throws IOException {
+        String message = encoder.encodePacket(xhrErrorMessage.getPacket());
+        sendMessage(xhrErrorMessage.getOrigin(), null, channel, message);
+        return ChannelBuffers.EMPTY_BUFFER;
     }
 
 }

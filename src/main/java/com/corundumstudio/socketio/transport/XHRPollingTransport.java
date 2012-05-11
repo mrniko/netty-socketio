@@ -36,22 +36,21 @@ import org.slf4j.LoggerFactory;
 import com.corundumstudio.socketio.AuthorizeHandler;
 import com.corundumstudio.socketio.Configuration;
 import com.corundumstudio.socketio.Disconnectable;
-import com.corundumstudio.socketio.ErrorMessage;
 import com.corundumstudio.socketio.HeartbeatHandler;
 import com.corundumstudio.socketio.PacketListener;
 import com.corundumstudio.socketio.SocketIOClient;
-import com.corundumstudio.socketio.XHRPostMessage;
+import com.corundumstudio.socketio.messages.XHRErrorMessage;
+import com.corundumstudio.socketio.messages.XHRPostMessage;
 import com.corundumstudio.socketio.parser.Decoder;
 import com.corundumstudio.socketio.parser.ErrorAdvice;
 import com.corundumstudio.socketio.parser.ErrorReason;
 import com.corundumstudio.socketio.parser.Packet;
 import com.corundumstudio.socketio.parser.PacketType;
 
-public class XHRPollingTransport extends SimpleChannelUpstreamHandler implements Transport, Disconnectable {
+public class XHRPollingTransport extends SimpleChannelUpstreamHandler implements Disconnectable {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private final Map<Integer, XHRPollingClient> channelId2Client = new ConcurrentHashMap<Integer, XHRPollingClient>();
     private final Map<UUID, XHRPollingClient> sessionId2Client = new ConcurrentHashMap<UUID, XHRPollingClient>();
 
     private final AuthorizeHandler authorizeHandler;
@@ -134,15 +133,12 @@ public class XHRPollingTransport extends SimpleChannelUpstreamHandler implements
             client = createClient(req, channel, sessionId);
         }
 
-        channelId2Client.remove(client.getChannel().getId());
-        channelId2Client.put(channel.getId(), client);
         client.update(channel, req);
     }
 
     private XHRPollingClient createClient(HttpRequest req, Channel channel, UUID sessionId) {
         XHRPollingClient client = new XHRPollingClient(authorizeHandler, sessionId);
         sessionId2Client.put(sessionId, client);
-        channelId2Client.put(channel.getId(), client);
         client.update(channel, req);
 
         authorizeHandler.connect(client);
@@ -158,7 +154,7 @@ public class XHRPollingTransport extends SimpleChannelUpstreamHandler implements
         Packet packet = new Packet(PacketType.ERROR);
         packet.setReason(ErrorReason.CLIENT_NOT_HANDSHAKEN);
         packet.setAdvice(ErrorAdvice.RECONNECT);
-        channel.write(new ErrorMessage(ErrorMessage.Type.XHR, packet, req.getHeader(HttpHeaders.Names.ORIGIN)));
+        channel.write(new XHRErrorMessage(packet, req.getHeader(HttpHeaders.Names.ORIGIN)));
     }
 
     @Override
@@ -166,17 +162,7 @@ public class XHRPollingTransport extends SimpleChannelUpstreamHandler implements
         if (client instanceof XHRPollingClient) {
             XHRPollingClient xhrClient = (XHRPollingClient) client;
             sessionId2Client.remove(xhrClient.getSessionId());
-            channelId2Client.remove(xhrClient.getChannel().getId());
         }
-    }
-
-    @Override
-    public SocketIOClient getClient(Channel channel) {
-        XHRPollingClient client = channelId2Client.get(channel.getId());
-        if (client != null) {
-            return client;
-        }
-        return null;
     }
 
 }

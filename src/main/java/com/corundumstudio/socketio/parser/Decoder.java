@@ -39,6 +39,7 @@ public class Decoder {
         if (data.isEmpty()) {
             return Collections.emptyList();
         }
+        // TODO make it async
         List<Packet> result = new ArrayList<Packet>();
         if (data.charAt(0) == Packet.DELIMITER) {
             // TODO use ForkJoin

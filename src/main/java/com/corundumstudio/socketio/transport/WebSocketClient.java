@@ -24,15 +24,14 @@ import org.jboss.netty.channel.ChannelFutureListener;
 
 import com.corundumstudio.socketio.Disconnectable;
 import com.corundumstudio.socketio.SocketIOClient;
+import com.corundumstudio.socketio.messages.WebSocketPacketMessage;
 import com.corundumstudio.socketio.parser.Packet;
 import com.corundumstudio.socketio.parser.PacketType;
 
 public class WebSocketClient implements SocketIOClient {
 
     private final UUID sessionId;
-
-    private Channel channel;
-
+    private final Channel channel;
     private final Disconnectable disconnectable;
 
     public WebSocketClient(Channel channel, Disconnectable disconnectable, UUID sessionId) {
@@ -56,7 +55,7 @@ public class WebSocketClient implements SocketIOClient {
     }
 
     public ChannelFuture send(Packet packet) {
-        return channel.write(packet);
+        return channel.write(new WebSocketPacketMessage(sessionId, packet));
     }
 
     public void disconnect() {
