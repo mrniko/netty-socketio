@@ -18,9 +18,12 @@ package com.corundumstudio.socketio.parser;
 import java.util.Collections;
 import java.util.List;
 
+import org.jboss.netty.util.CharsetUtil;
+
 public class Packet {
 
     public static final char DELIMITER = '\ufffd';
+    public static final byte[] DELIMITER_BYTES = new String(new char[] {DELIMITER}).getBytes(CharsetUtil.UTF_8);
     public static final Packet NULL_INSTANCE = new Packet(null);
 
     private final PacketType type;

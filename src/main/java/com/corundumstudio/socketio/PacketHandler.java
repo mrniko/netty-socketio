@@ -3,10 +3,10 @@ package com.corundumstudio.socketio;
 import java.io.IOException;
 
 import org.jboss.netty.buffer.ChannelBuffer;
+import org.jboss.netty.channel.ChannelHandler.Sharable;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
-import org.jboss.netty.channel.ChannelHandler.Sharable;
 import org.jboss.netty.util.CharsetUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,13 +49,11 @@ public class PacketHandler extends SimpleChannelUpstreamHandler {
 		}
 	}
 
-	// TODO use ForkJoin
 	private Packet decode(ChannelBuffer buffer) throws IOException {
-		char delimiter = getChar(buffer, buffer.readerIndex());
-		if (delimiter == Packet.DELIMITER) {
+		if (isCurrentDelimiter(buffer, buffer.readerIndex())) {
 			StringBuilder length = new StringBuilder(4);
-            for (int i = buffer.readerIndex() + 2 + 1; i < buffer.readerIndex() + buffer.readableBytes(); i++) {
-                if (getChar(buffer, i) == Packet.DELIMITER) {
+            for (int i = buffer.readerIndex() + Packet.DELIMITER_BYTES.length; i < buffer.readerIndex() + buffer.readableBytes(); i++) {
+                if (isCurrentDelimiter(buffer, i)) {
                     break;
                 } else {
                     length.append((char)buffer.getUnsignedByte(i));
@@ -63,7 +61,7 @@ public class PacketHandler extends SimpleChannelUpstreamHandler {
             }
             Integer len = Integer.valueOf(length.toString());
 
-            int startIndex = buffer.readerIndex() + 3 + length.length() + 3;
+            int startIndex = buffer.readerIndex() + Packet.DELIMITER_BYTES.length + length.length() + Packet.DELIMITER_BYTES.length;
 	        ChannelBuffer frame = buffer.slice(startIndex, len);
 	        Packet packet = decoder.decodePacket(frame.toString(CharsetUtil.UTF_8));
 	        buffer.readerIndex(startIndex + len);
@@ -75,10 +73,13 @@ public class PacketHandler extends SimpleChannelUpstreamHandler {
 		}
 	}
 
-	// TODO refactor it
-	private char getChar(ChannelBuffer buffer, int index) {
-		byte[] bytes = {buffer.getByte(index), buffer.getByte(index + 1)};
-		return new String(bytes).charAt(0);
+	private boolean isCurrentDelimiter(ChannelBuffer buffer, int index) {
+		for (int i = 0; i < Packet.DELIMITER_BYTES.length; i++) {
+			if (buffer.getByte(index + i) != Packet.DELIMITER_BYTES[i]) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 }

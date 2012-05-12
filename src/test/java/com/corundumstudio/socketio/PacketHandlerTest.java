@@ -31,6 +31,8 @@ public class PacketHandlerTest {
 	private Encoder encoder = new Encoder(map);
 	@Mocked
 	private Channel channel;
+	@Mocked
+	private SocketIOClient client;
 
 	@Test
 	public void testOnePacket() throws Exception {
@@ -96,7 +98,7 @@ public class PacketHandlerTest {
 			PacketHandler handler, List<Packet> packets) throws Exception {
 		String str = encoder.encodePackets(packets);
 		ChannelBuffer buffer = ChannelBuffers.wrappedBuffer(str.getBytes());
-		handler.messageReceived(null, new UpstreamMessageEvent(channel, new PacketsMessage(null, buffer), null));
+		handler.messageReceived(null, new UpstreamMessageEvent(channel, new PacketsMessage(client, buffer), null));
 		Assert.assertEquals(packets.size(), invocations.get());
 	}
 
@@ -112,7 +114,7 @@ public class PacketHandlerTest {
         ChannelBuffer buffer = ChannelBuffers.wrappedBuffer("\ufffd5\ufffd3:::5\ufffd7\ufffd3:::53d\ufffd3\ufffd0::\ufffd5\ufffd3:::5\ufffd7\ufffd3:::53d\ufffd3\ufffd0::\ufffd5\ufffd3:::5\ufffd7\ufffd3:::53d\ufffd3\ufffd0::\ufffd5\ufffd3:::5\ufffd7\ufffd3:::53d\ufffd3\ufffd0::\ufffd5\ufffd3:::5\ufffd7\ufffd3:::53d\ufffd3\ufffd0::".getBytes());
         for (int i = 0; i < 50000; i++) {
         	ChannelBuffer t = buffer.copy();
-    		handler.messageReceived(null, new UpstreamMessageEvent(channel, new PacketsMessage(null, t), null));
+    		handler.messageReceived(null, new UpstreamMessageEvent(channel, new PacketsMessage(client, t), null));
         }
         long end = System.currentTimeMillis() - start;
         System.out.println(end + "ms");
