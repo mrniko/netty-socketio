@@ -46,17 +46,21 @@ public class SocketIOPipelineFactory implements ChannelPipelineFactory, Disconne
     private SocketIOListener socketIOHandler;
     private HeartbeatHandler heartbeatHandler;
 
+	private PacketHandler packetHandler;
+
     public SocketIOPipelineFactory(Configuration configuration) {
         this.socketIOHandler = configuration.getListener();
+        this.heartbeatHandler = new HeartbeatHandler(configuration);
+
         ObjectMapper objectMapper = configuration.getObjectMapper();
         Encoder encoder = new Encoder(objectMapper);
         Decoder decoder = new Decoder(objectMapper);
-        this.heartbeatHandler = new HeartbeatHandler(configuration);
         PacketListener packetListener = new PacketListener(socketIOHandler, this, heartbeatHandler);
 
+        packetHandler = new PacketHandler(packetListener, decoder);
         authorizeHandler = new AuthorizeHandler(connectPath, socketIOHandler, configuration);
-        xhrPollingTransport = new XHRPollingTransport(connectPath, decoder, packetListener, this, heartbeatHandler, authorizeHandler, configuration);
-        webSocketTransport = new WebSocketTransport(connectPath, decoder, this, packetListener, authorizeHandler);
+        xhrPollingTransport = new XHRPollingTransport(connectPath, this, heartbeatHandler, authorizeHandler, configuration);
+        webSocketTransport = new WebSocketTransport(connectPath, this, authorizeHandler);
         socketIOEncoder = new SocketIOEncoder(objectMapper, encoder);
     }
 
@@ -66,6 +70,8 @@ public class SocketIOPipelineFactory implements ChannelPipelineFactory, Disconne
         pipeline.addLast("decoder", new HttpRequestDecoder());
         pipeline.addLast("aggregator", new HttpChunkAggregator(65536));
         pipeline.addLast("encoder", new HttpResponseEncoder());
+
+        pipeline.addLast("packetHandler", packetHandler);
 
         pipeline.addLast("authorizeHandler", authorizeHandler);
         pipeline.addLast("xhrPollingTransport", xhrPollingTransport);

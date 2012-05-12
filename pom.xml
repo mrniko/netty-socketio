@@ -42,6 +42,12 @@
       <scope>test</scope>
   </dependency>
   <dependency>
+      <groupId>com.googlecode.jmockit</groupId>
+      <artifactId>jmockit</artifactId>
+      <version>0.999.15</version>
+      <scope>test</scope>
+  </dependency>
+  <dependency>
       <groupId>io.netty</groupId>
       <artifactId>netty</artifactId>
       <version>3.4.2.Final</version>

@@ -16,20 +16,19 @@
 package com.corundumstudio.socketio.transport;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelHandlerContext;
+import org.jboss.netty.channel.Channels;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
 import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.jboss.netty.handler.codec.http.HttpMethod;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.QueryStringDecoder;
-import org.jboss.netty.util.CharsetUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,11 +36,10 @@ import com.corundumstudio.socketio.AuthorizeHandler;
 import com.corundumstudio.socketio.Configuration;
 import com.corundumstudio.socketio.Disconnectable;
 import com.corundumstudio.socketio.HeartbeatHandler;
-import com.corundumstudio.socketio.PacketListener;
 import com.corundumstudio.socketio.SocketIOClient;
+import com.corundumstudio.socketio.messages.PacketsMessage;
 import com.corundumstudio.socketio.messages.XHRErrorMessage;
 import com.corundumstudio.socketio.messages.XHRPostMessage;
-import com.corundumstudio.socketio.parser.Decoder;
 import com.corundumstudio.socketio.parser.ErrorAdvice;
 import com.corundumstudio.socketio.parser.ErrorReason;
 import com.corundumstudio.socketio.parser.Packet;
@@ -55,22 +53,17 @@ public class XHRPollingTransport extends SimpleChannelUpstreamHandler implements
 
     private final AuthorizeHandler authorizeHandler;
     private final HeartbeatHandler heartbeatHandler;
-    private final PacketListener packetListener;
     private final Disconnectable disconnectable;
-    private final Decoder decoder;
     private final String path;
     private final Configuration configuration;
 
-    public XHRPollingTransport(String connectPath, Decoder decoder,
-                                PacketListener packetListener, Disconnectable disconnectable,
+    public XHRPollingTransport(String connectPath, Disconnectable disconnectable,
                                 HeartbeatHandler heartbeatHandler, AuthorizeHandler authorizeHandler, Configuration configuration) {
         this.path = connectPath + "xhr-polling/";
         this.authorizeHandler = authorizeHandler;
         this.configuration = configuration;
         this.heartbeatHandler = heartbeatHandler;
         this.disconnectable = disconnectable;
-        this.decoder = decoder;
-        this.packetListener = packetListener;
     }
 
     public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) throws Exception {
@@ -112,14 +105,8 @@ public class XHRPollingTransport extends SimpleChannelUpstreamHandler implements
             return;
         }
 
-        String content = req.getContent().toString(CharsetUtil.UTF_8);
-        log.trace("In message: {} sessionId: {}", new Object[] {content, sessionId});
-        List<Packet> packets = decoder.decodePayload(content);
-        for (Packet packet : packets) {
-            packetListener.onPacket(packet, client);
-        }
-
         String origin = req.getHeader(HttpHeaders.Names.ORIGIN);
+        Channels.fireMessageReceived(channel, new PacketsMessage(client, req.getContent()));
         channel.write(new XHRPostMessage(origin));
     }
 
@@ -128,18 +115,19 @@ public class XHRPollingTransport extends SimpleChannelUpstreamHandler implements
             sendError(channel, req, sessionId);
             return;
         }
+        String origin = req.getHeader(HttpHeaders.Names.ORIGIN);
         XHRPollingClient client = sessionId2Client.get(sessionId);
         if (client == null) {
-            client = createClient(req, channel, sessionId);
+            client = createClient(origin, channel, sessionId);
         }
 
-        client.update(channel, req);
+        client.update(channel, origin);
     }
 
-    private XHRPollingClient createClient(HttpRequest req, Channel channel, UUID sessionId) {
+    private XHRPollingClient createClient(String origin, Channel channel, UUID sessionId) {
         XHRPollingClient client = new XHRPollingClient(authorizeHandler, sessionId);
         sessionId2Client.put(sessionId, client);
-        client.update(channel, req);
+        client.update(channel, origin);
 
         authorizeHandler.connect(client);
         if (configuration.isHeartbeatsEnabled()) {

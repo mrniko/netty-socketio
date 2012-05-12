@@ -19,8 +19,6 @@ import java.util.UUID;
 
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelFuture;
-import org.jboss.netty.handler.codec.http.HttpHeaders;
-import org.jboss.netty.handler.codec.http.HttpRequest;
 
 import com.corundumstudio.socketio.Disconnectable;
 import com.corundumstudio.socketio.messages.XHRNewChannelMessage;
@@ -39,8 +37,8 @@ public class XHRPollingClient extends BaseClient {
         this.disconnectable = disconnectable;
     }
 
-    public void update(Channel channel, HttpRequest req) {
-        this.origin = req.getHeader(HttpHeaders.Names.ORIGIN);
+    public void update(Channel channel, String origin) {
+        this.origin = origin;
         this.channel = channel;
         channel.write(new XHRNewChannelMessage(sessionId, origin));
     }
