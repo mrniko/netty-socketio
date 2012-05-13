@@ -37,7 +37,7 @@ public class EncoderJsonPacketTest {
     @Test
     public void testEncodeWithMessageIdAndAckData() throws IOException {
         Packet packet = new Packet(PacketType.JSON);
-        packet.setId("1");
+        packet.setId(1);
         packet.setAck("data");
         packet.setData(Collections.singletonMap("a", "b"));
         String result = encoder.encodePacket(packet);

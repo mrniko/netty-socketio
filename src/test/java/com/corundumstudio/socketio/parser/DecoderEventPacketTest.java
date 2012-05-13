@@ -37,7 +37,7 @@ public class DecoderEventPacketTest {
     public void testDecodeWithMessageIdAndAck() throws IOException {
         Packet packet = decoder.decodePacket("5:1+::{\"name\":\"tobi\"}");
         Assert.assertEquals(PacketType.EVENT, packet.getType());
-        Assert.assertEquals("1", packet.getId());
+        Assert.assertEquals(1, (int)packet.getId());
         Assert.assertEquals("data", packet.getAck());
         Assert.assertEquals("tobi", packet.getName());
     }

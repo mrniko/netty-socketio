@@ -56,7 +56,7 @@ public class Encoder {
 
     public String encodePacket(Packet packet) throws IOException {
         int type = packet.getType().getValue();
-        String id = packet.getId();
+        Integer id = packet.getId();
         String endpoint = packet.getEndpoint();
         Object ack = packet.getAck();
         Object data = packet.getData();
@@ -123,7 +123,11 @@ public class Encoder {
         if ("data".equals(ack)) {
             params.add(id + "+");
         } else {
-            params.add(id);
+            if (id == null) {
+                params.add("");
+            } else {
+                params.add(id);
+            }
         }
         params.add(endpoint);
         if (data != null) {

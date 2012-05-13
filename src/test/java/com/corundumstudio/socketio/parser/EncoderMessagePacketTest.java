@@ -36,7 +36,7 @@ public class EncoderMessagePacketTest {
     @Test
     public void testEncodeWithIdAndEndpoint() throws IOException {
         Packet packet = new Packet(PacketType.MESSAGE);
-        packet.setId("5");
+        packet.setId(5);
         packet.setAck(true);
         packet.setEndpoint("/tobi");
         String result = encoder.encodePacket(packet);

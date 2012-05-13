@@ -19,8 +19,8 @@ public enum PacketType {
 
     DISCONNECT(0), CONNECT(1), HEARTBEAT(2), MESSAGE(3), JSON(4), EVENT(5), ACK(6), ERROR(7), NOOP(8);
 
-    // optimization founded by profiler
-    private static final PacketType[] someValues = values();
+    // cache needed to avoid cloning
+    public static final PacketType[] VALUES = values();
     private final int value;
 
     PacketType(int value) {
@@ -32,7 +32,7 @@ public enum PacketType {
     }
 
     public static PacketType valueOf(int value) {
-        return someValues[value];
+        return VALUES[value];
     }
 
 }

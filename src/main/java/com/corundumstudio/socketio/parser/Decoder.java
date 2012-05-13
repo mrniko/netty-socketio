@@ -22,9 +22,15 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.jboss.netty.buffer.ChannelBuffer;
+import org.jboss.netty.buffer.ChannelBuffers;
+import org.jboss.netty.util.CharsetUtil;
 
 public class Decoder {
+
+    private byte separator = (byte)':';
 
     private final Pattern packetPattern = Pattern.compile("([^:]+):([0-9]+)?(\\+)?:([^:]+)?:?([\\s\\S]*)?");
     private final Pattern ackPattern = Pattern.compile("^([0-9]+)(\\+)?(.*)");
@@ -35,6 +41,7 @@ public class Decoder {
         this.objectMapper = objectMapper;
     }
 
+/*
     public List<Packet> decodePayload(String data) throws IOException {
         if (data.isEmpty()) {
             return Collections.emptyList();
@@ -62,24 +69,57 @@ public class Decoder {
         return result;
 
     }
-
-    public Packet decodePacket(String msg) throws IOException {
-        Matcher matcher = packetPattern.matcher(msg);
-        if (!matcher.matches()) {
-            return Packet.NULL_INSTANCE;
+*/
+    public Packet decodePacket(ChannelBuffer buffer) throws IOException {
+        byte typeId = Byte.valueOf(Character.valueOf((char)buffer.getUnsignedByte(0)).toString());
+        if (typeId >= PacketType.VALUES.length
+                || buffer.getByte(1) != separator) {
+            throw new DecoderException("Can't parse " + buffer.toString(CharsetUtil.UTF_8));
         }
-        String id = extract(matcher, 2);
-        String data = extract(matcher, 5);
-        int typeId = Integer.valueOf(matcher.group(1));
         PacketType type = PacketType.valueOf(typeId);
-        String endpoint = extract(matcher, 4);
+
+        int readerIndex = 1;
+        StringBuilder messageId = new StringBuilder(4);
+        for (readerIndex += 1; readerIndex < buffer.readableBytes(); readerIndex++) {
+            byte msg = buffer.getByte(readerIndex);
+            if (msg == separator) {
+                break;
+            }
+            if (msg != (byte)'+') {
+                messageId.append((char)msg);
+            }
+        }
+        Integer id = null;
+        if (messageId.length() > 0) {
+            id = Integer.valueOf(messageId.toString());
+        }
+
+        StringBuilder endpointBuffer = new StringBuilder();
+        for (readerIndex += 1; readerIndex < buffer.readableBytes(); readerIndex++) {
+            byte msg = buffer.getByte(readerIndex);
+            if (msg == separator) {
+                break;
+            }
+            endpointBuffer.append((char)msg);
+        }
+
+        String endpoint = null;
+        if (endpointBuffer.length() > 0) {
+            endpoint = endpointBuffer.toString();
+        }
+
+        readerIndex += 1;
+        byte[] data = null;
+        if (buffer.readableBytes() - readerIndex > 0) {
+            data = new byte[buffer.readableBytes() - readerIndex];
+            buffer.getBytes(readerIndex, data);
+        }
 
         Packet packet = new Packet(type);
         packet.setEndpoint(endpoint);
-        packet.setId(id);
         if (id != null) {
-            String ackData = extract(matcher, 3);
-            if (ackData != null) {
+            packet.setId(id);
+            if (data != null) {
                 packet.setAck("data");
             } else {
                 packet.setAck(true);
@@ -88,7 +128,10 @@ public class Decoder {
 
         switch (type) {
         case ERROR:
-            String[] pieces = data.split("\\+");
+            if (data == null) {
+                break;
+            }
+            String[] pieces = new String(data).split("\\+");
             if (pieces.length > 0 && pieces[0].trim().length() > 0) {
                 ErrorReason reason = ErrorReason.valueOf(Integer.valueOf(pieces[0]));
                 packet.setReason(reason);
@@ -101,7 +144,7 @@ public class Decoder {
 
         case MESSAGE:
             if (data != null) {
-                packet.setData(data);
+                packet.setData(new String(data));
             } else {
                 packet.setData("");
             }
@@ -121,14 +164,16 @@ public class Decoder {
             break;
 
         case CONNECT:
-            packet.setQs(data);
+            if (data != null) {
+                packet.setQs(new String(data));
+            }
             break;
 
         case ACK:
             if (data == null) {
                 break;
             }
-            Matcher ackMatcher = ackPattern.matcher(data);
+            Matcher ackMatcher = ackPattern.matcher(new String(data));
             if (ackMatcher.matches()) {
                 packet.setAckId(ackMatcher.group(1));
                 String ackArgsJSON = extract(ackMatcher, 3);
@@ -153,6 +198,10 @@ public class Decoder {
             return null;
         }
         return matcher.group(index);
+    }
+
+    public Packet decodePacket(String string) throws IOException {
+        return decodePacket(ChannelBuffers.copiedBuffer(string, CharsetUtil.UTF_8));
     }
 
 }

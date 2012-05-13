@@ -32,7 +32,7 @@ public class Packet {
     private Object ack;
     private String ackId;
     private String name;
-    private String id = "";
+    private Integer id;
     private String endpoint = "";
     private Object data;
 
@@ -64,11 +64,10 @@ public class Packet {
         return endpoint;
     }
 
-    public String getId() {
+    public Integer getId() {
         return id;
     }
-
-    public void setId(String id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 

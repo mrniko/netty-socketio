@@ -36,7 +36,7 @@ public class DecoderMessagePacketTest {
     public void testDecodeWithIdAndEndpoint() throws IOException {
         Packet packet = decoder.decodePacket("3:5:/tobi");
         Assert.assertEquals(PacketType.MESSAGE, packet.getType());
-        Assert.assertEquals("5", packet.getId());
+        Assert.assertEquals(5, (int)packet.getId());
         Assert.assertEquals(true, packet.getAck());
         Assert.assertEquals("/tobi", packet.getEndpoint());
     }
