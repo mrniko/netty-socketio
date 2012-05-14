@@ -21,7 +21,7 @@ import com.corundumstudio.socketio.MessageHandler;
 
 public class XHRPostMessage extends BaseMessage {
 
-    private String origin;
+    private final String origin;
 
     public XHRPostMessage(String origin) {
         this.origin = origin;

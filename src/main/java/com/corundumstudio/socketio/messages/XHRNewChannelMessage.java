@@ -24,8 +24,8 @@ import com.corundumstudio.socketio.MessageHandler;
 
 public class XHRNewChannelMessage extends BaseMessage {
 
-    private UUID sessionId;
-    private String origin;
+    private final UUID sessionId;
+    private final String origin;
 
     public XHRNewChannelMessage(UUID sessionId, String origin) {
         this.sessionId = sessionId;

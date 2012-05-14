@@ -24,7 +24,7 @@ import com.corundumstudio.socketio.parser.Packet;
 
 public class WebsocketErrorMessage extends BaseMessage {
 
-    private Packet packet;
+    private final Packet packet;
 
     public WebsocketErrorMessage(Packet packet) {
         super();

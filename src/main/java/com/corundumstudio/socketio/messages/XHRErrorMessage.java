@@ -24,8 +24,8 @@ import com.corundumstudio.socketio.parser.Packet;
 
 public class XHRErrorMessage extends BaseMessage {
 
-    private Packet packet;
-    private String origin;
+    private final Packet packet;
+    private final String origin;
 
     public XHRErrorMessage(Packet packet, String origin) {
         this.packet = packet;

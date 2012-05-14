@@ -24,10 +24,10 @@ import com.corundumstudio.socketio.MessageHandler;
 
 public class AuthorizeMessage extends BaseMessage {
 
-    private UUID sessionId;
-    private String origin;
-    private String msg;
-    private String jsonpParam;
+    private final UUID sessionId;
+    private final String origin;
+    private final String msg;
+    private final String jsonpParam;
 
     public AuthorizeMessage(String msg, String jsonpParam, String origin, UUID sessionId) {
         this.origin = origin;

@@ -25,8 +25,8 @@ import com.corundumstudio.socketio.parser.Packet;
 
 public class WebSocketPacketMessage extends BaseMessage {
 
-    private UUID sessionId;
-    private Packet packet;
+    private final UUID sessionId;
+    private final Packet packet;
 
     public WebSocketPacketMessage(UUID sessionId, Packet packet) {
         super();
