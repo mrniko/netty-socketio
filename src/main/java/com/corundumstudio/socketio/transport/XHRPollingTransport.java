@@ -25,6 +25,7 @@ import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.Channels;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
+import org.jboss.netty.channel.ChannelHandler.Sharable;
 import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.jboss.netty.handler.codec.http.HttpMethod;
 import org.jboss.netty.handler.codec.http.HttpRequest;
@@ -45,6 +46,7 @@ import com.corundumstudio.socketio.parser.ErrorReason;
 import com.corundumstudio.socketio.parser.Packet;
 import com.corundumstudio.socketio.parser.PacketType;
 
+@Sharable
 public class XHRPollingTransport extends SimpleChannelUpstreamHandler implements Disconnectable {
 
     private final Logger log = LoggerFactory.getLogger(getClass());

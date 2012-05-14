@@ -36,6 +36,7 @@ import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelFuture;
 import org.jboss.netty.channel.ChannelFutureListener;
 import org.jboss.netty.channel.ChannelHandlerContext;
+import org.jboss.netty.channel.ChannelHandler.Sharable;
 import org.jboss.netty.handler.codec.http.DefaultHttpResponse;
 import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.jboss.netty.handler.codec.http.HttpResponse;
@@ -59,6 +60,7 @@ import com.corundumstudio.socketio.messages.XHRPostMessage;
 import com.corundumstudio.socketio.parser.Encoder;
 import com.corundumstudio.socketio.parser.Packet;
 
+@Sharable
 public class SocketIOEncoder extends OneToOneEncoder implements MessageHandler {
 
     class XHRClientEntry {
@@ -145,9 +147,6 @@ public class SocketIOEncoder extends OneToOneEncoder implements MessageHandler {
             } else {
                 break;
             }
-        }
-        if (packets.isEmpty()) {
-            return;
         }
 
         String message = encoder.encodePackets(packets);

@@ -70,17 +70,32 @@ public class Decoder {
 
     }
 */
+    // fastest way to parse chars to int
+    public Integer parseInt(byte[] chars) {
+		int result = 0;
+		for (int i = 0; i < chars.length; i++) {
+			int digit = ((int)chars[i] & 0xF);
+	    	for (int j = 0; j < chars.length-1-i; j++) {
+	    		digit *= 10;
+			}
+	    	result += digit;
+		}
+    	return result;
+    }
+
     public Packet decodePacket(ChannelBuffer buffer) throws IOException {
-        byte typeId = Byte.valueOf(Character.valueOf((char)buffer.getUnsignedByte(0)).toString());
-        if (typeId >= PacketType.VALUES.length
-                || buffer.getByte(1) != separator) {
+        if (buffer.readableBytes() < 3) {
             throw new DecoderException("Can't parse " + buffer.toString(CharsetUtil.UTF_8));
         }
-        PacketType type = PacketType.valueOf(typeId);
+        PacketType type = getType(buffer);
 
         int readerIndex = 1;
-        StringBuilder messageId = new StringBuilder(4);
+        // 'null' to avoid unnecessary StringBuilder creation
+        StringBuilder messageId = null;
         for (readerIndex += 1; readerIndex < buffer.readableBytes(); readerIndex++) {
+            if (messageId == null) {
+                messageId = new StringBuilder(4);
+            }
             byte msg = buffer.getByte(readerIndex);
             if (msg == separator) {
                 break;
@@ -90,12 +105,16 @@ public class Decoder {
             }
         }
         Integer id = null;
-        if (messageId.length() > 0) {
+        if (messageId != null && messageId.length() > 0) {
             id = Integer.valueOf(messageId.toString());
         }
 
-        StringBuilder endpointBuffer = new StringBuilder();
+        // 'null' to avoid unnecessary StringBuilder creation
+        StringBuilder endpointBuffer = null;
         for (readerIndex += 1; readerIndex < buffer.readableBytes(); readerIndex++) {
+            if (endpointBuffer == null) {
+                endpointBuffer = new StringBuilder();
+            }
             byte msg = buffer.getByte(readerIndex);
             if (msg == separator) {
                 break;
@@ -104,7 +123,7 @@ public class Decoder {
         }
 
         String endpoint = null;
-        if (endpointBuffer.length() > 0) {
+        if (endpointBuffer != null && endpointBuffer.length() > 0) {
             endpoint = endpointBuffer.toString();
         }
 
@@ -191,6 +210,15 @@ public class Decoder {
         }
 
         return packet;
+    }
+
+    private PacketType getType(ChannelBuffer buffer) {
+        int typeId = buffer.getByte(0) & 0xF;
+        if (typeId >= PacketType.VALUES.length
+                || buffer.getByte(1) != separator) {
+            throw new DecoderException("Can't parse " + buffer.toString(CharsetUtil.UTF_8));
+        }
+        return PacketType.valueOf(typeId);
     }
 
     private String extract(Matcher matcher, int index) {

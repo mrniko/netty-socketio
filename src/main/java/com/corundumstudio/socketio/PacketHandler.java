@@ -51,20 +51,13 @@ public class PacketHandler extends SimpleChannelUpstreamHandler {
 
     private Packet decode(ChannelBuffer buffer) throws IOException {
         if (isCurrentDelimiter(buffer, buffer.readerIndex())) {
-            StringBuilder length = new StringBuilder(4);
-            for (int i = buffer.readerIndex() + Packet.DELIMITER_BYTES.length; i < buffer.readerIndex() + buffer.readableBytes(); i++) {
-                if (isCurrentDelimiter(buffer, i)) {
-                    break;
-                } else {
-                    length.append((char)buffer.getUnsignedByte(i));
-                }
-            }
-            Integer len = Integer.valueOf(length.toString());
+        	buffer.readerIndex(buffer.readerIndex() + Packet.DELIMITER_BYTES.length);
 
-            int startIndex = buffer.readerIndex() + Packet.DELIMITER_BYTES.length + length.length() + Packet.DELIMITER_BYTES.length;
-            ChannelBuffer frame = buffer.slice(startIndex, len);
+            Integer len = parseLength(buffer);
+
+            ChannelBuffer frame = buffer.slice(buffer.readerIndex(), len);
             Packet packet = decoder.decodePacket(frame);
-            buffer.readerIndex(startIndex + len);
+            buffer.readerIndex(buffer.readerIndex() + len);
             return packet;
         } else {
             Packet packet = decoder.decodePacket(buffer);
@@ -72,6 +65,19 @@ public class PacketHandler extends SimpleChannelUpstreamHandler {
             return packet;
         }
     }
+
+	private Integer parseLength(ChannelBuffer buffer) {
+		byte[] digits = null;
+		for (int i = buffer.readerIndex(); i < buffer.readerIndex() + buffer.readableBytes(); i++) {
+		    if (isCurrentDelimiter(buffer, i)) {
+		    	digits = new byte[i - buffer.readerIndex()];
+		    	buffer.getBytes(buffer.readerIndex(), digits);
+		        break;
+		    }
+		}
+		buffer.readerIndex(buffer.readerIndex() + digits.length + Packet.DELIMITER_BYTES.length);
+        return decoder.parseInt(digits);
+	}
 
     private boolean isCurrentDelimiter(ChannelBuffer buffer, int index) {
         for (int i = 0; i < Packet.DELIMITER_BYTES.length; i++) {

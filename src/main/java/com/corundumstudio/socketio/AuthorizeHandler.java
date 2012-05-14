@@ -29,6 +29,7 @@ import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
+import org.jboss.netty.channel.ChannelHandler.Sharable;
 import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.jboss.netty.handler.codec.http.HttpMethod;
 import org.jboss.netty.handler.codec.http.HttpRequest;
@@ -40,6 +41,7 @@ import com.corundumstudio.socketio.messages.AuthorizeMessage;
 import com.corundumstudio.socketio.parser.Packet;
 import com.corundumstudio.socketio.parser.PacketType;
 
+@Sharable
 public class AuthorizeHandler extends SimpleChannelUpstreamHandler implements Disconnectable {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
