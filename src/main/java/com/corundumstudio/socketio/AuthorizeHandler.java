@@ -15,6 +15,8 @@
  */
 package com.corundumstudio.socketio;
 
+import static org.jboss.netty.handler.codec.http.HttpVersion.HTTP_1_1;
+
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Iterator;
@@ -26,13 +28,18 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.jboss.netty.channel.Channel;
+import org.jboss.netty.channel.ChannelFuture;
+import org.jboss.netty.channel.ChannelFutureListener;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
 import org.jboss.netty.channel.ChannelHandler.Sharable;
+import org.jboss.netty.handler.codec.http.DefaultHttpResponse;
 import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.jboss.netty.handler.codec.http.HttpMethod;
 import org.jboss.netty.handler.codec.http.HttpRequest;
+import org.jboss.netty.handler.codec.http.HttpResponse;
+import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 import org.jboss.netty.handler.codec.http.QueryStringDecoder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -70,6 +77,12 @@ public class AuthorizeHandler extends SimpleChannelUpstreamHandler implements Di
             HttpRequest req = (HttpRequest) msg;
             Channel channel = ctx.getChannel();
             QueryStringDecoder queryDecoder = new QueryStringDecoder(req.getUri());
+            if (!queryDecoder.getPath().startsWith(connectPath)) {
+                HttpResponse res = new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.BAD_REQUEST);
+                ChannelFuture f = channel.write(res);
+                f.addListener(ChannelFutureListener.CLOSE);
+            	return;
+            }
             if (HttpMethod.GET.equals(req.getMethod()) && queryDecoder.getPath().equals(connectPath)) {
                 authorize(channel, req, queryDecoder.getParameters());
                 return;
