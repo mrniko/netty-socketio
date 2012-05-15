@@ -108,8 +108,8 @@ public class XHRPollingTransport extends SimpleChannelUpstreamHandler implements
         }
 
         String origin = req.getHeader(HttpHeaders.Names.ORIGIN);
-        Channels.fireMessageReceived(channel, new PacketsMessage(client, req.getContent()));
         channel.write(new XHRPostMessage(origin));
+        Channels.fireMessageReceived(channel, new PacketsMessage(client, req.getContent()));
     }
 
     private void onGet(UUID sessionId, Channel channel, HttpRequest req) {
