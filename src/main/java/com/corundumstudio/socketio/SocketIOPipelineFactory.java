@@ -36,7 +36,6 @@ public class SocketIOPipelineFactory implements ChannelPipelineFactory, Disconne
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     private final int protocol = 1;
-    private final String connectPath = "/socket.io/" + protocol + "/";
 
     private final AuthorizeHandler authorizeHandler;
     private XHRPollingTransport xhrPollingTransport;
@@ -56,6 +55,8 @@ public class SocketIOPipelineFactory implements ChannelPipelineFactory, Disconne
         Encoder encoder = new Encoder(objectMapper);
         Decoder decoder = new Decoder(objectMapper);
         PacketListener packetListener = new PacketListener(socketIOHandler, this, heartbeatHandler);
+
+        String connectPath = configuration.getContext() + "/" + protocol + "/";
 
         packetHandler = new PacketHandler(packetListener, decoder);
         authorizeHandler = new AuthorizeHandler(connectPath, socketIOHandler, configuration);

@@ -22,6 +22,8 @@ import org.codehaus.jackson.map.ObjectMapper;
 
 public class Configuration {
 
+	private String context = "/socket.io";
+
     private Executor bossExecutor = Executors.newCachedThreadPool();
     private Executor workerExecutor = Executors.newCachedThreadPool();
 
@@ -147,5 +149,12 @@ public class Configuration {
     public int getCloseTimeout() {
         return closeTimeout;
     }
+
+	public String getContext() {
+		return context;
+	}
+	public void setContext(String context) {
+		this.context = context;
+	}
 
 }
