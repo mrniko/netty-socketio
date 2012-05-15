@@ -27,6 +27,13 @@ public class DecoderJsonPacketTest {
     private final Decoder decoder = new Decoder(new ObjectMapper());
 
     @Test
+    public void testUTF8Decode() throws IOException {
+        Packet packet = decoder.decodePacket("4:::\"Привет\"");
+        Assert.assertEquals(PacketType.JSON, packet.getType());
+        Assert.assertEquals("Привет", packet.getData());
+    }
+
+    @Test
     public void testDecode() throws IOException {
         Packet packet = decoder.decodePacket("4:::\"2\"");
         Assert.assertEquals(PacketType.JSON, packet.getType());

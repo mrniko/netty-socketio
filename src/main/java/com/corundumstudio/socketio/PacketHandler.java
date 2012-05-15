@@ -18,6 +18,8 @@ package com.corundumstudio.socketio;
 import java.io.IOException;
 
 import org.jboss.netty.buffer.ChannelBuffer;
+import org.jboss.netty.buffer.ChannelBufferIndexFinder;
+import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.ChannelHandler.Sharable;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.MessageEvent;
@@ -28,12 +30,20 @@ import org.slf4j.LoggerFactory;
 
 import com.corundumstudio.socketio.messages.PacketsMessage;
 import com.corundumstudio.socketio.parser.Decoder;
+import com.corundumstudio.socketio.parser.DecoderException;
 import com.corundumstudio.socketio.parser.Packet;
 
 @Sharable
 public class PacketHandler extends SimpleChannelUpstreamHandler {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
+
+    private final ChannelBufferIndexFinder delimiterFinder = new ChannelBufferIndexFinder() {
+		@Override
+		public boolean find(ChannelBuffer buffer, int guessedIndex) {
+			return isCurrentDelimiter(buffer, guessedIndex);
+		}
+	};
 
     private final PacketListener packetListener;
     private final Decoder decoder;
@@ -56,7 +66,7 @@ public class PacketHandler extends SimpleChannelUpstreamHandler {
                 log.trace("In message: {} sessionId: {}", new Object[] {content.toString(CharsetUtil.UTF_8), message.getClient().getSessionId()});
             }
             while (content.readable()) {
-                Packet packet = decode(content);
+                Packet packet = decodePacket(content);
                 packetListener.onPacket(packet, message.getClient());
             }
         } else {
@@ -64,11 +74,11 @@ public class PacketHandler extends SimpleChannelUpstreamHandler {
         }
     }
 
-    private Packet decode(ChannelBuffer buffer) throws IOException {
+    private Packet decodePacket(ChannelBuffer buffer) throws IOException {
         if (isCurrentDelimiter(buffer, buffer.readerIndex())) {
         	buffer.readerIndex(buffer.readerIndex() + Packet.DELIMITER_BYTES.length);
 
-            Integer len = parseLength(buffer);
+            Integer len = extractLength(buffer);
 
             ChannelBuffer frame = buffer.slice(buffer.readerIndex(), len);
             Packet packet = decoder.decodePacket(frame);
@@ -81,15 +91,30 @@ public class PacketHandler extends SimpleChannelUpstreamHandler {
         }
     }
 
-	private Integer parseLength(ChannelBuffer buffer) {
-		byte[] digits = null;
-		for (int i = buffer.readerIndex(); i < buffer.readerIndex() + buffer.readableBytes(); i++) {
-		    if (isCurrentDelimiter(buffer, i)) {
-		    	digits = new byte[i - buffer.readerIndex()];
-		    	buffer.getBytes(buffer.readerIndex(), digits);
-		        break;
-		    }
+	private Integer extractLength(ChannelBuffer buffer) {
+		Integer len = parseLengthHeader(buffer);
+
+		// to read utf8 symbols
+		if (buffer.capacity() > buffer.readerIndex() + len
+				&& !isCurrentDelimiter(buffer, buffer.readerIndex() + len)) {
+			int index = ChannelBuffers.indexOf(buffer, buffer.readerIndex() + len, buffer.capacity(), delimiterFinder);
+			if (index != -1) {
+				len = index - buffer.readerIndex();
+			} else {
+				len = buffer.capacity() - buffer.readerIndex();
+			}
 		}
+		return len;
+	}
+
+	private Integer parseLengthHeader(ChannelBuffer buffer) {
+		int delimiterIndex = ChannelBuffers.indexOf(buffer, buffer.readerIndex(), buffer.capacity(), delimiterFinder);
+		if (delimiterIndex == -1) {
+			throw new DecoderException("Can't find tail delimiter");
+		}
+
+		byte[] digits = new byte[delimiterIndex - buffer.readerIndex()];;
+		buffer.getBytes(buffer.readerIndex(), digits);
 		buffer.readerIndex(buffer.readerIndex() + digits.length + Packet.DELIMITER_BYTES.length);
         return decoder.parseInt(digits);
 	}

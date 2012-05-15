@@ -17,10 +17,7 @@ package com.corundumstudio.socketio;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import junit.framework.Assert;
@@ -31,6 +28,7 @@ import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.UpstreamMessageEvent;
+import org.junit.Before;
 import org.junit.Test;
 
 import com.corundumstudio.socketio.messages.PacketsMessage;
@@ -48,69 +46,77 @@ public class PacketHandlerTest {
     private Channel channel;
     @Mocked
     private SocketIOClient client;
+    private final AtomicInteger invocations = new AtomicInteger();
 
-    @Test
-    public void testOnePacket() throws Exception {
-        final AtomicInteger invocations = new AtomicInteger();
+    @Before
+    public void before() {
+    	invocations.set(0);
+    }
+
+    private PacketListener createTestListener(final List<Packet> packets) {
         PacketListener listener = new PacketListener(null, null, null) {
             @Override
             public void onPacket(Packet packet, SocketIOClient client) {
-                invocations.incrementAndGet();
-                Assert.assertEquals(PacketType.JSON, packet.getType());
-                Map<String, String> map = (Map<String, String>) packet.getData();
-                Assert.assertTrue(map.keySet().size() == 1);
-                Assert.assertTrue(map.keySet().contains("test1"));
+                int index = invocations.incrementAndGet();
+                Packet currentPacket = packets.get(index-1);
+                Assert.assertEquals(currentPacket.getType(), packet.getType());
+                Assert.assertEquals(currentPacket.getData(), packet.getData());
             }
         };
+        return listener;
+    }
+
+    @Test
+    public void testOnePacket() throws Exception {
+    	List<Packet> packets = new ArrayList<Packet>();
+    	Packet packet = new Packet(PacketType.JSON);
+    	packet.setData(Collections.singletonMap("test1", "test2"));
+    	packets.add(packet);
+
+    	PacketListener listener = createTestListener(packets);
         PacketHandler handler = new PacketHandler(listener, decoder);
+        testHandler(handler, packets);
+    }
 
-        List<Packet> packets = new ArrayList<Packet>();
-        Packet packet = new Packet(PacketType.JSON);
-        packet.setData(Collections.singletonMap("test1", "test2"));
-        packets.add(packet);
+    @Test
+    public void testUTF8MultiplePackets() throws Exception {
+    	List<Packet> packets = new ArrayList<Packet>();
+    	Packet packet3 = new Packet(PacketType.CONNECT);
+    	packets.add(packet3);
 
-        testHandler(invocations, handler, packets);
+    	Packet packet = new Packet(PacketType.JSON);
+    	packet.setData(Collections.singletonMap("test1", "Данные"));
+    	packets.add(packet);
+
+    	Packet packet1 = new Packet(PacketType.JSON);
+    	packet1.setData(Collections.singletonMap("Привет", "wqeq"));
+    	packets.add(packet1);
+
+    	PacketListener listener = createTestListener(packets);
+        PacketHandler handler = new PacketHandler(listener, decoder);
+        testHandler(handler, packets);
     }
 
     @Test
     public void testMultiplePackets() throws Exception {
-        final AtomicInteger invocations = new AtomicInteger();
-        PacketListener listener = new PacketListener(null, null, null) {
-            @Override
-            public void onPacket(Packet packet, SocketIOClient client) {
-                if (packet.getType() == PacketType.CONNECT) {
-                    invocations.incrementAndGet();
-                    return;
-                }
-                Assert.assertEquals(PacketType.JSON, packet.getType());
-                Map<String, String> map = (Map<String, String>) packet.getData();
-                Set<String> keys = new HashSet<String>();
-                keys.add("test1");
-                keys.add("fsdfdf");
-                Assert.assertTrue(map.keySet().size() == 1);
-                Assert.assertTrue(map.keySet().removeAll(keys));
-                invocations.incrementAndGet();
-            }
-        };
-        PacketHandler handler = new PacketHandler(listener, decoder);
+    	List<Packet> packets = new ArrayList<Packet>();
+    	Packet packet3 = new Packet(PacketType.CONNECT);
+    	packets.add(packet3);
 
-        List<Packet> packets = new ArrayList<Packet>();
-        Packet packet3 = new Packet(PacketType.CONNECT);
-        packets.add(packet3);
+    	Packet packet = new Packet(PacketType.JSON);
+    	packet.setData(Collections.singletonMap("test1", "test2"));
+    	packets.add(packet);
 
-        Packet packet = new Packet(PacketType.JSON);
-        packet.setData(Collections.singletonMap("test1", "test2"));
-        packets.add(packet);
+    	Packet packet1 = new Packet(PacketType.JSON);
+    	packet1.setData(Collections.singletonMap("fsdfdf", "wqeq"));
+    	packets.add(packet1);
 
-        Packet packet1 = new Packet(PacketType.JSON);
-        packet1.setData(Collections.singletonMap("fsdfdf", "wqeq"));
-        packets.add(packet1);
-
-        testHandler(invocations, handler, packets);
+    	PacketListener listener = createTestListener(packets);
+    	PacketHandler handler = new PacketHandler(listener, decoder);
+        testHandler(handler, packets);
     }
 
-    private void testHandler(final AtomicInteger invocations,
-            PacketHandler handler, List<Packet> packets) throws Exception {
+    private void testHandler(PacketHandler handler, List<Packet> packets) throws Exception {
         String str = encoder.encodePackets(packets);
         ChannelBuffer buffer = ChannelBuffers.wrappedBuffer(str.getBytes());
         handler.messageReceived(null, new UpstreamMessageEvent(channel, new PacketsMessage(client, buffer), null));
