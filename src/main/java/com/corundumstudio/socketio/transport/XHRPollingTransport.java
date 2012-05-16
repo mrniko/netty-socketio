@@ -19,8 +19,11 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 import org.jboss.netty.channel.Channel;
+import org.jboss.netty.channel.ChannelFuture;
+import org.jboss.netty.channel.ChannelFutureListener;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.Channels;
 import org.jboss.netty.channel.MessageEvent;
@@ -34,6 +37,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.corundumstudio.socketio.AuthorizeHandler;
+import com.corundumstudio.socketio.CancelableScheduler;
 import com.corundumstudio.socketio.Configuration;
 import com.corundumstudio.socketio.Disconnectable;
 import com.corundumstudio.socketio.HeartbeatHandler;
@@ -52,20 +56,22 @@ public class XHRPollingTransport extends SimpleChannelUpstreamHandler implements
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     private final Map<UUID, XHRPollingClient> sessionId2Client = new ConcurrentHashMap<UUID, XHRPollingClient>();
+    private final CancelableScheduler<UUID> disconnectScheduler;
 
     private final AuthorizeHandler authorizeHandler;
     private final HeartbeatHandler heartbeatHandler;
     private final Disconnectable disconnectable;
-    private final String path;
     private final Configuration configuration;
+    private final String path;
 
-    public XHRPollingTransport(String connectPath, Disconnectable disconnectable,
+    public XHRPollingTransport(String connectPath, Disconnectable disconnectable, CancelableScheduler<UUID> scheduler,
                                 HeartbeatHandler heartbeatHandler, AuthorizeHandler authorizeHandler, Configuration configuration) {
         this.path = connectPath + "xhr-polling/";
         this.authorizeHandler = authorizeHandler;
         this.configuration = configuration;
         this.heartbeatHandler = heartbeatHandler;
         this.disconnectable = disconnectable;
+        this.disconnectScheduler = scheduler;
     }
 
     public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) throws Exception {
@@ -79,6 +85,9 @@ public class XHRPollingTransport extends SimpleChannelUpstreamHandler implements
                 String[] parts = queryDecoder.getPath().split("/");
                 if (parts.length > 3) {
                     UUID sessionId = UUID.fromString(parts[4]);
+
+                    scheduleDisconnect(channel, sessionId);
+
                     if (HttpMethod.POST.equals(req.getMethod())) {
                         onPost(sessionId, channel, req);
                     } else if (HttpMethod.GET.equals(req.getMethod())) {
@@ -98,6 +107,26 @@ public class XHRPollingTransport extends SimpleChannelUpstreamHandler implements
         }
         ctx.sendUpstream(e);
     }
+
+	private void scheduleDisconnect(Channel channel, final UUID sessionId) {
+		disconnectScheduler.cancel(sessionId);
+		ChannelFuture future = channel.getCloseFuture();
+		future.addListener(new ChannelFutureListener() {
+			@Override
+			public void operationComplete(ChannelFuture future) throws Exception {
+				disconnectScheduler.schedule(sessionId, new Runnable() {
+					@Override
+					public void run() {
+		                XHRPollingClient client = sessionId2Client.get(sessionId);
+		                if (client != null) {
+		                	disconnectable.onDisconnect(client);
+		                	log.debug("Client: {} disconnected due to connection timeout", sessionId);
+		                }
+					}
+				}, configuration.getCloseTimeout(), TimeUnit.SECONDS);
+			}
+		});
+	}
 
     private void onPost(UUID sessionId, Channel channel, HttpRequest req) throws IOException {
         XHRPollingClient client = sessionId2Client.get(sessionId);

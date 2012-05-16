@@ -15,12 +15,7 @@
  */
 package com.corundumstudio.socketio;
 
-import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
@@ -33,19 +28,18 @@ public class HeartbeatHandler {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private final Map<UUID, Future<?>> scheduledHeartbeatFutures = new ConcurrentHashMap<UUID, Future<?>>();
-    private final ScheduledExecutorService executorService;
+    private final CancelableScheduler<UUID> scheduler;
     private final Configuration configuration;
 
-    public HeartbeatHandler(Configuration configuration) {
-        this.executorService = Executors.newScheduledThreadPool(configuration.getHeartbeatThreadPoolSize());
+    public HeartbeatHandler(Configuration configuration, CancelableScheduler<UUID> scheduler) {
         this.configuration = configuration;
+        this.scheduler = scheduler;
     }
 
     public void onHeartbeat(final SocketIOClient client) {
-        cancelClientHeartbeatCheck(client);
+    	scheduler.cancel(client.getSessionId());
 
-        executorService.schedule(new Runnable() {
+        scheduler.schedule(new Runnable() {
             public void run() {
                 sendHeartbeat(client);
             }
@@ -57,30 +51,13 @@ public class HeartbeatHandler {
         scheduleClientHeartbeatCheck(client);
     }
 
-    private void cancelClientHeartbeatCheck(SocketIOClient client) {
-        Future<?> future = scheduledHeartbeatFutures.remove(client.getSessionId());
-        if (future != null) {
-            future.cancel(false);
-        }
-    }
-
     private void scheduleClientHeartbeatCheck(final SocketIOClient client) {
-        Future<?> future = executorService.schedule(new Runnable() {
+        scheduler.schedule(new Runnable() {
             public void run() {
-                try {
-                    client.disconnect();
-                } finally {
-                    UUID sessionId = client.getSessionId();
-                    scheduledHeartbeatFutures.remove(sessionId);
-                    log.debug("Client with sessionId: {} disconnected due to heartbeat timeout", sessionId);
-                }
+                client.disconnect();
+                log.debug("Client with sessionId: {} disconnected due to heartbeat timeout", client.getSessionId());
             }
         }, configuration.getHeartbeatTimeout(), TimeUnit.SECONDS);
-        scheduledHeartbeatFutures.put(client.getSessionId(), future);
-    }
-
-    public void shutdown() {
-        executorService.shutdown();
     }
 
 }

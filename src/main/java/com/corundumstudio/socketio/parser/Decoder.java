@@ -16,13 +16,10 @@
 package com.corundumstudio.socketio.parser;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
@@ -30,7 +27,7 @@ import org.jboss.netty.util.CharsetUtil;
 
 public class Decoder {
 
-    private byte separator = (byte)':';
+    private final byte separator = (byte)':';
 
     private final Pattern packetPattern = Pattern.compile("([^:]+):([0-9]+)?(\\+)?:([^:]+)?:?([\\s\\S]*)?");
     private final Pattern ackPattern = Pattern.compile("^([0-9]+)(\\+)?(.*)");

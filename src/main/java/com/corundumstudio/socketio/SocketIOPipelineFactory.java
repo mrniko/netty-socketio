@@ -17,6 +17,8 @@ package com.corundumstudio.socketio;
 
 import static org.jboss.netty.channel.Channels.pipeline;
 
+import java.util.UUID;
+
 import org.codehaus.jackson.map.ObjectMapper;
 import org.jboss.netty.channel.ChannelPipeline;
 import org.jboss.netty.channel.ChannelPipelineFactory;
@@ -38,29 +40,31 @@ public class SocketIOPipelineFactory implements ChannelPipelineFactory, Disconne
     private final int protocol = 1;
 
     private final AuthorizeHandler authorizeHandler;
-    private XHRPollingTransport xhrPollingTransport;
-    private WebSocketTransport webSocketTransport;
-    private SocketIOEncoder socketIOEncoder;
+    private final XHRPollingTransport xhrPollingTransport;
+    private final WebSocketTransport webSocketTransport;
+    private final SocketIOEncoder socketIOEncoder;
 
-    private SocketIOListener socketIOHandler;
-    private HeartbeatHandler heartbeatHandler;
+    private final SocketIOListener socketIOHandler;
+    private final CancelableScheduler<UUID> scheduler;
 
-	private PacketHandler packetHandler;
+	private final PacketHandler packetHandler;
 
     public SocketIOPipelineFactory(Configuration configuration) {
         this.socketIOHandler = configuration.getListener();
-        this.heartbeatHandler = new HeartbeatHandler(configuration);
+        scheduler = new CancelableScheduler<UUID>(configuration.getHeartbeatThreadPoolSize());
 
         ObjectMapper objectMapper = configuration.getObjectMapper();
         Encoder encoder = new Encoder(objectMapper);
         Decoder decoder = new Decoder(objectMapper);
+
+        HeartbeatHandler heartbeatHandler = new HeartbeatHandler(configuration, scheduler);
         PacketListener packetListener = new PacketListener(socketIOHandler, this, heartbeatHandler);
 
         String connectPath = configuration.getContext() + "/" + protocol + "/";
 
         packetHandler = new PacketHandler(packetListener, decoder);
-        authorizeHandler = new AuthorizeHandler(connectPath, socketIOHandler, configuration);
-        xhrPollingTransport = new XHRPollingTransport(connectPath, this, heartbeatHandler, authorizeHandler, configuration);
+        authorizeHandler = new AuthorizeHandler(connectPath, socketIOHandler, scheduler, configuration);
+        xhrPollingTransport = new XHRPollingTransport(connectPath, this, scheduler, heartbeatHandler, authorizeHandler, configuration);
         webSocketTransport = new WebSocketTransport(connectPath, this, authorizeHandler);
         socketIOEncoder = new SocketIOEncoder(objectMapper, encoder);
     }
@@ -92,7 +96,7 @@ public class SocketIOPipelineFactory implements ChannelPipelineFactory, Disconne
     }
 
     public void stop() {
-        heartbeatHandler.shutdown();
+    	scheduler.shutdown();
     }
 
 }
