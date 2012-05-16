@@ -89,7 +89,7 @@ public class PacketHandlerTest {
     	packets.add(packet);
 
     	Packet packet1 = new Packet(PacketType.JSON);
-    	packet1.setData(Collections.singletonMap("Привет", "wqeq"));
+    	packet1.setData(Collections.singletonMap("При\ufffdвет", "wq\ufffdeq"));
     	packets.add(packet1);
 
     	PacketListener listener = createTestListener(packets);
@@ -132,10 +132,10 @@ public class PacketHandlerTest {
         };
         PacketHandler handler = new PacketHandler(listener, decoder);
         long start = System.currentTimeMillis();
-        ChannelBuffer buffer = ChannelBuffers.wrappedBuffer("\ufffd5\ufffd3:::5\ufffd7\ufffd3:::53d\ufffd3\ufffd0::\ufffd5\ufffd3:::5\ufffd7\ufffd3:::53d\ufffd3\ufffd0::\ufffd5\ufffd3:::5\ufffd7\ufffd3:::53d\ufffd3\ufffd0::\ufffd5\ufffd3:::5\ufffd7\ufffd3:::53d\ufffd3\ufffd0::\ufffd5\ufffd3:::5\ufffd7\ufffd3:::53d\ufffd3\ufffd0::".getBytes());
+        ChannelBuffer buffer = ChannelBuffers.wrappedBuffer("\ufffd10\ufffd3:::Привет\ufffd7\ufffd3:::53d\ufffd3\ufffd0::\ufffd5\ufffd3:::5\ufffd7\ufffd3:::53d\ufffd3\ufffd0::\ufffd5\ufffd3:::5\ufffd7\ufffd3:::53d\ufffd3\ufffd0::\ufffd5\ufffd3:::5\ufffd7\ufffd3:::53d\ufffd3\ufffd0::\ufffd5\ufffd3:::5\ufffd7\ufffd3:::53d\ufffd3\ufffd0::".getBytes());
         for (int i = 0; i < 50000; i++) {
-            ChannelBuffer t = buffer.copy();
-            handler.messageReceived(null, new UpstreamMessageEvent(channel, new PacketsMessage(client, t), null));
+            handler.messageReceived(null, new UpstreamMessageEvent(channel, new PacketsMessage(client, buffer), null));
+            buffer.readerIndex(0);
         }
         long end = System.currentTimeMillis() - start;
         System.out.println(end + "ms");

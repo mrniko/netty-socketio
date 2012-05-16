@@ -28,45 +28,13 @@ import org.jboss.netty.util.CharsetUtil;
 public class Decoder {
 
     private final byte separator = (byte)':';
-
-    private final Pattern packetPattern = Pattern.compile("([^:]+):([0-9]+)?(\\+)?:([^:]+)?:?([\\s\\S]*)?");
     private final Pattern ackPattern = Pattern.compile("^([0-9]+)(\\+)?(.*)");
-
     private final ObjectMapper objectMapper;
 
     public Decoder(ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
     }
 
-/*
-    public List<Packet> decodePayload(String data) throws IOException {
-        if (data.isEmpty()) {
-            return Collections.emptyList();
-        }
-        // TODO make it async
-        List<Packet> result = new ArrayList<Packet>();
-        if (data.charAt(0) == Packet.DELIMITER) {
-            // TODO use ForkJoin
-            StringBuilder length = new StringBuilder(4);
-            for (int i = 1; i < data.length(); i++) {
-                if (data.charAt(i) == Packet.DELIMITER) {
-                    Integer len = Integer.valueOf(length.toString());
-                    String packetStr = data.substring(i + 1, i + 1 + len);
-                    Packet packet = decodePacket(packetStr);
-                    result.add(packet);
-                    i += len + 1;
-                    length.setLength(0);
-                } else {
-                    length.append(data.charAt(i));
-                }
-            }
-        } else {
-            result.add(decodePacket(data));
-        }
-        return result;
-
-    }
-*/
     // fastest way to parse chars to int
     public Integer parseInt(byte[] chars) {
 		int result = 0;

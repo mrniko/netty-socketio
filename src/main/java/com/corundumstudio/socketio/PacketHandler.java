@@ -32,9 +32,12 @@ import com.corundumstudio.socketio.messages.PacketsMessage;
 import com.corundumstudio.socketio.parser.Decoder;
 import com.corundumstudio.socketio.parser.DecoderException;
 import com.corundumstudio.socketio.parser.Packet;
+import com.corundumstudio.socketio.parser.UTF8CharsScanner;
 
 @Sharable
 public class PacketHandler extends SimpleChannelUpstreamHandler {
+
+	private final UTF8CharsScanner charsScanner = new UTF8CharsScanner();
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -94,15 +97,11 @@ public class PacketHandler extends SimpleChannelUpstreamHandler {
 	private Integer extractLength(ChannelBuffer buffer) {
 		Integer len = parseLengthHeader(buffer);
 
-		// to read utf8 symbols
+		// scan utf8 symbols if needed
 		if (buffer.capacity() > buffer.readerIndex() + len
 				&& !isCurrentDelimiter(buffer, buffer.readerIndex() + len)) {
-			int index = ChannelBuffers.indexOf(buffer, buffer.readerIndex() + len, buffer.capacity(), delimiterFinder);
-			if (index != -1) {
-				len = index - buffer.readerIndex();
-			} else {
-				len = buffer.capacity() - buffer.readerIndex();
-			}
+			int index = charsScanner.findTailIndex(buffer, buffer.readerIndex(), buffer.capacity(), len);
+			len = index - buffer.readerIndex();
 		}
 		return len;
 	}
