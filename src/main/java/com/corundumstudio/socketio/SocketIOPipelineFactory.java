@@ -35,21 +35,30 @@ import com.corundumstudio.socketio.transport.XHRPollingTransport;
 
 public class SocketIOPipelineFactory implements ChannelPipelineFactory, Disconnectable {
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
+    protected static final String SOCKETIO_ENCODER = "socketioEncoder";
+	protected static final String WEB_SOCKET_TRANSPORT = "webSocketTransport";
+	protected static final String XHR_POLLING_TRANSPORT = "xhrPollingTransport";
+	protected static final String AUTHORIZE_HANDLER = "authorizeHandler";
+	protected static final String PACKET_HANDLER = "packetHandler";
+	protected static final String HTTP_ENCODER = "encoder";
+	protected static final String HTTP_AGGREGATOR = "aggregator";
+	protected static final String HTTP_REQUEST_DECODER = "decoder";
+
+	private final Logger log = LoggerFactory.getLogger(getClass());
 
     private final int protocol = 1;
 
-    private final AuthorizeHandler authorizeHandler;
-    private final XHRPollingTransport xhrPollingTransport;
-    private final WebSocketTransport webSocketTransport;
-    private final SocketIOEncoder socketIOEncoder;
+    private AuthorizeHandler authorizeHandler;
+    private XHRPollingTransport xhrPollingTransport;
+    private WebSocketTransport webSocketTransport;
+    private SocketIOEncoder socketIOEncoder;
 
-    private final SocketIOListener socketIOHandler;
-    private final CancelableScheduler<UUID> scheduler;
+    private SocketIOListener socketIOHandler;
+    private CancelableScheduler<UUID> scheduler;
 
-	private final PacketHandler packetHandler;
+	private PacketHandler packetHandler;
 
-    public SocketIOPipelineFactory(Configuration configuration) {
+    public void start(Configuration configuration) {
         this.socketIOHandler = configuration.getListener();
         scheduler = new CancelableScheduler<UUID>(configuration.getHeartbeatThreadPoolSize());
 
@@ -72,17 +81,17 @@ public class SocketIOPipelineFactory implements ChannelPipelineFactory, Disconne
     public ChannelPipeline getPipeline() throws Exception {
         ChannelPipeline pipeline = pipeline();
 
-        pipeline.addLast("decoder", new HttpRequestDecoder());
-        pipeline.addLast("aggregator", new HttpChunkAggregator(65536));
-        pipeline.addLast("encoder", new HttpResponseEncoder());
+        pipeline.addLast(HTTP_REQUEST_DECODER, new HttpRequestDecoder());
+        pipeline.addLast(HTTP_AGGREGATOR, new HttpChunkAggregator(65536));
+        pipeline.addLast(HTTP_ENCODER, new HttpResponseEncoder());
 
-        pipeline.addLast("packetHandler", packetHandler);
+        pipeline.addLast(PACKET_HANDLER, packetHandler);
 
-        pipeline.addLast("authorizeHandler", authorizeHandler);
-        pipeline.addLast("xhrPollingTransport", xhrPollingTransport);
-        pipeline.addLast("webSocketTransport", webSocketTransport);
+        pipeline.addLast(AUTHORIZE_HANDLER, authorizeHandler);
+        pipeline.addLast(XHR_POLLING_TRANSPORT, xhrPollingTransport);
+        pipeline.addLast(WEB_SOCKET_TRANSPORT, webSocketTransport);
 
-        pipeline.addLast("socketioEncoder", socketIOEncoder);
+        pipeline.addLast(SOCKETIO_ENCODER, socketIOEncoder);
 
         return pipeline;
     }

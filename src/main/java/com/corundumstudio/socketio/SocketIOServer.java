@@ -30,7 +30,7 @@ public class SocketIOServer {
 
     private ServerBootstrap bootstrap;
 
-    private SocketIOPipelineFactory pipelineFactory;
+    private SocketIOPipelineFactory pipelineFactory = new SocketIOPipelineFactory();
 
     private Configuration config;
 
@@ -39,11 +39,15 @@ public class SocketIOServer {
         this.config.getObjectMapper().setSerializationInclusion(JsonSerialize.Inclusion.NON_NULL);
     }
 
+    public void setPipelineFactory(SocketIOPipelineFactory pipelineFactory) {
+		this.pipelineFactory = pipelineFactory;
+	}
+
     public void start() {
         ChannelFactory factory = new NioServerSocketChannelFactory(config.getBossExecutor(), config.getWorkerExecutor());
         bootstrap = new ServerBootstrap(factory);
 
-        this.pipelineFactory = new SocketIOPipelineFactory(config);
+        pipelineFactory.start(config);
         bootstrap.setPipelineFactory(pipelineFactory);
         bootstrap.setOption("child.tcpNoDelay", true);
         bootstrap.setOption("child.keepAlive", true);
