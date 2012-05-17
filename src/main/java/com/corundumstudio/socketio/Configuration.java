@@ -27,6 +27,7 @@ public class Configuration {
     private Executor bossExecutor = Executors.newCachedThreadPool();
     private Executor workerExecutor = Executors.newCachedThreadPool();
 
+    private boolean allowCustomRequests = false;
     private int heartbeatThreadPoolSize = Runtime.getRuntime().availableProcessors() * 2;
     private int heartbeatTimeout = 60;
     private int heartbeatInterval = 25;
@@ -57,6 +58,8 @@ public class Configuration {
         setObjectMapper(conf.getObjectMapper());
         setPort(conf.getPort());
         setWorkerExecutor(conf.getWorkerExecutor());
+        setContext(conf.getContext());
+        setAllowCustomRequests(conf.isAllowCustomRequests());
     }
 
     public ObjectMapper getObjectMapper() {
@@ -155,6 +158,21 @@ public class Configuration {
 	}
 	public void setContext(String context) {
 		this.context = context;
+	}
+
+	public boolean isAllowCustomRequests() {
+		return allowCustomRequests;
+	}
+
+	/**
+	 * Allow to service custom requests differs from socket.io protocol.
+	 * In this case it's necessary to add own handler which handle them
+	 * to avoid hang connections.
+	 *
+	 * @param allowCustomRequests - true to allow
+	 */
+	public void setAllowCustomRequests(boolean allowCustomRequests) {
+		this.allowCustomRequests = allowCustomRequests;
 	}
 
 }

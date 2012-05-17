@@ -76,7 +76,8 @@ public class AuthorizeHandler extends SimpleChannelUpstreamHandler implements Di
             HttpRequest req = (HttpRequest) msg;
             Channel channel = ctx.getChannel();
             QueryStringDecoder queryDecoder = new QueryStringDecoder(req.getUri());
-            if (!queryDecoder.getPath().startsWith(connectPath)) {
+            if (!configuration.isAllowCustomRequests()
+            		&& !queryDecoder.getPath().startsWith(connectPath)) {
                 HttpResponse res = new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.BAD_REQUEST);
                 ChannelFuture f = channel.write(res);
                 f.addListener(ChannelFutureListener.CLOSE);
