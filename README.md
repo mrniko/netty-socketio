@@ -57,15 +57,22 @@ Licensed under the Apache License 2.0.
         <script type="text/javascript" src="socket.io.js" charset="utf-8"></script>
 
         <script type="text/javascript">
+
                var socket = io.connect('http://localhost:81', {
                  'reconnection delay' : 2000,
                  'force new connection' : true
                });
+
                socket.on('message', function(data) {
                     // here is your handler on messages from server
                });
 
-               // send json-object to server
-               var obj = ...
-               socket.json.send(obj);
+	       socket.on('connect', function() {
+		    // connection established, now we can send an objects
+
+                    // send json-object to server
+                    var obj = ...
+                    socket.json.send(obj);
+	       });
+
         </script>
