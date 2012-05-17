@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.corundumstudio.socketio;
+package com.corundumstudio.socketio.scheduler;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -22,16 +22,16 @@ import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-public class CancelableScheduler<T> {
+public class CancelableScheduler {
 
-    private final Map<T, Future<?>> scheduledFutures = new ConcurrentHashMap<T, Future<?>>();
+    private final Map<Object, Future<?>> scheduledFutures = new ConcurrentHashMap<Object, Future<?>>();
     private final ScheduledExecutorService executorService;
 
     public CancelableScheduler(int threadPoolSize) {
     	executorService = Executors.newScheduledThreadPool(threadPoolSize);
 	}
 
-    public void cancel(T key) {
+    public void cancel(SchedulerKey key) {
         Future<?> future = scheduledFutures.remove(key);
         if (future != null) {
             future.cancel(false);
@@ -42,7 +42,7 @@ public class CancelableScheduler<T> {
     	executorService.schedule(runnable, delay, unit);
     }
 
-    public void schedule(final T key, final Runnable runnable, long delay, TimeUnit unit) {
+    public void schedule(final SchedulerKey key, final Runnable runnable, long delay, TimeUnit unit) {
         Future<?> future = executorService.schedule(new Runnable() {
 			@Override
 			public void run() {

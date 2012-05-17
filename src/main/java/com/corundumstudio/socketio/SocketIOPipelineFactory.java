@@ -17,8 +17,6 @@ package com.corundumstudio.socketio;
 
 import static org.jboss.netty.channel.Channels.pipeline;
 
-import java.util.UUID;
-
 import org.codehaus.jackson.map.ObjectMapper;
 import org.jboss.netty.channel.ChannelPipeline;
 import org.jboss.netty.channel.ChannelPipelineFactory;
@@ -30,6 +28,7 @@ import org.slf4j.LoggerFactory;
 
 import com.corundumstudio.socketio.parser.Decoder;
 import com.corundumstudio.socketio.parser.Encoder;
+import com.corundumstudio.socketio.scheduler.CancelableScheduler;
 import com.corundumstudio.socketio.transport.WebSocketTransport;
 import com.corundumstudio.socketio.transport.XHRPollingTransport;
 
@@ -54,13 +53,13 @@ public class SocketIOPipelineFactory implements ChannelPipelineFactory, Disconne
     private SocketIOEncoder socketIOEncoder;
 
     private SocketIOListener socketIOHandler;
-    private CancelableScheduler<UUID> scheduler;
+    private CancelableScheduler scheduler;
 
 	private PacketHandler packetHandler;
 
     public void start(Configuration configuration) {
         this.socketIOHandler = configuration.getListener();
-        scheduler = new CancelableScheduler<UUID>(configuration.getHeartbeatThreadPoolSize());
+        scheduler = new CancelableScheduler(configuration.getHeartbeatThreadPoolSize());
 
         ObjectMapper objectMapper = configuration.getObjectMapper();
         Encoder encoder = new Encoder(objectMapper);
@@ -73,8 +72,8 @@ public class SocketIOPipelineFactory implements ChannelPipelineFactory, Disconne
 
         packetHandler = new PacketHandler(packetListener, decoder);
         authorizeHandler = new AuthorizeHandler(connectPath, socketIOHandler, scheduler, configuration);
-        xhrPollingTransport = new XHRPollingTransport(connectPath, this, scheduler, heartbeatHandler, authorizeHandler, configuration);
-        webSocketTransport = new WebSocketTransport(connectPath, this, authorizeHandler);
+        xhrPollingTransport = new XHRPollingTransport(connectPath, this, scheduler, authorizeHandler, configuration);
+        webSocketTransport = new WebSocketTransport(connectPath, this, authorizeHandler, heartbeatHandler);
         socketIOEncoder = new SocketIOEncoder(objectMapper, encoder);
     }
 

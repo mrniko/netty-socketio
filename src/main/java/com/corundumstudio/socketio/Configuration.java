@@ -28,6 +28,9 @@ public class Configuration {
     private Executor workerExecutor = Executors.newCachedThreadPool();
 
     private boolean allowCustomRequests = false;
+
+    private int pollingDuration = 20;
+
     private int heartbeatThreadPoolSize = Runtime.getRuntime().availableProcessors() * 2;
     private int heartbeatTimeout = 60;
     private int heartbeatInterval = 25;
@@ -173,6 +176,13 @@ public class Configuration {
 	 */
 	public void setAllowCustomRequests(boolean allowCustomRequests) {
 		this.allowCustomRequests = allowCustomRequests;
+	}
+
+	public int getPollingDuration() {
+		return pollingDuration;
+	}
+	public void setPollingDuration(int pollingDuration) {
+		this.pollingDuration = pollingDuration;
 	}
 
 }

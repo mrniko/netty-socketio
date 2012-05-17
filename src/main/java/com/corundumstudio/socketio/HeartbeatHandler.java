@@ -15,7 +15,6 @@
  */
 package com.corundumstudio.socketio;
 
-import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
@@ -23,36 +22,39 @@ import org.slf4j.LoggerFactory;
 
 import com.corundumstudio.socketio.parser.Packet;
 import com.corundumstudio.socketio.parser.PacketType;
+import com.corundumstudio.socketio.scheduler.CancelableScheduler;
+import com.corundumstudio.socketio.scheduler.SchedulerKey;
+import com.corundumstudio.socketio.scheduler.SchedulerKey.Type;
 
 public class HeartbeatHandler {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private final CancelableScheduler<UUID> scheduler;
+    private final CancelableScheduler scheduler;
     private final Configuration configuration;
 
-    public HeartbeatHandler(Configuration configuration, CancelableScheduler<UUID> scheduler) {
+    public HeartbeatHandler(Configuration configuration, CancelableScheduler scheduler) {
         this.configuration = configuration;
         this.scheduler = scheduler;
     }
 
     public void onHeartbeat(final SocketIOClient client) {
-    	scheduler.cancel(client.getSessionId());
+    	if (!configuration.isHeartbeatsEnabled()) {
+    		return;
+    	}
 
+    	scheduler.cancel(new SchedulerKey(Type.HEARBEAT_TIMEOUT, client.getSessionId()));
         scheduler.schedule(new Runnable() {
             public void run() {
-                sendHeartbeat(client);
+            	client.send(new Packet(PacketType.HEARTBEAT));
+            	scheduleClientHeartbeatCheck(client);
             }
         }, configuration.getHeartbeatInterval(), TimeUnit.SECONDS);
     }
 
-    public void sendHeartbeat(SocketIOClient client) {
-        client.send(new Packet(PacketType.HEARTBEAT));
-        scheduleClientHeartbeatCheck(client);
-    }
-
     private void scheduleClientHeartbeatCheck(final SocketIOClient client) {
-        scheduler.schedule(new Runnable() {
+    	SchedulerKey key = new SchedulerKey(Type.HEARBEAT_TIMEOUT, client.getSessionId());
+        scheduler.schedule(key, new Runnable() {
             public void run() {
                 client.disconnect();
                 log.debug("Client with sessionId: {} disconnected due to heartbeat timeout", client.getSessionId());

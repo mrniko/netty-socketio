@@ -24,11 +24,11 @@ import java.util.concurrent.TimeUnit;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelFuture;
 import org.jboss.netty.channel.ChannelFutureListener;
+import org.jboss.netty.channel.ChannelHandler.Sharable;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.Channels;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
-import org.jboss.netty.channel.ChannelHandler.Sharable;
 import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.jboss.netty.handler.codec.http.HttpMethod;
 import org.jboss.netty.handler.codec.http.HttpRequest;
@@ -37,10 +37,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.corundumstudio.socketio.AuthorizeHandler;
-import com.corundumstudio.socketio.CancelableScheduler;
 import com.corundumstudio.socketio.Configuration;
 import com.corundumstudio.socketio.Disconnectable;
-import com.corundumstudio.socketio.HeartbeatHandler;
 import com.corundumstudio.socketio.SocketIOClient;
 import com.corundumstudio.socketio.messages.PacketsMessage;
 import com.corundumstudio.socketio.messages.XHRErrorMessage;
@@ -49,6 +47,9 @@ import com.corundumstudio.socketio.parser.ErrorAdvice;
 import com.corundumstudio.socketio.parser.ErrorReason;
 import com.corundumstudio.socketio.parser.Packet;
 import com.corundumstudio.socketio.parser.PacketType;
+import com.corundumstudio.socketio.scheduler.CancelableScheduler;
+import com.corundumstudio.socketio.scheduler.SchedulerKey;
+import com.corundumstudio.socketio.scheduler.SchedulerKey.Type;
 
 @Sharable
 public class XHRPollingTransport extends SimpleChannelUpstreamHandler implements Disconnectable {
@@ -56,22 +57,20 @@ public class XHRPollingTransport extends SimpleChannelUpstreamHandler implements
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     private final Map<UUID, XHRPollingClient> sessionId2Client = new ConcurrentHashMap<UUID, XHRPollingClient>();
-    private final CancelableScheduler<UUID> disconnectScheduler;
+    private final CancelableScheduler scheduler;
 
     private final AuthorizeHandler authorizeHandler;
-    private final HeartbeatHandler heartbeatHandler;
     private final Disconnectable disconnectable;
     private final Configuration configuration;
     private final String path;
 
-    public XHRPollingTransport(String connectPath, Disconnectable disconnectable, CancelableScheduler<UUID> scheduler,
-                                HeartbeatHandler heartbeatHandler, AuthorizeHandler authorizeHandler, Configuration configuration) {
+    public XHRPollingTransport(String connectPath, Disconnectable disconnectable, CancelableScheduler scheduler,
+                                AuthorizeHandler authorizeHandler, Configuration configuration) {
         this.path = connectPath + "xhr-polling/";
         this.authorizeHandler = authorizeHandler;
         this.configuration = configuration;
-        this.heartbeatHandler = heartbeatHandler;
         this.disconnectable = disconnectable;
-        this.disconnectScheduler = scheduler;
+        this.scheduler = scheduler;
     }
 
     public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) throws Exception {
@@ -85,8 +84,6 @@ public class XHRPollingTransport extends SimpleChannelUpstreamHandler implements
                 String[] parts = queryDecoder.getPath().split("/");
                 if (parts.length > 3) {
                     UUID sessionId = UUID.fromString(parts[4]);
-
-                    scheduleDisconnect(channel, sessionId);
 
                     if (HttpMethod.POST.equals(req.getMethod())) {
                         onPost(sessionId, channel, req);
@@ -108,13 +105,28 @@ public class XHRPollingTransport extends SimpleChannelUpstreamHandler implements
         ctx.sendUpstream(e);
     }
 
+    private void scheduleNoop(Channel channel, final UUID sessionId) {
+    	SchedulerKey key = new SchedulerKey(Type.NOOP, sessionId);
+    	scheduler.cancel(key);
+		scheduler.schedule(key, new Runnable() {
+			@Override
+			public void run() {
+                XHRPollingClient client = sessionId2Client.get(sessionId);
+                if (client != null) {
+                	client.send(new Packet(PacketType.NOOP));
+                }
+			}
+		}, configuration.getPollingDuration(), TimeUnit.SECONDS);
+	}
+
 	private void scheduleDisconnect(Channel channel, final UUID sessionId) {
-		disconnectScheduler.cancel(sessionId);
+		final SchedulerKey key = new SchedulerKey(Type.CLOSE_TIMEOUT, sessionId);
+		scheduler.cancel(key);
 		ChannelFuture future = channel.getCloseFuture();
 		future.addListener(new ChannelFutureListener() {
 			@Override
 			public void operationComplete(ChannelFuture future) throws Exception {
-				disconnectScheduler.schedule(sessionId, new Runnable() {
+				scheduler.schedule(key, new Runnable() {
 					@Override
 					public void run() {
 		                XHRPollingClient client = sessionId2Client.get(sessionId);
@@ -146,6 +158,7 @@ public class XHRPollingTransport extends SimpleChannelUpstreamHandler implements
             sendError(channel, req, sessionId);
             return;
         }
+
         String origin = req.getHeader(HttpHeaders.Names.ORIGIN);
         XHRPollingClient client = sessionId2Client.get(sessionId);
         if (client == null) {
@@ -153,17 +166,17 @@ public class XHRPollingTransport extends SimpleChannelUpstreamHandler implements
         }
 
         client.update(channel, origin);
+
+        scheduleDisconnect(channel, sessionId);
+        scheduleNoop(channel, sessionId);
     }
 
-    private XHRPollingClient createClient(String origin, Channel channel, UUID sessionId) {
+	private XHRPollingClient createClient(String origin, Channel channel, UUID sessionId) {
         XHRPollingClient client = new XHRPollingClient(authorizeHandler, sessionId);
         sessionId2Client.put(sessionId, client);
         client.update(channel, origin);
 
         authorizeHandler.connect(client);
-        if (configuration.isHeartbeatsEnabled()) {
-            heartbeatHandler.sendHeartbeat(client);
-        }
         log.debug("Client for sessionId: {} was created", sessionId);
         return client;
     }

@@ -46,13 +46,16 @@ import org.slf4j.LoggerFactory;
 import com.corundumstudio.socketio.messages.AuthorizeMessage;
 import com.corundumstudio.socketio.parser.Packet;
 import com.corundumstudio.socketio.parser.PacketType;
+import com.corundumstudio.socketio.scheduler.CancelableScheduler;
+import com.corundumstudio.socketio.scheduler.SchedulerKey;
+import com.corundumstudio.socketio.scheduler.SchedulerKey.Type;
 
 @Sharable
 public class AuthorizeHandler extends SimpleChannelUpstreamHandler implements Disconnectable {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private final CancelableScheduler<UUID> disconnectScheduler;
+    private final CancelableScheduler disconnectScheduler;
     private final Set<UUID> authorizedSessionIds =
     							Collections.newSetFromMap(new ConcurrentHashMap<UUID, Boolean>());
 
@@ -61,7 +64,7 @@ public class AuthorizeHandler extends SimpleChannelUpstreamHandler implements Di
     private final Configuration configuration;
     private final SocketIOListener socketIOListener;
 
-    public AuthorizeHandler(String connectPath, SocketIOListener socketIOListener, CancelableScheduler<UUID> scheduler, Configuration configuration) {
+    public AuthorizeHandler(String connectPath, SocketIOListener socketIOListener, CancelableScheduler scheduler, Configuration configuration) {
         super();
         this.connectPath = connectPath;
         this.socketIOListener = socketIOListener;
@@ -122,7 +125,8 @@ public class AuthorizeHandler extends SimpleChannelUpstreamHandler implements Di
         future.addListener(new ChannelFutureListener() {
 			@Override
 			public void operationComplete(ChannelFuture future) throws Exception {
-				disconnectScheduler.schedule(sessionId, new Runnable() {
+				SchedulerKey key = new SchedulerKey(Type.AUTHORIZE, sessionId);
+				disconnectScheduler.schedule(key, new Runnable() {
 					@Override
 					public void run() {
 						authorizedSessionIds.remove(sessionId);
@@ -138,7 +142,8 @@ public class AuthorizeHandler extends SimpleChannelUpstreamHandler implements Di
     }
 
     public void connect(SocketIOClient client) {
-    	disconnectScheduler.cancel(client.getSessionId());
+    	SchedulerKey key = new SchedulerKey(Type.AUTHORIZE, client.getSessionId());
+    	disconnectScheduler.cancel(key);
         client.send(new Packet(PacketType.CONNECT));
         socketIOListener.onConnect(client);
     }

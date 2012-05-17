@@ -22,11 +22,11 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.channel.Channel;
+import org.jboss.netty.channel.ChannelHandler.Sharable;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.Channels;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
-import org.jboss.netty.channel.ChannelHandler.Sharable;
 import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.QueryStringDecoder;
@@ -34,12 +34,12 @@ import org.jboss.netty.handler.codec.http.websocketx.CloseWebSocketFrame;
 import org.jboss.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import org.jboss.netty.handler.codec.http.websocketx.WebSocketServerHandshaker;
 import org.jboss.netty.handler.codec.http.websocketx.WebSocketServerHandshakerFactory;
-import org.jboss.netty.util.CharsetUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.corundumstudio.socketio.AuthorizeHandler;
 import com.corundumstudio.socketio.Disconnectable;
+import com.corundumstudio.socketio.HeartbeatHandler;
 import com.corundumstudio.socketio.SocketIOClient;
 import com.corundumstudio.socketio.messages.PacketsMessage;
 
@@ -51,15 +51,18 @@ public class WebSocketTransport extends SimpleChannelUpstreamHandler implements 
     private final Map<UUID, WebSocketClient> sessionId2Client = new ConcurrentHashMap<UUID, WebSocketClient>();
     private final Map<Integer, WebSocketClient> channelId2Client = new ConcurrentHashMap<Integer, WebSocketClient>();
 
+    private final HeartbeatHandler heartbeatHandler;
     private final AuthorizeHandler authorizeHandler;
     private final Disconnectable disconnectable;
     private final String path;
 
 
-    public WebSocketTransport(String connectPath, Disconnectable disconnectable, AuthorizeHandler authorizeHandler) {
+    public WebSocketTransport(String connectPath, Disconnectable disconnectable,
+    			AuthorizeHandler authorizeHandler, HeartbeatHandler heartbeatHandler) {
         this.path = connectPath + "websocket";
         this.authorizeHandler = authorizeHandler;
         this.disconnectable = disconnectable;
+        this.heartbeatHandler = heartbeatHandler;
     }
 
     @Override
@@ -109,11 +112,6 @@ public class WebSocketTransport extends SimpleChannelUpstreamHandler implements 
 	private void receivePackets(ChannelHandlerContext ctx,
 			ChannelBuffer channelBuffer) throws IOException {
 		WebSocketClient client = channelId2Client.get(ctx.getChannel().getId());
-		if (log.isTraceEnabled()) {
-			String content = channelBuffer.toString(CharsetUtil.UTF_8);
-			log.trace("In message: {} sessionId: {}", new Object[] {content, client.getSessionId()});
-		}
-
 		Channels.fireMessageReceived(ctx.getChannel(), new PacketsMessage(client, channelBuffer));
 	}
 
@@ -129,6 +127,8 @@ public class WebSocketTransport extends SimpleChannelUpstreamHandler implements 
         channelId2Client.put(channel.getId(), client);
         sessionId2Client.put(sessionId, client);
         authorizeHandler.connect(client);
+
+        heartbeatHandler.onHeartbeat(client);
     }
 
     private String getWebSocketLocation(HttpRequest req) {
