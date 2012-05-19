@@ -28,8 +28,8 @@ public class CancelableScheduler {
     private final ScheduledExecutorService executorService;
 
     public CancelableScheduler(int threadPoolSize) {
-    	executorService = Executors.newScheduledThreadPool(threadPoolSize);
-	}
+        executorService = Executors.newScheduledThreadPool(threadPoolSize);
+    }
 
     public void cancel(SchedulerKey key) {
         Future<?> future = scheduledFutures.remove(key);
@@ -39,25 +39,25 @@ public class CancelableScheduler {
     }
 
     public void schedule(Runnable runnable, long delay, TimeUnit unit) {
-    	executorService.schedule(runnable, delay, unit);
+        executorService.schedule(runnable, delay, unit);
     }
 
     public void schedule(final SchedulerKey key, final Runnable runnable, long delay, TimeUnit unit) {
         Future<?> future = executorService.schedule(new Runnable() {
-			@Override
-			public void run() {
+            @Override
+            public void run() {
                 try {
-    				runnable.run();
+                    runnable.run();
                 } finally {
-                	scheduledFutures.remove(key);
+                    scheduledFutures.remove(key);
                 }
-			}
-		}, delay, unit);
+            }
+        }, delay, unit);
         scheduledFutures.put(key, future);
     }
 
     public void shutdown() {
-    	executorService.shutdownNow();
+        executorService.shutdownNow();
     }
 
 }

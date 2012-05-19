@@ -35,15 +35,15 @@ import com.corundumstudio.socketio.transport.XHRPollingTransport;
 public class SocketIOPipelineFactory implements ChannelPipelineFactory, Disconnectable {
 
     protected static final String SOCKETIO_ENCODER = "socketioEncoder";
-	protected static final String WEB_SOCKET_TRANSPORT = "webSocketTransport";
-	protected static final String XHR_POLLING_TRANSPORT = "xhrPollingTransport";
-	protected static final String AUTHORIZE_HANDLER = "authorizeHandler";
-	protected static final String PACKET_HANDLER = "packetHandler";
-	protected static final String HTTP_ENCODER = "encoder";
-	protected static final String HTTP_AGGREGATOR = "aggregator";
-	protected static final String HTTP_REQUEST_DECODER = "decoder";
+    protected static final String WEB_SOCKET_TRANSPORT = "webSocketTransport";
+    protected static final String XHR_POLLING_TRANSPORT = "xhrPollingTransport";
+    protected static final String AUTHORIZE_HANDLER = "authorizeHandler";
+    protected static final String PACKET_HANDLER = "packetHandler";
+    protected static final String HTTP_ENCODER = "encoder";
+    protected static final String HTTP_AGGREGATOR = "aggregator";
+    protected static final String HTTP_REQUEST_DECODER = "decoder";
 
-	private final Logger log = LoggerFactory.getLogger(getClass());
+    private final Logger log = LoggerFactory.getLogger(getClass());
 
     private final int protocol = 1;
 
@@ -55,7 +55,7 @@ public class SocketIOPipelineFactory implements ChannelPipelineFactory, Disconne
     private SocketIOListener socketIOHandler;
     private CancelableScheduler scheduler;
 
-	private PacketHandler packetHandler;
+    private PacketHandler packetHandler;
 
     public void start(Configuration configuration) {
         this.socketIOHandler = configuration.getListener();
@@ -104,7 +104,7 @@ public class SocketIOPipelineFactory implements ChannelPipelineFactory, Disconne
     }
 
     public void stop() {
-    	scheduler.shutdown();
+        scheduler.shutdown();
     }
 
 }

@@ -58,7 +58,7 @@ public class WebSocketTransport extends SimpleChannelUpstreamHandler implements 
 
 
     public WebSocketTransport(String connectPath, Disconnectable disconnectable,
-    			AuthorizeHandler authorizeHandler, HeartbeatHandler heartbeatHandler) {
+            AuthorizeHandler authorizeHandler, HeartbeatHandler heartbeatHandler) {
         this.path = connectPath + "websocket";
         this.authorizeHandler = authorizeHandler;
         this.disconnectable = disconnectable;
@@ -81,44 +81,44 @@ public class WebSocketTransport extends SimpleChannelUpstreamHandler implements 
         }
     }
 
-	private void handshake(ChannelHandlerContext ctx, HttpRequest req) {
-		QueryStringDecoder queryDecoder = new QueryStringDecoder(req.getUri());
-		Channel channel = ctx.getChannel();
-		String path = queryDecoder.getPath();
-		if (!path.startsWith(this.path)) {
-			return;
-		}
+    private void handshake(ChannelHandlerContext ctx, HttpRequest req) {
+        QueryStringDecoder queryDecoder = new QueryStringDecoder(req.getUri());
+        Channel channel = ctx.getChannel();
+        String path = queryDecoder.getPath();
+        if (!path.startsWith(this.path)) {
+            return;
+        }
 
-		String[] parts = path.split("/");
-		if (parts.length <= 3) {
-			log.warn("Wrong GET request path: {}, from ip: {}. Channel closed!",
-					new Object[] {path, channel.getRemoteAddress()});
-			channel.close();
-			return;
-		}
+        String[] parts = path.split("/");
+        if (parts.length <= 3) {
+            log.warn("Wrong GET request path: {}, from ip: {}. Channel closed!",
+                    new Object[] {path, channel.getRemoteAddress()});
+            channel.close();
+            return;
+        }
 
-		UUID sessionId = UUID.fromString(parts[4]);
+        UUID sessionId = UUID.fromString(parts[4]);
 
-		WebSocketServerHandshakerFactory factory = new WebSocketServerHandshakerFactory(getWebSocketLocation(req), null, false);
-		WebSocketServerHandshaker handshaker = factory.newHandshaker(req);
-		if (handshaker != null) {
+        WebSocketServerHandshakerFactory factory = new WebSocketServerHandshakerFactory(
+                getWebSocketLocation(req), null, false);
+        WebSocketServerHandshaker handshaker = factory.newHandshaker(req);
+        if (handshaker != null) {
             handshaker.handshake(channel, req);
             connectClient(channel, sessionId);
-		} else {
-		    factory.sendUnsupportedWebSocketVersionResponse(ctx.getChannel());
-		}
-	}
+        } else {
+            factory.sendUnsupportedWebSocketVersionResponse(ctx.getChannel());
+        }
+    }
 
-	private void receivePackets(ChannelHandlerContext ctx,
-			ChannelBuffer channelBuffer) throws IOException {
-		WebSocketClient client = channelId2Client.get(ctx.getChannel().getId());
-		Channels.fireMessageReceived(ctx.getChannel(), new PacketsMessage(client, channelBuffer));
-	}
+    private void receivePackets(ChannelHandlerContext ctx, ChannelBuffer channelBuffer) throws IOException {
+        WebSocketClient client = channelId2Client.get(ctx.getChannel().getId());
+        Channels.fireMessageReceived(ctx.getChannel(), new PacketsMessage(client, channelBuffer));
+    }
 
     private void connectClient(Channel channel, UUID sessionId) {
         if (!authorizeHandler.isSessionAuthorized(sessionId)) {
-            log.warn("Unauthorized client with sessionId: {}, from ip: {}. Channel closed!",
-                    new Object[] {sessionId, channel.getRemoteAddress()});
+            log.warn("Unauthorized client with sessionId: {}, from ip: {}. Channel closed!", new Object[] {
+                    sessionId, channel.getRemoteAddress()});
             channel.close();
             return;
         }

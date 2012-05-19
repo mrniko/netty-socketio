@@ -18,6 +18,8 @@ package com.corundumstudio.socketio.parser;
 import java.io.IOException;
 
 import org.codehaus.jackson.map.ObjectMapper;
+import org.jboss.netty.buffer.ChannelBuffer;
+import org.jboss.netty.util.CharsetUtil;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -28,16 +30,16 @@ public class EncoderErrorPacketTest {
     @Test
     public void testEncode() throws IOException {
         Packet packet = new Packet(PacketType.ERROR);
-        String result = encoder.encodePacket(packet);
-        Assert.assertEquals("7::", result);
+        ChannelBuffer result = encoder.encodePacket(packet);
+        Assert.assertEquals("7::", result.toString(CharsetUtil.UTF_8));
     }
 
     @Test
     public void testEncodeWithReason() throws IOException {
         Packet packet = new Packet(PacketType.ERROR);
         packet.setReason(ErrorReason.TRANSPORT_NOT_SUPPORTED);
-        String result = encoder.encodePacket(packet);
-        Assert.assertEquals("7:::0", result);
+        ChannelBuffer result = encoder.encodePacket(packet);
+        Assert.assertEquals("7:::0", result.toString(CharsetUtil.UTF_8));
     }
 
     @Test
@@ -45,15 +47,15 @@ public class EncoderErrorPacketTest {
         Packet packet = new Packet(PacketType.ERROR);
         packet.setReason(ErrorReason.UNAUTHORIZED);
         packet.setAdvice(ErrorAdvice.RECONNECT);
-        String result = encoder.encodePacket(packet);
-        Assert.assertEquals("7:::2+0", result);
+        ChannelBuffer result = encoder.encodePacket(packet);
+        Assert.assertEquals("7:::2+0", result.toString(CharsetUtil.UTF_8));
     }
 
     @Test
     public void testEncodeWithEndpoint() throws IOException {
         Packet packet = new Packet(PacketType.ERROR);
         packet.setEndpoint("/woot");
-        String result = encoder.encodePacket(packet);
-        Assert.assertEquals("7::/woot", result);
+        ChannelBuffer result = encoder.encodePacket(packet);
+        Assert.assertEquals("7::/woot", result.toString(CharsetUtil.UTF_8));
     }
 }

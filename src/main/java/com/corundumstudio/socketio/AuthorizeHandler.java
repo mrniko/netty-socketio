@@ -57,7 +57,7 @@ public class AuthorizeHandler extends SimpleChannelUpstreamHandler implements Di
 
     private final CancelableScheduler disconnectScheduler;
     private final Set<UUID> authorizedSessionIds =
-    							Collections.newSetFromMap(new ConcurrentHashMap<UUID, Boolean>());
+                                Collections.newSetFromMap(new ConcurrentHashMap<UUID, Boolean>());
 
     private final String connectPath;
 
@@ -80,11 +80,11 @@ public class AuthorizeHandler extends SimpleChannelUpstreamHandler implements Di
             Channel channel = ctx.getChannel();
             QueryStringDecoder queryDecoder = new QueryStringDecoder(req.getUri());
             if (!configuration.isAllowCustomRequests()
-            		&& !queryDecoder.getPath().startsWith(connectPath)) {
+                    && !queryDecoder.getPath().startsWith(connectPath)) {
                 HttpResponse res = new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.BAD_REQUEST);
                 ChannelFuture f = channel.write(res);
                 f.addListener(ChannelFutureListener.CLOSE);
-            	return;
+                return;
             }
             if (HttpMethod.GET.equals(req.getMethod()) && queryDecoder.getPath().equals(connectPath)) {
                 authorize(channel, req, queryDecoder.getParameters());
@@ -101,7 +101,7 @@ public class AuthorizeHandler extends SimpleChannelUpstreamHandler implements Di
 
         scheduleDisconnect(channel, sessionId);
 
-        String transports = "xhr-polling,websocket";
+        String transports = "websocket,xhr-polling";
         //String transports = "websocket";
         String heartbeatTimeoutVal = String.valueOf(configuration.getHeartbeatTimeout());
         if (configuration.getHeartbeatTimeout() == 0) {
@@ -120,37 +120,37 @@ public class AuthorizeHandler extends SimpleChannelUpstreamHandler implements Di
         log.debug("New sessionId: {} authorized", sessionId);
     }
 
-	private void scheduleDisconnect(Channel channel, final UUID sessionId) {
-		ChannelFuture future = channel.getCloseFuture();
+    private void scheduleDisconnect(Channel channel, final UUID sessionId) {
+        ChannelFuture future = channel.getCloseFuture();
         future.addListener(new ChannelFutureListener() {
-			@Override
-			public void operationComplete(ChannelFuture future) throws Exception {
-				SchedulerKey key = new SchedulerKey(Type.AUTHORIZE, sessionId);
-				disconnectScheduler.schedule(key, new Runnable() {
-					@Override
-					public void run() {
-						authorizedSessionIds.remove(sessionId);
-						log.debug("Authorized sessionId: {} removed due to connection timeout", sessionId);
-					}
-				}, configuration.getCloseTimeout(), TimeUnit.SECONDS);
-			}
-		});
-	}
+            @Override
+            public void operationComplete(ChannelFuture future) throws Exception {
+                SchedulerKey key = new SchedulerKey(Type.AUTHORIZE, sessionId);
+                disconnectScheduler.schedule(key, new Runnable() {
+                    @Override
+                    public void run() {
+                        authorizedSessionIds.remove(sessionId);
+                        log.debug("Authorized sessionId: {} removed due to connection timeout", sessionId);
+                    }
+                }, configuration.getCloseTimeout(), TimeUnit.SECONDS);
+            }
+        });
+    }
 
     public boolean isSessionAuthorized(UUID sessionId) {
         return authorizedSessionIds.contains(sessionId);
     }
 
     public void connect(SocketIOClient client) {
-    	SchedulerKey key = new SchedulerKey(Type.AUTHORIZE, client.getSessionId());
-    	disconnectScheduler.cancel(key);
+        SchedulerKey key = new SchedulerKey(Type.AUTHORIZE, client.getSessionId());
+        disconnectScheduler.cancel(key);
         client.send(new Packet(PacketType.CONNECT));
         socketIOListener.onConnect(client);
     }
 
     @Override
     public void onDisconnect(SocketIOClient client) {
-    	authorizedSessionIds.remove(client.getSessionId());
+        authorizedSessionIds.remove(client.getSessionId());
     }
 
 }

@@ -27,28 +27,28 @@ import com.corundumstudio.socketio.parser.PacketType;
 
 abstract class BaseClient implements SocketIOClient {
 
-	protected final UUID sessionId;
-	protected Channel channel;
+    protected final UUID sessionId;
+    protected Channel channel;
 
-	public BaseClient(UUID sessionId) {
-		this.sessionId = sessionId;
-	}
+    public BaseClient(UUID sessionId) {
+        this.sessionId = sessionId;
+    }
 
-	@Override
-	public UUID getSessionId() {
-		return sessionId;
-	}
+    @Override
+    public UUID getSessionId() {
+        return sessionId;
+    }
 
-	@Override
+    @Override
     public ChannelFuture sendJsonObject(Object object) {
         Packet packet = new Packet(PacketType.JSON);
         packet.setData(object);
         return send(packet);
     }
 
-	@Override
-	public SocketAddress getRemoteAddress() {
-		return channel.getRemoteAddress();
-	}
+    @Override
+    public SocketAddress getRemoteAddress() {
+        return channel.getRemoteAddress();
+    }
 
 }

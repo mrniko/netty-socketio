@@ -16,9 +16,15 @@
 package com.corundumstudio.socketio.parser;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.codehaus.jackson.map.ObjectMapper;
+import org.jboss.netty.buffer.ChannelBuffer;
+import org.jboss.netty.util.CharsetUtil;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -30,8 +36,8 @@ public class EncoderJsonPacketTest {
     public void testEncode() throws IOException {
         Packet packet = new Packet(PacketType.JSON);
         packet.setData("2");
-        String result = encoder.encodePacket(packet);
-        Assert.assertEquals("4:::\"2\"", result);
+        ChannelBuffer result = encoder.encodePacket(packet);
+        Assert.assertEquals("4:::\"2\"", result.toString(CharsetUtil.UTF_8));
     }
 
     @Test
@@ -40,8 +46,36 @@ public class EncoderJsonPacketTest {
         packet.setId(1);
         packet.setAck("data");
         packet.setData(Collections.singletonMap("a", "b"));
-        String result = encoder.encodePacket(packet);
-        Assert.assertEquals("4:1+::{\"a\":\"b\"}", result);
+        ChannelBuffer result = encoder.encodePacket(packet);
+        Assert.assertEquals("4:1+::{\"a\":\"b\"}", result.toString(CharsetUtil.UTF_8));
+    }
+
+    @Test
+    public void testPerf() throws IOException {
+        List<Packet> packets = new ArrayList<Packet>();
+        for (int i = 0; i < 100; i++) {
+            Packet packet = new Packet(PacketType.JSON);
+            packet.setId(1);
+            packet.setData(Collections.singletonMap("Привет", "123123jksdf213"));
+            packets.add(packet);
+        }
+
+        List<Queue<Packet>> queues = new ArrayList<Queue<Packet>>();
+        for (int i = 0; i < 5000; i++) {
+            ConcurrentLinkedQueue queue = new ConcurrentLinkedQueue(packets);
+            queues.add(queue);
+
+        }
+        long t = System.currentTimeMillis();
+
+        for (int i = 0; i < 5000; i++) {
+            encoder.encodePackets(queues.get(i));
+//            String message = encoder.encodePackets(queues.get(i));
+//            ChannelBuffers.copiedBuffer(message, CharsetUtil.UTF_8);
+        }
+        // 1000 ms
+
+        System.out.println(System.currentTimeMillis() - t);
     }
 
 }

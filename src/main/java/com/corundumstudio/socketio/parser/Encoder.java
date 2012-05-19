@@ -16,56 +16,165 @@
 package com.corundumstudio.socketio.parser;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
+import java.util.Queue;
 
 import org.codehaus.jackson.map.ObjectMapper;
+import org.jboss.netty.buffer.ChannelBuffer;
+import org.jboss.netty.buffer.ChannelBufferOutputStream;
+import org.jboss.netty.buffer.ChannelBuffers;
 
 public class Encoder {
 
+    private final UTF8CharsScanner charsScanner = new UTF8CharsScanner();
     private final ObjectMapper objectMapper;
 
     public Encoder(ObjectMapper objectMapper) {
-        super();
         this.objectMapper = objectMapper;
     }
 
-    public CharSequence encodePayload(List<String> packets) {
-        if (packets.size() == 1) {
-            return packets.get(0);
-        }
-        StringBuilder result = new StringBuilder();
-        for (String packet : packets) {
-            result.append(Packet.DELIMITER).append(packet.length()).append(Packet.DELIMITER).append(packet);
-        }
-        return result;
+    public ChannelBuffer encodePacket(Packet packet) throws IOException {
+        ChannelBuffer buffer = ChannelBuffers.dynamicBuffer();
+        ChannelBufferOutputStream out = new ChannelBufferOutputStream(buffer);
+        encodePacket(packet, out);
+        return buffer;
     }
 
-    public String encodePackets(List<Packet> packets) throws IOException {
+    public ChannelBuffer encodePackets(Queue<Packet> packets) throws IOException {
         if (packets.size() == 1) {
-            return encodePacket(packets.get(0));
+            ChannelBuffer buffer = ChannelBuffers.dynamicBuffer();
+            ChannelBufferOutputStream out = new ChannelBufferOutputStream(buffer);
+            Packet packet = packets.poll();
+            encodePacket(packet, out);
+            return buffer;
+        } else {
+            ChannelBuffer buffer = ChannelBuffers.dynamicBuffer();
+            while (true) {
+                Packet packet = packets.poll();
+                if (packet == null) {
+                    break;
+                }
+
+                ChannelBuffer packetBuffer = ChannelBuffers.dynamicBuffer();
+                ChannelBufferOutputStream out = new ChannelBufferOutputStream(packetBuffer);
+                int len = encodePacket(packet, out);
+                byte[] lenBytes = toChars(len);
+
+                buffer.writeBytes(Packet.DELIMITER_BYTES);
+                buffer.writeBytes(lenBytes);
+                buffer.writeBytes(Packet.DELIMITER_BYTES);
+                buffer.writeBytes(packetBuffer);
+            }
+            return buffer;
         }
-        StringBuilder result = new StringBuilder();
-        for (Packet packet : packets) {
-            String encPacket = encodePacket(packet);
-            result.append(Packet.DELIMITER).append(encPacket.length()).append(Packet.DELIMITER).append(encPacket);
-        }
-        return result.toString();
     }
 
-    public String encodePacket(Packet packet) throws IOException {
+    private byte toChar(int number) {
+        return (byte) (number ^ 0x30);
+    }
+
+    final static char[] DigitTens = {'0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '1', '1', '1', '1',
+            '1', '1', '1', '1', '1', '1', '2', '2', '2', '2', '2', '2', '2', '2', '2', '2', '3', '3', '3',
+            '3', '3', '3', '3', '3', '3', '3', '4', '4', '4', '4', '4', '4', '4', '4', '4', '4', '5', '5',
+            '5', '5', '5', '5', '5', '5', '5', '5', '6', '6', '6', '6', '6', '6', '6', '6', '6', '6', '7',
+            '7', '7', '7', '7', '7', '7', '7', '7', '7', '8', '8', '8', '8', '8', '8', '8', '8', '8', '8',
+            '9', '9', '9', '9', '9', '9', '9', '9', '9', '9',};
+
+    final static char[] DigitOnes = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '1', '2', '3',
+            '4', '5', '6', '7', '8', '9', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '1', '2',
+            '3', '4', '5', '6', '7', '8', '9', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '1',
+            '2', '3', '4', '5', '6', '7', '8', '9', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0',
+            '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+            '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',};
+
+    final static char[] digits = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e',
+            'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x',
+            'y', 'z'};
+
+    final static int[] sizeTable = {9, 99, 999, 9999, 99999, 999999, 9999999, 99999999, 999999999,
+            Integer.MAX_VALUE};
+
+    // Requires positive x
+    static int stringSize(int x) {
+        for (int i = 0;; i++)
+            if (x <= sizeTable[i])
+                return i + 1;
+    }
+
+    static void getChars(int i, int index, byte[] buf) {
+        int q, r;
+        int charPos = index;
+        byte sign = 0;
+
+        if (i < 0) {
+            sign = '-';
+            i = -i;
+        }
+
+        // Generate two digits per iteration
+        while (i >= 65536) {
+            q = i / 100;
+            // really: r = i - (q * 100);
+            r = i - ((q << 6) + (q << 5) + (q << 2));
+            i = q;
+            buf[--charPos] = (byte) DigitOnes[r];
+            buf[--charPos] = (byte) DigitTens[r];
+        }
+
+        // Fall thru to fast mode for smaller numbers
+        // assert(i <= 65536, i);
+        for (;;) {
+            q = (i * 52429) >>> (16 + 3);
+            r = i - ((q << 3) + (q << 1)); // r = i-(q*10) ...
+            buf[--charPos] = (byte) digits[r];
+            i = q;
+            if (i == 0)
+                break;
+        }
+        if (sign != 0) {
+            buf[--charPos] = sign;
+        }
+    }
+
+    private byte[] toChars(int i) {
+        int size = (i < 0) ? stringSize(-i) + 1 : stringSize(i);
+        byte[] buf = new byte[size];
+        getChars(i, size, buf);
+        return buf;
+    }
+
+    private int encodePacket(Packet packet, ChannelBufferOutputStream out) throws IOException {
+        ChannelBuffer buffer = out.buffer();
+        int start = buffer.writerIndex();
         int type = packet.getType().getValue();
+        buffer.writeByte(toChar(type));
+        buffer.writeByte(Packet.SEPARATOR);
+
         Integer id = packet.getId();
         String endpoint = packet.getEndpoint();
         Object ack = packet.getAck();
-        Object data = packet.getData();
+
+        if ("data".equals(ack)) {
+            buffer.writeBytes(toChars(id));
+            buffer.writeByte('+');
+        } else {
+            if (id != null) {
+                buffer.writeBytes(toChars(id));
+            }
+        }
+        buffer.writeByte(Packet.SEPARATOR);
+
+        if (endpoint != null) {
+            buffer.writeBytes(endpoint.getBytes());
+        }
 
         switch (packet.getType()) {
 
         case MESSAGE:
             if (packet.getData() != null) {
-                data = packet.getData();
+                buffer.writeByte(Packet.SEPARATOR);
+                byte[] data = packet.getData().toString().getBytes();
+                buffer.writeBytes(data);
             }
             break;
 
@@ -74,79 +183,54 @@ public class Encoder {
             if (args.isEmpty()) {
                 args = null;
             }
+            buffer.writeByte(Packet.SEPARATOR);
             Event event = new Event(packet.getName(), args);
-            data = objectMapper.writeValueAsString(event);
+            objectMapper.writeValue(out, event);
             break;
 
         case JSON:
-            data = objectMapper.writeValueAsString(packet.getData());
+            buffer.writeByte(Packet.SEPARATOR);
+            objectMapper.writeValue(out, packet.getData());
             break;
 
         case CONNECT:
-            data = packet.getQs();
+            if (packet.getQs() != null) {
+                buffer.writeByte(Packet.SEPARATOR);
+                byte[] qsData = packet.getQs().toString().getBytes();
+                buffer.writeBytes(qsData);
+            }
             break;
 
         case ACK:
-            String dataStr = packet.getAckId();
-            if (!packet.getArgs().isEmpty()) {
-                dataStr += "+" + objectMapper.writeValueAsString(packet.getArgs());
+            if (packet.getAckId() != null || !packet.getArgs().isEmpty()) {
+                buffer.writeByte(Packet.SEPARATOR);
             }
-            data = dataStr;
+            if (packet.getAckId() != null) {
+                byte[] ackIdData = packet.getAckId().getBytes();
+                buffer.writeBytes(ackIdData);
+            }
+            if (!packet.getArgs().isEmpty()) {
+                buffer.writeByte('+');
+                objectMapper.writeValue(out, packet.getArgs());
+            }
             break;
 
         case ERROR:
-            int reasonCode = -1;
-            int adviceCode = -1;
+            if (packet.getReason() != null || packet.getAdvice() != null) {
+                buffer.writeByte(Packet.SEPARATOR);
+            }
             if (packet.getReason() != null) {
-                reasonCode = packet.getReason().getValue();
+                int reasonCode = packet.getReason().getValue();
+                buffer.writeByte(toChar(reasonCode));
             }
             if (packet.getAdvice() != null) {
-                adviceCode = packet.getAdvice().getValue();
-            }
-
-            if (reasonCode != -1 || adviceCode != -1) {
-                StringBuilder errorData = new StringBuilder();
-                if (reasonCode != -1) {
-                    errorData.append(reasonCode);
-                }
-                if (adviceCode != -1) {
-                    errorData.append("+").append(adviceCode);
-                }
-                data = errorData;
+                int adviceCode = packet.getAdvice().getValue();
+                buffer.writeByte('+');
+                buffer.writeByte(toChar(adviceCode));
             }
             break;
-
         }
-
-        List<Object> params = new ArrayList<Object>(4);
-        params.add(type);
-        if ("data".equals(ack)) {
-            params.add(id + "+");
-        } else {
-            if (id == null) {
-                params.add("");
-            } else {
-                params.add(id);
-            }
-        }
-        params.add(endpoint);
-        if (data != null) {
-            params.add(data);
-        }
-
-        return join(":", params);
-    }
-
-    private String join(String delimiter, List<Object> args) {
-        StringBuilder result = new StringBuilder();
-        for (Iterator<Object> iterator = args.iterator(); iterator.hasNext();) {
-            Object arg = iterator.next();
-            result.append(arg);
-            if (iterator.hasNext()) {
-                result.append(delimiter);
-            }
-        }
-        return result.toString();
+        return charsScanner.getLength(buffer, start);
     }
 
 }

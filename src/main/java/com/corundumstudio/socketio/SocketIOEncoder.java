@@ -21,8 +21,6 @@ import static org.jboss.netty.handler.codec.http.HttpHeaders.Values.KEEP_ALIVE;
 import static org.jboss.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Queue;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -31,12 +29,13 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.codehaus.jackson.map.ObjectMapper;
+import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelFuture;
 import org.jboss.netty.channel.ChannelFutureListener;
-import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.ChannelHandler.Sharable;
+import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.handler.codec.http.DefaultHttpResponse;
 import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.jboss.netty.handler.codec.http.HttpResponse;
@@ -73,12 +72,8 @@ public class SocketIOEncoder extends OneToOneEncoder implements MessageHandler {
             packets.add(packet);
         }
 
-        public Packet pollPacket() {
-            return packets.poll();
-        }
-
-        public boolean hasPackets() {
-            return !packets.isEmpty();
+        public Queue<Packet> getPackets() {
+            return packets;
         }
 
         /**
@@ -134,35 +129,28 @@ public class SocketIOEncoder extends OneToOneEncoder implements MessageHandler {
 
     private void write(UUID sessionId, String origin, XHRClientEntry clientEntry,
             Channel channel) throws IOException {
-        if (!channel.isConnected() || !clientEntry.hasPackets()
-        			|| !clientEntry.tryToWrite(channel)) {
-        	return;
+        if (!channel.isConnected() || clientEntry.getPackets().isEmpty()
+                    || !clientEntry.tryToWrite(channel)) {
+            return;
         }
 
-        List<Packet> packets = new ArrayList<Packet>();
-        while (true) {
-            Packet packet = clientEntry.pollPacket();
-            if (packet != null) {
-                packets.add(packet);
-            } else {
-                break;
-            }
-        }
-
-        String message = encoder.encodePackets(packets);
+        ChannelBuffer message = encoder.encodePackets(clientEntry.getPackets());
         sendMessage(origin, sessionId, channel, message);
     }
 
     private void sendMessage(String origin, UUID sessionId, Channel channel,
-            String message) {
+            ChannelBuffer message) {
         HttpResponse res = new DefaultHttpResponse(HTTP_1_1,
                 HttpResponseStatus.OK);
         addHeaders(origin, res);
-        res.setContent(ChannelBuffers.copiedBuffer(message, CharsetUtil.UTF_8));
+        res.setContent(message);
         HttpHeaders.setContentLength(res, res.getContent().readableBytes());
 
-        log.trace("Out message: {}, sessionId: {}, channelId: {}", new Object[] { message,
-                sessionId, channel.getId() });
+        if (log.isTraceEnabled()) {
+            log.trace("Out message: {}, sessionId: {}, channelId: {}",
+                        new Object[] { message.toString(CharsetUtil.UTF_8),
+                            sessionId, channel.getId() });
+        }
         ChannelFuture f = channel.write(res);
         f.addListener(ChannelFutureListener.CLOSE);
     }
@@ -218,14 +206,15 @@ public class SocketIOEncoder extends OneToOneEncoder implements MessageHandler {
             message = "io.j[" + authMsg.getJsonpParam() + "]("
                     + objectMapper.writeValueAsString(message) + ");";
         }
-        sendMessage(authMsg.getOrigin(), authMsg.getSessionId(), channel, message);
+        ChannelBuffer msg = ChannelBuffers.wrappedBuffer(message.getBytes());
+        sendMessage(authMsg.getOrigin(), authMsg.getSessionId(), channel, msg);
         return ChannelBuffers.EMPTY_BUFFER;
     }
 
     @Override
     public Object handle(WebSocketPacketMessage webSocketPacketMessage, Channel channel) throws IOException {
-        String message = encoder.encodePacket(webSocketPacketMessage.getPacket());
-        WebSocketFrame res = new TextWebSocketFrame(message.toString());
+        ChannelBuffer message = encoder.encodePacket(webSocketPacketMessage.getPacket());
+        WebSocketFrame res = new TextWebSocketFrame(message);
         log.trace("Out message: {} sessionId: {}", new Object[] {
                 message, webSocketPacketMessage.getSessionId() });
         return res;
@@ -233,13 +222,13 @@ public class SocketIOEncoder extends OneToOneEncoder implements MessageHandler {
 
     @Override
     public Object handle(WebsocketErrorMessage websocketErrorMessage, Channel channel) throws IOException {
-        String message = encoder.encodePacket(websocketErrorMessage.getPacket());
-        return new TextWebSocketFrame(message.toString());
+        ChannelBuffer message = encoder.encodePacket(websocketErrorMessage.getPacket());
+        return new TextWebSocketFrame(message);
     }
 
     @Override
     public Object handle(XHRErrorMessage xhrErrorMessage, Channel channel) throws IOException {
-        String message = encoder.encodePacket(xhrErrorMessage.getPacket());
+        ChannelBuffer message = encoder.encodePacket(xhrErrorMessage.getPacket());
         sendMessage(xhrErrorMessage.getOrigin(), null, channel, message);
         return ChannelBuffers.EMPTY_BUFFER;
     }

@@ -18,6 +18,8 @@ package com.corundumstudio.socketio.parser;
 import java.io.IOException;
 
 import org.codehaus.jackson.map.ObjectMapper;
+import org.jboss.netty.buffer.ChannelBuffer;
+import org.jboss.netty.util.CharsetUtil;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -29,8 +31,8 @@ public class EncoderMessagePacketTest {
     public void testEncode() throws IOException {
         Packet packet = new Packet(PacketType.MESSAGE);
         packet.setData("woot");
-        String result = encoder.encodePacket(packet);
-        Assert.assertEquals("3:::woot", result);
+        ChannelBuffer result = encoder.encodePacket(packet);
+        Assert.assertEquals("3:::woot", result.toString(CharsetUtil.UTF_8));
     }
 
     @Test
@@ -39,8 +41,8 @@ public class EncoderMessagePacketTest {
         packet.setId(5);
         packet.setAck(true);
         packet.setEndpoint("/tobi");
-        String result = encoder.encodePacket(packet);
-        Assert.assertEquals("3:5:/tobi", result);
+        ChannelBuffer result = encoder.encodePacket(packet);
+        Assert.assertEquals("3:5:/tobi", result.toString(CharsetUtil.UTF_8));
     }
 
 }

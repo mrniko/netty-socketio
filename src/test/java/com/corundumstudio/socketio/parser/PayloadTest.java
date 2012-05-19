@@ -16,12 +16,15 @@
 package com.corundumstudio.socketio.parser;
 
 import java.io.IOException;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.codehaus.jackson.map.ObjectMapper;
+import org.jboss.netty.buffer.ChannelBuffer;
+import org.jboss.netty.buffer.ChannelBuffers;
+import org.jboss.netty.util.CharsetUtil;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -30,40 +33,39 @@ public class PayloadTest {
     private final Decoder decoder = new Decoder(new ObjectMapper());
     private final Encoder encoder = new Encoder(new ObjectMapper());
 
-    // @Test
-    public void testPayloadDecodePerf() throws IOException {
-        long start = System.currentTimeMillis();
-        for (int i = 0; i < 50000; i++) {
-//           decoder.decodePayload("\ufffd5\ufffd3:::5\ufffd7\ufffd3:::53d\ufffd3\ufffd0::\ufffd5\ufffd3:::5\ufffd7\ufffd3:::53d\ufffd3\ufffd0::\ufffd5\ufffd3:::5\ufffd7\ufffd3:::53d\ufffd3\ufffd0::\ufffd5\ufffd3:::5\ufffd7\ufffd3:::53d\ufffd3\ufffd0::\ufffd5\ufffd3:::5\ufffd7\ufffd3:::53d\ufffd3\ufffd0::");
-        }
-        long end = System.currentTimeMillis() - start;
-        System.out.println(end + "ms");
-        // 1143ms
-    }
-
-//    @Test
+    @Test
     public void testPayloadDecode() throws IOException {
-//        List<Packet> payload = decoder.decodePayload("\ufffd5\ufffd3:::5\ufffd7\ufffd3:::53d\ufffd3\ufffd0::");
-//        Assert.assertEquals(3, payload.size());
-//        Packet msg1 = payload.get(0);
-//        Assert.assertEquals(PacketType.MESSAGE, msg1.getType());
-//        Assert.assertEquals("5", msg1.getData());
-//        Packet msg2 = payload.get(1);
-//        Assert.assertEquals(PacketType.MESSAGE, msg2.getType());
-//        Assert.assertEquals("53d", msg2.getData());
-//        Packet msg3 = payload.get(2);
-//        Assert.assertEquals(PacketType.DISCONNECT, msg3.getType());
+        ChannelBuffer buffer = ChannelBuffers.wrappedBuffer("\ufffd5\ufffd3:::5\ufffd7\ufffd3:::53d\ufffd3\ufffd0::".getBytes());
+        List<Packet> payload = new ArrayList<Packet>();
+        while (buffer.readable()) {
+            Packet packet = decoder.decodePackets(buffer);
+            payload.add(packet);
+        }
+
+        Assert.assertEquals(3, payload.size());
+        Packet msg1 = payload.get(0);
+        Assert.assertEquals(PacketType.MESSAGE, msg1.getType());
+        Assert.assertEquals("5", msg1.getData());
+        Packet msg2 = payload.get(1);
+        Assert.assertEquals(PacketType.MESSAGE, msg2.getType());
+        Assert.assertEquals("53d", msg2.getData());
+        Packet msg3 = payload.get(2);
+        Assert.assertEquals(PacketType.DISCONNECT, msg3.getType());
     }
 
     @Test
     public void testPayloadEncode() throws IOException {
+        Queue<Packet> packets = new ConcurrentLinkedQueue<Packet>();
         Packet packet1 = new Packet(PacketType.MESSAGE);
         packet1.setData("5");
+        packets.add(packet1);
+
         Packet packet2 = new Packet(PacketType.MESSAGE);
         packet2.setData("53d");
-        CharSequence result = encoder.encodePayload(Arrays.asList(encoder.encodePacket(packet1),
-                encoder.encodePacket(packet2)));
-        Assert.assertEquals("\ufffd5\ufffd3:::5\ufffd7\ufffd3:::53d", result.toString());
+        packets.add(packet2);
+
+        ChannelBuffer result = encoder.encodePackets(packets);
+        Assert.assertEquals("\ufffd5\ufffd3:::5\ufffd7\ufffd3:::53d", result.toString(CharsetUtil.UTF_8));
     }
 
     @Test

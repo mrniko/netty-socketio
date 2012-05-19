@@ -22,12 +22,21 @@ import java.util.regex.Pattern;
 
 import org.codehaus.jackson.map.ObjectMapper;
 import org.jboss.netty.buffer.ChannelBuffer;
+import org.jboss.netty.buffer.ChannelBufferIndexFinder;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.util.CharsetUtil;
 
 public class Decoder {
 
-    private final byte separator = (byte)':';
+    private final UTF8CharsScanner charsScanner = new UTF8CharsScanner();
+
+    private final ChannelBufferIndexFinder delimiterFinder = new ChannelBufferIndexFinder() {
+        @Override
+        public boolean find(ChannelBuffer buffer, int guessedIndex) {
+            return isCurrentDelimiter(buffer, guessedIndex);
+        }
+    };
+
     private final Pattern ackPattern = Pattern.compile("^([0-9]+)(\\+)?(.*)");
     private final ObjectMapper objectMapper;
 
@@ -36,25 +45,25 @@ public class Decoder {
     }
 
     // fastest way to parse chars to int
-    public Integer parseInt(byte[] chars) {
-		int result = 0;
-		for (int i = 0; i < chars.length; i++) {
-			int digit = ((int)chars[i] & 0xF);
-	    	for (int j = 0; j < chars.length-1-i; j++) {
-	    		digit *= 10;
-			}
-	    	result += digit;
-		}
-    	return result;
+    private Integer parseInt(byte[] chars) {
+        int result = 0;
+        for (int i = 0; i < chars.length; i++) {
+            int digit = ((int)chars[i] & 0xF);
+            for (int j = 0; j < chars.length-1-i; j++) {
+                digit *= 10;
+            }
+            result += digit;
+        }
+        return result;
     }
 
-    public Packet decodePacket(ChannelBuffer buffer) throws IOException {
+    private Packet decodePacket(ChannelBuffer buffer) throws IOException {
         if (buffer.readableBytes() < 3) {
             throw new DecoderException("Can't parse " + buffer.toString(CharsetUtil.UTF_8));
         }
         PacketType type = getType(buffer);
 
-        int readerIndex = 1;
+        int readerIndex = buffer.readerIndex()+1;
         // 'null' to avoid unnecessary StringBuilder creation
         StringBuilder messageId = null;
         for (readerIndex += 1; readerIndex < buffer.readableBytes(); readerIndex++) {
@@ -62,7 +71,7 @@ public class Decoder {
                 messageId = new StringBuilder(4);
             }
             byte msg = buffer.getByte(readerIndex);
-            if (msg == separator) {
+            if (msg == Packet.SEPARATOR) {
                 break;
             }
             if (msg != (byte)'+') {
@@ -81,7 +90,7 @@ public class Decoder {
                 endpointBuffer = new StringBuilder();
             }
             byte msg = buffer.getByte(readerIndex);
-            if (msg == separator) {
+            if (msg == Packet.SEPARATOR) {
                 break;
             }
             endpointBuffer.append((char)msg);
@@ -178,9 +187,9 @@ public class Decoder {
     }
 
     private PacketType getType(ChannelBuffer buffer) {
-        int typeId = buffer.getByte(0) & 0xF;
+        int typeId = buffer.getByte(buffer.readerIndex()) & 0xF;
         if (typeId >= PacketType.VALUES.length
-                || buffer.getByte(1) != separator) {
+                || buffer.getByte(buffer.readerIndex()+1) != Packet.SEPARATOR) {
             throw new DecoderException("Can't parse " + buffer.toString(CharsetUtil.UTF_8));
         }
         return PacketType.valueOf(typeId);
@@ -195,6 +204,56 @@ public class Decoder {
 
     public Packet decodePacket(String string) throws IOException {
         return decodePacket(ChannelBuffers.copiedBuffer(string, CharsetUtil.UTF_8));
+    }
+
+    public Packet decodePackets(ChannelBuffer buffer) throws IOException {
+        if (isCurrentDelimiter(buffer, buffer.readerIndex())) {
+            buffer.readerIndex(buffer.readerIndex() + Packet.DELIMITER_BYTES.length);
+
+            Integer len = extractLength(buffer);
+
+            ChannelBuffer frame = buffer.slice(buffer.readerIndex(), len);
+            Packet packet = decodePacket(frame);
+            buffer.readerIndex(buffer.readerIndex() + len);
+            return packet;
+        } else {
+            Packet packet = decodePacket(buffer);
+            buffer.readerIndex(buffer.readableBytes());
+            return packet;
+        }
+    }
+
+    private Integer extractLength(ChannelBuffer buffer) {
+        Integer len = parseLengthHeader(buffer);
+
+        // scan utf8 symbols if needed
+        if (buffer.capacity() > buffer.readerIndex() + len
+                && !isCurrentDelimiter(buffer, buffer.readerIndex() + len)) {
+            int index = charsScanner.findTailIndex(buffer, buffer.readerIndex(), buffer.capacity(), len);
+            len = index - buffer.readerIndex();
+        }
+        return len;
+    }
+
+    private Integer parseLengthHeader(ChannelBuffer buffer) {
+        int delimiterIndex = ChannelBuffers.indexOf(buffer, buffer.readerIndex(), buffer.capacity(), delimiterFinder);
+        if (delimiterIndex == -1) {
+            throw new DecoderException("Can't find tail delimiter");
+        }
+
+        byte[] digits = new byte[delimiterIndex - buffer.readerIndex()];;
+        buffer.getBytes(buffer.readerIndex(), digits);
+        buffer.readerIndex(buffer.readerIndex() + digits.length + Packet.DELIMITER_BYTES.length);
+        return parseInt(digits);
+    }
+
+    private boolean isCurrentDelimiter(ChannelBuffer buffer, int index) {
+        for (int i = 0; i < Packet.DELIMITER_BYTES.length; i++) {
+            if (buffer.getByte(index + i) != Packet.DELIMITER_BYTES[i]) {
+                return false;
+            }
+        }
+        return true;
     }
 
 }

@@ -21,6 +21,8 @@ import java.util.Collections;
 
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
+import org.jboss.netty.buffer.ChannelBuffer;
+import org.jboss.netty.util.CharsetUtil;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -38,8 +40,8 @@ public class EncoderEventPacketTest {
     public void testEncode() throws IOException {
         Packet packet = new Packet(PacketType.EVENT);
         packet.setName("woot");
-        String result = encoder.encodePacket(packet);
-        Assert.assertEquals("5:::{\"name\":\"woot\"}", result);
+        ChannelBuffer result = encoder.encodePacket(packet);
+        Assert.assertEquals("5:::{\"name\":\"woot\"}", result.toString(CharsetUtil.UTF_8));
     }
 
     @Test
@@ -48,8 +50,8 @@ public class EncoderEventPacketTest {
         packet.setId(1);
         packet.setAck("data");
         packet.setName("tobi");
-        String result = encoder.encodePacket(packet);
-        Assert.assertEquals("5:1+::{\"name\":\"tobi\"}", result);
+        ChannelBuffer result = encoder.encodePacket(packet);
+        Assert.assertEquals("5:1+::{\"name\":\"tobi\"}", result.toString(CharsetUtil.UTF_8));
     }
 
     @Test
@@ -57,8 +59,9 @@ public class EncoderEventPacketTest {
         Packet packet = new Packet(PacketType.EVENT);
         packet.setName("edwald");
         packet.setArgs(Arrays.asList(Collections.singletonMap("a", "b"), 2, "3"));
-        String result = encoder.encodePacket(packet);
-        Assert.assertEquals("5:::{\"name\":\"edwald\",\"args\":[{\"a\":\"b\"},2,\"3\"]}", result);
+        ChannelBuffer result = encoder.encodePacket(packet);
+        Assert.assertEquals("5:::{\"name\":\"edwald\",\"args\":[{\"a\":\"b\"},2,\"3\"]}",
+                                    result.toString(CharsetUtil.UTF_8));
     }
 
 }

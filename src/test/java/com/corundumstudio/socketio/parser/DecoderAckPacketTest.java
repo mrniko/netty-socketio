@@ -20,8 +20,6 @@ import java.util.Arrays;
 
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
-import org.jboss.netty.buffer.ChannelBuffers;
-import org.jboss.netty.util.CharsetUtil;
 import org.junit.Assert;
 import org.junit.Test;
 

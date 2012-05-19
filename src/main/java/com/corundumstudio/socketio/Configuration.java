@@ -22,7 +22,7 @@ import org.codehaus.jackson.map.ObjectMapper;
 
 public class Configuration {
 
-	private String context = "/socket.io";
+    private String context = "/socket.io";
 
     private Executor bossExecutor = Executors.newCachedThreadPool();
     private Executor workerExecutor = Executors.newCachedThreadPool();
@@ -156,33 +156,33 @@ public class Configuration {
         return closeTimeout;
     }
 
-	public String getContext() {
-		return context;
-	}
-	public void setContext(String context) {
-		this.context = context;
-	}
+    public String getContext() {
+        return context;
+    }
+    public void setContext(String context) {
+        this.context = context;
+    }
 
-	public boolean isAllowCustomRequests() {
-		return allowCustomRequests;
-	}
+    public boolean isAllowCustomRequests() {
+        return allowCustomRequests;
+    }
 
-	/**
-	 * Allow to service custom requests differs from socket.io protocol.
-	 * In this case it's necessary to add own handler which handle them
-	 * to avoid hang connections.
-	 *
-	 * @param allowCustomRequests - true to allow
-	 */
-	public void setAllowCustomRequests(boolean allowCustomRequests) {
-		this.allowCustomRequests = allowCustomRequests;
-	}
+    /**
+     * Allow to service custom requests differs from socket.io protocol.
+     * In this case it's necessary to add own handler which handle them
+     * to avoid hang connections.
+     *
+     * @param allowCustomRequests - true to allow
+     */
+    public void setAllowCustomRequests(boolean allowCustomRequests) {
+        this.allowCustomRequests = allowCustomRequests;
+    }
 
-	public int getPollingDuration() {
-		return pollingDuration;
-	}
-	public void setPollingDuration(int pollingDuration) {
-		this.pollingDuration = pollingDuration;
-	}
+    public int getPollingDuration() {
+        return pollingDuration;
+    }
+    public void setPollingDuration(int pollingDuration) {
+        this.pollingDuration = pollingDuration;
+    }
 
 }

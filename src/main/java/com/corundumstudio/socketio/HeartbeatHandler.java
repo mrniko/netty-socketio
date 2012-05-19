@@ -39,21 +39,21 @@ public class HeartbeatHandler {
     }
 
     public void onHeartbeat(final SocketIOClient client) {
-    	if (!configuration.isHeartbeatsEnabled()) {
-    		return;
-    	}
+        if (!configuration.isHeartbeatsEnabled()) {
+            return;
+        }
 
-    	scheduler.cancel(new SchedulerKey(Type.HEARBEAT_TIMEOUT, client.getSessionId()));
+        scheduler.cancel(new SchedulerKey(Type.HEARBEAT_TIMEOUT, client.getSessionId()));
         scheduler.schedule(new Runnable() {
             public void run() {
-            	client.send(new Packet(PacketType.HEARTBEAT));
-            	scheduleClientHeartbeatCheck(client);
+                client.send(new Packet(PacketType.HEARTBEAT));
+                scheduleClientHeartbeatCheck(client);
             }
         }, configuration.getHeartbeatInterval(), TimeUnit.SECONDS);
     }
 
     private void scheduleClientHeartbeatCheck(final SocketIOClient client) {
-    	SchedulerKey key = new SchedulerKey(Type.HEARBEAT_TIMEOUT, client.getSessionId());
+        SchedulerKey key = new SchedulerKey(Type.HEARBEAT_TIMEOUT, client.getSessionId());
         scheduler.schedule(key, new Runnable() {
             public void run() {
                 client.disconnect();

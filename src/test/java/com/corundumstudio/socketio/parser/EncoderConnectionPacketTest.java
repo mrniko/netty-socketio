@@ -18,6 +18,8 @@ package com.corundumstudio.socketio.parser;
 import java.io.IOException;
 
 import org.codehaus.jackson.map.ObjectMapper;
+import org.jboss.netty.buffer.ChannelBuffer;
+import org.jboss.netty.util.CharsetUtil;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -28,24 +30,24 @@ public class EncoderConnectionPacketTest {
     @Test
     public void testEncodeHeartbeat() throws IOException {
         Packet packet = new Packet(PacketType.HEARTBEAT);
-        String result = encoder.encodePacket(packet);
-        Assert.assertEquals("2::", result);
+        ChannelBuffer result = encoder.encodePacket(packet);
+        Assert.assertEquals("2::", result.toString(CharsetUtil.UTF_8));
     }
 
     @Test
     public void testEncodeDisconnection() throws IOException {
         Packet packet = new Packet(PacketType.DISCONNECT);
         packet.setEndpoint("/woot");
-        String result = encoder.encodePacket(packet);
-        Assert.assertEquals("0::/woot", result);
+        ChannelBuffer result = encoder.encodePacket(packet);
+        Assert.assertEquals("0::/woot", result.toString(CharsetUtil.UTF_8));
     }
 
     @Test
     public void testEncode() throws IOException {
         Packet packet = new Packet(PacketType.CONNECT);
         packet.setEndpoint("/tobi");
-        String result = encoder.encodePacket(packet);
-        Assert.assertEquals("1::/tobi", result);
+        ChannelBuffer result = encoder.encodePacket(packet);
+        Assert.assertEquals("1::/tobi", result.toString(CharsetUtil.UTF_8));
     }
 
     @Test
@@ -53,8 +55,8 @@ public class EncoderConnectionPacketTest {
         Packet packet = new Packet(PacketType.CONNECT);
         packet.setEndpoint("/test");
         packet.setQs("?test=1");
-        String result = encoder.encodePacket(packet);
-        Assert.assertEquals("1::/test:?test=1", result);
+        ChannelBuffer result = encoder.encodePacket(packet);
+        Assert.assertEquals("1::/test:?test=1", result.toString(CharsetUtil.UTF_8));
     }
 
 }

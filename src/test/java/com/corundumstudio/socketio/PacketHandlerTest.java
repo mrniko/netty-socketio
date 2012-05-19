@@ -18,6 +18,8 @@ package com.corundumstudio.socketio;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import junit.framework.Assert;
@@ -50,7 +52,7 @@ public class PacketHandlerTest {
 
     @Before
     public void before() {
-    	invocations.set(0);
+        invocations.set(0);
     }
 
     private PacketListener createTestListener(final List<Packet> packets) {
@@ -68,59 +70,59 @@ public class PacketHandlerTest {
 
     @Test
     public void testOnePacket() throws Exception {
-    	List<Packet> packets = new ArrayList<Packet>();
-    	Packet packet = new Packet(PacketType.JSON);
-    	packet.setData(Collections.singletonMap("test1", "test2"));
-    	packets.add(packet);
+        List<Packet> packets = new ArrayList<Packet>();
+        Packet packet = new Packet(PacketType.JSON);
+        packet.setData(Collections.singletonMap("test1", "test2"));
+        packets.add(packet);
 
-    	PacketListener listener = createTestListener(packets);
+        PacketListener listener = createTestListener(packets);
         PacketHandler handler = new PacketHandler(listener, decoder);
-        testHandler(handler, packets);
+        testHandler(handler, new ConcurrentLinkedQueue<Packet>(packets));
     }
 
     @Test
     public void testUTF8MultiplePackets() throws Exception {
-    	List<Packet> packets = new ArrayList<Packet>();
-    	Packet packet3 = new Packet(PacketType.CONNECT);
-    	packets.add(packet3);
+        List<Packet> packets = new ArrayList<Packet>();
+        Packet packet3 = new Packet(PacketType.CONNECT);
+        packets.add(packet3);
 
-    	Packet packet = new Packet(PacketType.JSON);
-    	packet.setData(Collections.singletonMap("test1", "Данные"));
-    	packets.add(packet);
+        Packet packet = new Packet(PacketType.JSON);
+        packet.setData(Collections.singletonMap("test1", "Данные"));
+        packets.add(packet);
 
-    	Packet packet1 = new Packet(PacketType.JSON);
-    	packet1.setData(Collections.singletonMap("При\ufffdвет", "wq\ufffdeq"));
-    	packets.add(packet1);
+        Packet packet1 = new Packet(PacketType.JSON);
+        packet1.setData(Collections.singletonMap("При\ufffdвет", "wq\ufffdeq"));
+        packets.add(packet1);
 
-    	PacketListener listener = createTestListener(packets);
+        PacketListener listener = createTestListener(packets);
         PacketHandler handler = new PacketHandler(listener, decoder);
-        testHandler(handler, packets);
+        testHandler(handler, new ConcurrentLinkedQueue<Packet>(packets));
     }
 
     @Test
     public void testMultiplePackets() throws Exception {
-    	List<Packet> packets = new ArrayList<Packet>();
-    	Packet packet3 = new Packet(PacketType.CONNECT);
-    	packets.add(packet3);
+        List<Packet> packets = new ArrayList<Packet>();
+        Packet packet3 = new Packet(PacketType.CONNECT);
+        packets.add(packet3);
 
-    	Packet packet = new Packet(PacketType.JSON);
-    	packet.setData(Collections.singletonMap("test1", "test2"));
-    	packets.add(packet);
+        Packet packet = new Packet(PacketType.JSON);
+        packet.setData(Collections.singletonMap("test1", "test2"));
+        packets.add(packet);
 
-    	Packet packet1 = new Packet(PacketType.JSON);
-    	packet1.setData(Collections.singletonMap("fsdfdf", "wqeq"));
-    	packets.add(packet1);
+        Packet packet1 = new Packet(PacketType.JSON);
+        packet1.setData(Collections.singletonMap("fsdfdf", "wqeq"));
+        packets.add(packet1);
 
-    	PacketListener listener = createTestListener(packets);
-    	PacketHandler handler = new PacketHandler(listener, decoder);
-        testHandler(handler, packets);
+        PacketListener listener = createTestListener(packets);
+        PacketHandler handler = new PacketHandler(listener, decoder);
+        testHandler(handler, new ConcurrentLinkedQueue<Packet>(packets));
     }
 
-    private void testHandler(PacketHandler handler, List<Packet> packets) throws Exception {
-        String str = encoder.encodePackets(packets);
-        ChannelBuffer buffer = ChannelBuffers.wrappedBuffer(str.getBytes());
+    private void testHandler(PacketHandler handler, Queue<Packet> packets) throws Exception {
+        int size = packets.size();
+        ChannelBuffer buffer = encoder.encodePackets(packets);
         handler.messageReceived(null, new UpstreamMessageEvent(channel, new PacketsMessage(client, buffer), null));
-        Assert.assertEquals(packets.size(), invocations.get());
+        Assert.assertEquals(size, invocations.get());
     }
 
     //@Test

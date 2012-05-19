@@ -106,39 +106,39 @@ public class XHRPollingTransport extends SimpleChannelUpstreamHandler implements
     }
 
     private void scheduleNoop(Channel channel, final UUID sessionId) {
-    	SchedulerKey key = new SchedulerKey(Type.NOOP, sessionId);
-    	scheduler.cancel(key);
-		scheduler.schedule(key, new Runnable() {
-			@Override
-			public void run() {
+        SchedulerKey key = new SchedulerKey(Type.NOOP, sessionId);
+        scheduler.cancel(key);
+        scheduler.schedule(key, new Runnable() {
+            @Override
+            public void run() {
                 XHRPollingClient client = sessionId2Client.get(sessionId);
                 if (client != null) {
-                	client.send(new Packet(PacketType.NOOP));
+                    client.send(new Packet(PacketType.NOOP));
                 }
-			}
-		}, configuration.getPollingDuration(), TimeUnit.SECONDS);
-	}
+            }
+        }, configuration.getPollingDuration(), TimeUnit.SECONDS);
+    }
 
-	private void scheduleDisconnect(Channel channel, final UUID sessionId) {
-		final SchedulerKey key = new SchedulerKey(Type.CLOSE_TIMEOUT, sessionId);
-		scheduler.cancel(key);
-		ChannelFuture future = channel.getCloseFuture();
-		future.addListener(new ChannelFutureListener() {
-			@Override
-			public void operationComplete(ChannelFuture future) throws Exception {
-				scheduler.schedule(key, new Runnable() {
-					@Override
-					public void run() {
-		                XHRPollingClient client = sessionId2Client.get(sessionId);
-		                if (client != null) {
-		                	disconnectable.onDisconnect(client);
-		                	log.debug("Client: {} disconnected due to connection timeout", sessionId);
-		                }
-					}
-				}, configuration.getCloseTimeout(), TimeUnit.SECONDS);
-			}
-		});
-	}
+    private void scheduleDisconnect(Channel channel, final UUID sessionId) {
+        final SchedulerKey key = new SchedulerKey(Type.CLOSE_TIMEOUT, sessionId);
+        scheduler.cancel(key);
+        ChannelFuture future = channel.getCloseFuture();
+        future.addListener(new ChannelFutureListener() {
+            @Override
+            public void operationComplete(ChannelFuture future) throws Exception {
+                scheduler.schedule(key, new Runnable() {
+                    @Override
+                    public void run() {
+                        XHRPollingClient client = sessionId2Client.get(sessionId);
+                        if (client != null) {
+                            disconnectable.onDisconnect(client);
+                            log.debug("Client: {} disconnected due to connection timeout", sessionId);
+                        }
+                    }
+                }, configuration.getCloseTimeout(), TimeUnit.SECONDS);
+            }
+        });
+    }
 
     private void onPost(UUID sessionId, Channel channel, HttpRequest req) throws IOException {
         XHRPollingClient client = sessionId2Client.get(sessionId);
@@ -171,7 +171,7 @@ public class XHRPollingTransport extends SimpleChannelUpstreamHandler implements
         scheduleNoop(channel, sessionId);
     }
 
-	private XHRPollingClient createClient(String origin, Channel channel, UUID sessionId) {
+    private XHRPollingClient createClient(String origin, Channel channel, UUID sessionId) {
         XHRPollingClient client = new XHRPollingClient(authorizeHandler, sessionId);
         sessionId2Client.put(sessionId, client);
         client.update(channel, origin);

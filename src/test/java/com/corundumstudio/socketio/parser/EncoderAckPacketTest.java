@@ -19,6 +19,8 @@ import java.io.IOException;
 import java.util.Arrays;
 
 import org.codehaus.jackson.map.ObjectMapper;
+import org.jboss.netty.buffer.ChannelBuffer;
+import org.jboss.netty.util.CharsetUtil;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -30,8 +32,8 @@ public class EncoderAckPacketTest {
     public void testEncode() throws IOException {
         Packet packet = new Packet(PacketType.ACK);
         packet.setAckId("140");
-        String result = encoder.encodePacket(packet);
-        Assert.assertEquals("6:::140", result);
+        ChannelBuffer result = encoder.encodePacket(packet);
+        Assert.assertEquals("6:::140", result.toString(CharsetUtil.UTF_8));
     }
 
     @Test
@@ -39,8 +41,8 @@ public class EncoderAckPacketTest {
         Packet packet = new Packet(PacketType.ACK);
         packet.setAckId("12");
         packet.setArgs(Arrays.asList("woot", "wa"));
-        String result = encoder.encodePacket(packet);
-        Assert.assertEquals("6:::12+[\"woot\",\"wa\"]", result);
+        ChannelBuffer result = encoder.encodePacket(packet);
+        Assert.assertEquals("6:::12+[\"woot\",\"wa\"]", result.toString(CharsetUtil.UTF_8));
     }
 
 }
