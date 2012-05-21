@@ -54,6 +54,13 @@ public class Packet {
         this.data = data;
     }
 
+    /**
+     * Get packet data
+     * <pre>
+     * @return <b>json object</b> for {@link PacketType.JSON} type
+     * <b>message</b> for {@link PacketType.MESSAGE} type
+     * </pre>
+     */
     public Object getData() {
         return data;
     }

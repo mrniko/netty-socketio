@@ -35,7 +35,6 @@ import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
 import org.jboss.netty.handler.codec.http.DefaultHttpResponse;
 import org.jboss.netty.handler.codec.http.HttpHeaders;
-import org.jboss.netty.handler.codec.http.HttpMethod;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.HttpResponse;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
@@ -86,7 +85,7 @@ public class AuthorizeHandler extends SimpleChannelUpstreamHandler implements Di
                 f.addListener(ChannelFutureListener.CLOSE);
                 return;
             }
-            if (HttpMethod.GET.equals(req.getMethod()) && queryDecoder.getPath().equals(connectPath)) {
+            if (queryDecoder.getPath().equals(connectPath)) {
                 authorize(channel, req, queryDecoder.getParameters());
                 return;
             }
@@ -104,7 +103,7 @@ public class AuthorizeHandler extends SimpleChannelUpstreamHandler implements Di
         String transports = "websocket,xhr-polling";
         //String transports = "websocket";
         String heartbeatTimeoutVal = String.valueOf(configuration.getHeartbeatTimeout());
-        if (configuration.getHeartbeatTimeout() == 0) {
+        if (!configuration.isHeartbeatsEnabled()) {
             heartbeatTimeoutVal = "";
         }
 

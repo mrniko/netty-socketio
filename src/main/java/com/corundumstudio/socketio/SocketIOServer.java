@@ -19,6 +19,7 @@ import java.net.InetSocketAddress;
 
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.jboss.netty.bootstrap.ServerBootstrap;
+import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelFactory;
 import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
 import org.slf4j.Logger;
@@ -32,6 +33,7 @@ public class SocketIOServer {
 
     private SocketIOPipelineFactory pipelineFactory = new SocketIOPipelineFactory();
 
+    private Channel mainChannel;
     private Configuration config;
 
     public SocketIOServer(Configuration configuration) {
@@ -40,8 +42,8 @@ public class SocketIOServer {
     }
 
     public void setPipelineFactory(SocketIOPipelineFactory pipelineFactory) {
-		this.pipelineFactory = pipelineFactory;
-	}
+        this.pipelineFactory = pipelineFactory;
+    }
 
     public void start() {
         ChannelFactory factory = new NioServerSocketChannelFactory(config.getBossExecutor(), config.getWorkerExecutor());
@@ -51,13 +53,14 @@ public class SocketIOServer {
         bootstrap.setPipelineFactory(pipelineFactory);
         bootstrap.setOption("child.tcpNoDelay", true);
         bootstrap.setOption("child.keepAlive", true);
-        bootstrap.bind(new InetSocketAddress(config.getHostname(), config.getPort()));
+        mainChannel = bootstrap.bind(new InetSocketAddress(config.getHostname(), config.getPort()));
 
         log.info("SocketIO server started at port: {}", config.getPort());
     }
 
     public void stop() {
         pipelineFactory.stop();
+        mainChannel.close();
         bootstrap.releaseExternalResources();
     }
 

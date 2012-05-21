@@ -56,6 +56,7 @@ public class SocketIOPipelineFactory implements ChannelPipelineFactory, Disconne
     private CancelableScheduler scheduler;
 
     private PacketHandler packetHandler;
+    private HeartbeatHandler heartbeatHandler;
 
     public void start(Configuration configuration) {
         this.socketIOHandler = configuration.getListener();
@@ -65,7 +66,7 @@ public class SocketIOPipelineFactory implements ChannelPipelineFactory, Disconne
         Encoder encoder = new Encoder(objectMapper);
         Decoder decoder = new Decoder(objectMapper);
 
-        HeartbeatHandler heartbeatHandler = new HeartbeatHandler(configuration, scheduler);
+        heartbeatHandler = new HeartbeatHandler(configuration, scheduler);
         PacketListener packetListener = new PacketListener(socketIOHandler, this, heartbeatHandler);
 
         String connectPath = configuration.getContext() + "/" + protocol + "/";
@@ -97,6 +98,7 @@ public class SocketIOPipelineFactory implements ChannelPipelineFactory, Disconne
 
     public void onDisconnect(SocketIOClient client) {
         log.debug("Client with sessionId: {} disconnected by client request", client.getSessionId());
+        heartbeatHandler.onDisconnect(client);
         xhrPollingTransport.onDisconnect(client);
         webSocketTransport.onDisconnect(client);
         authorizeHandler.onDisconnect(client);

@@ -32,16 +32,20 @@ public class PacketListener {
 
     public void onPacket(Packet packet, SocketIOClient client) {
         switch (packet.getType()) {
+        case EVENT:
+            socketIOHandler.onEvent(client, packet);
+            break;
+
         case HEARTBEAT:
             heartbeatHandler.onHeartbeat(client);
             break;
 
         case MESSAGE:
-            socketIOHandler.onMessage(client, packet.getData().toString());
+            socketIOHandler.onMessage(client, packet);
             break;
 
         case JSON:
-            socketIOHandler.onJsonObject(client, packet.getData());
+            socketIOHandler.onJsonObject(client, packet);
             break;
 
         case DISCONNECT:

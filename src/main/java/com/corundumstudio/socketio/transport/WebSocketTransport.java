@@ -24,6 +24,7 @@ import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelHandler.Sharable;
 import org.jboss.netty.channel.ChannelHandlerContext;
+import org.jboss.netty.channel.ChannelStateEvent;
 import org.jboss.netty.channel.Channels;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
@@ -78,6 +79,17 @@ public class WebSocketTransport extends SimpleChannelUpstreamHandler implements 
             handshake(ctx, req);
         } else {
             ctx.sendUpstream(e);
+        }
+    }
+
+    @Override
+    public void channelDisconnected(ChannelHandlerContext ctx, ChannelStateEvent e)
+            throws Exception {
+        WebSocketClient client = channelId2Client.get(ctx.getChannel().getId());
+        if (client != null) {
+            disconnectable.onDisconnect(client);
+        } else {
+            super.channelDisconnected(ctx, e);
         }
     }
 

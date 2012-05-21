@@ -18,7 +18,14 @@ Licensed under the Apache License 2.0.
 	SocketIOListener handler = new SocketIOListener() {
 
 		@Override
-		public void onMessage(SocketIOClient client, String message) {
+		public void onEvent(SocketIOClient client, Packet packet) {
+			...
+		}
+
+		@Override
+		public void onMessage(SocketIOClient client, Packet packet) {
+                        // get a message
+                        packet.getData().toString();
 			...
 		}
 	
@@ -33,7 +40,10 @@ Licensed under the Apache License 2.0.
 		}
 
 		@Override
-		public void onJsonObject(SocketIOClient client, Object obj) {
+		public void onJsonObject(SocketIOClient client, Packet packet) {
+                        // get a json object
+                        packet.getData();
+
 			...
                         SampleObject obj = new SampleObject();
                         // send object to socket.io client

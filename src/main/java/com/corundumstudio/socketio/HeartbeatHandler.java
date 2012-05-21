@@ -26,7 +26,7 @@ import com.corundumstudio.socketio.scheduler.CancelableScheduler;
 import com.corundumstudio.socketio.scheduler.SchedulerKey;
 import com.corundumstudio.socketio.scheduler.SchedulerKey.Type;
 
-public class HeartbeatHandler {
+public class HeartbeatHandler implements Disconnectable {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -60,6 +60,11 @@ public class HeartbeatHandler {
                 log.debug("Client with sessionId: {} disconnected due to heartbeat timeout", client.getSessionId());
             }
         }, configuration.getHeartbeatTimeout(), TimeUnit.SECONDS);
+    }
+
+    @Override
+    public void onDisconnect(SocketIOClient client) {
+        scheduler.cancel(new SchedulerKey(Type.HEARBEAT_TIMEOUT, client.getSessionId()));
     }
 
 }

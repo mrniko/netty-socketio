@@ -15,14 +15,18 @@
  */
 package com.corundumstudio.socketio;
 
+import com.corundumstudio.socketio.parser.Packet;
+
 public interface SocketIOListener {
 
     void onConnect(SocketIOClient client);
 
-    void onJsonObject(SocketIOClient client, Object obj);
+    void onJsonObject(SocketIOClient client, Packet packet);
 
-    void onMessage(SocketIOClient client, String message);
+    void onMessage(SocketIOClient client, Packet packet);
 
     void onDisconnect(SocketIOClient client);
+
+    void onEvent(SocketIOClient client, Packet packet);
 
 }

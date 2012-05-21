@@ -37,11 +37,11 @@ public class WebSocketClient extends BaseClient {
     }
 
     public Channel getChannel() {
-    	return channel;
+        return channel;
     }
 
     public ChannelFuture send(Packet packet) {
-    	return channel.write(new WebSocketPacketMessage(sessionId, packet));
+        return channel.write(new WebSocketPacketMessage(sessionId, packet));
     }
 
     public void disconnect() {
