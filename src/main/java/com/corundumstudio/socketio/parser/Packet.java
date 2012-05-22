@@ -32,9 +32,9 @@ public class Packet {
     private List<?> args = Collections.emptyList();
     private String qs;
     private Object ack;
-    private String ackId;
+    private Long ackId;
     private String name;
-    private Integer id;
+    private Long id;
     private String endpoint;
     private Object data;
 
@@ -73,10 +73,10 @@ public class Packet {
         return endpoint;
     }
 
-    public Integer getId() {
+    public Long getId() {
         return id;
     }
-    public void setId(Integer id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
@@ -112,11 +112,11 @@ public class Packet {
         this.qs = qs;
     }
 
-    public String getAckId() {
+    public Long getAckId() {
         return ackId;
     }
 
-    public void setAckId(String ackId) {
+    public void setAckId(Long ackId) {
         this.ackId = ackId;
     }
 

@@ -43,7 +43,7 @@ public class EncoderJsonPacketTest {
     @Test
     public void testEncodeWithMessageIdAndAckData() throws IOException {
         Packet packet = new Packet(PacketType.JSON);
-        packet.setId(1);
+        packet.setId(1L);
         packet.setAck("data");
         packet.setData(Collections.singletonMap("a", "b"));
         ChannelBuffer result = encoder.encodePacket(packet);
@@ -55,7 +55,7 @@ public class EncoderJsonPacketTest {
         List<Packet> packets = new ArrayList<Packet>();
         for (int i = 0; i < 100; i++) {
             Packet packet = new Packet(PacketType.JSON);
-            packet.setId(1);
+            packet.setId(1L);
             packet.setData(Collections.singletonMap("Привет", "123123jksdf213"));
             packets.add(packet);
         }

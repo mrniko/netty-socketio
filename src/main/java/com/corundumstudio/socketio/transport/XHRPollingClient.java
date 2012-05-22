@@ -18,8 +18,8 @@ package com.corundumstudio.socketio.transport;
 import java.util.UUID;
 
 import org.jboss.netty.channel.Channel;
-import org.jboss.netty.channel.ChannelFuture;
 
+import com.corundumstudio.socketio.AckManager;
 import com.corundumstudio.socketio.Disconnectable;
 import com.corundumstudio.socketio.messages.XHRNewChannelMessage;
 import com.corundumstudio.socketio.messages.XHRPacketMessage;
@@ -32,8 +32,8 @@ public class XHRPollingClient extends BaseClient {
 
     private String origin;
 
-    public XHRPollingClient(Disconnectable disconnectable, UUID sessionId) {
-    	super(sessionId);
+    public XHRPollingClient(AckManager ackManager, Disconnectable disconnectable, UUID sessionId) {
+        super(sessionId, ackManager);
         this.disconnectable = disconnectable;
     }
 
@@ -47,8 +47,8 @@ public class XHRPollingClient extends BaseClient {
         return origin;
     }
 
-    public ChannelFuture send(Packet packet) {
-        return channel.write(new XHRPacketMessage(sessionId, origin, packet));
+    public void send(Packet packet) {
+        channel.write(new XHRPacketMessage(sessionId, origin, packet));
     }
 
     public void disconnect() {

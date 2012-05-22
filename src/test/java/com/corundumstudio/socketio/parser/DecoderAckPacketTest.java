@@ -31,7 +31,7 @@ public class DecoderAckPacketTest {
     public void testDecode() throws IOException {
         Packet packet = decoder.decodePacket("6:::140");
         Assert.assertEquals(PacketType.ACK, packet.getType());
-        Assert.assertEquals("140", packet.getAckId());
+        Assert.assertEquals(140, (long)packet.getAckId());
         Assert.assertTrue(packet.getArgs().isEmpty());
     }
 
@@ -39,7 +39,7 @@ public class DecoderAckPacketTest {
     public void testDecodeWithArgs() throws IOException {
         Packet packet = decoder.decodePacket("6:::12+[\"woot\",\"wa\"]");
         Assert.assertEquals(PacketType.ACK, packet.getType());
-        Assert.assertEquals("12", packet.getAckId());
+        Assert.assertEquals(12, (long)packet.getAckId());
         Assert.assertEquals(Arrays.asList("woot", "wa"), packet.getArgs());
     }
 

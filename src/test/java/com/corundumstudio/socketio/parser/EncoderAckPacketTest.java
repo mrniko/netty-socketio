@@ -31,7 +31,7 @@ public class EncoderAckPacketTest {
     @Test
     public void testEncode() throws IOException {
         Packet packet = new Packet(PacketType.ACK);
-        packet.setAckId("140");
+        packet.setAckId(140L);
         ChannelBuffer result = encoder.encodePacket(packet);
         Assert.assertEquals("6:::140", result.toString(CharsetUtil.UTF_8));
     }
@@ -39,7 +39,7 @@ public class EncoderAckPacketTest {
     @Test
     public void testEncodeWithArgs() throws IOException {
         Packet packet = new Packet(PacketType.ACK);
-        packet.setAckId("12");
+        packet.setAckId(12L);
         packet.setArgs(Arrays.asList("woot", "wa"));
         ChannelBuffer result = encoder.encodePacket(packet);
         Assert.assertEquals("6:::12+[\"woot\",\"wa\"]", result.toString(CharsetUtil.UTF_8));

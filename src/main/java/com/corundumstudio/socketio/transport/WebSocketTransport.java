@@ -38,6 +38,7 @@ import org.jboss.netty.handler.codec.http.websocketx.WebSocketServerHandshakerFa
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.corundumstudio.socketio.AckManager;
 import com.corundumstudio.socketio.AuthorizeHandler;
 import com.corundumstudio.socketio.Disconnectable;
 import com.corundumstudio.socketio.HeartbeatHandler;
@@ -52,16 +53,18 @@ public class WebSocketTransport extends SimpleChannelUpstreamHandler implements 
     private final Map<UUID, WebSocketClient> sessionId2Client = new ConcurrentHashMap<UUID, WebSocketClient>();
     private final Map<Integer, WebSocketClient> channelId2Client = new ConcurrentHashMap<Integer, WebSocketClient>();
 
+    private final AckManager ackManager;
     private final HeartbeatHandler heartbeatHandler;
     private final AuthorizeHandler authorizeHandler;
     private final Disconnectable disconnectable;
     private final String path;
 
 
-    public WebSocketTransport(String connectPath, Disconnectable disconnectable,
+    public WebSocketTransport(String connectPath, AckManager ackManager, Disconnectable disconnectable,
             AuthorizeHandler authorizeHandler, HeartbeatHandler heartbeatHandler) {
         this.path = connectPath + "websocket";
         this.authorizeHandler = authorizeHandler;
+        this.ackManager = ackManager;
         this.disconnectable = disconnectable;
         this.heartbeatHandler = heartbeatHandler;
     }
@@ -135,7 +138,7 @@ public class WebSocketTransport extends SimpleChannelUpstreamHandler implements 
             return;
         }
 
-        WebSocketClient client = new WebSocketClient(channel, disconnectable, sessionId);
+        WebSocketClient client = new WebSocketClient(channel, ackManager, disconnectable, sessionId);
         channelId2Client.put(channel.getId(), client);
         sessionId2Client.put(sessionId, client);
         authorizeHandler.connect(client);

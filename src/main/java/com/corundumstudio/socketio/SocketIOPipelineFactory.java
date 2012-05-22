@@ -47,6 +47,8 @@ public class SocketIOPipelineFactory implements ChannelPipelineFactory, Disconne
 
     private final int protocol = 1;
 
+    private AckManager ackManager = new AckManager();
+
     private AuthorizeHandler authorizeHandler;
     private XHRPollingTransport xhrPollingTransport;
     private WebSocketTransport webSocketTransport;
@@ -67,14 +69,14 @@ public class SocketIOPipelineFactory implements ChannelPipelineFactory, Disconne
         Decoder decoder = new Decoder(objectMapper);
 
         heartbeatHandler = new HeartbeatHandler(configuration, scheduler);
-        PacketListener packetListener = new PacketListener(socketIOHandler, this, heartbeatHandler);
+        PacketListener packetListener = new PacketListener(socketIOHandler, this, heartbeatHandler, ackManager);
 
         String connectPath = configuration.getContext() + "/" + protocol + "/";
 
         packetHandler = new PacketHandler(packetListener, decoder);
         authorizeHandler = new AuthorizeHandler(connectPath, socketIOHandler, scheduler, configuration);
-        xhrPollingTransport = new XHRPollingTransport(connectPath, this, scheduler, authorizeHandler, configuration);
-        webSocketTransport = new WebSocketTransport(connectPath, this, authorizeHandler, heartbeatHandler);
+        xhrPollingTransport = new XHRPollingTransport(connectPath, ackManager, this, scheduler, authorizeHandler, configuration);
+        webSocketTransport = new WebSocketTransport(connectPath, ackManager, this, authorizeHandler, heartbeatHandler);
         socketIOEncoder = new SocketIOEncoder(objectMapper, encoder);
     }
 
@@ -99,6 +101,7 @@ public class SocketIOPipelineFactory implements ChannelPipelineFactory, Disconne
     public void onDisconnect(SocketIOClient client) {
         log.debug("Client with sessionId: {} disconnected by client request", client.getSessionId());
         heartbeatHandler.onDisconnect(client);
+        ackManager.onDisconnect(client);
         xhrPollingTransport.onDisconnect(client);
         webSocketTransport.onDisconnect(client);
         authorizeHandler.onDisconnect(client);

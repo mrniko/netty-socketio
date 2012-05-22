@@ -26,6 +26,15 @@ public class DecoderMessagePacketTest {
     private final Decoder decoder = new Decoder(new ObjectMapper());
 
     @Test
+    public void testDecodeId() throws IOException {
+        Packet packet = decoder.decodePacket("3:1::asdfasdf");
+        Assert.assertEquals(PacketType.MESSAGE, packet.getType());
+        Assert.assertEquals(1, (long)packet.getId());
+        Assert.assertTrue(packet.getArgs().isEmpty());
+        Assert.assertTrue(packet.getAck().equals(Boolean.TRUE));
+    }
+
+    @Test
     public void testDecode() throws IOException {
         Packet packet = decoder.decodePacket("3:::woot");
         Assert.assertEquals(PacketType.MESSAGE, packet.getType());
@@ -36,7 +45,7 @@ public class DecoderMessagePacketTest {
     public void testDecodeWithIdAndEndpoint() throws IOException {
         Packet packet = decoder.decodePacket("3:5:/tobi");
         Assert.assertEquals(PacketType.MESSAGE, packet.getType());
-        Assert.assertEquals(5, (int)packet.getId());
+        Assert.assertEquals(5, (long)packet.getId());
         Assert.assertEquals(true, packet.getAck());
         Assert.assertEquals("/tobi", packet.getEndpoint());
     }

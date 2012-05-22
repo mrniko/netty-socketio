@@ -17,12 +17,11 @@ package com.corundumstudio.socketio.parser;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.codehaus.jackson.map.ObjectMapper;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBufferIndexFinder;
+import org.jboss.netty.buffer.ChannelBufferInputStream;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.util.CharsetUtil;
 
@@ -37,7 +36,6 @@ public class Decoder {
         }
     };
 
-    private final Pattern ackPattern = Pattern.compile("^([0-9]+)(\\+)?(.*)");
     private final ObjectMapper objectMapper;
 
     public Decoder(ObjectMapper objectMapper) {
@@ -45,11 +43,15 @@ public class Decoder {
     }
 
     // fastest way to parse chars to int
-    private Integer parseInt(byte[] chars) {
-        int result = 0;
-        for (int i = 0; i < chars.length; i++) {
+    private long parseLong(byte[] chars) {
+        return parseLong(chars, chars.length);
+    }
+
+    private long parseLong(byte[] chars, int length) {
+        long result = 0;
+        for (int i = 0; i < length; i++) {
             int digit = ((int)chars[i] & 0xF);
-            for (int j = 0; j < chars.length-1-i; j++) {
+            for (int j = 0; j < length-1-i; j++) {
                 digit *= 10;
             }
             result += digit;
@@ -65,6 +67,7 @@ public class Decoder {
 
         int readerIndex = buffer.readerIndex()+1;
         // 'null' to avoid unnecessary StringBuilder creation
+        boolean hasData = false;
         StringBuilder messageId = null;
         for (readerIndex += 1; readerIndex < buffer.readableBytes(); readerIndex++) {
             if (messageId == null) {
@@ -76,11 +79,13 @@ public class Decoder {
             }
             if (msg != (byte)'+') {
                 messageId.append((char)msg);
+            } else {
+                hasData = true;
             }
         }
-        Integer id = null;
+        Long id = null;
         if (messageId != null && messageId.length() > 0) {
-            id = Integer.valueOf(messageId.toString());
+            id = Long.valueOf(messageId.toString());
         }
 
         // 'null' to avoid unnecessary StringBuilder creation
@@ -112,7 +117,7 @@ public class Decoder {
         packet.setEndpoint(endpoint);
         if (id != null) {
             packet.setId(id);
-            if (data != null) {
+            if (hasData) {
                 packet.setAck("data");
             } else {
                 packet.setAck(true);
@@ -166,15 +171,32 @@ public class Decoder {
             if (data == null) {
                 break;
             }
-            Matcher ackMatcher = ackPattern.matcher(new String(data));
-            if (ackMatcher.matches()) {
-                packet.setAckId(ackMatcher.group(1));
-                String ackArgsJSON = extract(ackMatcher, 3);
-                if (ackArgsJSON != null && ackArgsJSON.trim().length() > 0) {
-                    @SuppressWarnings("unchecked")
-                    List<Object> args = objectMapper.readValue(ackArgsJSON, List.class);
-                    packet.setArgs(args);
+            boolean validFormat = true;
+            int plusIndex = -1;
+            for (int i = 0; i < data.length; i++) {
+                byte dataChar = data[i];
+                if (!Character.isDigit(dataChar)) {
+                    if (dataChar == '+') {
+                        plusIndex = i;
+                        break;
+                    } else {
+                        validFormat = false;
+                        break;
+                    }
                 }
+            }
+            if (!validFormat) {
+                break;
+            }
+
+            if (plusIndex == -1) {
+                packet.setAckId(parseLong(data));
+                break;
+            } else {
+                packet.setAckId(parseLong(data, plusIndex));
+                buffer.readerIndex(readerIndex+plusIndex+1);
+                List<Object> args = objectMapper.readValue(new ChannelBufferInputStream(buffer), List.class);
+                packet.setArgs(args);
             }
             break;
 
@@ -193,13 +215,6 @@ public class Decoder {
             throw new DecoderException("Can't parse " + buffer.toString(CharsetUtil.UTF_8));
         }
         return PacketType.valueOf(typeId);
-    }
-
-    private String extract(Matcher matcher, int index) {
-        if (index > matcher.groupCount()) {
-            return null;
-        }
-        return matcher.group(index);
     }
 
     public Packet decodePacket(String string) throws IOException {
@@ -224,7 +239,7 @@ public class Decoder {
     }
 
     private Integer extractLength(ChannelBuffer buffer) {
-        Integer len = parseLengthHeader(buffer);
+        int len = (int)parseLengthHeader(buffer);
 
         // scan utf8 symbols if needed
         if (buffer.capacity() > buffer.readerIndex() + len
@@ -235,7 +250,7 @@ public class Decoder {
         return len;
     }
 
-    private Integer parseLengthHeader(ChannelBuffer buffer) {
+    private long parseLengthHeader(ChannelBuffer buffer) {
         int delimiterIndex = ChannelBuffers.indexOf(buffer, buffer.readerIndex(), buffer.capacity(), delimiterFinder);
         if (delimiterIndex == -1) {
             throw new DecoderException("Can't find tail delimiter");
@@ -244,7 +259,7 @@ public class Decoder {
         byte[] digits = new byte[delimiterIndex - buffer.readerIndex()];;
         buffer.getBytes(buffer.readerIndex(), digits);
         buffer.readerIndex(buffer.readerIndex() + digits.length + Packet.DELIMITER_BYTES.length);
-        return parseInt(digits);
+        return parseLong(digits);
     }
 
     private boolean isCurrentDelimiter(ChannelBuffer buffer, int index) {

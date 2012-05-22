@@ -44,7 +44,7 @@ public class DecoderJsonPacketTest {
     public void testDecodeWithMessageIdAndAckData() throws IOException {
         Packet packet = decoder.decodePacket("4:1+::{\"a\":\"b\"}");
         Assert.assertEquals(PacketType.JSON, packet.getType());
-        Assert.assertEquals(1, (int)packet.getId());
+        Assert.assertEquals(1, (long)packet.getId());
         Assert.assertEquals("data", packet.getAck());
         Map obj = (Map) packet.getData();
         Assert.assertEquals("b", obj.get("a"));

@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 import com.corundumstudio.socketio.messages.PacketsMessage;
 import com.corundumstudio.socketio.parser.Decoder;
 import com.corundumstudio.socketio.parser.Packet;
+import com.corundumstudio.socketio.parser.PacketType;
 
 @Sharable
 public class PacketHandler extends SimpleChannelUpstreamHandler {
@@ -55,10 +56,21 @@ public class PacketHandler extends SimpleChannelUpstreamHandler {
             }
             while (content.readable()) {
                 Packet packet = decoder.decodePackets(content);
+                sendAck(packet, message.getClient());
                 packetListener.onPacket(packet, message.getClient());
             }
         } else {
             ctx.sendUpstream(e);
+        }
+    }
+
+    private void sendAck(Packet packet, SocketIOClient client) {
+        if (packet.getId() != null &&
+                !"data".equals(packet.getAck())) {
+            Packet ackPacket = new Packet(PacketType.ACK);
+            ackPacket.setAckId(packet.getId());
+            ackPacket.setEndpoint(packet.getEndpoint());
+            client.send(ackPacket);
         }
     }
 

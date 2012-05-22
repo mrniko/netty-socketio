@@ -19,19 +19,25 @@ import com.corundumstudio.socketio.parser.Packet;
 
 public class PacketListener {
 
+    private final AckManager ackManager;
     private final SocketIOListener socketIOHandler;
     private final HeartbeatHandler heartbeatHandler;
     private final Disconnectable disconnectHandler;
 
     public PacketListener(SocketIOListener socketIOHandler, Disconnectable disconnectHandler,
-            HeartbeatHandler heartbeatHandler) {
+            HeartbeatHandler heartbeatHandler, AckManager ackManager) {
         this.disconnectHandler = disconnectHandler;
         this.socketIOHandler = socketIOHandler;
         this.heartbeatHandler = heartbeatHandler;
+        this.ackManager = ackManager;
     }
 
     public void onPacket(Packet packet, SocketIOClient client) {
         switch (packet.getType()) {
+        case ACK:
+            ackManager.onAck(client, packet);
+            break;
+
         case EVENT:
             socketIOHandler.onEvent(client, packet);
             break;

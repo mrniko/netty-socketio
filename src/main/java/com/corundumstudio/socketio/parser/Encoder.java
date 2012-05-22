@@ -95,14 +95,14 @@ public class Encoder {
             Integer.MAX_VALUE};
 
     // Requires positive x
-    static int stringSize(int x) {
+    static int stringSize(long x) {
         for (int i = 0;; i++)
             if (x <= sizeTable[i])
                 return i + 1;
     }
 
-    static void getChars(int i, int index, byte[] buf) {
-        int q, r;
+    static void getChars(long i, int index, byte[] buf) {
+        long q, r;
         int charPos = index;
         byte sign = 0;
 
@@ -117,8 +117,8 @@ public class Encoder {
             // really: r = i - (q * 100);
             r = i - ((q << 6) + (q << 5) + (q << 2));
             i = q;
-            buf[--charPos] = (byte) DigitOnes[r];
-            buf[--charPos] = (byte) DigitTens[r];
+            buf[--charPos] = (byte) DigitOnes[(int)r];
+            buf[--charPos] = (byte) DigitTens[(int)r];
         }
 
         // Fall thru to fast mode for smaller numbers
@@ -126,7 +126,7 @@ public class Encoder {
         for (;;) {
             q = (i * 52429) >>> (16 + 3);
             r = i - ((q << 3) + (q << 1)); // r = i-(q*10) ...
-            buf[--charPos] = (byte) digits[r];
+            buf[--charPos] = (byte) digits[(int)r];
             i = q;
             if (i == 0)
                 break;
@@ -136,7 +136,7 @@ public class Encoder {
         }
     }
 
-    private byte[] toChars(int i) {
+    private byte[] toChars(long i) {
         int size = (i < 0) ? stringSize(-i) + 1 : stringSize(i);
         byte[] buf = new byte[size];
         getChars(i, size, buf);
@@ -150,7 +150,7 @@ public class Encoder {
         buffer.writeByte(toChar(type));
         buffer.writeByte(Packet.SEPARATOR);
 
-        Integer id = packet.getId();
+        Long id = packet.getId();
         String endpoint = packet.getEndpoint();
         Object ack = packet.getAck();
 
@@ -206,7 +206,7 @@ public class Encoder {
                 buffer.writeByte(Packet.SEPARATOR);
             }
             if (packet.getAckId() != null) {
-                byte[] ackIdData = packet.getAckId().getBytes();
+                byte[] ackIdData = toChars(packet.getAckId());
                 buffer.writeBytes(ackIdData);
             }
             if (!packet.getArgs().isEmpty()) {

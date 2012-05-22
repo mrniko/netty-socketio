@@ -56,7 +56,7 @@ public class PacketHandlerTest {
     }
 
     private PacketListener createTestListener(final List<Packet> packets) {
-        PacketListener listener = new PacketListener(null, null, null) {
+        PacketListener listener = new PacketListener(null, null, null, null) {
             @Override
             public void onPacket(Packet packet, SocketIOClient client) {
                 int index = invocations.incrementAndGet();
@@ -127,7 +127,7 @@ public class PacketHandlerTest {
 
     //@Test
     public void testDecodePerf() throws Exception {
-        PacketListener listener = new PacketListener(null, null, null) {
+        PacketListener listener = new PacketListener(null, null, null, null) {
             @Override
             public void onPacket(Packet packet, SocketIOClient client) {
             }

@@ -36,6 +36,7 @@ import org.jboss.netty.handler.codec.http.QueryStringDecoder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.corundumstudio.socketio.AckManager;
 import com.corundumstudio.socketio.AuthorizeHandler;
 import com.corundumstudio.socketio.Configuration;
 import com.corundumstudio.socketio.Disconnectable;
@@ -59,14 +60,16 @@ public class XHRPollingTransport extends SimpleChannelUpstreamHandler implements
     private final Map<UUID, XHRPollingClient> sessionId2Client = new ConcurrentHashMap<UUID, XHRPollingClient>();
     private final CancelableScheduler scheduler;
 
+    private final AckManager ackManager;
     private final AuthorizeHandler authorizeHandler;
     private final Disconnectable disconnectable;
     private final Configuration configuration;
     private final String path;
 
-    public XHRPollingTransport(String connectPath, Disconnectable disconnectable, CancelableScheduler scheduler,
+    public XHRPollingTransport(String connectPath, AckManager ackManager, Disconnectable disconnectable, CancelableScheduler scheduler,
                                 AuthorizeHandler authorizeHandler, Configuration configuration) {
         this.path = connectPath + "xhr-polling/";
+        this.ackManager = ackManager;
         this.authorizeHandler = authorizeHandler;
         this.configuration = configuration;
         this.disconnectable = disconnectable;
@@ -172,7 +175,7 @@ public class XHRPollingTransport extends SimpleChannelUpstreamHandler implements
     }
 
     private XHRPollingClient createClient(String origin, Channel channel, UUID sessionId) {
-        XHRPollingClient client = new XHRPollingClient(authorizeHandler, sessionId);
+        XHRPollingClient client = new XHRPollingClient(ackManager, authorizeHandler, sessionId);
         sessionId2Client.put(sessionId, client);
         client.update(channel, origin);
 

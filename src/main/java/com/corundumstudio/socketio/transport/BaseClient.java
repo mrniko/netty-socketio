@@ -19,8 +19,8 @@ import java.net.SocketAddress;
 import java.util.UUID;
 
 import org.jboss.netty.channel.Channel;
-import org.jboss.netty.channel.ChannelFuture;
 
+import com.corundumstudio.socketio.AckManager;
 import com.corundumstudio.socketio.SocketIOClient;
 import com.corundumstudio.socketio.parser.Packet;
 import com.corundumstudio.socketio.parser.PacketType;
@@ -28,10 +28,12 @@ import com.corundumstudio.socketio.parser.PacketType;
 abstract class BaseClient implements SocketIOClient {
 
     protected final UUID sessionId;
+    protected final AckManager ackManager;
     protected Channel channel;
 
-    public BaseClient(UUID sessionId) {
+    public BaseClient(UUID sessionId, AckManager ackManager) {
         this.sessionId = sessionId;
+        this.ackManager = ackManager;
     }
 
     @Override
@@ -40,15 +42,43 @@ abstract class BaseClient implements SocketIOClient {
     }
 
     @Override
-    public ChannelFuture sendJsonObject(Object object) {
+    public void sendMessage(String message, Runnable callback) {
+        Packet packet = new Packet(PacketType.MESSAGE);
+        packet.setData(message);
+        send(packet, callback);
+    }
+
+    @Override
+    public void sendMessage(String message) {
+        Packet packet = new Packet(PacketType.MESSAGE);
+        packet.setData(message);
+        send(packet);
+    }
+
+    @Override
+    public void sendJsonObject(Object object) {
         Packet packet = new Packet(PacketType.JSON);
         packet.setData(object);
-        return send(packet);
+        send(packet);
     }
 
     @Override
     public SocketAddress getRemoteAddress() {
         return channel.getRemoteAddress();
+    }
+
+    @Override
+    public void send(Packet packet, Runnable callback) {
+        long index = ackManager.registerAck(sessionId, callback);
+        packet.setId(index);
+        send(packet);
+    }
+
+    @Override
+    public void sendJsonObject(Object object, Runnable callback) {
+        Packet packet = new Packet(PacketType.JSON);
+        packet.setData(object);
+        send(packet, callback);
     }
 
     @Override

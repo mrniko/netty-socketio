@@ -47,7 +47,7 @@ public class EncoderEventPacketTest {
     @Test
     public void testEncodeWithMessageIdAndAck() throws IOException {
         Packet packet = new Packet(PacketType.EVENT);
-        packet.setId(1);
+        packet.setId(1L);
         packet.setAck("data");
         packet.setName("tobi");
         ChannelBuffer result = encoder.encodePacket(packet);

@@ -18,17 +18,23 @@ package com.corundumstudio.socketio;
 import java.net.SocketAddress;
 import java.util.UUID;
 
-import org.jboss.netty.channel.ChannelFuture;
-
 import com.corundumstudio.socketio.parser.Packet;
 
 public interface SocketIOClient {
 
     UUID getSessionId();
 
-    ChannelFuture sendJsonObject(Object object);
+    void sendMessage(String message);
 
-    ChannelFuture send(Packet packet);
+    void sendMessage(String message, Runnable callback);
+
+    void sendJsonObject(Object object);
+
+    void sendJsonObject(Object object, Runnable callback);
+
+    void send(Packet packet);
+
+    void send(Packet packet, Runnable callback);
 
     void disconnect();
 

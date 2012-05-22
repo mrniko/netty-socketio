@@ -216,7 +216,7 @@ public class SocketIOEncoder extends OneToOneEncoder implements MessageHandler {
         ChannelBuffer message = encoder.encodePacket(webSocketPacketMessage.getPacket());
         WebSocketFrame res = new TextWebSocketFrame(message);
         log.trace("Out message: {} sessionId: {}", new Object[] {
-                message, webSocketPacketMessage.getSessionId() });
+                message.toString(CharsetUtil.UTF_8), webSocketPacketMessage.getSessionId() });
         return res;
     }
 
