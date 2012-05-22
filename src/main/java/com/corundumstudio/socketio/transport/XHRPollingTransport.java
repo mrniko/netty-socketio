@@ -193,7 +193,13 @@ public class XHRPollingTransport extends SimpleChannelUpstreamHandler implements
     public void onDisconnect(SocketIOClient client) {
         if (client instanceof XHRPollingClient) {
             XHRPollingClient xhrClient = (XHRPollingClient) client;
-            sessionId2Client.remove(xhrClient.getSessionId());
+            UUID sessionId = xhrClient.getSessionId();
+
+            sessionId2Client.remove(sessionId);
+            SchedulerKey noopKey = new SchedulerKey(Type.NOOP, sessionId);
+            scheduler.cancel(noopKey);
+            SchedulerKey closeTimeoutKey = new SchedulerKey(Type.CLOSE_TIMEOUT, sessionId);
+            scheduler.cancel(closeTimeoutKey);
         }
     }
 
