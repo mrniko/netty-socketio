@@ -39,7 +39,12 @@ public class PacketListener {
             break;
 
         case EVENT:
-            socketIOHandler.onEvent(client, packet);
+            Object data = null;
+            if (packet.getArgs() != null
+                    && !packet.getArgs().isEmpty()) {
+                data = packet.getArgs().get(0);
+            }
+            socketIOHandler.onEvent(client, packet.getName(), data);
             break;
 
         case HEARTBEAT:

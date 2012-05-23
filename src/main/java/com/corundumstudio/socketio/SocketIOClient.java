@@ -80,6 +80,23 @@ public interface SocketIOClient {
      */
     void disconnect();
 
+    /**
+     * Send event
+     *
+     * @param name - event name
+     * @param data - event data
+     */
+    void sendEvent(String name, Object data);
+
+    /**
+     * Send event with ack callback
+     *
+     * @param name - event name
+     * @param data - event data
+     * @param ackCallback - ack callback
+     */
+    void sendEvent(String name, Object data, Runnable ackCallback);
+
     SocketAddress getRemoteAddress();
 
 }

@@ -15,7 +15,6 @@
  */
 package com.corundumstudio.socketio;
 
-import com.corundumstudio.socketio.parser.Packet;
 
 public interface SocketIOListener {
 
@@ -27,6 +26,6 @@ public interface SocketIOListener {
 
     void onDisconnect(SocketIOClient client);
 
-    void onEvent(SocketIOClient client, Packet packet);
+    void onEvent(SocketIOClient client, String name, Object data);
 
 }
