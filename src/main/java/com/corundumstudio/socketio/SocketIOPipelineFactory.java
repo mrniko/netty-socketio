@@ -47,7 +47,7 @@ public class SocketIOPipelineFactory implements ChannelPipelineFactory, Disconne
 
     private final int protocol = 1;
 
-    private AckManager ackManager = new AckManager();
+    private AckManager ackManager;
 
     private AuthorizeHandler authorizeHandler;
     private XHRPollingTransport xhrPollingTransport;
@@ -68,6 +68,7 @@ public class SocketIOPipelineFactory implements ChannelPipelineFactory, Disconne
         Encoder encoder = new Encoder(objectMapper);
         Decoder decoder = new Decoder(objectMapper);
 
+        ackManager = new AckManager(scheduler);
         heartbeatHandler = new HeartbeatHandler(configuration, scheduler);
         PacketListener packetListener = new PacketListener(socketIOHandler, this, heartbeatHandler, ackManager);
 

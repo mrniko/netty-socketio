@@ -21,6 +21,7 @@ import java.util.UUID;
 
 import org.jboss.netty.channel.Channel;
 
+import com.corundumstudio.socketio.AckCallback;
 import com.corundumstudio.socketio.AckManager;
 import com.corundumstudio.socketio.SocketIOClient;
 import com.corundumstudio.socketio.parser.Packet;
@@ -51,7 +52,7 @@ abstract class BaseClient implements SocketIOClient {
     }
 
     @Override
-    public void sendEvent(String name, Object data, Runnable ackCallback) {
+    public void sendEvent(String name, Object data, AckCallback ackCallback) {
         Packet packet = new Packet(PacketType.EVENT);
         packet.setName(name);
         packet.setArgs(Collections.singletonList(data));
@@ -59,7 +60,7 @@ abstract class BaseClient implements SocketIOClient {
     }
 
     @Override
-    public void sendMessage(String message, Runnable ackCallback) {
+    public void sendMessage(String message, AckCallback ackCallback) {
         Packet packet = new Packet(PacketType.MESSAGE);
         packet.setData(message);
         send(packet, ackCallback);
@@ -85,14 +86,14 @@ abstract class BaseClient implements SocketIOClient {
     }
 
     @Override
-    public void send(Packet packet, Runnable ackCallback) {
+    public void send(Packet packet, AckCallback ackCallback) {
         long index = ackManager.registerAck(sessionId, ackCallback);
         packet.setId(index);
         send(packet);
     }
 
     @Override
-    public void sendJsonObject(Object object, Runnable ackCallback) {
+    public void sendJsonObject(Object object, AckCallback ackCallback) {
         Packet packet = new Packet(PacketType.JSON);
         packet.setData(object);
         send(packet, ackCallback);

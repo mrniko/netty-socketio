@@ -42,7 +42,7 @@ public interface SocketIOClient {
      * @param message - message to send
      * @param ackCallback - ack callback
      */
-    void sendMessage(String message, Runnable ackCallback);
+    void sendMessage(String message, AckCallback ackCallback);
 
     /**
      * Send object. Object will be encoded to json-format.
@@ -57,7 +57,7 @@ public interface SocketIOClient {
      * @param object - object to send
      * @param ackCallback - ack callback
      */
-    void sendJsonObject(Object object, Runnable ackCallback);
+    void sendJsonObject(Object object, AckCallback ackCallback);
 
     /**
      * Send packet
@@ -72,7 +72,7 @@ public interface SocketIOClient {
      * @param packet - packet to send
      * @param ackCallback - ack callback
      */
-    void send(Packet packet, Runnable ackCallback);
+    void send(Packet packet, AckCallback ackCallback);
 
     /**
      * Disconnect client
@@ -95,7 +95,7 @@ public interface SocketIOClient {
      * @param data - event data
      * @param ackCallback - ack callback
      */
-    void sendEvent(String name, Object data, Runnable ackCallback);
+    void sendEvent(String name, Object data, AckCallback ackCallback);
 
     SocketAddress getRemoteAddress();
 

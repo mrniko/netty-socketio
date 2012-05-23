@@ -19,7 +19,7 @@ import java.util.UUID;
 
 public class SchedulerKey {
 
-    public enum Type {NOOP, HEARBEAT_TIMEOUT, CLOSE_TIMEOUT, AUTHORIZE};
+    public enum Type {POLLING, HEARBEAT_TIMEOUT, CLOSE_TIMEOUT, AUTHORIZE, ACK_TIMEOUT};
 
     private Type type;
     private UUID sessionId;

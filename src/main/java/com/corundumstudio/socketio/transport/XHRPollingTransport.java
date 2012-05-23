@@ -109,7 +109,7 @@ public class XHRPollingTransport extends SimpleChannelUpstreamHandler implements
     }
 
     private void scheduleNoop(Channel channel, final UUID sessionId) {
-        SchedulerKey key = new SchedulerKey(Type.NOOP, sessionId);
+        SchedulerKey key = new SchedulerKey(Type.POLLING, sessionId);
         scheduler.cancel(key);
         scheduler.schedule(key, new Runnable() {
             @Override
@@ -199,7 +199,7 @@ public class XHRPollingTransport extends SimpleChannelUpstreamHandler implements
             UUID sessionId = xhrClient.getSessionId();
 
             sessionId2Client.remove(sessionId);
-            SchedulerKey noopKey = new SchedulerKey(Type.NOOP, sessionId);
+            SchedulerKey noopKey = new SchedulerKey(Type.POLLING, sessionId);
             scheduler.cancel(noopKey);
             SchedulerKey closeTimeoutKey = new SchedulerKey(Type.CLOSE_TIMEOUT, sessionId);
             scheduler.cancel(closeTimeoutKey);
