@@ -21,9 +21,9 @@ public interface SocketIOListener {
 
     void onConnect(SocketIOClient client);
 
-    void onJsonObject(SocketIOClient client, Packet packet);
+    void onJsonObject(SocketIOClient client, Object data);
 
-    void onMessage(SocketIOClient client, Packet packet);
+    void onMessage(SocketIOClient client, String message);
 
     void onDisconnect(SocketIOClient client);
 

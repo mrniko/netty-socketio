@@ -47,11 +47,11 @@ public class PacketListener {
             break;
 
         case MESSAGE:
-            socketIOHandler.onMessage(client, packet);
+            socketIOHandler.onMessage(client, packet.getData().toString());
             break;
 
         case JSON:
-            socketIOHandler.onJsonObject(client, packet);
+            socketIOHandler.onJsonObject(client, packet.getData());
             break;
 
         case DISCONNECT:
