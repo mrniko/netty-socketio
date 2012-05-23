@@ -22,20 +22,62 @@ import com.corundumstudio.socketio.parser.Packet;
 
 public interface SocketIOClient {
 
+    /**
+     * Client session id, uses {@link UUID} object
+     *
+     * @return - session id
+     */
     UUID getSessionId();
 
+    /**
+     * Send message
+     *
+     * @param message - message to send
+     */
     void sendMessage(String message);
 
-    void sendMessage(String message, Runnable callback);
+    /**
+     * Send message with ack callback
+     *
+     * @param message - message to send
+     * @param ackCallback - ack callback
+     */
+    void sendMessage(String message, Runnable ackCallback);
 
+    /**
+     * Send object. Object will be encoded to json-format.
+     *
+     * @param object - object to send
+     */
     void sendJsonObject(Object object);
 
-    void sendJsonObject(Object object, Runnable callback);
+    /**
+     * Send object with ack callback
+     *
+     * @param object - object to send
+     * @param ackCallback - ack callback
+     */
+    void sendJsonObject(Object object, Runnable ackCallback);
 
+    /**
+     * Send packet
+     *
+     * @param packet - packet to send
+     */
     void send(Packet packet);
 
-    void send(Packet packet, Runnable callback);
+    /**
+     * Send packet with ack callback
+     *
+     * @param packet - packet to send
+     * @param ackCallback - ack callback
+     */
+    void send(Packet packet, Runnable ackCallback);
 
+    /**
+     * Disconnect client
+     *
+     */
     void disconnect();
 
     SocketAddress getRemoteAddress();
