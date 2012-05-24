@@ -43,14 +43,14 @@ public class Decoder {
     }
 
     // fastest way to parse chars to int
-    private long parseLong(byte[] chars) {
-        return parseLong(chars, chars.length);
+    private long parseLong(ChannelBuffer chars) {
+        return parseLong(chars, chars.readerIndex() + chars.readableBytes());
     }
 
-    private long parseLong(byte[] chars, int length) {
+    private long parseLong(ChannelBuffer chars, int length) {
         long result = 0;
-        for (int i = 0; i < length; i++) {
-            int digit = ((int)chars[i] & 0xF);
+        for (int i = chars.readerIndex(); i < length; i++) {
+            int digit = ((int)chars.getByte(i) & 0xF);
             for (int j = 0; j < length-1-i; j++) {
                 digit *= 10;
             }
@@ -106,11 +106,11 @@ public class Decoder {
             endpoint = endpointBuffer.toString();
         }
 
-        readerIndex += 1;
-        byte[] data = null;
-        if (buffer.readableBytes() - readerIndex > 0) {
-            data = new byte[buffer.readableBytes() - readerIndex];
-            buffer.getBytes(readerIndex, data);
+        if (buffer.readableBytes() == readerIndex) {
+            buffer.readerIndex(buffer.readableBytes());
+        } else {
+            readerIndex += 1;
+            buffer.readerIndex(readerIndex);
         }
 
         Packet packet = new Packet(type);
@@ -125,11 +125,11 @@ public class Decoder {
         }
 
         switch (type) {
-        case ERROR:
-            if (data == null) {
+        case ERROR: {
+            if (!buffer.readable()) {
                 break;
             }
-            String[] pieces = new String(data).split("\\+");
+            String[] pieces = buffer.toString(CharsetUtil.UTF_8).split("\\+");
             if (pieces.length > 0 && pieces[0].trim().length() > 0) {
                 ErrorReason reason = ErrorReason.valueOf(Integer.valueOf(pieces[0]));
                 packet.setReason(reason);
@@ -139,42 +139,49 @@ public class Decoder {
                 }
             }
             break;
+        }
 
-        case MESSAGE:
-            if (data != null) {
-                packet.setData(new String(data));
+        case MESSAGE: {
+            if (buffer.readable()) {
+                packet.setData(buffer.toString(CharsetUtil.UTF_8));
             } else {
                 packet.setData("");
             }
             break;
+        }
 
-        case EVENT:
-            Event event = objectMapper.readValue(data, Event.class);
+        case EVENT: {
+            ChannelBufferInputStream in = new ChannelBufferInputStream(buffer);
+            Event event = objectMapper.readValue(in, Event.class);
             packet.setName(event.getName());
             if (event.getArgs() != null) {
                 packet.setArgs(event.getArgs());
             }
             break;
+        }
 
-        case JSON:
-            Object obj = objectMapper.readValue(data, Object.class);
+        case JSON: {
+            ChannelBufferInputStream in = new ChannelBufferInputStream(buffer);
+            Object obj = objectMapper.readValue(in, Object.class);
             packet.setData(obj);
             break;
+        }
 
-        case CONNECT:
-            if (data != null) {
-                packet.setQs(new String(data));
+        case CONNECT: {
+            if (buffer.readable()) {
+                packet.setQs(buffer.toString(CharsetUtil.UTF_8));
             }
             break;
+        }
 
-        case ACK:
-            if (data == null) {
+        case ACK: {
+            if (!buffer.readable()) {
                 break;
             }
             boolean validFormat = true;
             int plusIndex = -1;
-            for (int i = 0; i < data.length; i++) {
-                byte dataChar = data[i];
+            for (int i = buffer.readerIndex(); i < buffer.readerIndex() + buffer.readableBytes(); i++) {
+                byte dataChar = buffer.getByte(i);
                 if (!Character.isDigit(dataChar)) {
                     if (dataChar == '+') {
                         plusIndex = i;
@@ -190,15 +197,18 @@ public class Decoder {
             }
 
             if (plusIndex == -1) {
-                packet.setAckId(parseLong(data));
+                packet.setAckId(parseLong(buffer));
                 break;
             } else {
-                packet.setAckId(parseLong(data, plusIndex));
-                buffer.readerIndex(readerIndex+plusIndex+1);
-                List<Object> args = objectMapper.readValue(new ChannelBufferInputStream(buffer), List.class);
+                packet.setAckId(parseLong(buffer, plusIndex));
+                buffer.readerIndex(plusIndex+1);
+
+                ChannelBufferInputStream in = new ChannelBufferInputStream(buffer);
+                List<Object> args = objectMapper.readValue(in, List.class);
                 packet.setArgs(args);
             }
             break;
+        }
 
         case DISCONNECT:
         case HEARTBEAT:
@@ -227,13 +237,13 @@ public class Decoder {
 
             Integer len = extractLength(buffer);
 
-            ChannelBuffer frame = buffer.slice(buffer.readerIndex(), len);
+            int startIndex = buffer.readerIndex();
+            ChannelBuffer frame = buffer.slice(startIndex, len);
             Packet packet = decodePacket(frame);
-            buffer.readerIndex(buffer.readerIndex() + len);
+            buffer.readerIndex(startIndex + len);
             return packet;
         } else {
             Packet packet = decodePacket(buffer);
-            buffer.readerIndex(buffer.readableBytes());
             return packet;
         }
     }
@@ -251,15 +261,14 @@ public class Decoder {
     }
 
     private long parseLengthHeader(ChannelBuffer buffer) {
-        int delimiterIndex = ChannelBuffers.indexOf(buffer, buffer.readerIndex(), buffer.capacity(), delimiterFinder);
+        int delimiterIndex = ChannelBuffers.indexOf(buffer, buffer.readerIndex(), buffer.readerIndex() + buffer.readableBytes(), delimiterFinder);
         if (delimiterIndex == -1) {
             throw new DecoderException("Can't find tail delimiter");
         }
 
-        byte[] digits = new byte[delimiterIndex - buffer.readerIndex()];;
-        buffer.getBytes(buffer.readerIndex(), digits);
-        buffer.readerIndex(buffer.readerIndex() + digits.length + Packet.DELIMITER_BYTES.length);
-        return parseLong(digits);
+        long len = parseLong(buffer, delimiterIndex);
+        buffer.readerIndex(delimiterIndex + Packet.DELIMITER_BYTES.length);
+        return len;
     }
 
     private boolean isCurrentDelimiter(ChannelBuffer buffer, int index) {

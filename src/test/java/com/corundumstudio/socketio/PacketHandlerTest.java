@@ -141,7 +141,7 @@ public class PacketHandlerTest {
         }
         long end = System.currentTimeMillis() - start;
         System.out.println(end + "ms");
-        // 1143ms
+        // 670ms
     }
 
 
