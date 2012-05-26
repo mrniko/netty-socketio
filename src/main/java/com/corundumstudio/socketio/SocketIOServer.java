@@ -35,6 +35,7 @@ public class SocketIOServer {
 
     private Channel mainChannel;
     private Configuration config;
+    private boolean started;
 
     public SocketIOServer(Configuration configuration) {
         this.config = new Configuration(configuration);
@@ -43,6 +44,13 @@ public class SocketIOServer {
 
     public void setPipelineFactory(SocketIOPipelineFactory pipelineFactory) {
         this.pipelineFactory = pipelineFactory;
+    }
+
+    public ClientOperations getBroadcastOperations() {
+        if (!started) {
+            throw new IllegalStateException("Server have not started!");
+        }
+        return new BroadcastOperations(pipelineFactory.getAllClients());
     }
 
     public void start() {
@@ -55,6 +63,7 @@ public class SocketIOServer {
         bootstrap.setOption("child.keepAlive", true);
         mainChannel = bootstrap.bind(new InetSocketAddress(config.getHostname(), config.getPort()));
 
+        started = true;
         log.info("SocketIO server started at port: {}", config.getPort());
     }
 
@@ -62,6 +71,7 @@ public class SocketIOServer {
         pipelineFactory.stop();
         mainChannel.close();
         bootstrap.releaseExternalResources();
+        started = false;
     }
 
 }

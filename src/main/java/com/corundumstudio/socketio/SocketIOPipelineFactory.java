@@ -17,6 +17,8 @@ package com.corundumstudio.socketio;
 
 import static org.jboss.netty.channel.Channels.pipeline;
 
+import java.util.Iterator;
+
 import org.codehaus.jackson.map.ObjectMapper;
 import org.jboss.netty.channel.ChannelPipeline;
 import org.jboss.netty.channel.ChannelPipelineFactory;
@@ -79,6 +81,17 @@ public class SocketIOPipelineFactory implements ChannelPipelineFactory, Disconne
         xhrPollingTransport = new XHRPollingTransport(connectPath, ackManager, this, scheduler, authorizeHandler, configuration);
         webSocketTransport = new WebSocketTransport(connectPath, ackManager, this, authorizeHandler, heartbeatHandler);
         socketIOEncoder = new SocketIOEncoder(objectMapper, encoder);
+    }
+
+    public Iterable<SocketIOClient> getAllClients() {
+        return new Iterable<SocketIOClient>() {
+            @Override
+            public Iterator<SocketIOClient> iterator() {
+                Iterator<SocketIOClient> xhrClients = xhrPollingTransport.getAllClients().iterator();
+                Iterator<SocketIOClient> webSocketClients = webSocketTransport.getAllClients().iterator();
+                return new JoinIterator<SocketIOClient>(xhrClients, webSocketClients);
+            }
+        };
     }
 
     public ChannelPipeline getPipeline() throws Exception {

@@ -16,6 +16,7 @@
 package com.corundumstudio.socketio.transport;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -50,7 +51,7 @@ public class WebSocketTransport extends SimpleChannelUpstreamHandler implements 
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private final Map<UUID, WebSocketClient> sessionId2Client = new ConcurrentHashMap<UUID, WebSocketClient>();
+    private final Map<UUID, SocketIOClient> sessionId2Client = new ConcurrentHashMap<UUID, SocketIOClient>();
     private final Map<Integer, WebSocketClient> channelId2Client = new ConcurrentHashMap<Integer, WebSocketClient>();
 
     private final AckManager ackManager;
@@ -157,6 +158,10 @@ public class WebSocketTransport extends SimpleChannelUpstreamHandler implements 
             sessionId2Client.remove(webClient.getSessionId());
             channelId2Client.remove(webClient.getChannel().getId());
         }
+    }
+
+    public Collection<SocketIOClient> getAllClients() {
+        return sessionId2Client.values();
     }
 
 }

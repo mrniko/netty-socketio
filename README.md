@@ -11,6 +11,8 @@ Licensed under the Apache License 2.0.
 * Supports xhr-polling transport
 * Supports websocket transport (Hixie-75/76/Hybi-00, Hybi-10..Hybi-13)
 
+
+
 #Usage example
 
 ##Server
@@ -18,14 +20,12 @@ Licensed under the Apache License 2.0.
 	SocketIOListener handler = new SocketIOListener() {
 
 		@Override
-		public void onEvent(SocketIOClient client, Packet packet) {
+		public void onEvent(SocketIOClient client, String name, Object data) {
 			...
 		}
 
 		@Override
-		public void onMessage(SocketIOClient client, Packet packet) {
-                        // get a message
-                        packet.getData().toString();
+		public void onMessage(SocketIOClient client, String message) {
 			...
 		}
 	
@@ -40,9 +40,7 @@ Licensed under the Apache License 2.0.
 		}
 
 		@Override
-		public void onJsonObject(SocketIOClient client, Packet packet) {
-                        // get a json object
-                        packet.getData();
+		public void onJsonObject(SocketIOClient client, Objet data) {
 
 			...
                         SampleObject obj = new SampleObject();
