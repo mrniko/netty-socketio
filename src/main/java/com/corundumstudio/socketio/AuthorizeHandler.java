@@ -42,6 +42,7 @@ import org.jboss.netty.handler.codec.http.QueryStringDecoder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.corundumstudio.socketio.listener.ListenersHub;
 import com.corundumstudio.socketio.messages.AuthorizeMessage;
 import com.corundumstudio.socketio.parser.Packet;
 import com.corundumstudio.socketio.parser.PacketType;
@@ -61,12 +62,12 @@ public class AuthorizeHandler extends SimpleChannelUpstreamHandler implements Di
     private final String connectPath;
 
     private final Configuration configuration;
-    private final SocketIOListener socketIOListener;
+    private final ListenersHub listenersHub;
 
-    public AuthorizeHandler(String connectPath, SocketIOListener socketIOListener, CancelableScheduler scheduler, Configuration configuration) {
+    public AuthorizeHandler(String connectPath, ListenersHub listenersHub, CancelableScheduler scheduler, Configuration configuration) {
         super();
         this.connectPath = connectPath;
-        this.socketIOListener = socketIOListener;
+        this.listenersHub = listenersHub;
         this.configuration = configuration;
         this.disconnectScheduler = scheduler;
     }
@@ -144,7 +145,7 @@ public class AuthorizeHandler extends SimpleChannelUpstreamHandler implements Di
         SchedulerKey key = new SchedulerKey(Type.AUTHORIZE, client.getSessionId());
         disconnectScheduler.cancel(key);
         client.send(new Packet(PacketType.CONNECT));
-        socketIOListener.onConnect(client);
+        listenersHub.onConnect(client);
     }
 
     @Override

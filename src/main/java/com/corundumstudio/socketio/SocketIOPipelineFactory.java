@@ -17,6 +17,7 @@ package com.corundumstudio.socketio;
 
 import static org.jboss.netty.channel.Channels.pipeline;
 
+import java.util.Collection;
 import java.util.Iterator;
 
 import org.codehaus.jackson.map.ObjectMapper;
@@ -28,6 +29,7 @@ import org.jboss.netty.handler.codec.http.HttpResponseEncoder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.corundumstudio.socketio.listener.ListenersHub;
 import com.corundumstudio.socketio.parser.Decoder;
 import com.corundumstudio.socketio.parser.Encoder;
 import com.corundumstudio.socketio.scheduler.CancelableScheduler;
@@ -56,14 +58,14 @@ public class SocketIOPipelineFactory implements ChannelPipelineFactory, Disconne
     private WebSocketTransport webSocketTransport;
     private SocketIOEncoder socketIOEncoder;
 
-    private SocketIOListener socketIOHandler;
+    private ListenersHub listenersHub;
     private CancelableScheduler scheduler;
 
     private PacketHandler packetHandler;
     private HeartbeatHandler heartbeatHandler;
 
-    public void start(Configuration configuration) {
-        this.socketIOHandler = configuration.getListener();
+    public void start(Configuration configuration, ListenersHub listenersHub) {
+        this.listenersHub = listenersHub;
         scheduler = new CancelableScheduler(configuration.getHeartbeatThreadPoolSize());
 
         ObjectMapper objectMapper = configuration.getObjectMapper();
@@ -72,26 +74,21 @@ public class SocketIOPipelineFactory implements ChannelPipelineFactory, Disconne
 
         ackManager = new AckManager(scheduler);
         heartbeatHandler = new HeartbeatHandler(configuration, scheduler);
-        PacketListener packetListener = new PacketListener(socketIOHandler, this, heartbeatHandler, ackManager);
+        PacketListener packetListener = new PacketListener(listenersHub, this, heartbeatHandler, ackManager);
 
         String connectPath = configuration.getContext() + "/" + protocol + "/";
 
         packetHandler = new PacketHandler(packetListener, decoder);
-        authorizeHandler = new AuthorizeHandler(connectPath, socketIOHandler, scheduler, configuration);
+        authorizeHandler = new AuthorizeHandler(connectPath, listenersHub, scheduler, configuration);
         xhrPollingTransport = new XHRPollingTransport(connectPath, ackManager, this, scheduler, authorizeHandler, configuration);
         webSocketTransport = new WebSocketTransport(connectPath, ackManager, this, authorizeHandler, heartbeatHandler);
         socketIOEncoder = new SocketIOEncoder(objectMapper, encoder);
     }
 
     public Iterable<SocketIOClient> getAllClients() {
-        return new Iterable<SocketIOClient>() {
-            @Override
-            public Iterator<SocketIOClient> iterator() {
-                Iterator<SocketIOClient> xhrClients = xhrPollingTransport.getAllClients().iterator();
-                Iterator<SocketIOClient> webSocketClients = webSocketTransport.getAllClients().iterator();
-                return new JoinIterator<SocketIOClient>(xhrClients, webSocketClients);
-            }
-        };
+        Collection<SocketIOClient> xhrClients = xhrPollingTransport.getAllClients();
+        Collection<SocketIOClient> webSocketClients = webSocketTransport.getAllClients();
+        return new CompositeIterable<SocketIOClient>(xhrClients, webSocketClients);
     }
 
     public ChannelPipeline getPipeline() throws Exception {
@@ -113,13 +110,13 @@ public class SocketIOPipelineFactory implements ChannelPipelineFactory, Disconne
     }
 
     public void onDisconnect(SocketIOClient client) {
-        log.debug("Client with sessionId: {} disconnected by client request", client.getSessionId());
+        log.debug("Client with sessionId: {} disconnected", client.getSessionId());
         heartbeatHandler.onDisconnect(client);
         ackManager.onDisconnect(client);
         xhrPollingTransport.onDisconnect(client);
         webSocketTransport.onDisconnect(client);
         authorizeHandler.onDisconnect(client);
-        socketIOHandler.onDisconnect(client);
+        listenersHub.onDisconnect(client);
     }
 
     public void stop() {

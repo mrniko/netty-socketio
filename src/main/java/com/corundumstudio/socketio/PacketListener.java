@@ -15,19 +15,20 @@
  */
 package com.corundumstudio.socketio;
 
+import com.corundumstudio.socketio.listener.ListenersHub;
 import com.corundumstudio.socketio.parser.Packet;
 
 public class PacketListener {
 
     private final AckManager ackManager;
-    private final SocketIOListener socketIOHandler;
+    private final ListenersHub listenersHub;
     private final HeartbeatHandler heartbeatHandler;
     private final Disconnectable disconnectHandler;
 
-    public PacketListener(SocketIOListener socketIOHandler, Disconnectable disconnectHandler,
+    public PacketListener(ListenersHub listenersHub, Disconnectable disconnectHandler,
             HeartbeatHandler heartbeatHandler, AckManager ackManager) {
         this.disconnectHandler = disconnectHandler;
-        this.socketIOHandler = socketIOHandler;
+        this.listenersHub = listenersHub;
         this.heartbeatHandler = heartbeatHandler;
         this.ackManager = ackManager;
     }
@@ -44,7 +45,7 @@ public class PacketListener {
                     && !packet.getArgs().isEmpty()) {
                 data = packet.getArgs().get(0);
             }
-            socketIOHandler.onEvent(client, packet.getName(), data);
+            listenersHub.onEvent(client, packet.getName(), data);
             break;
 
         case HEARTBEAT:
@@ -52,11 +53,11 @@ public class PacketListener {
             break;
 
         case MESSAGE:
-            socketIOHandler.onMessage(client, packet.getData().toString());
+            listenersHub.onMessage(client, packet.getData().toString());
             break;
 
         case JSON:
-            socketIOHandler.onJsonObject(client, packet.getData());
+            listenersHub.onJsonObject(client, packet.getData());
             break;
 
         case DISCONNECT:

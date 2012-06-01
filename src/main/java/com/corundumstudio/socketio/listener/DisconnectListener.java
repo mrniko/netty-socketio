@@ -13,19 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.corundumstudio.socketio;
+package com.corundumstudio.socketio.listener;
 
+import com.corundumstudio.socketio.SocketIOClient;
 
-public interface SocketIOListener {
-
-    void onConnect(SocketIOClient client);
-
-    void onJsonObject(SocketIOClient client, Object data);
-
-    void onMessage(SocketIOClient client, String message);
+public interface DisconnectListener {
 
     void onDisconnect(SocketIOClient client);
-
-    void onEvent(SocketIOClient client, String name, Object data);
 
 }

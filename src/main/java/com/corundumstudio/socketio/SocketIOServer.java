@@ -25,12 +25,19 @@ import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class SocketIOServer {
+import com.corundumstudio.socketio.listener.ClientListeners;
+import com.corundumstudio.socketio.listener.ConnectListener;
+import com.corundumstudio.socketio.listener.DataListener;
+import com.corundumstudio.socketio.listener.DisconnectListener;
+import com.corundumstudio.socketio.listener.ListenersHub;
+
+public class SocketIOServer implements ClientListeners {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     private ServerBootstrap bootstrap;
 
+    private ListenersHub listenersHub = new ListenersHub();
     private SocketIOPipelineFactory pipelineFactory = new SocketIOPipelineFactory();
 
     private Channel mainChannel;
@@ -57,7 +64,7 @@ public class SocketIOServer {
         ChannelFactory factory = new NioServerSocketChannelFactory(config.getBossExecutor(), config.getWorkerExecutor());
         bootstrap = new ServerBootstrap(factory);
 
-        pipelineFactory.start(config);
+        pipelineFactory.start(config, listenersHub);
         bootstrap.setPipelineFactory(pipelineFactory);
         bootstrap.setOption("child.tcpNoDelay", true);
         bootstrap.setOption("child.keepAlive", true);
@@ -72,6 +79,31 @@ public class SocketIOServer {
         mainChannel.close();
         bootstrap.releaseExternalResources();
         started = false;
+    }
+
+    @Override
+    public void addEventListener(String eventName, DataListener<Object> listener) {
+        listenersHub.addEventListener(eventName, listener);
+    }
+
+    @Override
+    public void addJsonObjectListener(DataListener<Object> listener) {
+        listenersHub.addJsonObjectListener(listener);
+    }
+
+    @Override
+    public void addDisconnectListener(DisconnectListener listener) {
+        listenersHub.addDisconnectListener(listener);
+    }
+
+    @Override
+    public void addConnectListener(ConnectListener listener) {
+        listenersHub.addConnectListener(listener);
+    }
+
+    @Override
+    public void addMessageListener(DataListener<String> listener) {
+        listenersHub.addMessageListener(listener);
     }
 
 }

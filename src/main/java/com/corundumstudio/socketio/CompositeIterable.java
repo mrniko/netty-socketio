@@ -15,17 +15,29 @@
  */
 package com.corundumstudio.socketio;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
-public class JoinIterator<T> implements Iterator<T> {
+public class CompositeIterable<T> implements Iterable<T>, Iterator<T> {
 
-    private final Iterator<Iterator<T>> listIterator;
+    private final Iterable<T>[] iterables;
+
+    private Iterator<Iterator<T>> listIterator;
     private Iterator<T> currentIterator;
 
-    public JoinIterator(Iterator<T> ... iterators) {
-        listIterator = Arrays.asList(iterators).iterator();
+    public CompositeIterable(Iterable<T> ... iterables) {
+        this.iterables = iterables;
+    }
 
+    @Override
+    public Iterator<T> iterator() {
+        List<Iterator<T>> iterators = new ArrayList<Iterator<T>>();
+        for (Iterable<T> iterable : iterables) {
+            iterators.add(iterable.iterator());
+        }
+        listIterator = iterators.iterator();
+        return this;
     }
 
     @Override

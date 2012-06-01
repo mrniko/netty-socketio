@@ -29,13 +29,14 @@ public class JoinIteratorsTest {
     public void testIterator() {
         List<Integer> list1 = Arrays.asList(1, 2);
         List<Integer> list2 = Arrays.asList(3, 4);
-        Iterator<Integer> i = list1.iterator();
-        Iterator<Integer> i2 = list1.iterator();
-        JoinIterator<Integer> iterators = new JoinIterator<Integer>(i, i2);
+        CompositeIterable<Integer> iterators = new CompositeIterable<Integer>(list1, list2);
+
+        // for nomemory test
+        for (Integer integer : iterators) {
+        }
 
         List<Integer> mainList = new ArrayList<Integer>();
-        for (; iterators.hasNext();) {
-            Integer integer = iterators.next();
+        for (Integer integer : iterators) {
             mainList.add(integer);
         }
         Assert.assertEquals(list1.size() + list2.size(), mainList.size());

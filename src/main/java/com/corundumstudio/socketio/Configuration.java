@@ -40,7 +40,6 @@ public class Configuration {
     private int port;
 
     private ObjectMapper objectMapper = new ObjectMapper();
-    private SocketIOListener listener;
 
     public Configuration() {
     }
@@ -57,7 +56,6 @@ public class Configuration {
         setHeartbeatThreadPoolSize(conf.getHeartbeatThreadPoolSize());
         setHeartbeatTimeout(conf.getHeartbeatTimeout());
         setHostname(conf.getHostname());
-        setListener(conf.getListener());
         setObjectMapper(conf.getObjectMapper());
         setPort(conf.getPort());
         setWorkerExecutor(conf.getWorkerExecutor());
@@ -70,13 +68,6 @@ public class Configuration {
     }
     public void setObjectMapper(ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
-    }
-
-    public SocketIOListener getListener() {
-        return listener;
-    }
-    public void setListener(SocketIOListener listener) {
-        this.listener = listener;
     }
 
     public String getHostname() {

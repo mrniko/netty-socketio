@@ -32,7 +32,7 @@ public class Decoder {
     private final ChannelBufferIndexFinder delimiterFinder = new ChannelBufferIndexFinder() {
         @Override
         public boolean find(ChannelBuffer buffer, int guessedIndex) {
-            return isCurrentDelimiter(buffer, guessedIndex);
+            return   isCurrentDelimiter(buffer, guessedIndex);
         }
     };
 
