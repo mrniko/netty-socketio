@@ -17,46 +17,58 @@ Licensed under the Apache License 2.0.
 
 ##Server
 
-	SocketIOListener handler = new SocketIOListener() {
-
-		@Override
-		public void onEvent(SocketIOClient client, String name, Object data) {
-			...
-		}
-
-		@Override
-		public void onMessage(SocketIOClient client, String message) {
-			...
-		}
-	
-		@Override
-		public void onDisconnect(SocketIOClient client) {
-			...
-		}
-	
-		@Override
-		public void onConnect(final SocketIOClient client) {
-			...
-		}
-
-		@Override
-		public void onJsonObject(SocketIOClient client, Objet data) {
-
-			...
-                        SampleObject obj = new SampleObject();
-                        // send object to socket.io client
-                        client.sendJsonObject(obj);
-		}
-	};
-
 	Configuration config = new Configuration();
 	config.setHostname("localhost");
 	config.setPort(81);
 	config.setListener(handler);
 
 	SocketIOServer server = new SocketIOServer(config);
+        server.addMessageListener(new DataListener<String>() {
+            @Override
+            public void onData(SocketIOClient client, String message) {
+                ...
+            }
+        });
+
+        String eventName = ...
+        server.addEventListener(eventName, new DataListener<Object>() {
+            @Override
+            public void onData(SocketIOClient client, Object data) {
+                ...
+            }
+        });
+
+        server.addConnectListener(new ConnectListener() {
+            @Override
+            public void onConnect(SocketIOClient client) {
+                ...
+            }
+        });
+
+        server.addDisconnectListener(new DisconnectListener() {
+            @Override
+            public void onDisconnect(SocketIOClient client) {
+                ...
+            }
+        });
+
+        server.addJsonObjectListener(new DataListener<Object>() {
+            @Override
+            public void onData(SocketIOClient client, Object data) {
+
+                ...
+
+                // send object to socket.io client
+                SampleObject obj = new SampleObject();
+                client.sendJsonObject(obj);
+            }
+        });
+
 	server.start();
+
+
 	...
+
 	
 	server.stop();
 
