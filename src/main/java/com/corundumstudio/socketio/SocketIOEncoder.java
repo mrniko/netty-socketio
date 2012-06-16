@@ -40,7 +40,6 @@ import org.jboss.netty.handler.codec.http.DefaultHttpResponse;
 import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.jboss.netty.handler.codec.http.HttpResponse;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
-import org.jboss.netty.handler.codec.http.HttpVersion;
 import org.jboss.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import org.jboss.netty.handler.codec.http.websocketx.WebSocketFrame;
 import org.jboss.netty.handler.codec.oneone.OneToOneEncoder;
@@ -115,18 +114,6 @@ public class SocketIOEncoder extends OneToOneEncoder implements MessageHandler {
         return clientEntry;
     }
 
-    private void sendPostResponse(Channel channel, String origin) {
-        HttpResponse res = new DefaultHttpResponse(HttpVersion.HTTP_1_1,
-                HttpResponseStatus.OK);
-        if (origin != null) {
-            res.addHeader("Access-Control-Allow-Origin", origin);
-            res.addHeader("Access-Control-Allow-Credentials", "true");
-        }
-
-        ChannelFuture f = channel.write(res);
-        f.addListener(ChannelFutureListener.CLOSE);
-    }
-
     private void write(UUID sessionId, String origin, XHRClientEntry clientEntry,
             Channel channel) throws IOException {
         if (!channel.isConnected() || clientEntry.getPackets().isEmpty()
@@ -140,14 +127,14 @@ public class SocketIOEncoder extends OneToOneEncoder implements MessageHandler {
 
     private void sendMessage(String origin, UUID sessionId, Channel channel,
             ChannelBuffer message) {
-        HttpResponse res = new DefaultHttpResponse(HTTP_1_1,
-                HttpResponseStatus.OK);
+        HttpResponse res = new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.OK);
         addHeaders(origin, res);
+
         res.setContent(message);
         HttpHeaders.setContentLength(res, res.getContent().readableBytes());
 
         if (log.isTraceEnabled()) {
-            log.trace("Out message: {}, sessionId: {}, channelId: {}",
+            log.trace("Out message: {} - sessionId: {} - channelId: {}",
                         new Object[] { message.toString(CharsetUtil.UTF_8),
                             sessionId, channel.getId() });
         }
@@ -195,7 +182,7 @@ public class SocketIOEncoder extends OneToOneEncoder implements MessageHandler {
 
     @Override
     public Object handle(XHRPostMessage xhrPostMessage, Channel channel) {
-        sendPostResponse(channel, xhrPostMessage.getOrigin());
+        sendMessage(xhrPostMessage.getOrigin(), null, channel, ChannelBuffers.EMPTY_BUFFER);
         return ChannelBuffers.EMPTY_BUFFER;
     }
 

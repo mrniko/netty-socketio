@@ -16,112 +16,79 @@
 package com.corundumstudio.socketio.transport;
 
 import java.net.SocketAddress;
-import java.util.Collections;
+import java.util.Collection;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 import org.jboss.netty.channel.Channel;
+import org.jboss.netty.channel.ChannelFuture;
+import org.jboss.netty.channel.ChannelFutureListener;
 
-import com.corundumstudio.socketio.AckCallback;
 import com.corundumstudio.socketio.AckManager;
+import com.corundumstudio.socketio.Disconnectable;
 import com.corundumstudio.socketio.SocketIOClient;
+import com.corundumstudio.socketio.namespace.Namespace;
 import com.corundumstudio.socketio.parser.Packet;
 import com.corundumstudio.socketio.parser.PacketType;
 
-abstract class BaseClient implements SocketIOClient {
+public abstract class BaseClient {
 
-    protected final UUID sessionId;
-    protected final AckManager ackManager;
+    private final ConcurrentMap<Namespace, SocketIOClient> namespaceClients = new ConcurrentHashMap<Namespace, SocketIOClient>();
+
+    private final Disconnectable disconnectable;
+    private final AckManager ackManager;
+    private final UUID sessionId;
     protected Channel channel;
 
-    public BaseClient(UUID sessionId, AckManager ackManager) {
+    public BaseClient(UUID sessionId, AckManager ackManager, Disconnectable disconnectable) {
         this.sessionId = sessionId;
         this.ackManager = ackManager;
+        this.disconnectable = disconnectable;
     }
 
-    @Override
+    public abstract ChannelFuture send(Packet packet);
+
+    public void removeClient(SocketIOClient client) {
+        namespaceClients.remove((Namespace)client.getNamespace());
+        if (namespaceClients.isEmpty()) {
+            disconnectable.onDisconnect(this);
+        }
+    }
+
+    public SocketIOClient getClient(Namespace namespace) {
+        SocketIOClient client = namespaceClients.get(namespace);
+        if (client == null) {
+            client = new NamespaceClient(this, namespace);
+            SocketIOClient oldClient = namespaceClients.putIfAbsent(namespace, client);
+            if (oldClient != null) {
+                client = oldClient;
+            }
+        }
+        return client;
+    }
+
+    public Collection<SocketIOClient> getAllClients() {
+        return namespaceClients.values();
+    }
+
+    public AckManager getAckManager() {
+        return ackManager;
+    }
+
     public UUID getSessionId() {
         return sessionId;
     }
 
-    @Override
-    public void sendEvent(String name, Object data) {
-        Packet packet = new Packet(PacketType.EVENT);
-        packet.setName(name);
-        packet.setArgs(Collections.singletonList(data));
-        send(packet);
-    }
-
-    @Override
-    public void sendEvent(String name, Object data, AckCallback ackCallback) {
-        Packet packet = new Packet(PacketType.EVENT);
-        packet.setName(name);
-        packet.setArgs(Collections.singletonList(data));
-        send(packet);
-    }
-
-    @Override
-    public void sendMessage(String message, AckCallback ackCallback) {
-        Packet packet = new Packet(PacketType.MESSAGE);
-        packet.setData(message);
-        send(packet, ackCallback);
-    }
-
-    @Override
-    public void sendMessage(String message) {
-        Packet packet = new Packet(PacketType.MESSAGE);
-        packet.setData(message);
-        send(packet);
-    }
-
-    @Override
-    public void sendJsonObject(Object object) {
-        Packet packet = new Packet(PacketType.JSON);
-        packet.setData(object);
-        send(packet);
-    }
-
-    @Override
     public SocketAddress getRemoteAddress() {
         return channel.getRemoteAddress();
     }
 
-    @Override
-    public void send(Packet packet, AckCallback ackCallback) {
-        long index = ackManager.registerAck(sessionId, ackCallback);
-        packet.setId(index);
-        send(packet);
-    }
+    public void disconnect() {
+        ChannelFuture future = send(new Packet(PacketType.DISCONNECT));
+        future.addListener(ChannelFutureListener.CLOSE);
 
-    @Override
-    public void sendJsonObject(Object object, AckCallback ackCallback) {
-        Packet packet = new Packet(PacketType.JSON);
-        packet.setData(object);
-        send(packet, ackCallback);
-    }
-
-    @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + ((sessionId == null) ? 0 : sessionId.hashCode());
-        return result;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
-        BaseClient other = (BaseClient) obj;
-        if (sessionId == null) {
-            if (other.sessionId != null)
-                return false;
-        } else if (!sessionId.equals(other.sessionId))
-            return false;
-        return true;
+        disconnectable.onDisconnect(this);
     }
 
 }

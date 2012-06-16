@@ -28,6 +28,7 @@ import com.corundumstudio.socketio.parser.Packet;
 import com.corundumstudio.socketio.scheduler.CancelableScheduler;
 import com.corundumstudio.socketio.scheduler.SchedulerKey;
 import com.corundumstudio.socketio.scheduler.SchedulerKey.Type;
+import com.corundumstudio.socketio.transport.BaseClient;
 
 public class AckManager implements Disconnectable {
 
@@ -95,7 +96,7 @@ public class AckManager implements Disconnectable {
     }
 
     @Override
-    public void onDisconnect(SocketIOClient client) {
+    public void onDisconnect(BaseClient client) {
         Set<Long> callbackIds = clientCallbackIds.remove(client.getSessionId());
         if (callbackIds != null) {
             ackCallbacks.keySet().removeAll(callbackIds);

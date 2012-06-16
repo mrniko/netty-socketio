@@ -25,6 +25,7 @@ import com.corundumstudio.socketio.parser.PacketType;
 import com.corundumstudio.socketio.scheduler.CancelableScheduler;
 import com.corundumstudio.socketio.scheduler.SchedulerKey;
 import com.corundumstudio.socketio.scheduler.SchedulerKey.Type;
+import com.corundumstudio.socketio.transport.BaseClient;
 
 public class HeartbeatHandler implements Disconnectable {
 
@@ -38,7 +39,7 @@ public class HeartbeatHandler implements Disconnectable {
         this.scheduler = scheduler;
     }
 
-    public void onHeartbeat(final SocketIOClient client) {
+    public void onHeartbeat(final BaseClient client) {
         if (!configuration.isHeartbeatsEnabled()) {
             return;
         }
@@ -52,7 +53,7 @@ public class HeartbeatHandler implements Disconnectable {
         }, configuration.getHeartbeatInterval(), TimeUnit.SECONDS);
     }
 
-    private void scheduleClientHeartbeatCheck(final SocketIOClient client) {
+    private void scheduleClientHeartbeatCheck(final BaseClient client) {
         SchedulerKey key = new SchedulerKey(Type.HEARBEAT_TIMEOUT, client.getSessionId());
         scheduler.schedule(key, new Runnable() {
             public void run() {
@@ -63,7 +64,7 @@ public class HeartbeatHandler implements Disconnectable {
     }
 
     @Override
-    public void onDisconnect(SocketIOClient client) {
+    public void onDisconnect(BaseClient client) {
         scheduler.cancel(new SchedulerKey(Type.HEARBEAT_TIMEOUT, client.getSessionId()));
     }
 

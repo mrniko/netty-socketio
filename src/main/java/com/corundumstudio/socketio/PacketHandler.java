@@ -25,6 +25,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.corundumstudio.socketio.messages.PacketsMessage;
+import com.corundumstudio.socketio.namespace.Namespace;
+import com.corundumstudio.socketio.namespace.NamespacesHub;
 import com.corundumstudio.socketio.parser.Decoder;
 import com.corundumstudio.socketio.parser.Packet;
 import com.corundumstudio.socketio.parser.PacketType;
@@ -36,11 +38,13 @@ public class PacketHandler extends SimpleChannelUpstreamHandler {
 
     private final PacketListener packetListener;
     private final Decoder decoder;
+    private final NamespacesHub namespacesHub;
 
-    public PacketHandler(PacketListener packetListener, Decoder decoder) {
+    public PacketHandler(PacketListener packetListener, Decoder decoder, NamespacesHub namespacesHub) {
         super();
         this.packetListener = packetListener;
         this.decoder = decoder;
+        this.namespacesHub = namespacesHub;
     }
 
     @Override
@@ -56,8 +60,10 @@ public class PacketHandler extends SimpleChannelUpstreamHandler {
             }
             while (content.readable()) {
                 Packet packet = decoder.decodePackets(content);
-                sendAck(packet, message.getClient());
-                packetListener.onPacket(packet, message.getClient());
+                Namespace ns = namespacesHub.get(packet.getEndpoint());
+                SocketIOClient client = message.getClient().getClient(ns);
+                sendAck(packet, client);
+                packetListener.onPacket(packet, client);
             }
         } else {
             ctx.sendUpstream(e);

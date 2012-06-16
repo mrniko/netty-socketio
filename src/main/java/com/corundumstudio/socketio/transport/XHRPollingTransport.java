@@ -16,7 +16,9 @@
 package com.corundumstudio.socketio.transport;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -39,6 +41,7 @@ import org.slf4j.LoggerFactory;
 
 import com.corundumstudio.socketio.AckManager;
 import com.corundumstudio.socketio.AuthorizeHandler;
+import com.corundumstudio.socketio.CompositeIterable;
 import com.corundumstudio.socketio.Configuration;
 import com.corundumstudio.socketio.Disconnectable;
 import com.corundumstudio.socketio.SocketIOClient;
@@ -58,7 +61,7 @@ public class XHRPollingTransport extends SimpleChannelUpstreamHandler implements
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private final Map<UUID, SocketIOClient> sessionId2Client = new ConcurrentHashMap<UUID, SocketIOClient>();
+    private final Map<UUID, XHRPollingClient> sessionId2Client = new ConcurrentHashMap<UUID, XHRPollingClient>();
     private final CancelableScheduler scheduler;
 
     private final AckManager ackManager;
@@ -95,7 +98,7 @@ public class XHRPollingTransport extends SimpleChannelUpstreamHandler implements
                         onGet(sessionId, channel, req);
                     }
                     if (queryDecoder.getParameters().containsKey("disconnect")) {
-                        SocketIOClient client = sessionId2Client.get(sessionId);
+                        BaseClient client = sessionId2Client.get(sessionId);
                         disconnectable.onDisconnect(client);
                     }
                 } else {
@@ -115,7 +118,7 @@ public class XHRPollingTransport extends SimpleChannelUpstreamHandler implements
         scheduler.schedule(key, new Runnable() {
             @Override
             public void run() {
-                SocketIOClient client = sessionId2Client.get(sessionId);
+                XHRPollingClient client = sessionId2Client.get(sessionId);
                 if (client != null) {
                     client.send(new Packet(PacketType.NOOP));
                 }
@@ -133,7 +136,7 @@ public class XHRPollingTransport extends SimpleChannelUpstreamHandler implements
                 scheduler.schedule(key, new Runnable() {
                     @Override
                     public void run() {
-                        SocketIOClient client = sessionId2Client.get(sessionId);
+                        XHRPollingClient client = sessionId2Client.get(sessionId);
                         if (client != null) {
                             disconnectable.onDisconnect(client);
                             log.debug("Client: {} disconnected due to connection timeout", sessionId);
@@ -145,7 +148,7 @@ public class XHRPollingTransport extends SimpleChannelUpstreamHandler implements
     }
 
     private void onPost(UUID sessionId, Channel channel, HttpRequest req) throws IOException {
-        SocketIOClient client = sessionId2Client.get(sessionId);
+        XHRPollingClient client = sessionId2Client.get(sessionId);
         if (client == null) {
             log.debug("Client with sessionId: {} was already disconnected. Channel closed!", sessionId);
             channel.close();
@@ -176,7 +179,8 @@ public class XHRPollingTransport extends SimpleChannelUpstreamHandler implements
     }
 
     private XHRPollingClient createClient(String origin, Channel channel, UUID sessionId) {
-        XHRPollingClient client = new XHRPollingClient(ackManager, authorizeHandler, sessionId);
+        XHRPollingClient client = new XHRPollingClient(ackManager, disconnectable, sessionId);
+
         sessionId2Client.put(sessionId, client);
         client.update(channel, origin);
 
@@ -194,7 +198,7 @@ public class XHRPollingTransport extends SimpleChannelUpstreamHandler implements
     }
 
     @Override
-    public void onDisconnect(SocketIOClient client) {
+    public void onDisconnect(BaseClient client) {
         if (client instanceof XHRPollingClient) {
             XHRPollingClient xhrClient = (XHRPollingClient) client;
             UUID sessionId = xhrClient.getSessionId();
@@ -207,8 +211,13 @@ public class XHRPollingTransport extends SimpleChannelUpstreamHandler implements
         }
     }
 
-    public Collection<SocketIOClient> getAllClients() {
-        return sessionId2Client.values();
+    public Iterable<SocketIOClient> getAllClients() {
+        Collection<XHRPollingClient> clients = sessionId2Client.values();
+        List<Iterable<SocketIOClient>> allClients = new ArrayList<Iterable<SocketIOClient>>(clients.size());
+        for (XHRPollingClient client : sessionId2Client.values()) {
+            allClients.add(client.getAllClients());
+        }
+        return new CompositeIterable<SocketIOClient>(allClients);
     }
 
 }

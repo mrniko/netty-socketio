@@ -34,29 +34,36 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.corundumstudio.socketio.messages.PacketsMessage;
+import com.corundumstudio.socketio.namespace.Namespace;
+import com.corundumstudio.socketio.namespace.NamespacesHub;
 import com.corundumstudio.socketio.parser.Decoder;
 import com.corundumstudio.socketio.parser.Encoder;
 import com.corundumstudio.socketio.parser.Packet;
 import com.corundumstudio.socketio.parser.PacketType;
+import com.corundumstudio.socketio.transport.BaseClient;
 
 public class PacketHandlerTest {
 
     private ObjectMapper map = new ObjectMapper();
     private Decoder decoder = new Decoder(map);
     private Encoder encoder = new Encoder(map);
+    private NamespacesHub namespacesHub = new NamespacesHub();
     @Mocked
     private Channel channel;
     @Mocked
-    private SocketIOClient client;
+    private BaseClient client;
     private final AtomicInteger invocations = new AtomicInteger();
 
     @Before
     public void before() {
+        if (namespacesHub.get(Namespace.DEFAULT_NAME) == null) {
+            namespacesHub.create(Namespace.DEFAULT_NAME);
+        }
         invocations.set(0);
     }
 
     private PacketListener createTestListener(final List<Packet> packets) {
-        PacketListener listener = new PacketListener(null, null, null, null) {
+        PacketListener listener = new PacketListener(null, null, null) {
             @Override
             public void onPacket(Packet packet, SocketIOClient client) {
                 int index = invocations.incrementAndGet();
@@ -76,7 +83,7 @@ public class PacketHandlerTest {
         packets.add(packet);
 
         PacketListener listener = createTestListener(packets);
-        PacketHandler handler = new PacketHandler(listener, decoder);
+        PacketHandler handler = new PacketHandler(listener, decoder, namespacesHub);
         testHandler(handler, new ConcurrentLinkedQueue<Packet>(packets));
     }
 
@@ -95,7 +102,7 @@ public class PacketHandlerTest {
         packets.add(packet1);
 
         PacketListener listener = createTestListener(packets);
-        PacketHandler handler = new PacketHandler(listener, decoder);
+        PacketHandler handler = new PacketHandler(listener, decoder, namespacesHub);
         testHandler(handler, new ConcurrentLinkedQueue<Packet>(packets));
     }
 
@@ -114,7 +121,7 @@ public class PacketHandlerTest {
         packets.add(packet1);
 
         PacketListener listener = createTestListener(packets);
-        PacketHandler handler = new PacketHandler(listener, decoder);
+        PacketHandler handler = new PacketHandler(listener, decoder, namespacesHub);
         testHandler(handler, new ConcurrentLinkedQueue<Packet>(packets));
     }
 
@@ -127,12 +134,12 @@ public class PacketHandlerTest {
 
     //@Test
     public void testDecodePerf() throws Exception {
-        PacketListener listener = new PacketListener(null, null, null, null) {
+        PacketListener listener = new PacketListener(null, null, null) {
             @Override
             public void onPacket(Packet packet, SocketIOClient client) {
             }
         };
-        PacketHandler handler = new PacketHandler(listener, decoder);
+        PacketHandler handler = new PacketHandler(listener, decoder, namespacesHub);
         long start = System.currentTimeMillis();
         ChannelBuffer buffer = ChannelBuffers.wrappedBuffer("\ufffd10\ufffd3:::Привет\ufffd7\ufffd3:::53d\ufffd3\ufffd0::\ufffd5\ufffd3:::5\ufffd7\ufffd3:::53d\ufffd3\ufffd0::\ufffd5\ufffd3:::5\ufffd7\ufffd3:::53d\ufffd3\ufffd0::\ufffd5\ufffd3:::5\ufffd7\ufffd3:::53d\ufffd3\ufffd0::\ufffd5\ufffd3:::5\ufffd7\ufffd3:::53d\ufffd3\ufffd0::".getBytes());
         for (int i = 0; i < 50000; i++) {

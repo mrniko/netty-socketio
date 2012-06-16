@@ -42,13 +42,15 @@ import org.jboss.netty.handler.codec.http.QueryStringDecoder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.corundumstudio.socketio.listener.ListenersHub;
 import com.corundumstudio.socketio.messages.AuthorizeMessage;
+import com.corundumstudio.socketio.namespace.Namespace;
+import com.corundumstudio.socketio.namespace.NamespacesHub;
 import com.corundumstudio.socketio.parser.Packet;
 import com.corundumstudio.socketio.parser.PacketType;
 import com.corundumstudio.socketio.scheduler.CancelableScheduler;
 import com.corundumstudio.socketio.scheduler.SchedulerKey;
 import com.corundumstudio.socketio.scheduler.SchedulerKey.Type;
+import com.corundumstudio.socketio.transport.BaseClient;
 
 @Sharable
 public class AuthorizeHandler extends SimpleChannelUpstreamHandler implements Disconnectable {
@@ -60,16 +62,15 @@ public class AuthorizeHandler extends SimpleChannelUpstreamHandler implements Di
                                 Collections.newSetFromMap(new ConcurrentHashMap<UUID, Boolean>());
 
     private final String connectPath;
-
     private final Configuration configuration;
-    private final ListenersHub listenersHub;
+    private final NamespacesHub namespacesHub;
 
-    public AuthorizeHandler(String connectPath, ListenersHub listenersHub, CancelableScheduler scheduler, Configuration configuration) {
+    public AuthorizeHandler(String connectPath, CancelableScheduler scheduler, Configuration configuration, NamespacesHub namespacesHub) {
         super();
         this.connectPath = connectPath;
-        this.listenersHub = listenersHub;
         this.configuration = configuration;
         this.disconnectScheduler = scheduler;
+        this.namespacesHub = namespacesHub;
     }
 
     @Override
@@ -102,7 +103,6 @@ public class AuthorizeHandler extends SimpleChannelUpstreamHandler implements Di
         scheduleDisconnect(channel, sessionId);
 
         String transports = "websocket,xhr-polling";
-        //String transports = "websocket";
         String heartbeatTimeoutVal = String.valueOf(configuration.getHeartbeatTimeout());
         if (!configuration.isHeartbeatsEnabled()) {
             heartbeatTimeoutVal = "";
@@ -141,15 +141,18 @@ public class AuthorizeHandler extends SimpleChannelUpstreamHandler implements Di
         return authorizedSessionIds.contains(sessionId);
     }
 
-    public void connect(SocketIOClient client) {
+    public void connect(BaseClient client) {
         SchedulerKey key = new SchedulerKey(Type.AUTHORIZE, client.getSessionId());
         disconnectScheduler.cancel(key);
         client.send(new Packet(PacketType.CONNECT));
-        listenersHub.onConnect(client);
+
+        Namespace ns = namespacesHub.get(Namespace.DEFAULT_NAME);
+        SocketIOClient nsClient = client.getClient(ns);
+        namespacesHub.get(ns.getName()).onConnect(nsClient);
     }
 
     @Override
-    public void onDisconnect(SocketIOClient client) {
+    public void onDisconnect(BaseClient client) {
         authorizedSessionIds.remove(client.getSessionId());
     }
 

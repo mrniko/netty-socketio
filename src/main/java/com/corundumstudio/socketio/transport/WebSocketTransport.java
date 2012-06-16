@@ -16,7 +16,9 @@
 package com.corundumstudio.socketio.transport;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -41,6 +43,7 @@ import org.slf4j.LoggerFactory;
 
 import com.corundumstudio.socketio.AckManager;
 import com.corundumstudio.socketio.AuthorizeHandler;
+import com.corundumstudio.socketio.CompositeIterable;
 import com.corundumstudio.socketio.Disconnectable;
 import com.corundumstudio.socketio.HeartbeatHandler;
 import com.corundumstudio.socketio.SocketIOClient;
@@ -51,7 +54,7 @@ public class WebSocketTransport extends SimpleChannelUpstreamHandler implements 
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private final Map<UUID, SocketIOClient> sessionId2Client = new ConcurrentHashMap<UUID, SocketIOClient>();
+    private final Map<UUID, WebSocketClient> sessionId2Client = new ConcurrentHashMap<UUID, WebSocketClient>();
     private final Map<Integer, WebSocketClient> channelId2Client = new ConcurrentHashMap<Integer, WebSocketClient>();
 
     private final AckManager ackManager;
@@ -140,6 +143,7 @@ public class WebSocketTransport extends SimpleChannelUpstreamHandler implements 
         }
 
         WebSocketClient client = new WebSocketClient(channel, ackManager, disconnectable, sessionId);
+
         channelId2Client.put(channel.getId(), client);
         sessionId2Client.put(sessionId, client);
         authorizeHandler.connect(client);
@@ -152,7 +156,7 @@ public class WebSocketTransport extends SimpleChannelUpstreamHandler implements 
     }
 
     @Override
-    public void onDisconnect(SocketIOClient client) {
+    public void onDisconnect(BaseClient client) {
         if (client instanceof WebSocketClient) {
             WebSocketClient webClient = (WebSocketClient) client;
             sessionId2Client.remove(webClient.getSessionId());
@@ -160,8 +164,14 @@ public class WebSocketTransport extends SimpleChannelUpstreamHandler implements 
         }
     }
 
-    public Collection<SocketIOClient> getAllClients() {
-        return sessionId2Client.values();
+    public Iterable<SocketIOClient> getAllClients() {
+        // TODO remove CPD!
+        Collection<WebSocketClient> clients = sessionId2Client.values();
+        List<Iterable<SocketIOClient>> allClients = new ArrayList<Iterable<SocketIOClient>>(clients.size());
+        for (WebSocketClient client : sessionId2Client.values()) {
+            allClients.add(client.getAllClients());
+        }
+        return new CompositeIterable<SocketIOClient>(allClients);
     }
 
 }

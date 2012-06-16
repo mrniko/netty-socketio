@@ -18,42 +18,34 @@ package com.corundumstudio.socketio.transport;
 import java.util.UUID;
 
 import org.jboss.netty.channel.Channel;
+import org.jboss.netty.channel.ChannelFuture;
 
 import com.corundumstudio.socketio.AckManager;
 import com.corundumstudio.socketio.Disconnectable;
 import com.corundumstudio.socketio.messages.XHRNewChannelMessage;
 import com.corundumstudio.socketio.messages.XHRPacketMessage;
 import com.corundumstudio.socketio.parser.Packet;
-import com.corundumstudio.socketio.parser.PacketType;
 
 public class XHRPollingClient extends BaseClient {
-
-    private final Disconnectable disconnectable;
 
     private String origin;
 
     public XHRPollingClient(AckManager ackManager, Disconnectable disconnectable, UUID sessionId) {
-        super(sessionId, ackManager);
-        this.disconnectable = disconnectable;
+        super(sessionId, ackManager, disconnectable);
     }
 
     public void update(Channel channel, String origin) {
         this.origin = origin;
         this.channel = channel;
-        channel.write(new XHRNewChannelMessage(sessionId, origin));
+        channel.write(new XHRNewChannelMessage(getSessionId(), origin));
     }
 
     public String getOrigin() {
         return origin;
     }
 
-    public void send(Packet packet) {
-        channel.write(new XHRPacketMessage(sessionId, origin, packet));
-    }
-
-    public void disconnect() {
-        send(new Packet(PacketType.DISCONNECT));
-        disconnectable.onDisconnect(this);
+    public ChannelFuture send(Packet packet) {
+        return channel.write(new XHRPacketMessage(getSessionId(), origin, packet));
     }
 
 }

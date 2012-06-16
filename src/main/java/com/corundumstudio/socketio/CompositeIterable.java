@@ -21,10 +21,15 @@ import java.util.List;
 
 public class CompositeIterable<T> implements Iterable<T>, Iterator<T> {
 
-    private final Iterable<T>[] iterables;
+    private List<Iterable<T>> iterablesList;
+    private Iterable<T>[] iterables;
 
     private Iterator<Iterator<T>> listIterator;
     private Iterator<T> currentIterator;
+
+    public CompositeIterable(List<Iterable<T>> iterables) {
+        this.iterablesList = iterables;
+    }
 
     public CompositeIterable(Iterable<T> ... iterables) {
         this.iterables = iterables;
@@ -33,8 +38,14 @@ public class CompositeIterable<T> implements Iterable<T>, Iterator<T> {
     @Override
     public Iterator<T> iterator() {
         List<Iterator<T>> iterators = new ArrayList<Iterator<T>>();
-        for (Iterable<T> iterable : iterables) {
-            iterators.add(iterable.iterator());
+        if (iterables != null) {
+            for (Iterable<T> iterable : iterables) {
+                iterators.add(iterable.iterator());
+            }
+        } else {
+            for (Iterable<T> iterable : iterablesList) {
+                iterators.add(iterable.iterator());
+            }
         }
         listIterator = iterators.iterator();
         return this;

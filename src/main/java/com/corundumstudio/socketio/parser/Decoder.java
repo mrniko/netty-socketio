@@ -25,6 +25,8 @@ import org.jboss.netty.buffer.ChannelBufferInputStream;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.util.CharsetUtil;
 
+import com.corundumstudio.socketio.namespace.Namespace;
+
 public class Decoder {
 
     private final UTF8CharsScanner charsScanner = new UTF8CharsScanner();
@@ -101,7 +103,7 @@ public class Decoder {
             endpointBuffer.append((char)msg);
         }
 
-        String endpoint = null;
+        String endpoint = Namespace.DEFAULT_NAME;
         if (endpointBuffer != null && endpointBuffer.length() > 0) {
             endpoint = endpointBuffer.toString();
         }

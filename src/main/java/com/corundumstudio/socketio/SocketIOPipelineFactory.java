@@ -17,9 +17,6 @@ package com.corundumstudio.socketio;
 
 import static org.jboss.netty.channel.Channels.pipeline;
 
-import java.util.Collection;
-import java.util.Iterator;
-
 import org.codehaus.jackson.map.ObjectMapper;
 import org.jboss.netty.channel.ChannelPipeline;
 import org.jboss.netty.channel.ChannelPipelineFactory;
@@ -29,10 +26,11 @@ import org.jboss.netty.handler.codec.http.HttpResponseEncoder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.corundumstudio.socketio.listener.ListenersHub;
+import com.corundumstudio.socketio.namespace.NamespacesHub;
 import com.corundumstudio.socketio.parser.Decoder;
 import com.corundumstudio.socketio.parser.Encoder;
 import com.corundumstudio.socketio.scheduler.CancelableScheduler;
+import com.corundumstudio.socketio.transport.BaseClient;
 import com.corundumstudio.socketio.transport.WebSocketTransport;
 import com.corundumstudio.socketio.transport.XHRPollingTransport;
 
@@ -58,14 +56,12 @@ public class SocketIOPipelineFactory implements ChannelPipelineFactory, Disconne
     private WebSocketTransport webSocketTransport;
     private SocketIOEncoder socketIOEncoder;
 
-    private ListenersHub listenersHub;
     private CancelableScheduler scheduler;
 
     private PacketHandler packetHandler;
     private HeartbeatHandler heartbeatHandler;
 
-    public void start(Configuration configuration, ListenersHub listenersHub) {
-        this.listenersHub = listenersHub;
+    public void start(Configuration configuration, NamespacesHub namespacesHub) {
         scheduler = new CancelableScheduler(configuration.getHeartbeatThreadPoolSize());
 
         ObjectMapper objectMapper = configuration.getObjectMapper();
@@ -74,20 +70,20 @@ public class SocketIOPipelineFactory implements ChannelPipelineFactory, Disconne
 
         ackManager = new AckManager(scheduler);
         heartbeatHandler = new HeartbeatHandler(configuration, scheduler);
-        PacketListener packetListener = new PacketListener(listenersHub, this, heartbeatHandler, ackManager);
+        PacketListener packetListener = new PacketListener(heartbeatHandler, ackManager, namespacesHub);
 
         String connectPath = configuration.getContext() + "/" + protocol + "/";
 
-        packetHandler = new PacketHandler(packetListener, decoder);
-        authorizeHandler = new AuthorizeHandler(connectPath, listenersHub, scheduler, configuration);
+        packetHandler = new PacketHandler(packetListener, decoder, namespacesHub);
+        authorizeHandler = new AuthorizeHandler(connectPath, scheduler, configuration, namespacesHub);
         xhrPollingTransport = new XHRPollingTransport(connectPath, ackManager, this, scheduler, authorizeHandler, configuration);
         webSocketTransport = new WebSocketTransport(connectPath, ackManager, this, authorizeHandler, heartbeatHandler);
         socketIOEncoder = new SocketIOEncoder(objectMapper, encoder);
     }
 
     public Iterable<SocketIOClient> getAllClients() {
-        Collection<SocketIOClient> xhrClients = xhrPollingTransport.getAllClients();
-        Collection<SocketIOClient> webSocketClients = webSocketTransport.getAllClients();
+        Iterable<SocketIOClient> xhrClients = xhrPollingTransport.getAllClients();
+        Iterable<SocketIOClient> webSocketClients = webSocketTransport.getAllClients();
         return new CompositeIterable<SocketIOClient>(xhrClients, webSocketClients);
     }
 
@@ -109,14 +105,13 @@ public class SocketIOPipelineFactory implements ChannelPipelineFactory, Disconne
         return pipeline;
     }
 
-    public void onDisconnect(SocketIOClient client) {
+    public void onDisconnect(BaseClient client) {
         log.debug("Client with sessionId: {} disconnected", client.getSessionId());
         heartbeatHandler.onDisconnect(client);
         ackManager.onDisconnect(client);
         xhrPollingTransport.onDisconnect(client);
         webSocketTransport.onDisconnect(client);
         authorizeHandler.onDisconnect(client);
-        listenersHub.onDisconnect(client);
     }
 
     public void stop() {

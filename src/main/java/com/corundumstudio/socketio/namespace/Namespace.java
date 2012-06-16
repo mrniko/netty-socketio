@@ -13,23 +13,50 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.corundumstudio.socketio.listener;
+package com.corundumstudio.socketio.namespace;
 
+import java.util.Collections;
 import java.util.Queue;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentMap;
 
+import com.corundumstudio.socketio.BroadcastOperations;
+import com.corundumstudio.socketio.ClientOperations;
 import com.corundumstudio.socketio.SocketIOClient;
+import com.corundumstudio.socketio.SocketIONamespace;
+import com.corundumstudio.socketio.listener.ConnectListener;
+import com.corundumstudio.socketio.listener.DataListener;
+import com.corundumstudio.socketio.listener.DisconnectListener;
+import com.corundumstudio.socketio.transport.NamespaceClient;
 
-public class ListenersHub implements ClientListeners {
+public class Namespace implements SocketIONamespace {
 
+    public static final String DEFAULT_NAME = "";
+
+    private final Set<SocketIOClient> clients = Collections.newSetFromMap(new ConcurrentHashMap<SocketIOClient, Boolean>());
     private final ConcurrentMap<String, Queue<DataListener<Object>>> eventListeners =
-                                                        new ConcurrentHashMap<String, Queue<DataListener<Object>>>();
+                                                            new ConcurrentHashMap<String, Queue<DataListener<Object>>>();
     private final Queue<DataListener<Object>> jsonObjectListeners = new ConcurrentLinkedQueue<DataListener<Object>>();
     private final Queue<DataListener<String>> messageListeners = new ConcurrentLinkedQueue<DataListener<String>>();
     private final Queue<ConnectListener> connectListeners = new ConcurrentLinkedQueue<ConnectListener>();
     private final Queue<DisconnectListener> disconnectListeners = new ConcurrentLinkedQueue<DisconnectListener>();
+
+    private final String name;
+
+    public Namespace(String name) {
+        super();
+        this.name = name;
+    }
+
+    public void addClient(SocketIOClient client) {
+        clients.add(client);
+    }
+
+    public String getName() {
+        return name;
+    }
 
     @Override
     public void addEventListener(String eventName, DataListener<Object> listener) {
@@ -69,6 +96,8 @@ public class ListenersHub implements ClientListeners {
         for (DisconnectListener listener : disconnectListeners) {
             listener.onDisconnect(client);
         }
+        clients.remove(client);
+        ((NamespaceClient)client).onDisconnect();
     }
 
     @Override
@@ -101,6 +130,37 @@ public class ListenersHub implements ClientListeners {
         for (DataListener<Object> listener : jsonObjectListeners) {
             listener.onData(client, data);
         }
+    }
+
+    @Override
+    public ClientOperations getBroadcastOperations() {
+        return new BroadcastOperations(clients);
+    }
+
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((name == null) ? 0 : name.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        Namespace other = (Namespace) obj;
+        if (name == null) {
+            if (other.name != null)
+                return false;
+        } else if (!name.equals(other.name))
+            return false;
+        return true;
     }
 
 }

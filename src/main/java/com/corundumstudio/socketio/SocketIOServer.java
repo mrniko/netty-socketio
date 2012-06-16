@@ -29,7 +29,8 @@ import com.corundumstudio.socketio.listener.ClientListeners;
 import com.corundumstudio.socketio.listener.ConnectListener;
 import com.corundumstudio.socketio.listener.DataListener;
 import com.corundumstudio.socketio.listener.DisconnectListener;
-import com.corundumstudio.socketio.listener.ListenersHub;
+import com.corundumstudio.socketio.namespace.Namespace;
+import com.corundumstudio.socketio.namespace.NamespacesHub;
 
 public class SocketIOServer implements ClientListeners {
 
@@ -37,7 +38,9 @@ public class SocketIOServer implements ClientListeners {
 
     private ServerBootstrap bootstrap;
 
-    private ListenersHub listenersHub = new ListenersHub();
+    private final NamespacesHub namespacesHub = new NamespacesHub();
+    private final SocketIONamespace mainNamespace;
+
     private SocketIOPipelineFactory pipelineFactory = new SocketIOPipelineFactory();
 
     private Channel mainChannel;
@@ -47,6 +50,8 @@ public class SocketIOServer implements ClientListeners {
     public SocketIOServer(Configuration configuration) {
         this.config = new Configuration(configuration);
         this.config.getObjectMapper().setSerializationInclusion(JsonSerialize.Inclusion.NON_NULL);
+
+        mainNamespace = addNamespace(Namespace.DEFAULT_NAME);
     }
 
     public void setPipelineFactory(SocketIOPipelineFactory pipelineFactory) {
@@ -54,9 +59,6 @@ public class SocketIOServer implements ClientListeners {
     }
 
     public ClientOperations getBroadcastOperations() {
-        if (!started) {
-            throw new IllegalStateException("Server have not started!");
-        }
         return new BroadcastOperations(pipelineFactory.getAllClients());
     }
 
@@ -64,7 +66,7 @@ public class SocketIOServer implements ClientListeners {
         ChannelFactory factory = new NioServerSocketChannelFactory(config.getBossExecutor(), config.getWorkerExecutor());
         bootstrap = new ServerBootstrap(factory);
 
-        pipelineFactory.start(config, listenersHub);
+        pipelineFactory.start(config, namespacesHub);
         bootstrap.setPipelineFactory(pipelineFactory);
         bootstrap.setOption("child.tcpNoDelay", true);
         bootstrap.setOption("child.keepAlive", true);
@@ -81,29 +83,41 @@ public class SocketIOServer implements ClientListeners {
         started = false;
     }
 
+    public SocketIONamespace addNamespace(String name) {
+        return namespacesHub.create(name);
+    }
+
+    public SocketIONamespace getNamespace(String name) {
+        return namespacesHub.get(name);
+    }
+
+    public void removeNamespace(String name) {
+        namespacesHub.remove(name);
+    }
+
     @Override
     public void addEventListener(String eventName, DataListener<Object> listener) {
-        listenersHub.addEventListener(eventName, listener);
+        mainNamespace.addEventListener(eventName, listener);
     }
 
     @Override
     public void addJsonObjectListener(DataListener<Object> listener) {
-        listenersHub.addJsonObjectListener(listener);
+        mainNamespace.addJsonObjectListener(listener);
     }
 
     @Override
     public void addDisconnectListener(DisconnectListener listener) {
-        listenersHub.addDisconnectListener(listener);
+        mainNamespace.addDisconnectListener(listener);
     }
 
     @Override
     public void addConnectListener(ConnectListener listener) {
-        listenersHub.addConnectListener(listener);
+        mainNamespace.addConnectListener(listener);
     }
 
     @Override
     public void addMessageListener(DataListener<String> listener) {
-        listenersHub.addMessageListener(listener);
+        mainNamespace.addMessageListener(listener);
     }
 
 }

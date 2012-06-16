@@ -101,21 +101,6 @@ public class UTF8CharsScanner {
         int i = start;
         while (i < end) {
             i = getCharTailIndex(inputBuffer, i);
-//            int c = (int) inputBuffer.getByte(i) & 0xFF;
-//            switch (sInputCodesUtf8[c]) {
-//            case 2: // 2-byte UTF
-//                i += 2;
-//                break;
-//            case 3: // 3-byte UTF
-//                i += 3;
-//                break;
-//            case 4: // 4-byte UTF
-//                i += 4;
-//                break;
-//            default:
-//                i++;
-//                break;
-//            }
             len++;
             if (charsToRead == len) {
                 break;

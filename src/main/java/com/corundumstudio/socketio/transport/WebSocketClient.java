@@ -19,41 +19,25 @@ import java.util.UUID;
 
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelFuture;
-import org.jboss.netty.channel.ChannelFutureListener;
 
 import com.corundumstudio.socketio.AckManager;
 import com.corundumstudio.socketio.Disconnectable;
 import com.corundumstudio.socketio.messages.WebSocketPacketMessage;
 import com.corundumstudio.socketio.parser.Packet;
-import com.corundumstudio.socketio.parser.PacketType;
 
 public class WebSocketClient extends BaseClient {
 
-    private final Disconnectable disconnectable;
-
     public WebSocketClient(Channel channel, AckManager ackManager, Disconnectable disconnectable, UUID sessionId) {
-        super(sessionId, ackManager);
+        super(sessionId, ackManager, disconnectable);
         this.channel = channel;
-        this.disconnectable = disconnectable;
     }
 
     public Channel getChannel() {
         return channel;
     }
 
-    public void send(Packet packet) {
-        sendPacket(packet);
-    }
-
-    private ChannelFuture sendPacket(Packet packet) {
-        return channel.write(new WebSocketPacketMessage(sessionId, packet));
-    }
-
-    public void disconnect() {
-        ChannelFuture future = sendPacket(new Packet(PacketType.DISCONNECT));
-        future.addListener(ChannelFutureListener.CLOSE);
-
-        disconnectable.onDisconnect(this);
+    public ChannelFuture send(Packet packet) {
+        return channel.write(new WebSocketPacketMessage(getSessionId(), packet));
     }
 
 }

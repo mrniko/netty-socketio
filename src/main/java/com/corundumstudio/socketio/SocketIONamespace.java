@@ -15,31 +15,10 @@
  */
 package com.corundumstudio.socketio;
 
-import java.net.SocketAddress;
-import java.util.UUID;
+import com.corundumstudio.socketio.listener.ClientListeners;
 
+public interface SocketIONamespace extends ClientListeners {
 
-public interface SocketIOClient extends ClientOperations {
-
-    /**
-     * Client namespace
-     *
-     * @return - namespace
-     */
-    SocketIONamespace getNamespace();
-
-    /**
-     * Client session id, uses {@link UUID} object
-     *
-     * @return - session id
-     */
-    UUID getSessionId();
-
-    /**
-     * Get client remote address
-     *
-     * @return remote address
-     */
-    SocketAddress getRemoteAddress();
+    ClientOperations getBroadcastOperations();
 
 }

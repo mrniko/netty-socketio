@@ -15,53 +15,65 @@
  */
 package com.corundumstudio.socketio;
 
-import com.corundumstudio.socketio.listener.ListenersHub;
+import com.corundumstudio.socketio.namespace.Namespace;
+import com.corundumstudio.socketio.namespace.NamespacesHub;
 import com.corundumstudio.socketio.parser.Packet;
+import com.corundumstudio.socketio.transport.BaseClient;
 
 public class PacketListener {
 
+    private final NamespacesHub namespacesHub;
     private final AckManager ackManager;
-    private final ListenersHub listenersHub;
     private final HeartbeatHandler heartbeatHandler;
-    private final Disconnectable disconnectHandler;
 
-    public PacketListener(ListenersHub listenersHub, Disconnectable disconnectHandler,
-            HeartbeatHandler heartbeatHandler, AckManager ackManager) {
-        this.disconnectHandler = disconnectHandler;
-        this.listenersHub = listenersHub;
+    public PacketListener(HeartbeatHandler heartbeatHandler, AckManager ackManager, NamespacesHub namespacesHub) {
         this.heartbeatHandler = heartbeatHandler;
         this.ackManager = ackManager;
+        this.namespacesHub = namespacesHub;
     }
 
     public void onPacket(Packet packet, SocketIOClient client) {
         switch (packet.getType()) {
+        case CONNECT: {
+            //namespacesHub.transferClient((BaseClient)client, getEndpoint(packet));
+            client.send(packet);
+            break;
+        }
+
         case ACK:
             ackManager.onAck(client, packet);
             break;
 
-        case EVENT:
+        case EVENT: {
             Object data = null;
             if (packet.getArgs() != null
                     && !packet.getArgs().isEmpty()) {
                 data = packet.getArgs().get(0);
             }
-            listenersHub.onEvent(client, packet.getName(), data);
+            Namespace namespace = namespacesHub.get(packet.getEndpoint());
+            namespace.onEvent(client, packet.getName(), data);
             break;
+        }
 
         case HEARTBEAT:
-            heartbeatHandler.onHeartbeat(client);
+            heartbeatHandler.onHeartbeat((BaseClient)client);
             break;
 
-        case MESSAGE:
-            listenersHub.onMessage(client, packet.getData().toString());
+        case MESSAGE: {
+            Namespace namespace = namespacesHub.get(packet.getEndpoint());
+            namespace.onMessage(client, packet.getData().toString());
             break;
+        }
 
-        case JSON:
-            listenersHub.onJsonObject(client, packet.getData());
+        case JSON: {
+            Namespace namespace = namespacesHub.get(packet.getEndpoint());
+            namespace.onJsonObject(client, packet.getData());
             break;
+        }
 
         case DISCONNECT:
-            disconnectHandler.onDisconnect(client);
+            Namespace namespace = namespacesHub.get(packet.getEndpoint());
+            namespace.onDisconnect(client);
             break;
         }
     }
