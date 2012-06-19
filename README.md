@@ -1,4 +1,4 @@
-#Overview
+#Netty-socketio Overview
 
 This project is an open-source Java implementation of [Socket.IO](http://socket.io/) server. Based on [Netty](http://netty.io/) server framework.
 Required JDK 1.5 (or above).
@@ -17,12 +17,12 @@ Licensed under the Apache License 2.0.
 
 ##Server
 
-	Configuration config = new Configuration();
-	config.setHostname("localhost");
-	config.setPort(81);
-	config.setListener(handler);
+        Configuration config = new Configuration();
+        config.setHostname("localhost");
+        config.setPort(81);
+        config.setListener(handler);
 
-	SocketIOServer server = new SocketIOServer(config);
+        SocketIOServer server = new SocketIOServer(config);
         server.addMessageListener(new DataListener<String>() {
             @Override
             public void onData(SocketIOClient client, String message) {
@@ -88,7 +88,7 @@ Licensed under the Apache License 2.0.
                });
 
 	       socket.on('connect', function() {
-		    // connection established, now we can send an objects
+                    // connection established, now we can send an objects
 
                     // send json-object to server
                     var obj = ...
