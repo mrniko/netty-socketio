@@ -36,13 +36,14 @@ import org.jboss.netty.channel.ChannelFuture;
 import org.jboss.netty.channel.ChannelFutureListener;
 import org.jboss.netty.channel.ChannelHandler.Sharable;
 import org.jboss.netty.channel.ChannelHandlerContext;
+import org.jboss.netty.channel.MessageEvent;
+import org.jboss.netty.channel.SimpleChannelDownstreamHandler;
 import org.jboss.netty.handler.codec.http.DefaultHttpResponse;
 import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.jboss.netty.handler.codec.http.HttpResponse;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 import org.jboss.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import org.jboss.netty.handler.codec.http.websocketx.WebSocketFrame;
-import org.jboss.netty.handler.codec.oneone.OneToOneEncoder;
 import org.jboss.netty.util.CharsetUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,7 +60,7 @@ import com.corundumstudio.socketio.parser.Encoder;
 import com.corundumstudio.socketio.parser.Packet;
 
 @Sharable
-public class SocketIOEncoder extends OneToOneEncoder implements MessageHandler {
+public class SocketIOEncoder extends SimpleChannelDownstreamHandler implements MessageHandler {
 
     class XHRClientEntry {
 
@@ -152,42 +153,38 @@ public class SocketIOEncoder extends OneToOneEncoder implements MessageHandler {
     }
 
     @Override
-    protected Object encode(ChannelHandlerContext ctx, Channel channel, Object msg) throws Exception {
+    public void writeRequested(ChannelHandlerContext ctx, MessageEvent e) throws Exception {
+        Object msg = e.getMessage();
         if (msg instanceof BaseMessage) {
             BaseMessage message = (BaseMessage) msg;
-            Object result = message.handleMessage(this, channel);
-            if (result != null) {
-                return result;
-            }
+            message.handleMessage(this, ctx.getChannel());
+        } else {
+            ctx.sendDownstream(e);
         }
-        return msg;
     }
 
     @Override
-    public Object handle(XHRNewChannelMessage xhrNewChannelMessage, Channel channel) throws IOException {
+    public void handle(XHRNewChannelMessage xhrNewChannelMessage, Channel channel) throws IOException {
         XHRClientEntry clientEntry = getXHRClientEntry(channel, xhrNewChannelMessage.getSessionId());
 
         write(xhrNewChannelMessage.getSessionId(), xhrNewChannelMessage.getOrigin(), clientEntry, channel);
-        return ChannelBuffers.EMPTY_BUFFER;
     }
 
     @Override
-    public Object handle(XHRPacketMessage xhrPacketMessage, Channel channel) throws IOException {
+    public void handle(XHRPacketMessage xhrPacketMessage, Channel channel) throws IOException {
         XHRClientEntry clientEntry = getXHRClientEntry(channel, xhrPacketMessage.getSessionId());
         clientEntry.addPacket(xhrPacketMessage.getPacket());
 
         write(xhrPacketMessage.getSessionId(), xhrPacketMessage.getOrigin(), clientEntry, channel);
-        return ChannelBuffers.EMPTY_BUFFER;
     }
 
     @Override
-    public Object handle(XHRPostMessage xhrPostMessage, Channel channel) {
+    public void handle(XHRPostMessage xhrPostMessage, Channel channel) {
         sendMessage(xhrPostMessage.getOrigin(), null, channel, ChannelBuffers.EMPTY_BUFFER);
-        return ChannelBuffers.EMPTY_BUFFER;
     }
 
     @Override
-    public Object handle(AuthorizeMessage authMsg, Channel channel) throws IOException {
+    public void handle(AuthorizeMessage authMsg, Channel channel) throws IOException {
         String message = authMsg.getMsg();
         if (authMsg.getJsonpParam() != null) {
             message = "io.j[" + authMsg.getJsonpParam() + "]("
@@ -195,29 +192,28 @@ public class SocketIOEncoder extends OneToOneEncoder implements MessageHandler {
         }
         ChannelBuffer msg = ChannelBuffers.wrappedBuffer(message.getBytes());
         sendMessage(authMsg.getOrigin(), authMsg.getSessionId(), channel, msg);
-        return ChannelBuffers.EMPTY_BUFFER;
     }
 
     @Override
-    public Object handle(WebSocketPacketMessage webSocketPacketMessage, Channel channel) throws IOException {
+    public void handle(WebSocketPacketMessage webSocketPacketMessage, Channel channel) throws IOException {
         ChannelBuffer message = encoder.encodePacket(webSocketPacketMessage.getPacket());
         WebSocketFrame res = new TextWebSocketFrame(message);
         log.trace("Out message: {} sessionId: {}", new Object[] {
-                message.toString(CharsetUtil.UTF_8), webSocketPacketMessage.getSessionId() });
-        return res;
+                message.toString(CharsetUtil.UTF_8), webSocketPacketMessage.getSessionId()});
+        channel.write(res);
     }
 
     @Override
-    public Object handle(WebsocketErrorMessage websocketErrorMessage, Channel channel) throws IOException {
+    public void handle(WebsocketErrorMessage websocketErrorMessage, Channel channel) throws IOException {
         ChannelBuffer message = encoder.encodePacket(websocketErrorMessage.getPacket());
-        return new TextWebSocketFrame(message);
+        TextWebSocketFrame frame = new TextWebSocketFrame(message);
+        channel.write(frame);
     }
 
     @Override
-    public Object handle(XHRErrorMessage xhrErrorMessage, Channel channel) throws IOException {
+    public void handle(XHRErrorMessage xhrErrorMessage, Channel channel) throws IOException {
         ChannelBuffer message = encoder.encodePacket(xhrErrorMessage.getPacket());
         sendMessage(xhrErrorMessage.getOrigin(), null, channel, message);
-        return ChannelBuffers.EMPTY_BUFFER;
     }
 
 }

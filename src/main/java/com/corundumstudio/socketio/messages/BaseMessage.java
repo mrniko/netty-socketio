@@ -23,6 +23,6 @@ import com.corundumstudio.socketio.MessageHandler;
 
 public abstract class BaseMessage {
 
-    public abstract Object handleMessage(MessageHandler handler, Channel channel) throws IOException;
+    public abstract void handleMessage(MessageHandler handler, Channel channel) throws IOException;
 
 }

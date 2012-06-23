@@ -36,8 +36,8 @@ public class WebsocketErrorMessage extends BaseMessage {
     }
 
     @Override
-    public Object handleMessage(MessageHandler handler, Channel channel) throws IOException {
-        return handler.handle(this, channel);
+    public void handleMessage(MessageHandler handler, Channel channel) throws IOException {
+        handler.handle(this, channel);
     }
 
 }

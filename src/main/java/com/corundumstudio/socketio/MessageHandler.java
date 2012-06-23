@@ -29,18 +29,18 @@ import com.corundumstudio.socketio.messages.XHRPostMessage;
 
 public interface MessageHandler {
 
-    Object handle(XHRNewChannelMessage xhrNewChannelMessage, Channel channel) throws IOException;
+    void handle(XHRNewChannelMessage xhrNewChannelMessage, Channel channel) throws IOException;
 
-    Object handle(XHRPacketMessage xhrPacketMessage, Channel channel) throws IOException;
+    void handle(XHRPacketMessage xhrPacketMessage, Channel channel) throws IOException;
 
-    Object handle(XHRPostMessage xhrPostMessage, Channel channel);
+    void handle(XHRPostMessage xhrPostMessage, Channel channel);
 
-    Object handle(AuthorizeMessage authorizeMessage, Channel channel) throws IOException;
+    void handle(AuthorizeMessage authorizeMessage, Channel channel) throws IOException;
 
-    Object handle(WebSocketPacketMessage webSocketPacketMessage, Channel channel) throws IOException;
+    void handle(WebSocketPacketMessage webSocketPacketMessage, Channel channel) throws IOException;
 
-    Object handle(WebsocketErrorMessage websocketErrorMessage, Channel channel) throws IOException;
+    void handle(WebsocketErrorMessage websocketErrorMessage, Channel channel) throws IOException;
 
-    Object handle(XHRErrorMessage xhrErrorMessage, Channel channel) throws IOException;
+    void handle(XHRErrorMessage xhrErrorMessage, Channel channel) throws IOException;
 
 }

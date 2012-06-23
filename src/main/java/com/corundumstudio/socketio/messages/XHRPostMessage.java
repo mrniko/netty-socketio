@@ -32,8 +32,8 @@ public class XHRPostMessage extends BaseMessage {
     }
 
     @Override
-    public Object handleMessage(MessageHandler handler, Channel channel) {
-        return handler.handle(this, channel);
+    public void handleMessage(MessageHandler handler, Channel channel) {
+        handler.handle(this, channel);
     }
 
 }
