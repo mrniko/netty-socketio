@@ -36,6 +36,10 @@ public class NamespaceClient implements SocketIOClient {
         namespace.addClient(this);
     }
 
+    public BaseClient getBaseClient() {
+        return baseClient;
+    }
+
     public Namespace getNamespace() {
         return namespace;
     }

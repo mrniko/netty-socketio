@@ -18,7 +18,7 @@ package com.corundumstudio.socketio;
 import com.corundumstudio.socketio.namespace.Namespace;
 import com.corundumstudio.socketio.namespace.NamespacesHub;
 import com.corundumstudio.socketio.parser.Packet;
-import com.corundumstudio.socketio.transport.BaseClient;
+import com.corundumstudio.socketio.transport.NamespaceClient;
 
 public class PacketListener {
 
@@ -35,7 +35,6 @@ public class PacketListener {
     public void onPacket(Packet packet, SocketIOClient client) {
         switch (packet.getType()) {
         case CONNECT: {
-            //namespacesHub.transferClient((BaseClient)client, getEndpoint(packet));
             client.send(packet);
             break;
         }
@@ -56,7 +55,8 @@ public class PacketListener {
         }
 
         case HEARTBEAT:
-            heartbeatHandler.onHeartbeat((BaseClient)client);
+            NamespaceClient nc = (NamespaceClient)client;
+            heartbeatHandler.onHeartbeat(nc.getBaseClient());
             break;
 
         case MESSAGE: {
