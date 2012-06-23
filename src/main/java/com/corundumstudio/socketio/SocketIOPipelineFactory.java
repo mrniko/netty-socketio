@@ -78,7 +78,7 @@ public class SocketIOPipelineFactory implements ChannelPipelineFactory, Disconne
         authorizeHandler = new AuthorizeHandler(connectPath, scheduler, configuration, namespacesHub);
         xhrPollingTransport = new XHRPollingTransport(connectPath, ackManager, this, scheduler, authorizeHandler, configuration);
         webSocketTransport = new WebSocketTransport(connectPath, ackManager, this, authorizeHandler, heartbeatHandler);
-        socketIOEncoder = new SocketIOEncoder(objectMapper, encoder);
+        socketIOEncoder = new SocketIOEncoder(encoder);
     }
 
     public Iterable<SocketIOClient> getAllClients() {

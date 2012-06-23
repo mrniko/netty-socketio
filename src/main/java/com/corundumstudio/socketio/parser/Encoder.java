@@ -33,6 +33,12 @@ public class Encoder {
         this.objectMapper = objectMapper;
     }
 
+    public ChannelBuffer encodeJsonP(String param, String msg) throws IOException {
+        String message = "io.j[" + param + "]("
+                + objectMapper.writeValueAsString(msg) + ");";
+        return ChannelBuffers.wrappedBuffer(message.getBytes());
+    }
+
     public ChannelBuffer encodePacket(Packet packet) throws IOException {
         ChannelBuffer buffer = ChannelBuffers.dynamicBuffer();
         ChannelBufferOutputStream out = new ChannelBufferOutputStream(buffer);

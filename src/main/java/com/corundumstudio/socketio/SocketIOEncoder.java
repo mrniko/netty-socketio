@@ -28,7 +28,6 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.codehaus.jackson.map.ObjectMapper;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.Channel;
@@ -92,14 +91,10 @@ public class SocketIOEncoder extends SimpleChannelDownstreamHandler implements M
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private ObjectMapper objectMapper;
-    private Encoder encoder;
+    private final ConcurrentMap<UUID, XHRClientEntry> sessionId2ActiveChannelId = new ConcurrentHashMap<UUID, XHRClientEntry>();
+    private final Encoder encoder;
 
-    private ConcurrentMap<UUID, XHRClientEntry> sessionId2ActiveChannelId = new ConcurrentHashMap<UUID, XHRClientEntry>();
-
-    public SocketIOEncoder(ObjectMapper objectMapper, Encoder encoder) {
-        super();
-        this.objectMapper = objectMapper;
+    public SocketIOEncoder(Encoder encoder) {
         this.encoder = encoder;
     }
 
@@ -185,12 +180,13 @@ public class SocketIOEncoder extends SimpleChannelDownstreamHandler implements M
 
     @Override
     public void handle(AuthorizeMessage authMsg, Channel channel) throws IOException {
+        ChannelBuffer msg;
         String message = authMsg.getMsg();
         if (authMsg.getJsonpParam() != null) {
-            message = "io.j[" + authMsg.getJsonpParam() + "]("
-                    + objectMapper.writeValueAsString(message) + ");";
+            msg = encoder.encodeJsonP(authMsg.getJsonpParam(), message);
+        } else {
+            msg = ChannelBuffers.wrappedBuffer(message.getBytes());
         }
-        ChannelBuffer msg = ChannelBuffers.wrappedBuffer(message.getBytes());
         sendMessage(authMsg.getOrigin(), authMsg.getSessionId(), channel, msg);
     }
 
