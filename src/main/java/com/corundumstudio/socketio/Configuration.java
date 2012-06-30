@@ -18,7 +18,8 @@ package com.corundumstudio.socketio;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
-import org.codehaus.jackson.map.ObjectMapper;
+import com.corundumstudio.socketio.parser.JacksonJsonSupport;
+import com.corundumstudio.socketio.parser.JsonSupport;
 
 public class Configuration {
 
@@ -39,7 +40,7 @@ public class Configuration {
     private String hostname;
     private int port;
 
-    private ObjectMapper objectMapper = new ObjectMapper();
+    private JsonSupport jsonSupport = new JacksonJsonSupport();
 
     public Configuration() {
     }
@@ -56,18 +57,19 @@ public class Configuration {
         setHeartbeatThreadPoolSize(conf.getHeartbeatThreadPoolSize());
         setHeartbeatTimeout(conf.getHeartbeatTimeout());
         setHostname(conf.getHostname());
-        setObjectMapper(conf.getObjectMapper());
+        setJsonSupport(conf.getJsonSupport());
         setPort(conf.getPort());
         setWorkerExecutor(conf.getWorkerExecutor());
         setContext(conf.getContext());
         setAllowCustomRequests(conf.isAllowCustomRequests());
+        setPollingDuration(conf.getPollingDuration());
     }
 
-    public ObjectMapper getObjectMapper() {
-        return objectMapper;
+    public JsonSupport getJsonSupport() {
+        return jsonSupport;
     }
-    public void setObjectMapper(ObjectMapper objectMapper) {
-        this.objectMapper = objectMapper;
+    public void setJsonSupport(JsonSupport jsonSupport) {
+        this.jsonSupport = jsonSupport;
     }
 
     public String getHostname() {

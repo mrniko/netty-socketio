@@ -17,7 +17,6 @@ package com.corundumstudio.socketio;
 
 import static org.jboss.netty.channel.Channels.pipeline;
 
-import org.codehaus.jackson.map.ObjectMapper;
 import org.jboss.netty.channel.ChannelPipeline;
 import org.jboss.netty.channel.ChannelPipelineFactory;
 import org.jboss.netty.handler.codec.http.HttpChunkAggregator;
@@ -29,6 +28,7 @@ import org.slf4j.LoggerFactory;
 import com.corundumstudio.socketio.namespace.NamespacesHub;
 import com.corundumstudio.socketio.parser.Decoder;
 import com.corundumstudio.socketio.parser.Encoder;
+import com.corundumstudio.socketio.parser.JsonSupport;
 import com.corundumstudio.socketio.scheduler.CancelableScheduler;
 import com.corundumstudio.socketio.transport.BaseClient;
 import com.corundumstudio.socketio.transport.WebSocketTransport;
@@ -64,9 +64,9 @@ public class SocketIOPipelineFactory implements ChannelPipelineFactory, Disconne
     public void start(Configuration configuration, NamespacesHub namespacesHub) {
         scheduler = new CancelableScheduler(configuration.getHeartbeatThreadPoolSize());
 
-        ObjectMapper objectMapper = configuration.getObjectMapper();
-        Encoder encoder = new Encoder(objectMapper);
-        Decoder decoder = new Decoder(objectMapper);
+        JsonSupport jsonSupport = configuration.getJsonSupport();
+        Encoder encoder = new Encoder(jsonSupport);
+        Decoder decoder = new Decoder(jsonSupport);
 
         ackManager = new AckManager(scheduler);
         heartbeatHandler = new HeartbeatHandler(configuration, scheduler);

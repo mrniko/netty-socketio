@@ -18,15 +18,12 @@ package com.corundumstudio.socketio.parser;
 import java.io.IOException;
 import java.util.Arrays;
 
-import org.codehaus.jackson.map.ObjectMapper;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.util.CharsetUtil;
 import org.junit.Assert;
 import org.junit.Test;
 
-public class EncoderAckPacketTest {
-
-    private Encoder encoder = new Encoder(new ObjectMapper());
+public class EncoderAckPacketTest extends EncoderBaseTest {
 
     @Test
     public void testEncode() throws IOException {

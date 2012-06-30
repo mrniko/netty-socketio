@@ -17,13 +17,10 @@ package com.corundumstudio.socketio.parser;
 
 import java.io.IOException;
 
-import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.Assert;
 import org.junit.Test;
 
-public class DecoderConnectionPacketTest {
-
-    private final Decoder decoder = new Decoder(new ObjectMapper());
+public class DecoderConnectionPacketTest extends DecoderBaseTest {
 
     @Test
     public void testDecodeHeartbeat() throws IOException {

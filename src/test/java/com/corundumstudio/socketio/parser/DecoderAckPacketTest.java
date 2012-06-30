@@ -19,13 +19,10 @@ import java.io.IOException;
 import java.util.Arrays;
 
 import org.codehaus.jackson.map.JsonMappingException;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.Assert;
 import org.junit.Test;
 
-public class DecoderAckPacketTest {
-
-    private final Decoder decoder = new Decoder(new ObjectMapper());
+public class DecoderAckPacketTest extends DecoderBaseTest {
 
     @Test
     public void testDecode() throws IOException {

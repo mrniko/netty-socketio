@@ -25,7 +25,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import junit.framework.Assert;
 import mockit.Mocked;
 
-import org.codehaus.jackson.map.ObjectMapper;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.Channel;
@@ -38,13 +37,15 @@ import com.corundumstudio.socketio.namespace.Namespace;
 import com.corundumstudio.socketio.namespace.NamespacesHub;
 import com.corundumstudio.socketio.parser.Decoder;
 import com.corundumstudio.socketio.parser.Encoder;
+import com.corundumstudio.socketio.parser.JacksonJsonSupport;
+import com.corundumstudio.socketio.parser.JsonSupport;
 import com.corundumstudio.socketio.parser.Packet;
 import com.corundumstudio.socketio.parser.PacketType;
 import com.corundumstudio.socketio.transport.BaseClient;
 
 public class PacketHandlerTest {
 
-    private ObjectMapper map = new ObjectMapper();
+    private JsonSupport map = new JacksonJsonSupport();
     private Decoder decoder = new Decoder(map);
     private Encoder encoder = new Encoder(map);
     private NamespacesHub namespacesHub = new NamespacesHub();

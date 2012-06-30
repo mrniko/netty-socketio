@@ -19,7 +19,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Queue;
 
-import org.codehaus.jackson.map.ObjectMapper;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBufferOutputStream;
 import org.jboss.netty.buffer.ChannelBuffers;
@@ -27,15 +26,15 @@ import org.jboss.netty.buffer.ChannelBuffers;
 public class Encoder {
 
     private final UTF8CharsScanner charsScanner = new UTF8CharsScanner();
-    private final ObjectMapper objectMapper;
+    private final JsonSupport jsonSupport;
 
-    public Encoder(ObjectMapper objectMapper) {
-        this.objectMapper = objectMapper;
+    public Encoder(JsonSupport jsonSupport) {
+        this.jsonSupport = jsonSupport;
     }
 
     public ChannelBuffer encodeJsonP(String param, String msg) throws IOException {
         String message = "io.j[" + param + "]("
-                + objectMapper.writeValueAsString(msg) + ");";
+                + jsonSupport.writeValueAsString(msg) + ");";
         return ChannelBuffers.wrappedBuffer(message.getBytes());
     }
 
@@ -48,11 +47,8 @@ public class Encoder {
 
     public ChannelBuffer encodePackets(Queue<Packet> packets) throws IOException {
         if (packets.size() == 1) {
-            ChannelBuffer buffer = ChannelBuffers.dynamicBuffer();
-            ChannelBufferOutputStream out = new ChannelBufferOutputStream(buffer);
             Packet packet = packets.poll();
-            encodePacket(packet, out);
-            return buffer;
+            return encodePacket(packet);
         } else {
             ChannelBuffer buffer = ChannelBuffers.dynamicBuffer();
             while (true) {
@@ -191,12 +187,12 @@ public class Encoder {
             }
             buffer.writeByte(Packet.SEPARATOR);
             Event event = new Event(packet.getName(), args);
-            objectMapper.writeValue(out, event);
+            jsonSupport.writeValue(out, event);
             break;
 
         case JSON:
             buffer.writeByte(Packet.SEPARATOR);
-            objectMapper.writeValue(out, packet.getData());
+            jsonSupport.writeValue(out, packet.getData());
             break;
 
         case CONNECT:
@@ -217,7 +213,7 @@ public class Encoder {
             }
             if (!packet.getArgs().isEmpty()) {
                 buffer.writeByte('+');
-                objectMapper.writeValue(out, packet.getArgs());
+                jsonSupport.writeValue(out, packet.getArgs());
             }
             break;
 

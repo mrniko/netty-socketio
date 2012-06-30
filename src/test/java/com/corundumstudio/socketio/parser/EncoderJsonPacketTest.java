@@ -22,15 +22,12 @@ import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-import org.codehaus.jackson.map.ObjectMapper;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.util.CharsetUtil;
 import org.junit.Assert;
 import org.junit.Test;
 
-public class EncoderJsonPacketTest {
-
-    private Encoder encoder = new Encoder(new ObjectMapper());
+public class EncoderJsonPacketTest extends EncoderBaseTest {
 
     @Test
     public void testEncode() throws IOException {

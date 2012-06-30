@@ -17,7 +17,6 @@ package com.corundumstudio.socketio;
 
 import java.net.InetSocketAddress;
 
-import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.jboss.netty.bootstrap.ServerBootstrap;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelFactory;
@@ -49,7 +48,6 @@ public class SocketIOServer implements ClientListeners {
 
     public SocketIOServer(Configuration configuration) {
         this.config = new Configuration(configuration);
-        this.config.getObjectMapper().setSerializationInclusion(JsonSerialize.Inclusion.NON_NULL);
 
         mainNamespace = addNamespace(Namespace.DEFAULT_NAME);
     }

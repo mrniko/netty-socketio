@@ -17,15 +17,12 @@ package com.corundumstudio.socketio.parser;
 
 import java.io.IOException;
 
-import org.codehaus.jackson.map.ObjectMapper;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.util.CharsetUtil;
 import org.junit.Assert;
 import org.junit.Test;
 
-public class EncoderConnectionPacketTest {
-
-    private Encoder encoder = new Encoder(new ObjectMapper());
+public class EncoderConnectionPacketTest extends EncoderBaseTest {
 
     @Test
     public void testEncodeHeartbeat() throws IOException {

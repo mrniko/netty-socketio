@@ -21,7 +21,6 @@ import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-import org.codehaus.jackson.map.ObjectMapper;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.util.CharsetUtil;
@@ -30,8 +29,8 @@ import org.junit.Test;
 
 public class PayloadTest {
 
-    private final Decoder decoder = new Decoder(new ObjectMapper());
-    private final Encoder encoder = new Encoder(new ObjectMapper());
+    private final Decoder decoder = new Decoder(new JacksonJsonSupport());
+    private final Encoder encoder = new Encoder(new JacksonJsonSupport());
 
     @Test
     public void testPayloadDecode() throws IOException {

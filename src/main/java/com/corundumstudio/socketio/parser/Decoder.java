@@ -18,7 +18,6 @@ package com.corundumstudio.socketio.parser;
 import java.io.IOException;
 import java.util.List;
 
-import org.codehaus.jackson.map.ObjectMapper;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBufferIndexFinder;
 import org.jboss.netty.buffer.ChannelBufferInputStream;
@@ -38,10 +37,10 @@ public class Decoder {
         }
     };
 
-    private final ObjectMapper objectMapper;
+    private final JsonSupport jsonSupport;
 
-    public Decoder(ObjectMapper objectMapper) {
-        this.objectMapper = objectMapper;
+    public Decoder(JsonSupport jsonSupport) {
+        this.jsonSupport = jsonSupport;
     }
 
     // fastest way to parse chars to int
@@ -154,7 +153,7 @@ public class Decoder {
 
         case EVENT: {
             ChannelBufferInputStream in = new ChannelBufferInputStream(buffer);
-            Event event = objectMapper.readValue(in, Event.class);
+            Event event = jsonSupport.readValue(in, Event.class);
             packet.setName(event.getName());
             if (event.getArgs() != null) {
                 packet.setArgs(event.getArgs());
@@ -164,7 +163,7 @@ public class Decoder {
 
         case JSON: {
             ChannelBufferInputStream in = new ChannelBufferInputStream(buffer);
-            Object obj = objectMapper.readValue(in, Object.class);
+            Object obj = jsonSupport.readValue(in, Object.class);
             packet.setData(obj);
             break;
         }
@@ -206,7 +205,7 @@ public class Decoder {
                 buffer.readerIndex(plusIndex+1);
 
                 ChannelBufferInputStream in = new ChannelBufferInputStream(buffer);
-                List<Object> args = objectMapper.readValue(in, List.class);
+                List<Object> args = jsonSupport.readValue(in, List.class);
                 packet.setArgs(args);
             }
             break;

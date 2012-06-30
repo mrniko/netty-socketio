@@ -18,13 +18,10 @@ package com.corundumstudio.socketio.parser;
 import java.io.IOException;
 import java.util.Map;
 
-import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.Assert;
 import org.junit.Test;
 
-public class DecoderJsonPacketTest {
-
-    private final Decoder decoder = new Decoder(new ObjectMapper());
+public class DecoderJsonPacketTest extends DecoderBaseTest {
 
     @Test
     public void testUTF8Decode() throws IOException {

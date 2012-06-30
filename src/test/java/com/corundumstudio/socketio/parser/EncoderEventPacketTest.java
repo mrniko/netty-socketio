@@ -19,22 +19,12 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.util.CharsetUtil;
 import org.junit.Assert;
 import org.junit.Test;
 
-public class EncoderEventPacketTest {
-
-    private Encoder encoder;
-
-    public EncoderEventPacketTest() {
-        ObjectMapper om = new ObjectMapper();
-        om.setSerializationInclusion(JsonSerialize.Inclusion.NON_NULL);
-        encoder = new Encoder(om);
-    }
+public class EncoderEventPacketTest extends EncoderBaseTest {
 
     @Test
     public void testEncode() throws IOException {
