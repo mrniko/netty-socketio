@@ -45,6 +45,7 @@ import com.corundumstudio.socketio.AuthorizeHandler;
 import com.corundumstudio.socketio.CompositeIterable;
 import com.corundumstudio.socketio.Configuration;
 import com.corundumstudio.socketio.Disconnectable;
+import com.corundumstudio.socketio.DisconnectableHub;
 import com.corundumstudio.socketio.SocketIOClient;
 import com.corundumstudio.socketio.messages.PacketsMessage;
 import com.corundumstudio.socketio.messages.XHRErrorMessage;
@@ -67,11 +68,11 @@ public class XHRPollingTransport extends SimpleChannelUpstreamHandler implements
 
     private final AckManager ackManager;
     private final AuthorizeHandler authorizeHandler;
-    private final Disconnectable disconnectable;
+    private final DisconnectableHub disconnectable;
     private final Configuration configuration;
     private final String path;
 
-    public XHRPollingTransport(String connectPath, AckManager ackManager, Disconnectable disconnectable, CancelableScheduler scheduler,
+    public XHRPollingTransport(String connectPath, AckManager ackManager, DisconnectableHub disconnectable, CancelableScheduler scheduler,
                                 AuthorizeHandler authorizeHandler, Configuration configuration) {
         this.path = connectPath + "xhr-polling/";
         this.ackManager = ackManager;

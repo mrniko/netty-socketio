@@ -21,13 +21,13 @@ import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelFuture;
 
 import com.corundumstudio.socketio.AckManager;
-import com.corundumstudio.socketio.Disconnectable;
+import com.corundumstudio.socketio.DisconnectableHub;
 import com.corundumstudio.socketio.messages.WebSocketPacketMessage;
 import com.corundumstudio.socketio.parser.Packet;
 
 public class WebSocketClient extends BaseClient {
 
-    public WebSocketClient(Channel channel, AckManager ackManager, Disconnectable disconnectable, UUID sessionId) {
+    public WebSocketClient(Channel channel, AckManager ackManager, DisconnectableHub disconnectable, UUID sessionId) {
         super(sessionId, ackManager, disconnectable);
         this.channel = channel;
     }

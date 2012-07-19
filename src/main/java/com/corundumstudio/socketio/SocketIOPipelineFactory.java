@@ -34,7 +34,7 @@ import com.corundumstudio.socketio.transport.BaseClient;
 import com.corundumstudio.socketio.transport.WebSocketTransport;
 import com.corundumstudio.socketio.transport.XHRPollingTransport;
 
-public class SocketIOPipelineFactory implements ChannelPipelineFactory, Disconnectable {
+public class SocketIOPipelineFactory implements ChannelPipelineFactory, DisconnectableHub {
 
     protected static final String SOCKETIO_ENCODER = "socketioEncoder";
     protected static final String WEB_SOCKET_TRANSPORT = "webSocketTransport";

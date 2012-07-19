@@ -45,6 +45,7 @@ import com.corundumstudio.socketio.AckManager;
 import com.corundumstudio.socketio.AuthorizeHandler;
 import com.corundumstudio.socketio.CompositeIterable;
 import com.corundumstudio.socketio.Disconnectable;
+import com.corundumstudio.socketio.DisconnectableHub;
 import com.corundumstudio.socketio.HeartbeatHandler;
 import com.corundumstudio.socketio.SocketIOClient;
 import com.corundumstudio.socketio.messages.PacketsMessage;
@@ -60,11 +61,11 @@ public class WebSocketTransport extends SimpleChannelUpstreamHandler implements 
     private final AckManager ackManager;
     private final HeartbeatHandler heartbeatHandler;
     private final AuthorizeHandler authorizeHandler;
-    private final Disconnectable disconnectable;
+    private final DisconnectableHub disconnectable;
     private final String path;
 
 
-    public WebSocketTransport(String connectPath, AckManager ackManager, Disconnectable disconnectable,
+    public WebSocketTransport(String connectPath, AckManager ackManager, DisconnectableHub disconnectable,
             AuthorizeHandler authorizeHandler, HeartbeatHandler heartbeatHandler) {
         this.path = connectPath + "websocket";
         this.authorizeHandler = authorizeHandler;

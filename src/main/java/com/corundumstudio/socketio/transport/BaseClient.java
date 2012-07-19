@@ -26,7 +26,7 @@ import org.jboss.netty.channel.ChannelFuture;
 import org.jboss.netty.channel.ChannelFutureListener;
 
 import com.corundumstudio.socketio.AckManager;
-import com.corundumstudio.socketio.Disconnectable;
+import com.corundumstudio.socketio.DisconnectableHub;
 import com.corundumstudio.socketio.SocketIOClient;
 import com.corundumstudio.socketio.namespace.Namespace;
 import com.corundumstudio.socketio.parser.Packet;
@@ -36,12 +36,12 @@ public abstract class BaseClient {
 
     private final ConcurrentMap<Namespace, SocketIOClient> namespaceClients = new ConcurrentHashMap<Namespace, SocketIOClient>();
 
-    private final Disconnectable disconnectable;
+    private final DisconnectableHub disconnectable;
     private final AckManager ackManager;
     private final UUID sessionId;
     protected Channel channel;
 
-    public BaseClient(UUID sessionId, AckManager ackManager, Disconnectable disconnectable) {
+    public BaseClient(UUID sessionId, AckManager ackManager, DisconnectableHub disconnectable) {
         this.sessionId = sessionId;
         this.ackManager = ackManager;
         this.disconnectable = disconnectable;
