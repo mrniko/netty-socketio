@@ -56,6 +56,15 @@ public class SocketIOServer implements ClientListeners {
         this.pipelineFactory = pipelineFactory;
     }
 
+    /**
+     * Get all clients
+     *
+     * @return Iterable object with clients
+     */
+    public Iterable<SocketIOClient> getAllClients() {
+        return pipelineFactory.getAllClients();
+    }
+
     public ClientOperations getBroadcastOperations() {
         return new BroadcastOperations(pipelineFactory.getAllClients());
     }
