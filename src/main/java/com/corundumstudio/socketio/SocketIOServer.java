@@ -37,7 +37,7 @@ public class SocketIOServer implements ClientListeners {
 
     private ServerBootstrap bootstrap;
 
-    private final NamespacesHub namespacesHub = new NamespacesHub();
+    private final NamespacesHub namespacesHub;
     private final SocketIONamespace mainNamespace;
 
     private SocketIOPipelineFactory pipelineFactory = new SocketIOPipelineFactory();
@@ -48,7 +48,7 @@ public class SocketIOServer implements ClientListeners {
 
     public SocketIOServer(Configuration configuration) {
         this.config = new Configuration(configuration);
-
+        namespacesHub = new NamespacesHub(this.config.getJsonSupport());
         mainNamespace = addNamespace(Namespace.DEFAULT_NAME);
     }
 
@@ -103,8 +103,8 @@ public class SocketIOServer implements ClientListeners {
     }
 
     @Override
-    public void addEventListener(String eventName, DataListener<Object> listener) {
-        mainNamespace.addEventListener(eventName, listener);
+    public <T> void addEventListener(String eventName, Class<T> eventClass, DataListener<T> listener) {
+        mainNamespace.addEventListener(eventName, eventClass, listener);
     }
 
     @Override

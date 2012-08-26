@@ -16,6 +16,7 @@
 package com.corundumstudio.socketio.parser;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.junit.Assert;
@@ -41,6 +42,10 @@ public class DecoderEventPacketTest extends DecoderBaseTest {
 
     @Test
     public void testDecodeWithData() throws IOException {
+        JacksonJsonSupport jsonSupport = new JacksonJsonSupport();
+        Decoder decoder = new Decoder(jsonSupport);
+        jsonSupport.addEventMapping("edwald", HashMap.class);
+
         Packet packet = decoder.decodePacket("5:::{\"name\":\"edwald\",\"args\":[{\"a\": \"b\"},2,\"3\"]}");
         Assert.assertEquals(PacketType.EVENT, packet.getType());
         Assert.assertEquals("edwald", packet.getName());

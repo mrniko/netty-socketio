@@ -48,7 +48,7 @@ public class PacketHandlerTest {
     private JsonSupport map = new JacksonJsonSupport();
     private Decoder decoder = new Decoder(map);
     private Encoder encoder = new Encoder(map);
-    private NamespacesHub namespacesHub = new NamespacesHub();
+    private NamespacesHub namespacesHub = new NamespacesHub(map);
     @Mocked
     private Channel channel;
     @Mocked

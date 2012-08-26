@@ -29,6 +29,7 @@ import com.corundumstudio.socketio.SocketIONamespace;
 import com.corundumstudio.socketio.listener.ConnectListener;
 import com.corundumstudio.socketio.listener.DataListener;
 import com.corundumstudio.socketio.listener.DisconnectListener;
+import com.corundumstudio.socketio.parser.JsonSupport;
 import com.corundumstudio.socketio.transport.NamespaceClient;
 
 public class Namespace implements SocketIONamespace {
@@ -36,18 +37,20 @@ public class Namespace implements SocketIONamespace {
     public static final String DEFAULT_NAME = "";
 
     private final Set<SocketIOClient> clients = Collections.newSetFromMap(new ConcurrentHashMap<SocketIOClient, Boolean>());
-    private final ConcurrentMap<String, Queue<DataListener<Object>>> eventListeners =
-                                                            new ConcurrentHashMap<String, Queue<DataListener<Object>>>();
+    private final ConcurrentMap<String, EventEntry<?>> eventListeners =
+                                                            new ConcurrentHashMap<String, EventEntry<?>>();
     private final Queue<DataListener<Object>> jsonObjectListeners = new ConcurrentLinkedQueue<DataListener<Object>>();
     private final Queue<DataListener<String>> messageListeners = new ConcurrentLinkedQueue<DataListener<String>>();
     private final Queue<ConnectListener> connectListeners = new ConcurrentLinkedQueue<ConnectListener>();
     private final Queue<DisconnectListener> disconnectListeners = new ConcurrentLinkedQueue<DisconnectListener>();
 
     private final String name;
+    private final JsonSupport jsonSupport;
 
-    public Namespace(String name) {
+    public Namespace(String name, JsonSupport jsonSupport) {
         super();
         this.name = name;
+        this.jsonSupport = jsonSupport;
     }
 
     public void addClient(SocketIOClient client) {
@@ -59,21 +62,25 @@ public class Namespace implements SocketIONamespace {
     }
 
     @Override
-    public void addEventListener(String eventName, DataListener<Object> listener) {
-        Queue<DataListener<Object>> entry = eventListeners.get(eventName);
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public <T> void addEventListener(String eventName, Class<T> eventClass, DataListener<T> listener) {
+        EventEntry entry = eventListeners.get(eventName);
         if (entry == null) {
-            entry = new ConcurrentLinkedQueue<DataListener<Object>>();
-            Queue<DataListener<Object>> oldEntry = eventListeners.putIfAbsent(eventName, entry);
+            entry = new EventEntry<T>(eventClass);
+            EventEntry<?> oldEntry = eventListeners.putIfAbsent(eventName, entry);
             if (oldEntry != null) {
                 entry = oldEntry;
             }
         }
-        entry.add(listener);
+        entry.addListener(listener);
+        jsonSupport.addEventMapping(eventName, eventClass);
     }
 
+    @SuppressWarnings({"rawtypes", "unchecked"})
     public void onEvent(SocketIOClient client, String eventName, Object data) {
-        Queue<DataListener<Object>> entry = eventListeners.get(eventName);
-        for (DataListener<Object> dataListener : entry) {
+        EventEntry entry = eventListeners.get(eventName);
+        Queue<DataListener> listeners = entry.getListeners();
+        for (DataListener dataListener : listeners) {
             dataListener.onData(client, data);
         }
     }

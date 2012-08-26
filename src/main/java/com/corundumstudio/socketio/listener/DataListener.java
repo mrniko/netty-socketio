@@ -19,6 +19,12 @@ import com.corundumstudio.socketio.SocketIOClient;
 
 public interface DataListener<T> {
 
+    /**
+     * Invokes when data object received from client
+     *
+     * @param client - receiver
+     * @param data - received object
+     */
     void onData(SocketIOClient client, T data);
 
 }

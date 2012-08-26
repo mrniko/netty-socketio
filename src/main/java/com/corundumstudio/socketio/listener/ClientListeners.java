@@ -17,7 +17,7 @@ package com.corundumstudio.socketio.listener;
 
 public interface ClientListeners {
 
-    void addEventListener(String eventName, DataListener<Object> listener);
+    <T> void addEventListener(String eventName, Class<T> eventClass, DataListener<T> listener);
 
     void addJsonObjectListener(DataListener<Object> listener);
 

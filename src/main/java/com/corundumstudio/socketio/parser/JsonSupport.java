@@ -27,4 +27,8 @@ public interface JsonSupport {
 
     String writeValueAsString(Object value) throws IOException;
 
+    void addEventMapping(String eventName, Class<?> eventClass);
+
+    void removeEventMapping(String eventName);
+
 }

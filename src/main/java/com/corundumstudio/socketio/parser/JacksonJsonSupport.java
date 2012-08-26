@@ -18,16 +18,78 @@ package com.corundumstudio.socketio.parser;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
+import org.codehaus.jackson.JsonNode;
+import org.codehaus.jackson.JsonParser;
+import org.codehaus.jackson.JsonProcessingException;
+import org.codehaus.jackson.Version;
+import org.codehaus.jackson.map.DeserializationContext;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
+import org.codehaus.jackson.map.deser.std.StdDeserializer;
+import org.codehaus.jackson.map.module.SimpleModule;
+import org.codehaus.jackson.node.ObjectNode;
 
 public class JacksonJsonSupport implements JsonSupport {
 
+    private class EventDeserializer extends StdDeserializer<Event> {
+
+        Map<String, Class<?>> eventMapping = new ConcurrentHashMap<String, Class<?>>();
+
+        protected EventDeserializer() {
+            super(Event.class);
+        }
+
+        @Override
+        public Event deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException,
+                JsonProcessingException {
+            ObjectMapper mapper = (ObjectMapper) jp.getCodec();
+            ObjectNode root = (ObjectNode) mapper.readTree(jp);
+            String eventName = root.get("name").asText();
+
+            List eventArgs = new ArrayList();
+            Event event = new Event(eventName, eventArgs);
+            JsonNode args = root.get("args");
+            if (args != null) {
+                Iterator<JsonNode> iterator = args.getElements();
+                if (iterator.hasNext()) {
+                    JsonNode node = iterator.next();
+                    Class<?> eventClass = eventMapping.get(eventName);
+                    Object arg = mapper.readValue(node, eventClass);
+                    eventArgs.add(arg);
+                    while (iterator.hasNext()) {
+                        node = iterator.next();
+                        arg = mapper.readValue(node, Object.class);
+                        eventArgs.add(arg);
+                    }
+                }
+            }
+            return event;
+        }
+
+    }
+
     private final ObjectMapper objectMapper = new ObjectMapper();
+    private final EventDeserializer eventDeserializer = new EventDeserializer();
 
     public JacksonJsonSupport() {
+        SimpleModule module = new SimpleModule("EventDeserializerModule", new Version(1, 0, 0, null));
+        module.addDeserializer(Event.class, eventDeserializer);
         objectMapper.setSerializationInclusion(JsonSerialize.Inclusion.NON_NULL);
+        objectMapper.registerModule(module);
+    }
+
+    public void addEventMapping(String eventName, Class<?> eventClass) {
+        eventDeserializer.eventMapping.put(eventName, eventClass);
+    }
+
+    public void removeEventMapping(String eventName) {
+        eventDeserializer.eventMapping.remove(eventName);
     }
 
     @Override

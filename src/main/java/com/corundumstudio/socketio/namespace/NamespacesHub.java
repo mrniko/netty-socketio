@@ -18,14 +18,21 @@ package com.corundumstudio.socketio.namespace;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+import com.corundumstudio.socketio.parser.JsonSupport;
+
 public class NamespacesHub {
 
     private final ConcurrentMap<String, Namespace> namespaces = new ConcurrentHashMap<String, Namespace>();
+    private final JsonSupport jsonSupport;
+
+    public NamespacesHub(JsonSupport jsonSupport) {
+        this.jsonSupport = jsonSupport;
+    }
 
     public Namespace create(String name) {
         Namespace namespace = namespaces.get(name);
         if (namespace == null) {
-            namespace = new Namespace(name);
+            namespace = new Namespace(name, jsonSupport);
             Namespace oldNamespace = namespaces.putIfAbsent(name, namespace);
             if (oldNamespace != null) {
                 namespace = oldNamespace;
