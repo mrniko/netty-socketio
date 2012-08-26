@@ -34,8 +34,7 @@ Licensed under the Apache License 2.0.
             }
         });
 
-        String eventName = ...
-        server.addEventListener(eventName, new DataListener<Object>() {
+        server.addEventListener("someevent", SomeClass.class, new DataListener<SomeClass>() {
             @Override
             public void onData(SocketIOClient client, Object data) {
                 ...
