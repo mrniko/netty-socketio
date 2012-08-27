@@ -24,7 +24,6 @@ Licensed under the Apache License 2.0.
         Configuration config = new Configuration();
         config.setHostname("localhost");
         config.setPort(81);
-        config.setListener(handler);
 
         SocketIOServer server = new SocketIOServer(config);
         server.addMessageListener(new DataListener<String>() {
