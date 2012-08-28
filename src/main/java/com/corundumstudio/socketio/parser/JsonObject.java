@@ -15,28 +15,17 @@
  */
 package com.corundumstudio.socketio.parser;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+public class JsonObject {
 
-/**
- * JSON infrastructure interface.
- * Allows to implement custom realizations
- * to JSON support operations.
- *
- */
-public interface JsonSupport {
+    private final Object object;
 
-    <T> T readValue(InputStream src, Class<T> valueType) throws IOException;
+    public JsonObject(Object object) {
+        super();
+        this.object = object;
+    }
 
-    void writeValue(OutputStream out, Object value) throws IOException;
-
-    String writeValueAsString(Object value) throws IOException;
-
-    void addEventMapping(String eventName, Class<?> eventClass);
-
-    void addJsonClass(Class<?> clazz);
-
-    void removeEventMapping(String eventName);
+    public Object getObject() {
+        return object;
+    }
 
 }

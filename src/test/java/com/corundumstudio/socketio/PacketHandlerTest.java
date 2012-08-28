@@ -45,7 +45,7 @@ import com.corundumstudio.socketio.transport.BaseClient;
 
 public class PacketHandlerTest {
 
-    private JsonSupport map = new JacksonJsonSupport();
+    private JsonSupport map = new JacksonJsonSupport(new Configuration());
     private Decoder decoder = new Decoder(map);
     private Encoder encoder = new Encoder(map);
     private NamespacesHub namespacesHub = new NamespacesHub(map);

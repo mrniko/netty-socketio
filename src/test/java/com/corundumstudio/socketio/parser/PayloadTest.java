@@ -27,10 +27,13 @@ import org.jboss.netty.util.CharsetUtil;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.corundumstudio.socketio.Configuration;
+
 public class PayloadTest {
 
-    private final Decoder decoder = new Decoder(new JacksonJsonSupport());
-    private final Encoder encoder = new Encoder(new JacksonJsonSupport());
+    private final JacksonJsonSupport support = new JacksonJsonSupport(new Configuration());
+    private final Decoder decoder = new Decoder(support);
+    private final Encoder encoder = new Encoder(support);
 
     @Test
     public void testPayloadDecode() throws IOException {

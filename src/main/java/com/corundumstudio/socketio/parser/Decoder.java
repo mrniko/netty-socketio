@@ -163,8 +163,14 @@ public class Decoder {
 
         case JSON: {
             ChannelBufferInputStream in = new ChannelBufferInputStream(buffer);
-            Object obj = jsonSupport.readValue(in, Object.class);
-            packet.setData(obj);
+            JsonObject obj = jsonSupport.readValue(in, JsonObject.class);
+            if (obj != null) {
+                packet.setData(obj.getObject());
+            } else {
+                in.reset();
+                Object object = jsonSupport.readValue(in, Object.class);
+                packet.setData(object);
+            }
             break;
         }
 

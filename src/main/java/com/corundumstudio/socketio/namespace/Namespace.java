@@ -39,7 +39,8 @@ public class Namespace implements SocketIONamespace {
     private final Set<SocketIOClient> clients = Collections.newSetFromMap(new ConcurrentHashMap<SocketIOClient, Boolean>());
     private final ConcurrentMap<String, EventEntry<?>> eventListeners =
                                                             new ConcurrentHashMap<String, EventEntry<?>>();
-    private final Queue<DataListener<Object>> jsonObjectListeners = new ConcurrentLinkedQueue<DataListener<Object>>();
+    private final ConcurrentMap<Class<?>, Queue<DataListener<?>>> jsonObjectListeners =
+                                                            new ConcurrentHashMap<Class<?>, Queue<DataListener<?>>>();
     private final Queue<DataListener<String>> messageListeners = new ConcurrentLinkedQueue<DataListener<String>>();
     private final Queue<ConnectListener> connectListeners = new ConcurrentLinkedQueue<ConnectListener>();
     private final Queue<DisconnectListener> disconnectListeners = new ConcurrentLinkedQueue<DisconnectListener>();
@@ -79,6 +80,9 @@ public class Namespace implements SocketIONamespace {
     @SuppressWarnings({"rawtypes", "unchecked"})
     public void onEvent(SocketIOClient client, String eventName, Object data) {
         EventEntry entry = eventListeners.get(eventName);
+        if (entry == null) {
+            return;
+        }
         Queue<DataListener> listeners = entry.getListeners();
         for (DataListener dataListener : listeners) {
             dataListener.onData(client, data);
@@ -86,12 +90,27 @@ public class Namespace implements SocketIONamespace {
     }
 
     @Override
-    public void addJsonObjectListener(DataListener<Object> listener) {
-        jsonObjectListeners.add(listener);
+    public <T> void addJsonObjectListener(Class<T> clazz, DataListener<T> listener) {
+        Queue<DataListener<?>> queue = jsonObjectListeners.get(clazz);
+        if (queue == null) {
+            queue = new ConcurrentLinkedQueue<DataListener<?>>();
+            Queue<DataListener<?>> oldQueue = jsonObjectListeners.putIfAbsent(clazz, queue);
+            if (oldQueue != null) {
+                queue = oldQueue;
+            }
+        }
+        queue.add(listener);
+        jsonSupport.addJsonClass(clazz);
     }
 
-    public Queue<DataListener<Object>> getJsonObjectListeners() {
-        return jsonObjectListeners;
+    public void onJsonObject(SocketIOClient client, Object data) {
+        Queue<DataListener<?>> queue = jsonObjectListeners.get(data.getClass());
+        if (queue == null) {
+            return;
+        }
+        for (DataListener dataListener : queue) {
+            dataListener.onData(client, data);
+        }
     }
 
     @Override
@@ -129,12 +148,6 @@ public class Namespace implements SocketIONamespace {
 
     public void onMessage(SocketIOClient client, String data) {
         for (DataListener<String> listener : messageListeners) {
-            listener.onData(client, data);
-        }
-    }
-
-    public void onJsonObject(SocketIOClient client, Object data) {
-        for (DataListener<Object> listener : jsonObjectListeners) {
             listener.onData(client, data);
         }
     }

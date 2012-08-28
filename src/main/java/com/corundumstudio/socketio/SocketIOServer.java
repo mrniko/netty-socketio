@@ -69,6 +69,9 @@ public class SocketIOServer implements ClientListeners {
         return new BroadcastOperations(pipelineFactory.getAllClients());
     }
 
+    /**
+     * Start server
+     */
     public void start() {
         ChannelFactory factory = new NioServerSocketChannelFactory(config.getBossExecutor(), config.getWorkerExecutor());
         bootstrap = new ServerBootstrap(factory);
@@ -83,6 +86,9 @@ public class SocketIOServer implements ClientListeners {
         log.info("SocketIO server started at port: {}", config.getPort());
     }
 
+    /**
+     * Stop server
+     */
     public void stop() {
         pipelineFactory.stop();
         mainChannel.close();
@@ -108,8 +114,8 @@ public class SocketIOServer implements ClientListeners {
     }
 
     @Override
-    public void addJsonObjectListener(DataListener<Object> listener) {
-        mainNamespace.addJsonObjectListener(listener);
+    public <T> void addJsonObjectListener(Class<T> clazz, DataListener<T> listener) {
+        mainNamespace.addJsonObjectListener(clazz, listener);
     }
 
     @Override

@@ -43,6 +43,7 @@ public class DecoderJsonPacketTest extends DecoderBaseTest {
         Assert.assertEquals(PacketType.JSON, packet.getType());
         Assert.assertEquals(1, (long)packet.getId());
         Assert.assertEquals("data", packet.getAck());
+        
         Map obj = (Map) packet.getData();
         Assert.assertEquals("b", obj.get("a"));
         Assert.assertEquals(1, obj.size());

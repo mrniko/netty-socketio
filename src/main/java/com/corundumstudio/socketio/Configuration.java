@@ -23,6 +23,7 @@ import com.corundumstudio.socketio.parser.JsonSupport;
 
 public class Configuration {
 
+    private String jsonTypeFieldName = "@class";
     private String context = "/socket.io";
 
     private Executor bossExecutor = Executors.newCachedThreadPool();
@@ -40,7 +41,7 @@ public class Configuration {
     private String hostname;
     private int port;
 
-    private JsonSupport jsonSupport = new JacksonJsonSupport();
+    private JsonSupport jsonSupport = new JacksonJsonSupport(this);
 
     public Configuration() {
     }
@@ -50,7 +51,7 @@ public class Configuration {
      *
      * @param configuration - Configuration object to clone
      */
-    public Configuration(Configuration conf) {
+    Configuration(Configuration conf) {
         setBossExecutor(conf.getBossExecutor());
         setCloseTimeout(conf.getCloseTimeout());
         setHeartbeatInterval(conf.getHeartbeatInterval());
@@ -63,11 +64,28 @@ public class Configuration {
         setContext(conf.getContext());
         setAllowCustomRequests(conf.isAllowCustomRequests());
         setPollingDuration(conf.getPollingDuration());
+        setJsonTypeFieldName(conf.getJsonTypeFieldName());
+    }
+
+    public String getJsonTypeFieldName() {
+        return jsonTypeFieldName;
+    }
+    public void setJsonTypeFieldName(String jsonTypeFieldName) {
+        this.jsonTypeFieldName = jsonTypeFieldName;
     }
 
     public JsonSupport getJsonSupport() {
         return jsonSupport;
     }
+
+    /**
+     * Allows to setup custom implementation of
+     * JSON serialization/deserialization
+     *
+     * @param jsonSupport
+     *
+     * @see JsonSupport
+     */
     public void setJsonSupport(JsonSupport jsonSupport) {
         this.jsonSupport = jsonSupport;
     }
@@ -99,6 +117,7 @@ public class Configuration {
     public void setWorkerExecutor(Executor workerExecutor) {
         this.workerExecutor = workerExecutor;
     }
+
     /**
      * Heartbeat interval
      *
@@ -142,6 +161,11 @@ public class Configuration {
         return heartbeatThreadPoolSize;
     }
 
+    /**
+     * Channel close timeout due inactivity
+     *
+     * @param closeTimeout - time in seconds
+     */
     public void setCloseTimeout(int closeTimeout) {
         this.closeTimeout = closeTimeout;
     }
@@ -174,6 +198,12 @@ public class Configuration {
     public int getPollingDuration() {
         return pollingDuration;
     }
+
+    /**
+     * Polling interval for XHR transport
+     *
+     * @param pollingDuration - time in seconds
+     */
     public void setPollingDuration(int pollingDuration) {
         this.pollingDuration = pollingDuration;
     }

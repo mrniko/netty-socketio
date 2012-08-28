@@ -54,9 +54,15 @@ Licensed under the Apache License 2.0.
             }
         });
 
-        server.addJsonObjectListener(new DataListener<Object>() {
+
+        // Don't forget to include type field, it named '@class' by default,
+        // with class full name.
+        //
+        // TIP: you can customize type name field via Configuration.jsonTypeFieldName property
+
+        server.addJsonObjectListener(SomeClass.class, new DataListener<SomeClass>() {
             @Override
-            public void onData(SocketIOClient client, Object data) {
+            public void onData(SocketIOClient client, SomeClass data) {
 
                 ...
 

@@ -22,6 +22,8 @@ import java.util.Map;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.corundumstudio.socketio.Configuration;
+
 public class DecoderEventPacketTest extends DecoderBaseTest {
 
     @Test
@@ -42,7 +44,7 @@ public class DecoderEventPacketTest extends DecoderBaseTest {
 
     @Test
     public void testDecodeWithData() throws IOException {
-        JacksonJsonSupport jsonSupport = new JacksonJsonSupport();
+        JacksonJsonSupport jsonSupport = new JacksonJsonSupport(new Configuration());
         Decoder decoder = new Decoder(jsonSupport);
         jsonSupport.addEventMapping("edwald", HashMap.class);
 

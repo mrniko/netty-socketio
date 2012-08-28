@@ -15,8 +15,10 @@
  */
 package com.corundumstudio.socketio.parser;
 
+import com.corundumstudio.socketio.Configuration;
+
 public class EncoderBaseTest {
 
-    protected final Encoder encoder = new Encoder(new JacksonJsonSupport());
+    protected final Encoder encoder = new Encoder(new JacksonJsonSupport(new Configuration()));
 
 }
