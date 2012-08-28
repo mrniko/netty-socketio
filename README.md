@@ -55,10 +55,10 @@ Licensed under the Apache License 2.0.
         });
 
 
-        // Don't forget to include type field, it named '@class' by default,
-        // with class full name.
+        // Don't forget to include type field on javascript side,
+        // it named '@class' by default and should equals to class full name.
         //
-        // TIP: you can customize type name field via Configuration.jsonTypeFieldName property
+        // TIP: you can customize type name field via Configuration.jsonTypeFieldName property.
 
         server.addJsonObjectListener(SomeClass.class, new DataListener<SomeClass>() {
             @Override
