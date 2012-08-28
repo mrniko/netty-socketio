@@ -56,7 +56,7 @@ Licensed under the Apache License 2.0.
 
 
         // Don't forget to include type field on javascript side,
-        // it named '@class' by default and should equals to class full name.
+        // it named '@class' by default and should equals to full class name.
         //
         // TIP: you can customize type field name via Configuration.jsonTypeFieldName property.
 
@@ -98,9 +98,24 @@ Licensed under the Apache License 2.0.
 	       socket.on('connect', function() {
                     // connection established, now we can send an objects
 
+
                     // send json-object to server
-                    var obj = ...
+                    // '@class' property should be defined and should 
+                    // equals to full class name.
+                    var obj = { '@class' : 'com.sample.SomeClass',
+                                 ...
+                              };
                     socket.json.send(obj);
+
+
+
+                    // send event-object to server
+                    // '@class' property is NOT necessary in this case
+                    var event = { 
+                                 ...
+                              };
+                    socket.emit('someevent', event);
+
 	       });
 
         </script>
