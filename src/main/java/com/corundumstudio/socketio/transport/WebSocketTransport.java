@@ -61,7 +61,7 @@ public class WebSocketTransport extends SimpleChannelUpstreamHandler implements 
     private final AckManager ackManager;
     private final HeartbeatHandler heartbeatHandler;
     private final AuthorizeHandler authorizeHandler;
-    private final DisconnectableHub disconnectable;
+    private final DisconnectableHub disconnectableHub;
     private final String path;
 
 
@@ -70,7 +70,7 @@ public class WebSocketTransport extends SimpleChannelUpstreamHandler implements 
         this.path = connectPath + "websocket";
         this.authorizeHandler = authorizeHandler;
         this.ackManager = ackManager;
-        this.disconnectable = disconnectable;
+        this.disconnectableHub = disconnectable;
         this.heartbeatHandler = heartbeatHandler;
     }
 
@@ -95,7 +95,7 @@ public class WebSocketTransport extends SimpleChannelUpstreamHandler implements 
             throws Exception {
         WebSocketClient client = channelId2Client.get(ctx.getChannel().getId());
         if (client != null) {
-            disconnectable.onDisconnect(client);
+            client.onChannelDisconnect();
         } else {
             super.channelDisconnected(ctx, e);
         }
@@ -143,7 +143,7 @@ public class WebSocketTransport extends SimpleChannelUpstreamHandler implements 
             return;
         }
 
-        WebSocketClient client = new WebSocketClient(channel, ackManager, disconnectable, sessionId);
+        WebSocketClient client = new WebSocketClient(channel, ackManager, disconnectableHub, sessionId);
 
         channelId2Client.put(channel.getId(), client);
         sessionId2Client.put(sessionId, client);

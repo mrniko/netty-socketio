@@ -32,6 +32,14 @@ import com.corundumstudio.socketio.namespace.Namespace;
 import com.corundumstudio.socketio.parser.Packet;
 import com.corundumstudio.socketio.parser.PacketType;
 
+/**
+ * Base class for main client.
+ *
+ * Each main client can have multiple namespace clients,
+ * when all namespace clients has disconnected then main client disconnects too.
+ *
+ *
+ */
 public abstract class BaseClient {
 
     private final ConcurrentMap<Namespace, SocketIOClient> namespaceClients = new ConcurrentHashMap<Namespace, SocketIOClient>();
@@ -72,6 +80,12 @@ public abstract class BaseClient {
         return namespaceClients.values();
     }
 
+    public void onChannelDisconnect() {
+        for (SocketIOClient client : getAllClients()) {
+            ((NamespaceClient) client).onDisconnect();
+        }
+    }
+
     public AckManager getAckManager() {
         return ackManager;
     }
@@ -88,7 +102,7 @@ public abstract class BaseClient {
         ChannelFuture future = send(new Packet(PacketType.DISCONNECT));
         future.addListener(ChannelFutureListener.CLOSE);
 
-        disconnectable.onDisconnect(this);
+        onChannelDisconnect();
     }
 
 }

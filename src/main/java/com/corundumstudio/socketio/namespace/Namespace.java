@@ -123,7 +123,6 @@ public class Namespace implements SocketIONamespace {
             listener.onDisconnect(client);
         }
         clients.remove(client);
-        ((NamespaceClient)client).onDisconnect();
     }
 
     @Override

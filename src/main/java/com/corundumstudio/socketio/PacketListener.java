@@ -72,8 +72,7 @@ public class PacketListener {
         }
 
         case DISCONNECT:
-            Namespace namespace = namespacesHub.get(packet.getEndpoint());
-            namespace.onDisconnect(client);
+            ((NamespaceClient)client).onDisconnect();
             break;
         }
     }
