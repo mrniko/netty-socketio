@@ -147,7 +147,7 @@ public class AuthorizeHandler extends SimpleChannelUpstreamHandler implements Di
         client.send(new Packet(PacketType.CONNECT));
 
         Namespace ns = namespacesHub.get(Namespace.DEFAULT_NAME);
-        SocketIOClient nsClient = client.getClient(ns);
+        SocketIOClient nsClient = client.getChildClient(ns);
         namespacesHub.get(ns.getName()).onConnect(nsClient);
     }
 

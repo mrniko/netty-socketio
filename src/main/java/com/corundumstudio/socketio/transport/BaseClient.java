@@ -57,14 +57,14 @@ public abstract class BaseClient {
 
     public abstract ChannelFuture send(Packet packet);
 
-    public void removeClient(SocketIOClient client) {
+    public void removeChildClient(SocketIOClient client) {
         namespaceClients.remove((Namespace)client.getNamespace());
         if (namespaceClients.isEmpty()) {
             disconnectable.onDisconnect(this);
         }
     }
 
-    public SocketIOClient getClient(Namespace namespace) {
+    public SocketIOClient getChildClient(Namespace namespace) {
         SocketIOClient client = namespaceClients.get(namespace);
         if (client == null) {
             client = new NamespaceClient(this, namespace);
@@ -76,12 +76,12 @@ public abstract class BaseClient {
         return client;
     }
 
-    public Collection<SocketIOClient> getAllClients() {
+    public Collection<SocketIOClient> getAllChildClients() {
         return namespaceClients.values();
     }
 
     public void onChannelDisconnect() {
-        for (SocketIOClient client : getAllClients()) {
+        for (SocketIOClient client : getAllChildClients()) {
             ((NamespaceClient) client).onDisconnect();
         }
     }

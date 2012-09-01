@@ -103,13 +103,12 @@ public class NamespaceClient implements SocketIOClient {
 
     public void onDisconnect() {
         namespace.onDisconnect(this);
-        baseClient.removeClient(this);
+        baseClient.removeChildClient(this);
     }
 
     @Override
     public void disconnect() {
         send(new Packet(PacketType.DISCONNECT));
-        // TODO disconnect on channel close
         onDisconnect();
     }
 

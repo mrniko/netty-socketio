@@ -63,11 +63,13 @@ public class WebSocketTransport extends SimpleChannelUpstreamHandler implements 
     private final AuthorizeHandler authorizeHandler;
     private final DisconnectableHub disconnectableHub;
     private final String path;
+    private final boolean isSsl;
 
 
-    public WebSocketTransport(String connectPath, AckManager ackManager, DisconnectableHub disconnectable,
+    public WebSocketTransport(String connectPath, boolean isSsl, AckManager ackManager, DisconnectableHub disconnectable,
             AuthorizeHandler authorizeHandler, HeartbeatHandler heartbeatHandler) {
         this.path = connectPath + "websocket";
+        this.isSsl = isSsl;
         this.authorizeHandler = authorizeHandler;
         this.ackManager = ackManager;
         this.disconnectableHub = disconnectable;
@@ -153,7 +155,11 @@ public class WebSocketTransport extends SimpleChannelUpstreamHandler implements 
     }
 
     private String getWebSocketLocation(HttpRequest req) {
-        return "ws://" + req.getHeader(HttpHeaders.Names.HOST) + path;
+        String protocol = "ws://";
+        if (isSsl) {
+            protocol = "wss://";
+        }
+        return protocol + req.getHeader(HttpHeaders.Names.HOST) + path;
     }
 
     @Override
@@ -170,7 +176,7 @@ public class WebSocketTransport extends SimpleChannelUpstreamHandler implements 
         Collection<WebSocketClient> clients = sessionId2Client.values();
         List<Iterable<SocketIOClient>> allClients = new ArrayList<Iterable<SocketIOClient>>(clients.size());
         for (WebSocketClient client : sessionId2Client.values()) {
-            allClients.add(client.getAllClients());
+            allClients.add(client.getAllChildClients());
         }
         return new CompositeIterable<SocketIOClient>(allClients);
     }

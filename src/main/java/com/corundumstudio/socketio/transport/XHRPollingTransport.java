@@ -220,7 +220,7 @@ public class XHRPollingTransport extends SimpleChannelUpstreamHandler implements
         Collection<XHRPollingClient> clients = sessionId2Client.values();
         List<Iterable<SocketIOClient>> allClients = new ArrayList<Iterable<SocketIOClient>>(clients.size());
         for (XHRPollingClient client : sessionId2Client.values()) {
-            allClients.add(client.getAllClients());
+            allClients.add(client.getAllChildClients());
         }
         return new CompositeIterable<SocketIOClient>(allClients);
     }

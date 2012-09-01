@@ -61,7 +61,7 @@ public class PacketHandler extends SimpleChannelUpstreamHandler {
             while (content.readable()) {
                 Packet packet = decoder.decodePackets(content);
                 Namespace ns = namespacesHub.get(packet.getEndpoint());
-                SocketIOClient client = message.getClient().getClient(ns);
+                SocketIOClient client = message.getClient().getChildClient(ns);
                 sendAck(packet, client);
                 packetListener.onPacket(packet, client);
             }

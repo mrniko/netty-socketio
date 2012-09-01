@@ -41,6 +41,9 @@ public class Configuration {
     private String hostname;
     private int port;
 
+    private String keyStorePath;
+    private String keyStorePassword;
+
     private JsonSupport jsonSupport = new JacksonJsonSupport(this);
 
     public Configuration() {
@@ -65,6 +68,8 @@ public class Configuration {
         setAllowCustomRequests(conf.isAllowCustomRequests());
         setPollingDuration(conf.getPollingDuration());
         setJsonTypeFieldName(conf.getJsonTypeFieldName());
+        setKeyStorePassword(conf.getKeyStorePassword());
+        setKeyStorePath(conf.getKeyStorePath());
     }
 
     public String getJsonTypeFieldName() {
@@ -206,6 +211,20 @@ public class Configuration {
      */
     public void setPollingDuration(int pollingDuration) {
         this.pollingDuration = pollingDuration;
+    }
+
+    public void setKeyStorePassword(String keyStorePassword) {
+        this.keyStorePassword = keyStorePassword;
+    }
+    public String getKeyStorePassword() {
+        return keyStorePassword;
+    }
+
+    public void setKeyStorePath(String keyStorePath) {
+        this.keyStorePath = keyStorePath;
+    }
+    public String getKeyStorePath() {
+        return keyStorePath;
     }
 
 }

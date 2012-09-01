@@ -17,11 +17,20 @@ package com.corundumstudio.socketio;
 
 import static org.jboss.netty.channel.Channels.pipeline;
 
+import java.io.FileInputStream;
+import java.security.KeyStore;
+import java.security.Security;
+
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLEngine;
+
 import org.jboss.netty.channel.ChannelPipeline;
 import org.jboss.netty.channel.ChannelPipelineFactory;
 import org.jboss.netty.handler.codec.http.HttpChunkAggregator;
 import org.jboss.netty.handler.codec.http.HttpRequestDecoder;
 import org.jboss.netty.handler.codec.http.HttpResponseEncoder;
+import org.jboss.netty.handler.ssl.SslHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,6 +53,7 @@ public class SocketIOPipelineFactory implements ChannelPipelineFactory, Disconne
     protected static final String HTTP_ENCODER = "encoder";
     protected static final String HTTP_AGGREGATOR = "aggregator";
     protected static final String HTTP_REQUEST_DECODER = "decoder";
+    protected static final String SSL_HANDLER = "ssl";
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -60,6 +70,7 @@ public class SocketIOPipelineFactory implements ChannelPipelineFactory, Disconne
 
     private PacketHandler packetHandler;
     private HeartbeatHandler heartbeatHandler;
+    private SSLContext sslContext;
 
     public void start(Configuration configuration, NamespacesHub namespacesHub) {
         scheduler = new CancelableScheduler(configuration.getHeartbeatThreadPoolSize());
@@ -74,10 +85,19 @@ public class SocketIOPipelineFactory implements ChannelPipelineFactory, Disconne
 
         String connectPath = configuration.getContext() + "/" + protocol + "/";
 
+        boolean isSsl = configuration.getKeyStorePath() != null;
+        if (isSsl) {
+            try {
+                sslContext = createSSLContext(configuration.getKeyStorePath(), configuration.getKeyStorePassword());
+            } catch (Exception e) {
+                throw new IllegalStateException(e);
+            }
+        }
+
         packetHandler = new PacketHandler(packetListener, decoder, namespacesHub);
         authorizeHandler = new AuthorizeHandler(connectPath, scheduler, configuration, namespacesHub);
         xhrPollingTransport = new XHRPollingTransport(connectPath, ackManager, this, scheduler, authorizeHandler, configuration);
-        webSocketTransport = new WebSocketTransport(connectPath, ackManager, this, authorizeHandler, heartbeatHandler);
+        webSocketTransport = new WebSocketTransport(connectPath, isSsl, ackManager, this, authorizeHandler, heartbeatHandler);
         socketIOEncoder = new SocketIOEncoder(encoder);
     }
 
@@ -89,6 +109,12 @@ public class SocketIOPipelineFactory implements ChannelPipelineFactory, Disconne
 
     public ChannelPipeline getPipeline() throws Exception {
         ChannelPipeline pipeline = pipeline();
+
+        if (sslContext != null) {
+            SSLEngine engine = sslContext.createSSLEngine();
+            engine.setUseClientMode(false);
+            pipeline.addLast(SSL_HANDLER, new SslHandler(engine));
+        }
 
         pipeline.addLast(HTTP_REQUEST_DECODER, new HttpRequestDecoder());
         pipeline.addLast(HTTP_AGGREGATOR, new HttpChunkAggregator(65536));
@@ -103,6 +129,24 @@ public class SocketIOPipelineFactory implements ChannelPipelineFactory, Disconne
         pipeline.addLast(SOCKETIO_ENCODER, socketIOEncoder);
 
         return pipeline;
+    }
+
+    private SSLContext createSSLContext(String keyStoreFilePath, String keyStoreFilePassword) throws Exception {
+        String algorithm = Security.getProperty("ssl.KeyManagerFactory.algorithm");
+        if (algorithm == null) {
+            algorithm = "SunX509";
+        }
+
+        KeyStore ks = KeyStore.getInstance("JKS");
+        FileInputStream fin = new FileInputStream(keyStoreFilePath);
+        ks.load(fin, keyStoreFilePassword.toCharArray());
+
+        KeyManagerFactory kmf = KeyManagerFactory.getInstance(algorithm);
+        kmf.init(ks, keyStoreFilePassword.toCharArray());
+
+        SSLContext serverContext = SSLContext.getInstance("TLS");
+        serverContext.init(kmf.getKeyManagers(), null, null);
+        return serverContext;
     }
 
     public void onDisconnect(BaseClient client) {
