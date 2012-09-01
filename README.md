@@ -14,6 +14,7 @@ Licensed under the Apache License 2.0.
 * Supports websocket transport (Hixie-75/76/Hybi-00, Hybi-10..Hybi-13)
 * Supports namespaces
 * Supports ack (acknowledgment of received data)
+* Supports SSL
 
 
 
