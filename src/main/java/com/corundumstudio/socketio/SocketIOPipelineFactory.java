@@ -18,6 +18,7 @@ package com.corundumstudio.socketio;
 import static org.jboss.netty.channel.Channels.pipeline;
 
 import java.io.FileInputStream;
+import java.io.InputStream;
 import java.security.KeyStore;
 import java.security.Security;
 
@@ -85,10 +86,10 @@ public class SocketIOPipelineFactory implements ChannelPipelineFactory, Disconne
 
         String connectPath = configuration.getContext() + "/" + protocol + "/";
 
-        boolean isSsl = configuration.getKeyStorePath() != null;
+        boolean isSsl = configuration.getKeyStore() != null;
         if (isSsl) {
             try {
-                sslContext = createSSLContext(configuration.getKeyStorePath(), configuration.getKeyStorePassword());
+                sslContext = createSSLContext(configuration.getKeyStore(), configuration.getKeyStorePassword());
             } catch (Exception e) {
                 throw new IllegalStateException(e);
             }
@@ -131,15 +132,14 @@ public class SocketIOPipelineFactory implements ChannelPipelineFactory, Disconne
         return pipeline;
     }
 
-    private SSLContext createSSLContext(String keyStoreFilePath, String keyStoreFilePassword) throws Exception {
+    private SSLContext createSSLContext(InputStream keyStoreFile, String keyStoreFilePassword) throws Exception {
         String algorithm = Security.getProperty("ssl.KeyManagerFactory.algorithm");
         if (algorithm == null) {
             algorithm = "SunX509";
         }
 
         KeyStore ks = KeyStore.getInstance("JKS");
-        FileInputStream fin = new FileInputStream(keyStoreFilePath);
-        ks.load(fin, keyStoreFilePassword.toCharArray());
+        ks.load(keyStoreFile, keyStoreFilePassword.toCharArray());
 
         KeyManagerFactory kmf = KeyManagerFactory.getInstance(algorithm);
         kmf.init(ks, keyStoreFilePassword.toCharArray());

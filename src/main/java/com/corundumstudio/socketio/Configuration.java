@@ -15,6 +15,7 @@
  */
 package com.corundumstudio.socketio;
 
+import java.io.InputStream;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
@@ -41,7 +42,7 @@ public class Configuration {
     private String hostname;
     private int port;
 
-    private String keyStorePath;
+    private InputStream keyStore;
     private String keyStorePassword;
 
     private JsonSupport jsonSupport = new JacksonJsonSupport(this);
@@ -69,7 +70,7 @@ public class Configuration {
         setPollingDuration(conf.getPollingDuration());
         setJsonTypeFieldName(conf.getJsonTypeFieldName());
         setKeyStorePassword(conf.getKeyStorePassword());
-        setKeyStorePath(conf.getKeyStorePath());
+        setKeyStore(conf.getKeyStore());
     }
 
     public String getJsonTypeFieldName() {
@@ -220,11 +221,11 @@ public class Configuration {
         return keyStorePassword;
     }
 
-    public void setKeyStorePath(String keyStorePath) {
-        this.keyStorePath = keyStorePath;
+    public void setKeyStore(InputStream keyStore) {
+        this.keyStore = keyStore;
     }
-    public String getKeyStorePath() {
-        return keyStorePath;
+    public InputStream getKeyStore() {
+        return keyStore;
     }
 
 }
