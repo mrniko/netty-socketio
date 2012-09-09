@@ -61,7 +61,7 @@ public class HeartbeatHandler implements Disconnectable {
         scheduler.schedule(key, new Runnable() {
             public void run() {
                 client.disconnect();
-                log.debug("Client with sessionId: {} disconnected due to heartbeat timeout, for {}", client.getSessionId());
+                log.debug("Client with sessionId: {} disconnected due to heartbeat timeout", client.getSessionId());
             }
         }, configuration.getHeartbeatTimeout(), TimeUnit.SECONDS);
     }
