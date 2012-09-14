@@ -15,7 +15,6 @@
  */
 package com.corundumstudio.socketio;
 
-import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -29,6 +28,7 @@ import com.corundumstudio.socketio.scheduler.CancelableScheduler;
 import com.corundumstudio.socketio.scheduler.SchedulerKey;
 import com.corundumstudio.socketio.scheduler.SchedulerKey.Type;
 import com.corundumstudio.socketio.transport.BaseClient;
+import com.corundumstudio.socketio.utils.ConcurrentHashSet;
 
 public class AckManager implements Disconnectable {
 
@@ -66,7 +66,7 @@ public class AckManager implements Disconnectable {
     public long registerAck(UUID sessionId, final AckCallback callback) {
         Set<Long> callbackIds = clientCallbackIds.get(sessionId);
         if (callbackIds == null) {
-            callbackIds = Collections.newSetFromMap(new ConcurrentHashMap<Long, Boolean>());
+            callbackIds = new ConcurrentHashSet<Long>();
             Set<Long> oldCallbackIds = clientCallbackIds.putIfAbsent(sessionId, callbackIds);
             if (oldCallbackIds != null) {
                 callbackIds = oldCallbackIds;

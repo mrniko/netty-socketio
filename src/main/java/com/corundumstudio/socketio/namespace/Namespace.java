@@ -15,7 +15,6 @@
  */
 package com.corundumstudio.socketio.namespace;
 
-import java.util.Collections;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -31,12 +30,13 @@ import com.corundumstudio.socketio.listener.DataListener;
 import com.corundumstudio.socketio.listener.DisconnectListener;
 import com.corundumstudio.socketio.parser.JsonSupport;
 import com.corundumstudio.socketio.transport.NamespaceClient;
+import com.corundumstudio.socketio.utils.ConcurrentHashSet;
 
 public class Namespace implements SocketIONamespace {
 
     public static final String DEFAULT_NAME = "";
 
-    private final Set<SocketIOClient> clients = Collections.newSetFromMap(new ConcurrentHashMap<SocketIOClient, Boolean>());
+    private final Set<SocketIOClient> clients = new ConcurrentHashSet<SocketIOClient>();
     private final ConcurrentMap<String, EventEntry<?>> eventListeners =
                                                             new ConcurrentHashMap<String, EventEntry<?>>();
     private final ConcurrentMap<Class<?>, Queue<DataListener<?>>> jsonObjectListeners =

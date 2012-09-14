@@ -51,6 +51,7 @@ import com.corundumstudio.socketio.scheduler.CancelableScheduler;
 import com.corundumstudio.socketio.scheduler.SchedulerKey;
 import com.corundumstudio.socketio.scheduler.SchedulerKey.Type;
 import com.corundumstudio.socketio.transport.BaseClient;
+import com.corundumstudio.socketio.utils.ConcurrentHashSet;
 
 @Sharable
 public class AuthorizeHandler extends SimpleChannelUpstreamHandler implements Disconnectable {
@@ -58,8 +59,7 @@ public class AuthorizeHandler extends SimpleChannelUpstreamHandler implements Di
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     private final CancelableScheduler disconnectScheduler;
-    private final Set<UUID> authorizedSessionIds =
-                                Collections.newSetFromMap(new ConcurrentHashMap<UUID, Boolean>());
+    private final Set<UUID> authorizedSessionIds = new ConcurrentHashSet<UUID>();
 
     private final String connectPath;
     private final Configuration configuration;

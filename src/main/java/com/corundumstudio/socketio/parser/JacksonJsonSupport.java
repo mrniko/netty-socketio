@@ -19,7 +19,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -43,12 +42,13 @@ import org.codehaus.jackson.map.module.SimpleModule;
 import org.codehaus.jackson.node.ObjectNode;
 
 import com.corundumstudio.socketio.Configuration;
+import com.corundumstudio.socketio.utils.ConcurrentHashSet;
 
 public class JacksonJsonSupport implements JsonSupport {
 
     private class JsonObjectDeserializer extends StdDeserializer<JsonObject> {
 
-        final Set<Class<?>> classes = Collections.newSetFromMap(new ConcurrentHashMap<Class<?>, Boolean>());
+        final Set<Class<?>> classes = new ConcurrentHashSet<Class<?>>();
 
         protected JsonObjectDeserializer() {
             super(JsonObject.class);
