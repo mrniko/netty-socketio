@@ -24,7 +24,7 @@ import java.util.concurrent.TimeUnit;
 
 public class CancelableScheduler {
 
-    private final Map<Object, Future<?>> scheduledFutures = new ConcurrentHashMap<Object, Future<?>>();
+    private final Map<SchedulerKey, Future<?>> scheduledFutures = new ConcurrentHashMap<SchedulerKey, Future<?>>();
     private final ScheduledExecutorService executorService;
 
     public CancelableScheduler(int threadPoolSize) {

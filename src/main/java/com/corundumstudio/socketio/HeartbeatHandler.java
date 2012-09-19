@@ -44,17 +44,20 @@ public class HeartbeatHandler implements Disconnectable {
             return;
         }
 
-        scheduler.cancel(new SchedulerKey(Type.HEARBEAT_TIMEOUT, client.getSessionId()));
+        final SchedulerKey key = new SchedulerKey(Type.HEARBEAT_TIMEOUT, client.getSessionId());
+        // cancel heartbeat check because the client answered
+        scheduler.cancel(key);
         scheduler.schedule(new Runnable() {
             public void run() {
                 client.send(new Packet(PacketType.HEARTBEAT));
-                scheduleClientHeartbeatCheck(client);
+                scheduleClientHeartbeatCheck(client, key);
             }
         }, configuration.getHeartbeatInterval(), TimeUnit.SECONDS);
     }
 
-    private void scheduleClientHeartbeatCheck(final BaseClient client) {
-        SchedulerKey key = new SchedulerKey(Type.HEARBEAT_TIMEOUT, client.getSessionId());
+    private void scheduleClientHeartbeatCheck(final BaseClient client, SchedulerKey key) {
+        // cancel previous heartbeat check
+        scheduler.cancel(key);
         scheduler.schedule(key, new Runnable() {
             public void run() {
                 client.disconnect();
