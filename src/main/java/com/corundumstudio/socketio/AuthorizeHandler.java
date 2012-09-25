@@ -51,6 +51,9 @@ import com.corundumstudio.socketio.scheduler.CancelableScheduler;
 import com.corundumstudio.socketio.scheduler.SchedulerKey;
 import com.corundumstudio.socketio.scheduler.SchedulerKey.Type;
 import com.corundumstudio.socketio.transport.BaseClient;
+import com.corundumstudio.socketio.transport.FlashSocketTransport;
+import com.corundumstudio.socketio.transport.WebSocketTransport;
+import com.corundumstudio.socketio.transport.XHRPollingTransport;
 
 @Sharable
 public class AuthorizeHandler extends SimpleChannelUpstreamHandler implements Disconnectable {
@@ -102,7 +105,7 @@ public class AuthorizeHandler extends SimpleChannelUpstreamHandler implements Di
 
         scheduleDisconnect(channel, sessionId);
 
-        String transports = "websocket,xhr-polling";
+        String transports = WebSocketTransport.NAME + "," + FlashSocketTransport.NAME + "," + XHRPollingTransport.NAME;
         String heartbeatTimeoutVal = String.valueOf(configuration.getHeartbeatTimeout());
         if (!configuration.isHeartbeatsEnabled()) {
             heartbeatTimeoutVal = "";

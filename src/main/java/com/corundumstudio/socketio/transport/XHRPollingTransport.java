@@ -47,6 +47,7 @@ import com.corundumstudio.socketio.Configuration;
 import com.corundumstudio.socketio.Disconnectable;
 import com.corundumstudio.socketio.DisconnectableHub;
 import com.corundumstudio.socketio.SocketIOClient;
+import com.corundumstudio.socketio.SocketIOPipelineFactory;
 import com.corundumstudio.socketio.messages.PacketsMessage;
 import com.corundumstudio.socketio.messages.XHRErrorMessage;
 import com.corundumstudio.socketio.messages.XHRPostMessage;
@@ -61,6 +62,8 @@ import com.corundumstudio.socketio.scheduler.SchedulerKey.Type;
 @Sharable
 public class XHRPollingTransport extends SimpleChannelUpstreamHandler implements Disconnectable {
 
+    public static final String NAME = "xhr-polling";
+
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     private final Map<UUID, XHRPollingClient> sessionId2Client = new ConcurrentHashMap<UUID, XHRPollingClient>();
@@ -74,7 +77,7 @@ public class XHRPollingTransport extends SimpleChannelUpstreamHandler implements
 
     public XHRPollingTransport(String connectPath, AckManager ackManager, DisconnectableHub disconnectable, CancelableScheduler scheduler,
                                 AuthorizeHandler authorizeHandler, Configuration configuration) {
-        this.path = connectPath + "xhr-polling/";
+        this.path = connectPath + NAME + "/";
         this.ackManager = ackManager;
         this.authorizeHandler = authorizeHandler;
         this.configuration = configuration;
@@ -190,6 +193,7 @@ public class XHRPollingTransport extends SimpleChannelUpstreamHandler implements
         client.update(channel, origin);
 
         authorizeHandler.connect(client);
+        channel.getPipeline().remove(SocketIOPipelineFactory.FLASH_POLICY_HANDLER);
         log.debug("Client for sessionId: {} was created", sessionId);
         return client;
     }

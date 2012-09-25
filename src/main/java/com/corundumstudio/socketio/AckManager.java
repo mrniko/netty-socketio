@@ -32,7 +32,7 @@ import com.corundumstudio.socketio.transport.BaseClient;
 
 public class AckManager implements Disconnectable {
 
-    private class AckEntry {
+    class AckEntry {
 
         final Map<Long, AckCallback> ackCallbacks = new ConcurrentHashMap<Long, AckCallback>();
         final AtomicLong ackIndex = new AtomicLong(-1);
@@ -49,10 +49,6 @@ public class AckManager implements Disconnectable {
 
         public AckCallback removeCallback(long index) {
             return ackCallbacks.remove(index);
-        }
-
-        public AtomicLong getAckIndex() {
-            return ackIndex;
         }
 
         public void initAckIndex(long index) {
