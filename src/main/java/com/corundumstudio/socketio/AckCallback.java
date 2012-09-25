@@ -25,8 +25,8 @@ package com.corundumstudio.socketio;
  */
 public abstract class AckCallback<T> {
 
-    private Class<T> resultClass;
-    private int timeout = -1;
+    protected Class<T> resultClass;
+    protected int timeout = -1;
 
     public AckCallback(Class<T> resultClass) {
         this.resultClass = resultClass;

@@ -65,7 +65,7 @@ public class SocketIOServer implements ClientListeners {
         return pipelineFactory.getAllClients();
     }
 
-    public ClientOperations getBroadcastOperations() {
+    public BroadcastOperations getBroadcastOperations() {
         return new BroadcastOperations(pipelineFactory.getAllClients());
     }
 

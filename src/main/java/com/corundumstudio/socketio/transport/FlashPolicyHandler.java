@@ -19,13 +19,11 @@ import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.ChannelFuture;
 import org.jboss.netty.channel.ChannelFutureListener;
+import org.jboss.netty.channel.ChannelHandler.Sharable;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
-import org.jboss.netty.channel.ChannelHandler.Sharable;
 import org.jboss.netty.util.CharsetUtil;
-
-import com.corundumstudio.socketio.SocketIOPipelineFactory;
 
 @Sharable
 public class FlashPolicyHandler extends SimpleChannelUpstreamHandler {
@@ -47,7 +45,6 @@ public class FlashPolicyHandler extends SimpleChannelUpstreamHandler {
         if (data.equals(requestBuffer)) {
             ChannelFuture f = e.getChannel().write(responseBuffer);
             f.addListener(ChannelFutureListener.CLOSE);
-            ctx.getPipeline().remove(SocketIOPipelineFactory.FLASH_POLICY_HANDLER);
             return;
         }
         super.messageReceived(ctx, e);

@@ -16,7 +16,6 @@
 package com.corundumstudio.socketio.parser;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.UUID;
 
 import org.jboss.netty.buffer.ChannelBuffer;

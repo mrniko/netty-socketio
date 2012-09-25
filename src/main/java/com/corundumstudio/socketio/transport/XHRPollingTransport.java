@@ -100,7 +100,8 @@ public class XHRPollingTransport extends SimpleChannelUpstreamHandler implements
         ctx.sendUpstream(e);
     }
 
-    private void handleMessage(HttpRequest req, QueryStringDecoder queryDecoder, Channel channel) throws IOException {
+    private void handleMessage(HttpRequest req, QueryStringDecoder queryDecoder, Channel channel)
+                                                                                throws IOException {
         channel.getPipeline().remove(SocketIOPipelineFactory.FLASH_POLICY_HANDLER);
 
         String[] parts = queryDecoder.getPath().split("/");
@@ -159,7 +160,8 @@ public class XHRPollingTransport extends SimpleChannelUpstreamHandler implements
         });
     }
 
-    private void onPost(UUID sessionId, Channel channel, String origin, ChannelBuffer content) throws IOException {
+    private void onPost(UUID sessionId, Channel channel, String origin, ChannelBuffer content)
+                                                                                throws IOException {
         XHRPollingClient client = sessionId2Client.get(sessionId);
         if (client == null) {
             log.debug("Client with sessionId: {} was already disconnected. Channel closed!", sessionId);
@@ -177,7 +179,7 @@ public class XHRPollingTransport extends SimpleChannelUpstreamHandler implements
             return;
         }
 
-        XHRPollingClient client = (XHRPollingClient)sessionId2Client.get(sessionId);
+        XHRPollingClient client = (XHRPollingClient) sessionId2Client.get(sessionId);
         if (client == null) {
             client = createClient(origin, channel, sessionId);
         }
@@ -210,8 +212,7 @@ public class XHRPollingTransport extends SimpleChannelUpstreamHandler implements
     @Override
     public void onDisconnect(BaseClient client) {
         if (client instanceof XHRPollingClient) {
-            XHRPollingClient xhrClient = (XHRPollingClient) client;
-            UUID sessionId = xhrClient.getSessionId();
+            UUID sessionId = client.getSessionId();
 
             sessionId2Client.remove(sessionId);
             SchedulerKey noopKey = new SchedulerKey(Type.POLLING, sessionId);

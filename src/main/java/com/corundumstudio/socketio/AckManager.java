@@ -34,20 +34,20 @@ public class AckManager implements Disconnectable {
 
     class AckEntry {
 
-        final Map<Long, AckCallback> ackCallbacks = new ConcurrentHashMap<Long, AckCallback>();
+        final Map<Long, AckCallback<?>> ackCallbacks = new ConcurrentHashMap<Long, AckCallback<?>>();
         final AtomicLong ackIndex = new AtomicLong(-1);
 
-        public long addAckCallback(AckCallback callback) {
+        public long addAckCallback(AckCallback<?> callback) {
             long index = ackIndex.incrementAndGet();
             ackCallbacks.put(index, callback);
             return index;
         }
 
-        public AckCallback getAckCallback(long index) {
+        public AckCallback<?> getAckCallback(long index) {
             return ackCallbacks.get(index);
         }
 
-        public AckCallback removeCallback(long index) {
+        public AckCallback<?> removeCallback(long index) {
             return ackCallbacks.remove(index);
         }
 

@@ -24,14 +24,12 @@ import java.util.concurrent.ConcurrentMap;
 
 import com.corundumstudio.socketio.AckRequest;
 import com.corundumstudio.socketio.BroadcastOperations;
-import com.corundumstudio.socketio.ClientOperations;
 import com.corundumstudio.socketio.SocketIOClient;
 import com.corundumstudio.socketio.SocketIONamespace;
 import com.corundumstudio.socketio.listener.ConnectListener;
 import com.corundumstudio.socketio.listener.DataListener;
 import com.corundumstudio.socketio.listener.DisconnectListener;
 import com.corundumstudio.socketio.parser.JsonSupport;
-import com.corundumstudio.socketio.transport.NamespaceClient;
 
 public class Namespace implements SocketIONamespace {
 
@@ -153,7 +151,7 @@ public class Namespace implements SocketIONamespace {
     }
 
     @Override
-    public ClientOperations getBroadcastOperations() {
+    public BroadcastOperations getBroadcastOperations() {
         return new BroadcastOperations(clients);
     }
 
