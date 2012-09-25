@@ -101,6 +101,8 @@ public class XHRPollingTransport extends SimpleChannelUpstreamHandler implements
     }
 
     private void handleMessage(HttpRequest req, QueryStringDecoder queryDecoder, Channel channel) throws IOException {
+        channel.getPipeline().remove(SocketIOPipelineFactory.FLASH_POLICY_HANDLER);
+
         String[] parts = queryDecoder.getPath().split("/");
         if (parts.length > 3) {
             UUID sessionId = UUID.fromString(parts[4]);
@@ -193,7 +195,6 @@ public class XHRPollingTransport extends SimpleChannelUpstreamHandler implements
         client.update(channel, origin);
 
         authorizeHandler.connect(client);
-        channel.getPipeline().remove(SocketIOPipelineFactory.FLASH_POLICY_HANDLER);
         log.debug("Client for sessionId: {} was created", sessionId);
         return client;
     }
