@@ -11,6 +11,7 @@ Licensed under the Apache License 2.0.
 
 * Supports 0.7+ version of [Socket.IO-client](https://github.com/LearnBoost/socket.io-client) up to latest - 0.9.6
 * Supports xhr-polling transport
+* Supports flashsocket transport
 * Supports websocket transport (Hixie-75/76/Hybi-00, Hybi-10..Hybi-13)
 * Supports namespaces
 * Supports ack (acknowledgment of received data)
