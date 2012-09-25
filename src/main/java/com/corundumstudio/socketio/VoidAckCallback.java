@@ -13,26 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.corundumstudio.socketio.parser;
+package com.corundumstudio.socketio;
 
-import org.junit.Before;
+/**
+ * Base ack callback with {@link Void} class as type.
+ *
+ */
+public abstract class VoidAckCallback extends AckCallback<Void> {
 
-import mockit.Mocked;
-
-import com.corundumstudio.socketio.AckManager;
-import com.corundumstudio.socketio.Configuration;
-
-
-public class DecoderBaseTest {
-
-    @Mocked
-    protected AckManager ackManager;
-
-    protected Decoder decoder;
-
-    @Before
-    public void before() {
-        decoder = new Decoder(new JacksonJsonSupport(new Configuration()), ackManager);
+    public VoidAckCallback() {
+        super(Void.class);
     }
+
+    @Override
+    public final void onSuccess(Void result) {
+        onSuccess();
+    }
+
+    protected abstract void onSuccess();
 
 }

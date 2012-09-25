@@ -32,7 +32,7 @@ import com.corundumstudio.socketio.Configuration;
 public class PayloadTest {
 
     private final JacksonJsonSupport support = new JacksonJsonSupport(new Configuration());
-    private final Decoder decoder = new Decoder(support);
+    private final Decoder decoder = new Decoder(support, null);
     private final Encoder encoder = new Encoder(support);
 
     @Test
@@ -40,7 +40,7 @@ public class PayloadTest {
         ChannelBuffer buffer = ChannelBuffers.wrappedBuffer("\ufffd5\ufffd3:::5\ufffd7\ufffd3:::53d\ufffd3\ufffd0::".getBytes());
         List<Packet> payload = new ArrayList<Packet>();
         while (buffer.readable()) {
-            Packet packet = decoder.decodePackets(buffer);
+            Packet packet = decoder.decodePackets(buffer, null);
             payload.add(packet);
         }
 
@@ -72,7 +72,7 @@ public class PayloadTest {
 
     @Test
     public void testDecodingNewline() throws IOException {
-        Packet packet = decoder.decodePacket("3:::\n");
+        Packet packet = decoder.decodePacket("3:::\n", null);
         Assert.assertEquals(PacketType.MESSAGE, packet.getType());
         Assert.assertEquals("\n", packet.getData());
     }

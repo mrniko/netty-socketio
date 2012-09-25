@@ -15,11 +15,21 @@
  */
 package com.corundumstudio.socketio;
 
-public abstract class AckCallback {
+/**
+ * Base ack callback class.
+ *
+ * Notifies about acknowledgement received from client
+ * via {@link #onSuccess} callback method.
+ *
+ * @param <T> - any serializable type
+ */
+public abstract class AckCallback<T> {
 
+    private Class<T> resultClass;
     private int timeout = -1;
 
-    public AckCallback() {
+    public AckCallback(Class<T> resultClass) {
+        this.resultClass = resultClass;
     }
 
     /**
@@ -35,7 +45,7 @@ public abstract class AckCallback {
         return timeout;
     }
 
-    public abstract void onSuccess();
+    public abstract void onSuccess(T result);
 
     /**
      * Invoked only once then <code>timeout</code> defined
@@ -43,6 +53,15 @@ public abstract class AckCallback {
      */
     public void onTimeout() {
 
+    }
+
+    /**
+     * Returns class of argument in {@link #onSuccess} method
+     *
+     * @return - result class
+     */
+    public Class<T> getResultClass() {
+        return resultClass;
     }
 
 }

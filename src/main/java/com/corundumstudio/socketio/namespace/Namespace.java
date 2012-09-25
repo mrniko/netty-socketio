@@ -22,6 +22,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentMap;
 
+import com.corundumstudio.socketio.AckRequest;
 import com.corundumstudio.socketio.BroadcastOperations;
 import com.corundumstudio.socketio.ClientOperations;
 import com.corundumstudio.socketio.SocketIOClient;
@@ -78,14 +79,14 @@ public class Namespace implements SocketIONamespace {
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
-    public void onEvent(SocketIOClient client, String eventName, Object data) {
+    public void onEvent(SocketIOClient client, String eventName, Object data, AckRequest ackRequest) {
         EventEntry entry = eventListeners.get(eventName);
         if (entry == null) {
             return;
         }
         Queue<DataListener> listeners = entry.getListeners();
         for (DataListener dataListener : listeners) {
-            dataListener.onData(client, data);
+            dataListener.onData(client, data, ackRequest);
         }
     }
 
@@ -103,13 +104,13 @@ public class Namespace implements SocketIONamespace {
         jsonSupport.addJsonClass(clazz);
     }
 
-    public void onJsonObject(SocketIOClient client, Object data) {
+    public void onJsonObject(SocketIOClient client, Object data, AckRequest ackRequest) {
         Queue<DataListener<?>> queue = jsonObjectListeners.get(data.getClass());
         if (queue == null) {
             return;
         }
         for (DataListener dataListener : queue) {
-            dataListener.onData(client, data);
+            dataListener.onData(client, data, ackRequest);
         }
     }
 
@@ -145,9 +146,9 @@ public class Namespace implements SocketIONamespace {
         return messageListeners;
     }
 
-    public void onMessage(SocketIOClient client, String data) {
+    public void onMessage(SocketIOClient client, String data, AckRequest ackRequest) {
         for (DataListener<String> listener : messageListeners) {
-            listener.onData(client, data);
+            listener.onData(client, data, ackRequest);
         }
     }
 

@@ -17,7 +17,6 @@ package com.corundumstudio.socketio;
 
 import static org.jboss.netty.channel.Channels.pipeline;
 
-import java.io.FileInputStream;
 import java.io.InputStream;
 import java.security.KeyStore;
 import java.security.Security;
@@ -76,11 +75,12 @@ public class SocketIOPipelineFactory implements ChannelPipelineFactory, Disconne
     public void start(Configuration configuration, NamespacesHub namespacesHub) {
         scheduler = new CancelableScheduler(configuration.getHeartbeatThreadPoolSize());
 
+        ackManager = new AckManager(scheduler);
+
         JsonSupport jsonSupport = configuration.getJsonSupport();
         Encoder encoder = new Encoder(jsonSupport);
-        Decoder decoder = new Decoder(jsonSupport);
+        Decoder decoder = new Decoder(jsonSupport, ackManager);
 
-        ackManager = new AckManager(scheduler);
         heartbeatHandler = new HeartbeatHandler(configuration, scheduler);
         PacketListener packetListener = new PacketListener(heartbeatHandler, ackManager, namespacesHub);
 

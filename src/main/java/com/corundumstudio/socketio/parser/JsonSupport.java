@@ -27,6 +27,8 @@ import java.io.OutputStream;
  */
 public interface JsonSupport {
 
+    AckArgs readAckArgs(InputStream src, Class<?> argType) throws IOException;
+
     <T> T readValue(InputStream src, Class<T> valueType) throws IOException;
 
     void writeValue(OutputStream out, Object value) throws IOException;

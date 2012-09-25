@@ -26,6 +26,8 @@ public class Packet {
     public static final byte[] DELIMITER_BYTES = new String(new char[] {DELIMITER}).getBytes(CharsetUtil.UTF_8);
     public static final byte SEPARATOR = ':';
 
+    public static final String ACK_DATA = "data";
+
     public static final Packet NULL_INSTANCE = new Packet(null);
 
     private final PacketType type;
@@ -134,6 +136,10 @@ public class Packet {
 
     public void setAdvice(ErrorAdvice advice) {
         this.advice = advice;
+    }
+
+    public boolean isAck() {
+        return getId() != null && !ACK_DATA.equals(getAck());
     }
 
 }

@@ -85,6 +85,9 @@ public class NamespaceClient implements SocketIOClient {
     public void send(Packet packet, AckCallback ackCallback) {
         long index = baseClient.getAckManager().registerAck(getSessionId(), ackCallback);
         packet.setId(index);
+        if (!ackCallback.getResultClass().equals(Void.class)) {
+            packet.setAck(Packet.ACK_DATA);
+        }
         send(packet);
     }
 

@@ -17,6 +17,7 @@ package com.corundumstudio.socketio.parser;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.UUID;
 
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBufferIndexFinder;
@@ -24,6 +25,8 @@ import org.jboss.netty.buffer.ChannelBufferInputStream;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.util.CharsetUtil;
 
+import com.corundumstudio.socketio.AckCallback;
+import com.corundumstudio.socketio.AckManager;
 import com.corundumstudio.socketio.namespace.Namespace;
 
 public class Decoder {
@@ -38,9 +41,11 @@ public class Decoder {
     };
 
     private final JsonSupport jsonSupport;
+    private final AckManager ackManager;
 
-    public Decoder(JsonSupport jsonSupport) {
+    public Decoder(JsonSupport jsonSupport, AckManager ackManager) {
         this.jsonSupport = jsonSupport;
+        this.ackManager = ackManager;
     }
 
     // fastest way to parse chars to int
@@ -60,7 +65,7 @@ public class Decoder {
         return result;
     }
 
-    private Packet decodePacket(ChannelBuffer buffer) throws IOException {
+    private Packet decodePacket(ChannelBuffer buffer, UUID uuid) throws IOException {
         if (buffer.readableBytes() < 3) {
             throw new DecoderException("Can't parse " + buffer.toString(CharsetUtil.UTF_8));
         }
@@ -119,7 +124,7 @@ public class Decoder {
         if (id != null) {
             packet.setId(id);
             if (hasData) {
-                packet.setAck("data");
+                packet.setAck(Packet.ACK_DATA);
             } else {
                 packet.setAck(true);
             }
@@ -211,8 +216,9 @@ public class Decoder {
                 buffer.readerIndex(plusIndex+1);
 
                 ChannelBufferInputStream in = new ChannelBufferInputStream(buffer);
-                List<Object> args = jsonSupport.readValue(in, List.class);
-                packet.setArgs(args);
+                AckCallback<?> callback = ackManager.getCallback(uuid, packet.getAckId());
+                AckArgs args = jsonSupport.readAckArgs(in, callback.getResultClass());
+                packet.setArgs(args.getArgs());
             }
             break;
         }
@@ -234,11 +240,11 @@ public class Decoder {
         return PacketType.valueOf(typeId);
     }
 
-    public Packet decodePacket(String string) throws IOException {
-        return decodePacket(ChannelBuffers.copiedBuffer(string, CharsetUtil.UTF_8));
+    public Packet decodePacket(String string, UUID uuid) throws IOException {
+        return decodePacket(ChannelBuffers.copiedBuffer(string, CharsetUtil.UTF_8), uuid);
     }
 
-    public Packet decodePackets(ChannelBuffer buffer) throws IOException {
+    public Packet decodePackets(ChannelBuffer buffer, UUID uuid) throws IOException {
         if (isCurrentDelimiter(buffer, buffer.readerIndex())) {
             buffer.readerIndex(buffer.readerIndex() + Packet.DELIMITER_BYTES.length);
 
@@ -246,11 +252,11 @@ public class Decoder {
 
             int startIndex = buffer.readerIndex();
             ChannelBuffer frame = buffer.slice(startIndex, len);
-            Packet packet = decodePacket(frame);
+            Packet packet = decodePacket(frame, uuid);
             buffer.readerIndex(startIndex + len);
             return packet;
         } else {
-            Packet packet = decodePacket(buffer);
+            Packet packet = decodePacket(buffer, uuid);
             return packet;
         }
     }

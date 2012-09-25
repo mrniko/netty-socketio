@@ -41,7 +41,7 @@ public class EncoderJsonPacketTest extends EncoderBaseTest {
     public void testEncodeWithMessageIdAndAckData() throws IOException {
         Packet packet = new Packet(PacketType.JSON);
         packet.setId(1L);
-        packet.setAck("data");
+        packet.setAck(Packet.ACK_DATA);
         packet.setData(Collections.singletonMap("a", "b"));
         ChannelBuffer result = encoder.encodePacket(packet);
         Assert.assertEquals("4:1+::{\"a\":\"b\"}", result.toString(CharsetUtil.UTF_8));

@@ -38,7 +38,7 @@ public class EncoderEventPacketTest extends EncoderBaseTest {
     public void testEncodeWithMessageIdAndAck() throws IOException {
         Packet packet = new Packet(PacketType.EVENT);
         packet.setId(1L);
-        packet.setAck("data");
+        packet.setAck(Packet.ACK_DATA);
         packet.setName("tobi");
         ChannelBuffer result = encoder.encodePacket(packet);
         Assert.assertEquals("5:1+::{\"name\":\"tobi\"}", result.toString(CharsetUtil.UTF_8));

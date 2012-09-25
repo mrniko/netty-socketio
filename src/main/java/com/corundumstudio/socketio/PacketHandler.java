@@ -29,7 +29,6 @@ import com.corundumstudio.socketio.namespace.Namespace;
 import com.corundumstudio.socketio.namespace.NamespacesHub;
 import com.corundumstudio.socketio.parser.Decoder;
 import com.corundumstudio.socketio.parser.Packet;
-import com.corundumstudio.socketio.parser.PacketType;
 
 @Sharable
 public class PacketHandler extends SimpleChannelUpstreamHandler {
@@ -59,24 +58,16 @@ public class PacketHandler extends SimpleChannelUpstreamHandler {
                 log.trace("In message: {} sessionId: {}", new Object[] {content.toString(CharsetUtil.UTF_8), message.getClient().getSessionId()});
             }
             while (content.readable()) {
-                Packet packet = decoder.decodePackets(content);
+                Packet packet = decoder.decodePackets(content, message.getClient().getSessionId());
                 Namespace ns = namespacesHub.get(packet.getEndpoint());
+
                 SocketIOClient client = message.getClient().getChildClient(ns);
-                sendAck(packet, client);
-                packetListener.onPacket(packet, client);
+                AckRequest ackSender = new AckRequest(packet, client);
+                packetListener.onPacket(packet, client, ackSender);
+                ackSender.sendAckData(null);
             }
         } else {
             ctx.sendUpstream(e);
-        }
-    }
-
-    private void sendAck(Packet packet, SocketIOClient client) {
-        if (packet.getId() != null &&
-                !"data".equals(packet.getAck())) {
-            Packet ackPacket = new Packet(PacketType.ACK);
-            ackPacket.setAckId(packet.getId());
-            ackPacket.setEndpoint(packet.getEndpoint());
-            client.send(ackPacket);
         }
     }
 

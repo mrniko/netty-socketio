@@ -15,14 +15,14 @@
  */
 package com.corundumstudio.socketio;
 
-import java.util.Collections;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.corundumstudio.socketio.parser.Packet;
 import com.corundumstudio.socketio.scheduler.CancelableScheduler;
@@ -32,9 +32,38 @@ import com.corundumstudio.socketio.transport.BaseClient;
 
 public class AckManager implements Disconnectable {
 
-    private final AtomicLong ackIndex = new AtomicLong();
-    private final Map<Long, AckCallback> ackCallbacks = new ConcurrentHashMap<Long, AckCallback>();
-    private final ConcurrentMap<UUID, Set<Long>> clientCallbackIds = new ConcurrentHashMap<UUID, Set<Long>>();
+    private class AckEntry {
+
+        final Map<Long, AckCallback> ackCallbacks = new ConcurrentHashMap<Long, AckCallback>();
+        final AtomicLong ackIndex = new AtomicLong(-1);
+
+        public long addAckCallback(AckCallback callback) {
+            long index = ackIndex.incrementAndGet();
+            ackCallbacks.put(index, callback);
+            return index;
+        }
+
+        public AckCallback getAckCallback(long index) {
+            return ackCallbacks.get(index);
+        }
+
+        public AckCallback removeCallback(long index) {
+            return ackCallbacks.remove(index);
+        }
+
+        public AtomicLong getAckIndex() {
+            return ackIndex;
+        }
+
+        public void initAckIndex(long index) {
+            ackIndex.compareAndSet(-1, index);
+        }
+
+    }
+
+    private final Logger log = LoggerFactory.getLogger(getClass());
+
+    private final Map<UUID, AckEntry> ackEntries = new ConcurrentHashMap<UUID, AckEntry>();
 
     private final CancelableScheduler scheduler;
 
@@ -43,38 +72,55 @@ public class AckManager implements Disconnectable {
         this.scheduler = scheduler;
     }
 
+    public void initAckIndex(UUID sessionId, long index) {
+        AckEntry ackEntry = getAckEntry(sessionId);
+        ackEntry.initAckIndex(index);
+    }
+
+    private AckEntry getAckEntry(UUID sessionId) {
+        AckEntry ackEntry = ackEntries.get(sessionId);
+        if (ackEntry == null) {
+            ackEntry = new AckEntry();
+            AckEntry oldAckEntry = ackEntries.put(sessionId, ackEntry);
+            if (oldAckEntry != null) {
+                ackEntry = oldAckEntry;
+            }
+        }
+        return ackEntry;
+    }
+
     public void onAck(SocketIOClient client, Packet packet) {
         SchedulerKey key = new SchedulerKey(Type.ACK_TIMEOUT, client.getSessionId());
         scheduler.cancel(key);
+
         AckCallback callback = removeCallback(client.getSessionId(), packet.getAckId());
         if (callback != null) {
-            callback.onSuccess();
+            Object param = null;
+            if (!packet.getArgs().isEmpty()) {
+                param = packet.getArgs().get(0);
+            }
+            callback.onSuccess(param);
         }
     }
 
     private AckCallback removeCallback(UUID sessionId, long index) {
-        AckCallback callback = ackCallbacks.remove(index);
-        if (callback != null) {
-            Set<Long> callbackIds = clientCallbackIds.get(sessionId);
-            if (callbackIds != null) {
-                callbackIds.remove(index);
-            }
-        }
-        return callback;
+        AckEntry ackEntry = getAckEntry(sessionId);
+        return ackEntry.removeCallback(index);
     }
 
-    public long registerAck(UUID sessionId, final AckCallback callback) {
-        Set<Long> callbackIds = clientCallbackIds.get(sessionId);
-        if (callbackIds == null) {
-            callbackIds = Collections.newSetFromMap(new ConcurrentHashMap<Long, Boolean>());
-            Set<Long> oldCallbackIds = clientCallbackIds.putIfAbsent(sessionId, callbackIds);
-            if (oldCallbackIds != null) {
-                callbackIds = oldCallbackIds;
-            }
+    public AckCallback<?> getCallback(UUID sessionId, long index) {
+        AckEntry ackEntry = getAckEntry(sessionId);
+        return ackEntry.getAckCallback(index);
+    }
+
+    public long registerAck(UUID sessionId, AckCallback callback) {
+        AckEntry ackEntry = getAckEntry(sessionId);
+        ackEntry.initAckIndex(0);
+        long index = ackEntry.addAckCallback(callback);
+
+        if (log.isDebugEnabled()) {
+            log.debug("AckCallback registered with id: {}", index);
         }
-        long index = ackIndex.incrementAndGet();
-        callbackIds.add(index);
-        ackCallbacks.put(index, callback);
 
         scheduleTimeout(index, sessionId, callback);
 
@@ -97,10 +143,7 @@ public class AckManager implements Disconnectable {
 
     @Override
     public void onDisconnect(BaseClient client) {
-        Set<Long> callbackIds = clientCallbackIds.remove(client.getSessionId());
-        if (callbackIds != null) {
-            ackCallbacks.keySet().removeAll(callbackIds);
-        }
+        ackEntries.remove(client.getSessionId());
     }
 
 }

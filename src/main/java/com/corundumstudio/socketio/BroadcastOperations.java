@@ -31,18 +31,19 @@ public class BroadcastOperations implements ClientOperations {
         final AckCallback ackCallback;
 
         public BroadcastAckCallback(AckCallback ackCallback) {
+            super(Void.class);
             this.ackCallback = ackCallback;
         }
 
         @Override
-        public void onSuccess() {
+        public void onSuccess(Object result) {
             counter.getAndDecrement();
             executeSuccess();
         }
 
         private void executeSuccess() {
             if (loopFinished.get() && counter.get() == 0 && successExecuted.compareAndSet(false, true)) {
-                ackCallback.onSuccess();
+                ackCallback.onSuccess(null);
             }
         }
 

@@ -46,7 +46,7 @@ import com.corundumstudio.socketio.transport.BaseClient;
 public class PacketHandlerTest {
 
     private JsonSupport map = new JacksonJsonSupport(new Configuration());
-    private Decoder decoder = new Decoder(map);
+    private Decoder decoder = new Decoder(map, new AckManager(null));
     private Encoder encoder = new Encoder(map);
     private NamespacesHub namespacesHub = new NamespacesHub(map);
     @Mocked
@@ -66,7 +66,7 @@ public class PacketHandlerTest {
     private PacketListener createTestListener(final List<Packet> packets) {
         PacketListener listener = new PacketListener(null, null, null) {
             @Override
-            public void onPacket(Packet packet, SocketIOClient client) {
+            public void onPacket(Packet packet, SocketIOClient client, AckRequest ackRequest) {
                 int index = invocations.incrementAndGet();
                 Packet currentPacket = packets.get(index-1);
                 Assert.assertEquals(currentPacket.getType(), packet.getType());
@@ -137,7 +137,7 @@ public class PacketHandlerTest {
     public void testDecodePerf() throws Exception {
         PacketListener listener = new PacketListener(null, null, null) {
             @Override
-            public void onPacket(Packet packet, SocketIOClient client) {
+            public void onPacket(Packet packet, SocketIOClient client, AckRequest ackRequest) {
             }
         };
         PacketHandler handler = new PacketHandler(listener, decoder, namespacesHub);
