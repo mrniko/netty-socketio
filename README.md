@@ -29,14 +29,14 @@ Licensed under the Apache License 2.0.
         SocketIOServer server = new SocketIOServer(config);
         server.addMessageListener(new DataListener<String>() {
             @Override
-            public void onData(SocketIOClient client, String message) {
+            public void onData(SocketIOClient client, String message, AckRequest ackRequest) {
                 ...
             }
         });
 
         server.addEventListener("someevent", SomeClass.class, new DataListener<SomeClass>() {
             @Override
-            public void onData(SocketIOClient client, Object data) {
+            public void onData(SocketIOClient client, Object data, AckRequest ackRequest) {
                 ...
             }
         });
@@ -63,7 +63,7 @@ Licensed under the Apache License 2.0.
 
         server.addJsonObjectListener(SomeClass.class, new DataListener<SomeClass>() {
             @Override
-            public void onData(SocketIOClient client, SomeClass data) {
+            public void onData(SocketIOClient client, SomeClass data, AckRequest ackRequest) {
 
                 ...
 
