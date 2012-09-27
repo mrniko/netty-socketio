@@ -52,16 +52,26 @@ public class AckRequest {
      * Send ack data to client.
      * Can be invoked only once.
      *
-     * @param obj - ack data object
+     * @param objs - ack data objects
      */
-    public void sendAckData(Object obj) {
+    public void sendAckData(Object ... objs) {
+        List<Object> args = Arrays.asList(objs);
+        sendAckData(args);
+    }
+
+    /**
+     * Send ack data to client.
+     * Can be invoked only once.
+     *
+     * @param objs - ack data object list
+     */
+    public void sendAckData(List<Object> objs) {
         if (!isAckRequested() || !sended.compareAndSet(false, true)) {
             return;
         }
         Packet ackPacket = new Packet(PacketType.ACK);
         ackPacket.setAckId(originalPacket.getId());
-        List<Object> args = Arrays.asList(obj);
-        ackPacket.setArgs(args);
+        ackPacket.setArgs(objs);
         client.send(ackPacket);
     }
 
