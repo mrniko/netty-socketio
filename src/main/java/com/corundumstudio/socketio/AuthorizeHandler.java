@@ -51,9 +51,6 @@ import com.corundumstudio.socketio.scheduler.CancelableScheduler;
 import com.corundumstudio.socketio.scheduler.SchedulerKey;
 import com.corundumstudio.socketio.scheduler.SchedulerKey.Type;
 import com.corundumstudio.socketio.transport.BaseClient;
-import com.corundumstudio.socketio.transport.FlashSocketTransport;
-import com.corundumstudio.socketio.transport.WebSocketTransport;
-import com.corundumstudio.socketio.transport.XHRPollingTransport;
 
 @Sharable
 public class AuthorizeHandler extends SimpleChannelUpstreamHandler implements Disconnectable {
@@ -91,34 +88,34 @@ public class AuthorizeHandler extends SimpleChannelUpstreamHandler implements Di
                 return;
             }
             if (queryDecoder.getPath().equals(connectPath)) {
-                authorize(channel, req, queryDecoder.getParameters());
+                String origin = req.getHeader(HttpHeaders.Names.ORIGIN);
+                authorize(channel, origin, queryDecoder.getParameters());
                 return;
             }
         }
         ctx.sendUpstream(e);
     }
 
-    private void authorize(Channel channel, HttpRequest req, Map<String, List<String>> params)
+    private void authorize(Channel channel, String origin, Map<String, List<String>> params)
             throws IOException {
         final UUID sessionId = UUID.randomUUID();
         authorizedSessionIds.add(sessionId);
 
         scheduleDisconnect(channel, sessionId);
 
-        String transports = WebSocketTransport.NAME + "," + FlashSocketTransport.NAME + "," + XHRPollingTransport.NAME;
         String heartbeatTimeoutVal = String.valueOf(configuration.getHeartbeatTimeout());
         if (!configuration.isHeartbeatsEnabled()) {
             heartbeatTimeoutVal = "";
         }
 
-        String msg = sessionId + ":" + heartbeatTimeoutVal + ":" + configuration.getCloseTimeout() + ":" + transports;
+        String msg = sessionId + ":" + heartbeatTimeoutVal + ":" + configuration.getCloseTimeout() + ":" + configuration.getTransports();
 
         List<String> jsonpParams = params.get("jsonp");
         String jsonpParam = null;
         if (jsonpParams != null) {
             jsonpParam = jsonpParams.get(0);
         }
-        String origin = req.getHeader(HttpHeaders.Names.ORIGIN);
+
         channel.write(new AuthorizeMessage(msg, jsonpParam, origin, sessionId));
         log.debug("New sessionId: {} authorized", sessionId);
     }

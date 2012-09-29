@@ -16,6 +16,8 @@
 package com.corundumstudio.socketio;
 
 import java.io.InputStream;
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
@@ -26,6 +28,8 @@ public class Configuration {
 
     private String jsonTypeFieldName = "@class";
     private String context = "/socket.io";
+
+    private String transports = join(Arrays.asList(Transport.WEBSOCKET, Transport.FLASHSOCKET, Transport.XHRPOLLING));
 
     private Executor bossExecutor = Executors.newCachedThreadPool();
     private Executor workerExecutor = Executors.newCachedThreadPool();
@@ -71,6 +75,17 @@ public class Configuration {
         setJsonTypeFieldName(conf.getJsonTypeFieldName());
         setKeyStorePassword(conf.getKeyStorePassword());
         setKeyStore(conf.getKeyStore());
+        setTransports(conf.getTransports());
+    }
+
+    private String join(List<Transport> transports) {
+        StringBuilder result = new StringBuilder();
+        for (Transport transport : transports) {
+            result.append(transport.getValue());
+            result.append(",");
+        }
+        result.setLength(result.length()-1);
+        return result.toString();
     }
 
     public String getJsonTypeFieldName() {
@@ -214,6 +229,11 @@ public class Configuration {
         this.pollingDuration = pollingDuration;
     }
 
+    /**
+     * SSL key store password
+     *
+     * @param keyStorePassword
+     */
     public void setKeyStorePassword(String keyStorePassword) {
         this.keyStorePassword = keyStorePassword;
     }
@@ -221,11 +241,35 @@ public class Configuration {
         return keyStorePassword;
     }
 
+    /**
+     * SSL key store stream, maybe appointed to any source
+     *
+     * @param keyStore
+     */
     public void setKeyStore(InputStream keyStore) {
         this.keyStore = keyStore;
     }
     public InputStream getKeyStore() {
         return keyStore;
+    }
+
+    /**
+     * Transports supported by server
+     *
+     * @param transports - list of transports
+     */
+    public void setTransports(List<Transport> transports) {
+        if (transports.isEmpty()) {
+            throw new IllegalArgumentException("Transports list can't be empty");
+        }
+        this.transports = join(transports);
+    }
+    // used in cloning
+    private void setTransports(String transports) {
+        this.transports = transports;
+    }
+    public String getTransports() {
+        return transports;
     }
 
 }
