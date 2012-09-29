@@ -15,6 +15,8 @@
  */
 package com.corundumstudio.socketio;
 
+import java.util.Collections;
+
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.channel.ChannelHandler.Sharable;
 import org.jboss.netty.channel.ChannelHandlerContext;
@@ -64,7 +66,7 @@ public class PacketHandler extends SimpleChannelUpstreamHandler {
                 SocketIOClient client = message.getClient().getChildClient(ns);
                 AckRequest ackSender = new AckRequest(packet, client);
                 packetListener.onPacket(packet, client, ackSender);
-                ackSender.sendAckData((Object)null);
+                ackSender.sendAckData(Collections.emptyList());
             }
         } else {
             ctx.sendUpstream(e);

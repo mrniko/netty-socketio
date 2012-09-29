@@ -138,8 +138,16 @@ public class Packet {
         this.advice = advice;
     }
 
+    private boolean isJsonAck() {
+        return (Boolean.TRUE.equals(getAck()) || ACK_DATA.equals(getAck())) && getType().equals(PacketType.JSON);
+    }
+
+    private boolean isEventAck() {
+        return ACK_DATA.equals(getAck()) && getType().equals(PacketType.EVENT);
+    }
+
     public boolean isAck() {
-        return getId() != null && !ACK_DATA.equals(getAck());
+        return getId() != null && (isEventAck() || isJsonAck());
     }
 
 }
