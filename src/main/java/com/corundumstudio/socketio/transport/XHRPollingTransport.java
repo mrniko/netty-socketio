@@ -41,13 +41,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.corundumstudio.socketio.AckManager;
-import com.corundumstudio.socketio.AuthorizeHandler;
 import com.corundumstudio.socketio.CompositeIterable;
 import com.corundumstudio.socketio.Configuration;
 import com.corundumstudio.socketio.Disconnectable;
 import com.corundumstudio.socketio.DisconnectableHub;
 import com.corundumstudio.socketio.SocketIOClient;
 import com.corundumstudio.socketio.SocketIOPipelineFactory;
+import com.corundumstudio.socketio.handler.AuthorizeHandler;
 import com.corundumstudio.socketio.messages.PacketsMessage;
 import com.corundumstudio.socketio.messages.XHRErrorMessage;
 import com.corundumstudio.socketio.messages.XHRPostMessage;
@@ -102,8 +102,6 @@ public class XHRPollingTransport extends SimpleChannelUpstreamHandler implements
 
     private void handleMessage(HttpRequest req, QueryStringDecoder queryDecoder, Channel channel)
                                                                                 throws IOException {
-        channel.getPipeline().remove(SocketIOPipelineFactory.FLASH_POLICY_HANDLER);
-
         String[] parts = queryDecoder.getPath().split("/");
         if (parts.length > 3) {
             UUID sessionId = UUID.fromString(parts[4]);

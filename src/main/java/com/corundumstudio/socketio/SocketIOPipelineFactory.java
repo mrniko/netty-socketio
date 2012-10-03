@@ -34,6 +34,9 @@ import org.jboss.netty.handler.ssl.SslHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.corundumstudio.socketio.handler.AuthorizeHandler;
+import com.corundumstudio.socketio.handler.PacketHandler;
+import com.corundumstudio.socketio.handler.ResourceHandler;
 import com.corundumstudio.socketio.namespace.NamespacesHub;
 import com.corundumstudio.socketio.parser.Decoder;
 import com.corundumstudio.socketio.parser.Encoder;
@@ -58,6 +61,7 @@ public class SocketIOPipelineFactory implements ChannelPipelineFactory, Disconne
     public static final String HTTP_REQUEST_DECODER = "decoder";
     public static final String SSL_HANDLER = "ssl";
     public static final String FLASH_POLICY_HANDLER = "flashPolicyHandler";
+    public static final String RESOURCE_HANDLER = "resourceHandler";
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -70,6 +74,7 @@ public class SocketIOPipelineFactory implements ChannelPipelineFactory, Disconne
     private WebSocketTransport webSocketTransport;
     private FlashSocketTransport flashSocketTransport;
     private final FlashPolicyHandler flashPolicyHandler = new FlashPolicyHandler();
+    private ResourceHandler resourceHandler;
     private SocketIOEncoder socketIOEncoder;
 
     private CancelableScheduler scheduler;
@@ -77,8 +82,10 @@ public class SocketIOPipelineFactory implements ChannelPipelineFactory, Disconne
     private PacketHandler packetHandler;
     private HeartbeatHandler heartbeatHandler;
     private SSLContext sslContext;
+    private Configuration configuration;
 
     public void start(Configuration configuration, NamespacesHub namespacesHub) {
+        this.configuration = configuration;
         scheduler = new CancelableScheduler(configuration.getHeartbeatThreadPoolSize());
 
         ackManager = new AckManager(scheduler);
@@ -106,6 +113,7 @@ public class SocketIOPipelineFactory implements ChannelPipelineFactory, Disconne
         xhrPollingTransport = new XHRPollingTransport(connectPath, ackManager, this, scheduler, authorizeHandler, configuration);
         webSocketTransport = new WebSocketTransport(connectPath, isSsl, ackManager, this, authorizeHandler, heartbeatHandler);
         flashSocketTransport = new FlashSocketTransport(connectPath, isSsl, ackManager, this, authorizeHandler, heartbeatHandler);
+        resourceHandler = new ResourceHandler(configuration.getContext());
         socketIOEncoder = new SocketIOEncoder(encoder);
     }
 
@@ -120,7 +128,10 @@ public class SocketIOPipelineFactory implements ChannelPipelineFactory, Disconne
     public ChannelPipeline getPipeline() throws Exception {
         ChannelPipeline pipeline = pipeline();
 
-        pipeline.addLast(FLASH_POLICY_HANDLER, flashPolicyHandler);
+        boolean isFlashTransport = configuration.getTransports().contains(FlashSocketTransport.NAME);
+        if (isFlashTransport) {
+            pipeline.addLast(FLASH_POLICY_HANDLER, flashPolicyHandler);
+        }
 
         if (sslContext != null) {
             SSLEngine engine = sslContext.createSSLEngine();
@@ -132,6 +143,9 @@ public class SocketIOPipelineFactory implements ChannelPipelineFactory, Disconne
         pipeline.addLast(HTTP_AGGREGATOR, new HttpChunkAggregator(65536));
         pipeline.addLast(HTTP_ENCODER, new HttpResponseEncoder());
 
+        if (isFlashTransport) {
+            pipeline.addLast(RESOURCE_HANDLER, resourceHandler);
+        }
         pipeline.addLast(PACKET_HANDLER, packetHandler);
 
         pipeline.addLast(AUTHORIZE_HANDLER, authorizeHandler);

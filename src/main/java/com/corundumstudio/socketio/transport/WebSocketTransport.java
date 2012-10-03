@@ -43,13 +43,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.corundumstudio.socketio.AckManager;
-import com.corundumstudio.socketio.AuthorizeHandler;
 import com.corundumstudio.socketio.CompositeIterable;
 import com.corundumstudio.socketio.Disconnectable;
 import com.corundumstudio.socketio.DisconnectableHub;
 import com.corundumstudio.socketio.HeartbeatHandler;
 import com.corundumstudio.socketio.SocketIOClient;
 import com.corundumstudio.socketio.SocketIOPipelineFactory;
+import com.corundumstudio.socketio.handler.AuthorizeHandler;
 import com.corundumstudio.socketio.messages.PacketsMessage;
 
 @Sharable
@@ -156,7 +156,6 @@ public class WebSocketTransport extends SimpleChannelUpstreamHandler implements 
         authorizeHandler.connect(client);
 
         heartbeatHandler.onHeartbeat(client);
-        channel.getPipeline().remove(SocketIOPipelineFactory.FLASH_POLICY_HANDLER);
         removeHandler(channel.getPipeline());
     }
 

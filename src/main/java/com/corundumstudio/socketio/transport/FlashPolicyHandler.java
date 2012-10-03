@@ -25,6 +25,8 @@ import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
 import org.jboss.netty.util.CharsetUtil;
 
+import com.corundumstudio.socketio.SocketIOPipelineFactory;
+
 @Sharable
 public class FlashPolicyHandler extends SimpleChannelUpstreamHandler {
 
@@ -47,6 +49,7 @@ public class FlashPolicyHandler extends SimpleChannelUpstreamHandler {
             f.addListener(ChannelFutureListener.CLOSE);
             return;
         }
+        ctx.getPipeline().remove(SocketIOPipelineFactory.FLASH_POLICY_HANDLER);
         super.messageReceived(ctx, e);
     }
 }

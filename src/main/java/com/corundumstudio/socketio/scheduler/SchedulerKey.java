@@ -21,8 +21,8 @@ public class SchedulerKey {
 
     public enum Type {POLLING, HEARBEAT_TIMEOUT, CLOSE_TIMEOUT, AUTHORIZE, ACK_TIMEOUT};
 
-    private Type type;
-    private UUID sessionId;
+    private final Type type;
+    private final UUID sessionId;
 
     public SchedulerKey(Type type, UUID sessionId) {
         this.type = type;

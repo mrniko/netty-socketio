@@ -19,10 +19,10 @@ import org.jboss.netty.channel.ChannelPipeline;
 import org.jboss.netty.channel.ChannelHandler.Sharable;
 
 import com.corundumstudio.socketio.AckManager;
-import com.corundumstudio.socketio.AuthorizeHandler;
 import com.corundumstudio.socketio.DisconnectableHub;
 import com.corundumstudio.socketio.HeartbeatHandler;
 import com.corundumstudio.socketio.SocketIOPipelineFactory;
+import com.corundumstudio.socketio.handler.AuthorizeHandler;
 
 @Sharable
 public class FlashSocketTransport extends WebSocketTransport {
