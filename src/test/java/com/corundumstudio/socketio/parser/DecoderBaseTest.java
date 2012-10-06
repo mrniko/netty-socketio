@@ -19,8 +19,8 @@ import org.junit.Before;
 
 import mockit.Mocked;
 
-import com.corundumstudio.socketio.AckManager;
 import com.corundumstudio.socketio.Configuration;
+import com.corundumstudio.socketio.ack.AckManager;
 
 
 public class DecoderBaseTest {

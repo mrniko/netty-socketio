@@ -32,6 +32,7 @@ import org.jboss.netty.channel.UpstreamMessageEvent;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.corundumstudio.socketio.ack.AckManager;
 import com.corundumstudio.socketio.handler.PacketHandler;
 import com.corundumstudio.socketio.messages.PacketsMessage;
 import com.corundumstudio.socketio.namespace.Namespace;

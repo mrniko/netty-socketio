@@ -25,7 +25,7 @@ import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.util.CharsetUtil;
 
 import com.corundumstudio.socketio.AckCallback;
-import com.corundumstudio.socketio.AckManager;
+import com.corundumstudio.socketio.ack.AckManager;
 import com.corundumstudio.socketio.namespace.Namespace;
 
 public class Decoder {

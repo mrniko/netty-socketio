@@ -25,19 +25,26 @@ package com.corundumstudio.socketio;
  */
 public abstract class AckCallback<T> {
 
-    protected Class<T> resultClass;
-    protected int timeout = -1;
+    protected final Class<T> resultClass;
+    protected final int timeout;
 
+    /**
+     * Create AckCallback
+     *
+     * @param resultClass - result class
+     */
     public AckCallback(Class<T> resultClass) {
-        this.resultClass = resultClass;
+        this(resultClass, -1);
     }
 
     /**
-     * Creates AckCallback
+     * Creates AckCallback with timeout
      *
+     * @param resultClass - result class
      * @param timeout - callback timeout in seconds
      */
-    public AckCallback(int timeout) {
+    public AckCallback(Class<T> resultClass, int timeout) {
+        this.resultClass = resultClass;
         this.timeout = timeout;
     }
 

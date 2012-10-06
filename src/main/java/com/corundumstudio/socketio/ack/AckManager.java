@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.corundumstudio.socketio;
+package com.corundumstudio.socketio.ack;
 
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
@@ -24,6 +25,10 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.corundumstudio.socketio.AckCallback;
+import com.corundumstudio.socketio.Disconnectable;
+import com.corundumstudio.socketio.SocketIOClient;
+import com.corundumstudio.socketio.ack.AckManager.AckEntry;
 import com.corundumstudio.socketio.parser.Packet;
 import com.corundumstudio.socketio.scheduler.CancelableScheduler;
 import com.corundumstudio.socketio.scheduler.SchedulerKey;
@@ -41,6 +46,10 @@ public class AckManager implements Disconnectable {
             long index = ackIndex.incrementAndGet();
             ackCallbacks.put(index, callback);
             return index;
+        }
+
+        public Set<Long> getAckIndexes() {
+            return ackCallbacks.keySet();
         }
 
         public AckCallback<?> getAckCallback(long index) {
@@ -127,7 +136,7 @@ public class AckManager implements Disconnectable {
         if (callback.getTimeout() == -1) {
             return;
         }
-        SchedulerKey key = new SchedulerKey(Type.ACK_TIMEOUT, sessionId);
+        SchedulerKey key = new AckSchedulerKey(Type.ACK_TIMEOUT, sessionId, index);
         scheduler.schedule(key, new Runnable() {
             @Override
             public void run() {
@@ -139,7 +148,13 @@ public class AckManager implements Disconnectable {
 
     @Override
     public void onDisconnect(BaseClient client) {
-        ackEntries.remove(client.getSessionId());
+        AckEntry entry = ackEntries.remove(client.getSessionId());
+        if (entry != null) {
+            for (Long index : entry.getAckIndexes()) {
+                SchedulerKey key = new AckSchedulerKey(Type.ACK_TIMEOUT, client.getSessionId(), index);
+                scheduler.cancel(key);
+            }
+        }
     }
 
 }
