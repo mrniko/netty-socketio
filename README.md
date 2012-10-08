@@ -16,7 +16,7 @@ Licensed under the Apache License 2.0.
 * Supports namespaces
 * Supports ack (acknowledgment of received data)
 * Supports SSL
-
+* Lock-free implementation
 
 
 #Usage example
