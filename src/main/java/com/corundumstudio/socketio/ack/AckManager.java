@@ -109,8 +109,13 @@ public class AckManager implements Disconnectable {
     }
 
     private AckCallback removeCallback(UUID sessionId, long index) {
-        AckEntry ackEntry = getAckEntry(sessionId);
-        return ackEntry.removeCallback(index);
+        AckEntry ackEntry = ackEntries.get(sessionId);
+        // may be null if client disconnected
+        // before timeout occurs
+        if (ackEntry != null) {
+            return ackEntry.removeCallback(index);
+        }
+        return null;
     }
 
     public AckCallback<?> getCallback(UUID sessionId, long index) {
@@ -148,13 +153,7 @@ public class AckManager implements Disconnectable {
 
     @Override
     public void onDisconnect(BaseClient client) {
-        AckEntry entry = ackEntries.remove(client.getSessionId());
-        if (entry != null) {
-            for (Long index : entry.getAckIndexes()) {
-                SchedulerKey key = new AckSchedulerKey(Type.ACK_TIMEOUT, client.getSessionId(), index);
-                scheduler.cancel(key);
-            }
-        }
+        ackEntries.remove(client.getSessionId());
     }
 
 }
