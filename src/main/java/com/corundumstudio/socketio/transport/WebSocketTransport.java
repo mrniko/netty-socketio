@@ -53,7 +53,7 @@ import com.corundumstudio.socketio.handler.AuthorizeHandler;
 import com.corundumstudio.socketio.messages.PacketsMessage;
 
 @Sharable
-public class WebSocketTransport extends SimpleChannelUpstreamHandler implements Disconnectable {
+public class WebSocketTransport extends BaseTransport {
 
     public static final String NAME = "websocket";
 
@@ -181,13 +181,8 @@ public class WebSocketTransport extends SimpleChannelUpstreamHandler implements 
     }
 
     public Iterable<SocketIOClient> getAllClients() {
-        // TODO remove CPD!
         Collection<WebSocketClient> clients = sessionId2Client.values();
-        List<Iterable<SocketIOClient>> allClients = new ArrayList<Iterable<SocketIOClient>>(clients.size());
-        for (WebSocketClient client : sessionId2Client.values()) {
-            allClients.add(client.getAllChildClients());
-        }
-        return new CompositeIterable<SocketIOClient>(allClients);
+        return getAllClients(clients);
     }
 
 }
