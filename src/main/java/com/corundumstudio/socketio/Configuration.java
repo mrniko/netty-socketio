@@ -16,10 +16,10 @@
 package com.corundumstudio.socketio;
 
 import java.io.InputStream;
-import java.util.Arrays;
-import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+
+import org.jboss.netty.handler.codec.frame.TooLongFrameException;
 
 import com.corundumstudio.socketio.parser.JacksonJsonSupport;
 import com.corundumstudio.socketio.parser.JsonSupport;
@@ -29,7 +29,7 @@ public class Configuration {
     private String jsonTypeFieldName = "@class";
     private String context = "/socket.io";
 
-    private String transports = join(Arrays.asList(Transport.WEBSOCKET, Transport.FLASHSOCKET, Transport.XHRPOLLING));
+    private String transports = join(new Transport[] {Transport.WEBSOCKET, Transport.FLASHSOCKET, Transport.XHRPOLLING});
 
     private Executor bossExecutor = Executors.newCachedThreadPool();
     private Executor workerExecutor = Executors.newCachedThreadPool();
@@ -42,6 +42,8 @@ public class Configuration {
     private int heartbeatTimeout = 60;
     private int heartbeatInterval = 25;
     private int closeTimeout = 60;
+
+    private int maxHttpContentLength = 64 * 1024;
 
     private String hostname;
     private int port;
@@ -76,9 +78,10 @@ public class Configuration {
         setKeyStorePassword(conf.getKeyStorePassword());
         setKeyStore(conf.getKeyStore());
         setTransports(conf.getTransports());
+        setMaxHttpContentLength(conf.getMaxHttpContentLength());
     }
 
-    private String join(List<Transport> transports) {
+    private String join(Transport[] transports) {
         StringBuilder result = new StringBuilder();
         for (Transport transport : transports) {
             result.append(transport.getValue());
@@ -254,12 +257,27 @@ public class Configuration {
     }
 
     /**
+     * Set maximum http content length limit
+     *
+     * @param maxContentLength
+     *        the maximum length of the aggregated http content.
+     *        If the length of the aggregated content exceeds this value,
+     *        a {@link TooLongFrameException} will be raised.
+     */
+    public void setMaxHttpContentLength(int value) {
+        this.maxHttpContentLength = value;
+    }
+    public int getMaxHttpContentLength() {
+        return maxHttpContentLength;
+    }
+
+    /**
      * Transports supported by server
      *
      * @param transports - list of transports
      */
-    public void setTransports(List<Transport> transports) {
-        if (transports.isEmpty()) {
+    public void setTransports(Transport ... transports) {
+        if (transports.length == 0) {
             throw new IllegalArgumentException("Transports list can't be empty");
         }
         this.transports = join(transports);

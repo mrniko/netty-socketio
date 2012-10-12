@@ -141,7 +141,7 @@ public class SocketIOPipelineFactory implements ChannelPipelineFactory, Disconne
         }
 
         pipeline.addLast(HTTP_REQUEST_DECODER, new HttpRequestDecoder());
-        pipeline.addLast(HTTP_AGGREGATOR, new HttpChunkAggregator(65536));
+        pipeline.addLast(HTTP_AGGREGATOR, new HttpChunkAggregator(configuration.getMaxHttpContentLength()));
         pipeline.addLast(HTTP_ENCODER, new HttpResponseEncoder());
 
         if (isFlashTransport) {
