@@ -196,7 +196,11 @@ public class SocketIOEncoder extends SimpleChannelDownstreamHandler implements M
         WebSocketFrame res = new TextWebSocketFrame(message);
         log.trace("Out message: {} sessionId: {}", new Object[] {
                 message.toString(CharsetUtil.UTF_8), webSocketPacketMessage.getSessionId()});
-        channel.write(res);
+        if (channel.isOpen()) {
+            channel.write(res);
+        } else {
+            log.trace("Channel was closed, for sessionId: {}", webSocketPacketMessage.getSessionId());
+        }
     }
 
     @Override

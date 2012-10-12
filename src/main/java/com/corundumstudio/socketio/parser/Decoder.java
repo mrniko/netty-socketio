@@ -227,6 +227,7 @@ public class Decoder {
             break;
         }
 
+        buffer.readerIndex(buffer.readerIndex() + buffer.readableBytes());
         return packet;
     }
 
