@@ -18,6 +18,7 @@ package com.corundumstudio.socketio.parser;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -26,18 +27,15 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.codehaus.jackson.JsonNode;
+import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.Version;
-import org.codehaus.jackson.annotate.JsonTypeInfo;
 import org.codehaus.jackson.map.DeserializationContext;
+import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.ObjectMapper.DefaultTypeResolverBuilder;
-import org.codehaus.jackson.map.ObjectMapper.DefaultTyping;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
-import org.codehaus.jackson.map.deser.BeanDeserializer;
 import org.codehaus.jackson.map.deser.std.StdDeserializer;
-import org.codehaus.jackson.map.jsontype.TypeResolverBuilder;
 import org.codehaus.jackson.map.module.SimpleModule;
 import org.codehaus.jackson.node.ObjectNode;
 
@@ -63,6 +61,12 @@ public class JacksonJsonSupport implements JsonSupport {
                 return null;
             }
 
+            Object val = readObject(mapper, rootNode);
+            return new JsonObject(val);
+        }
+
+        private Object readObject(ObjectMapper mapper, JsonNode rootNode) throws IOException,
+                JsonParseException, JsonMappingException {
             Class<?> clazz = Object.class;
             ObjectNode root = (ObjectNode) rootNode;
             JsonNode node = root.remove(configuration.getJsonTypeFieldName());
@@ -78,7 +82,56 @@ public class JacksonJsonSupport implements JsonSupport {
                 }
             }
             Object val = mapper.readValue(root, clazz);
-            return new JsonObject(val);
+            return val;
+        }
+
+    }
+
+    private class AckArgsDeserializer extends StdDeserializer<AckArgs> {
+
+        protected AckArgsDeserializer() {
+            super(AckArgs.class);
+        }
+
+        @Override
+        public AckArgs deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException,
+                JsonProcessingException {
+            List args = new ArrayList();
+            AckArgs result = new AckArgs(args);
+
+            ObjectMapper mapper = (ObjectMapper) jp.getCodec();
+            JsonNode root = mapper.readTree(jp);
+            Class<?> clazz = currentAckClass.get();
+            Iterator<JsonNode> iter = root.iterator();
+            while (iter.hasNext()) {
+                Object val;
+                JsonNode arg = iter.next();
+                if (arg.isTextual() || arg.isBoolean()) {
+                    clazz = Object.class;
+                }
+
+                // TODO refactor it!
+                if (arg.isNumber()) {
+                    if (clazz.equals(Long.class)) {
+                        val = arg.asLong();
+                    }
+                    if (clazz.equals(BigDecimal.class)) {
+                        val = arg.getBigIntegerValue();
+                    }
+                    if (clazz.equals(Double.class)) {
+                        val = arg.asDouble();
+                    }
+                    if (clazz.equals(Integer.class)) {
+                        val = arg.asInt();
+                    }
+                    if (clazz.equals(Float.class)) {
+                        val = (float)arg.getDoubleValue();
+                    }
+                }
+                val = mapper.readValue(arg, clazz);
+                args.add(val);
+            }
+            return result;
         }
 
     }
@@ -120,10 +173,12 @@ public class JacksonJsonSupport implements JsonSupport {
 
     }
 
+    private final ThreadLocal<Class<?>> currentAckClass = new ThreadLocal<Class<?>>();
     private final Configuration configuration;
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final EventDeserializer eventDeserializer = new EventDeserializer();
     private final JsonObjectDeserializer jsonObjectDeserializer = new JsonObjectDeserializer();
+    private final AckArgsDeserializer ackArgsDeserializer = new AckArgsDeserializer();
 
     public JacksonJsonSupport(Configuration configuration) {
         this.configuration = configuration;
@@ -131,9 +186,10 @@ public class JacksonJsonSupport implements JsonSupport {
         SimpleModule module = new SimpleModule("EventDeserializerModule", new Version(1, 0, 0, null));
         module.addDeserializer(Event.class, eventDeserializer);
         module.addDeserializer(JsonObject.class, jsonObjectDeserializer);
+        module.addDeserializer(AckArgs.class, ackArgsDeserializer);
+        objectMapper.registerModule(module);
 
         objectMapper.setSerializationInclusion(JsonSerialize.Inclusion.NON_NULL);
-        objectMapper.registerModule(module);
 
 //        TODO If jsonObjectDeserializer will be not enough
 //        TypeResolverBuilder<?> typer = new DefaultTypeResolverBuilder(DefaultTyping.NON_FINAL);
@@ -161,6 +217,12 @@ public class JacksonJsonSupport implements JsonSupport {
     @Override
     public <T> T readValue(InputStream src, Class<T> valueType) throws IOException {
         return objectMapper.readValue(src, valueType);
+    }
+
+    @Override
+    public AckArgs readAckArgs(InputStream src, Class<?> argType) throws IOException {
+        currentAckClass.set(argType);
+        return objectMapper.readValue(src, AckArgs.class);
     }
 
     @Override

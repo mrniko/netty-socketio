@@ -19,6 +19,8 @@ import java.io.InputStream;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
+import org.jboss.netty.handler.codec.frame.TooLongFrameException;
+
 import com.corundumstudio.socketio.parser.JacksonJsonSupport;
 import com.corundumstudio.socketio.parser.JsonSupport;
 
@@ -26,6 +28,8 @@ public class Configuration {
 
     private String jsonTypeFieldName = "@class";
     private String context = "/socket.io";
+
+    private String transports = join(new Transport[] {Transport.WEBSOCKET, Transport.FLASHSOCKET, Transport.XHRPOLLING});
 
     private Executor bossExecutor = Executors.newCachedThreadPool();
     private Executor workerExecutor = Executors.newCachedThreadPool();
@@ -38,6 +42,8 @@ public class Configuration {
     private int heartbeatTimeout = 60;
     private int heartbeatInterval = 25;
     private int closeTimeout = 60;
+
+    private int maxHttpContentLength = 64 * 1024;
 
     private String hostname;
     private int port;
@@ -71,6 +77,18 @@ public class Configuration {
         setJsonTypeFieldName(conf.getJsonTypeFieldName());
         setKeyStorePassword(conf.getKeyStorePassword());
         setKeyStore(conf.getKeyStore());
+        setTransports(conf.getTransports());
+        setMaxHttpContentLength(conf.getMaxHttpContentLength());
+    }
+
+    private String join(Transport[] transports) {
+        StringBuilder result = new StringBuilder();
+        for (Transport transport : transports) {
+            result.append(transport.getValue());
+            result.append(",");
+        }
+        result.setLength(result.length()-1);
+        return result.toString();
     }
 
     public String getJsonTypeFieldName() {
@@ -214,6 +232,11 @@ public class Configuration {
         this.pollingDuration = pollingDuration;
     }
 
+    /**
+     * SSL key store password
+     *
+     * @param keyStorePassword
+     */
     public void setKeyStorePassword(String keyStorePassword) {
         this.keyStorePassword = keyStorePassword;
     }
@@ -221,11 +244,50 @@ public class Configuration {
         return keyStorePassword;
     }
 
+    /**
+     * SSL key store stream, maybe appointed to any source
+     *
+     * @param keyStore
+     */
     public void setKeyStore(InputStream keyStore) {
         this.keyStore = keyStore;
     }
     public InputStream getKeyStore() {
         return keyStore;
+    }
+
+    /**
+     * Set maximum http content length limit
+     *
+     * @param maxContentLength
+     *        the maximum length of the aggregated http content.
+     *        If the length of the aggregated content exceeds this value,
+     *        a {@link TooLongFrameException} will be raised.
+     */
+    public void setMaxHttpContentLength(int value) {
+        this.maxHttpContentLength = value;
+    }
+    public int getMaxHttpContentLength() {
+        return maxHttpContentLength;
+    }
+
+    /**
+     * Transports supported by server
+     *
+     * @param transports - list of transports
+     */
+    public void setTransports(Transport ... transports) {
+        if (transports.length == 0) {
+            throw new IllegalArgumentException("Transports list can't be empty");
+        }
+        this.transports = join(transports);
+    }
+    // used in cloning
+    private void setTransports(String transports) {
+        this.transports = transports;
+    }
+    public String getTransports() {
+        return transports;
     }
 
 }

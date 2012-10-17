@@ -34,6 +34,8 @@ public class Packet {
     }
     public static final byte SEPARATOR = ':';
 
+    public static final String ACK_DATA = "data";
+
     public static final Packet NULL_INSTANCE = new Packet(null);
 
     private final PacketType type;
@@ -142,6 +144,18 @@ public class Packet {
 
     public void setAdvice(ErrorAdvice advice) {
         this.advice = advice;
+    }
+
+    private boolean isJsonAck() {
+        return (Boolean.TRUE.equals(getAck()) || ACK_DATA.equals(getAck())) && getType().equals(PacketType.JSON);
+    }
+
+    private boolean isEventAck() {
+        return ACK_DATA.equals(getAck()) && getType().equals(PacketType.EVENT);
+    }
+
+    public boolean isAck() {
+        return getId() != null && (isEventAck() || isJsonAck());
     }
 
 }

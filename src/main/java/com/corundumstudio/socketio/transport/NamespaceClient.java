@@ -53,7 +53,7 @@ public class NamespaceClient implements SocketIOClient {
     }
 
     @Override
-    public void sendEvent(String name, Object data, AckCallback ackCallback) {
+    public void sendEvent(String name, Object data, AckCallback<?> ackCallback) {
         Packet packet = new Packet(PacketType.EVENT);
         packet.setName(name);
         packet.setArgs(Collections.singletonList(data));
@@ -61,7 +61,7 @@ public class NamespaceClient implements SocketIOClient {
     }
 
     @Override
-    public void sendMessage(String message, AckCallback ackCallback) {
+    public void sendMessage(String message, AckCallback<?> ackCallback) {
         Packet packet = new Packet(PacketType.MESSAGE);
         packet.setData(message);
         send(packet, ackCallback);
@@ -82,9 +82,12 @@ public class NamespaceClient implements SocketIOClient {
     }
 
     @Override
-    public void send(Packet packet, AckCallback ackCallback) {
+    public void send(Packet packet, AckCallback<?> ackCallback) {
         long index = baseClient.getAckManager().registerAck(getSessionId(), ackCallback);
         packet.setId(index);
+        if (!ackCallback.getResultClass().equals(Void.class)) {
+            packet.setAck(Packet.ACK_DATA);
+        }
         send(packet);
     }
 
@@ -95,7 +98,7 @@ public class NamespaceClient implements SocketIOClient {
     }
 
     @Override
-    public void sendJsonObject(Object object, AckCallback ackCallback) {
+    public void sendJsonObject(Object object, AckCallback<?> ackCallback) {
         Packet packet = new Packet(PacketType.JSON);
         packet.setData(object);
         send(packet, ackCallback);

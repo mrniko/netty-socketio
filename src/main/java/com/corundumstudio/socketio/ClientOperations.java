@@ -31,14 +31,6 @@ public interface ClientOperations {
     void sendMessage(String message);
 
     /**
-     * Send message with ack callback
-     *
-     * @param message - message to send
-     * @param ackCallback - ack callback
-     */
-    void sendMessage(String message, AckCallback ackCallback);
-
-    /**
      * Send object. Object will be encoded to json-format.
      *
      * @param object - object to send
@@ -46,27 +38,11 @@ public interface ClientOperations {
     void sendJsonObject(Object object);
 
     /**
-     * Send object with ack callback
-     *
-     * @param object - object to send
-     * @param ackCallback - ack callback
-     */
-    void sendJsonObject(Object object, AckCallback ackCallback);
-
-    /**
      * Send packet
      *
      * @param packet - packet to send
      */
     void send(Packet packet);
-
-    /**
-     * Send packet with ack callback
-     *
-     * @param packet - packet to send
-     * @param ackCallback - ack callback
-     */
-    void send(Packet packet, AckCallback ackCallback);
 
     /**
      * Disconnect client
@@ -81,14 +57,5 @@ public interface ClientOperations {
      * @param data - event data
      */
     void sendEvent(String name, Object data);
-
-    /**
-     * Send event with ack callback
-     *
-     * @param name - event name
-     * @param data - event data
-     * @param ackCallback - ack callback
-     */
-    void sendEvent(String name, Object data, AckCallback ackCallback);
 
 }

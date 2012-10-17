@@ -15,55 +15,9 @@
  */
 package com.corundumstudio.socketio;
 
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
-
 import com.corundumstudio.socketio.parser.Packet;
 
 public class BroadcastOperations implements ClientOperations {
-
-    private class BroadcastAckCallback extends AckCallback {
-
-        final AtomicBoolean loopFinished = new AtomicBoolean();
-        final AtomicInteger counter = new AtomicInteger();
-        final AtomicBoolean timeoutExecuted = new AtomicBoolean();
-        final AtomicBoolean successExecuted = new AtomicBoolean();
-        final AckCallback ackCallback;
-
-        public BroadcastAckCallback(AckCallback ackCallback) {
-            this.ackCallback = ackCallback;
-        }
-
-        @Override
-        public void onSuccess() {
-            counter.getAndDecrement();
-            executeSuccess();
-        }
-
-        private void executeSuccess() {
-            if (loopFinished.get() && counter.get() == 0 && successExecuted.compareAndSet(false, true)) {
-                ackCallback.onSuccess();
-            }
-        }
-
-        @Override
-        public void onTimeout() {
-            // execute onTimeout once
-            if (timeoutExecuted.compareAndSet(false, true)) {
-                ackCallback.onTimeout();
-            }
-        }
-
-        void incrementCounter() {
-            counter.getAndIncrement();
-        }
-
-        void loopFinished() {
-            loopFinished.set(true);
-            executeSuccess();
-        }
-
-    }
 
     private final Iterable<SocketIOClient> clients;
 
@@ -79,14 +33,11 @@ public class BroadcastOperations implements ClientOperations {
         }
     }
 
-    @Override
-    public void sendMessage(String message, AckCallback ackCallback) {
-        BroadcastAckCallback clientCallback = new BroadcastAckCallback(ackCallback);
+    public <T> void sendMessage(String message, BroadcastAckCallback<T> ackCallback) {
         for (SocketIOClient client : clients) {
-            clientCallback.incrementCounter();
-            client.sendMessage(message, clientCallback);
+            client.sendMessage(message, ackCallback.createClientCallback(client));
         }
-        clientCallback.loopFinished();
+        ackCallback.loopFinished();
     }
 
     @Override
@@ -96,14 +47,11 @@ public class BroadcastOperations implements ClientOperations {
         }
     }
 
-    @Override
-    public void sendJsonObject(Object object, AckCallback ackCallback) {
-        BroadcastAckCallback clientCallback = new BroadcastAckCallback(ackCallback);
+    public <T> void sendJsonObject(Object object, BroadcastAckCallback<T> ackCallback) {
         for (SocketIOClient client : clients) {
-            clientCallback.incrementCounter();
-            client.sendJsonObject(object, clientCallback);
+            client.sendJsonObject(object, ackCallback.createClientCallback(client));
         }
-        clientCallback.loopFinished();
+        ackCallback.loopFinished();
     }
 
     @Override
@@ -113,14 +61,11 @@ public class BroadcastOperations implements ClientOperations {
         }
     }
 
-    @Override
-    public void send(Packet packet, AckCallback ackCallback) {
-        BroadcastAckCallback clientCallback = new BroadcastAckCallback(ackCallback);
+    public <T> void send(Packet packet, BroadcastAckCallback<T> ackCallback) {
         for (SocketIOClient client : clients) {
-            clientCallback.incrementCounter();
-            client.send(packet, ackCallback);
+            client.send(packet, ackCallback.createClientCallback(client));
         }
-        clientCallback.loopFinished();
+        ackCallback.loopFinished();
     }
 
     @Override
@@ -137,14 +82,11 @@ public class BroadcastOperations implements ClientOperations {
         }
     }
 
-    @Override
-    public void sendEvent(String name, Object data, AckCallback ackCallback) {
-        BroadcastAckCallback clientCallback = new BroadcastAckCallback(ackCallback);
+    public <T> void sendEvent(String name, Object data, BroadcastAckCallback<T> ackCallback) {
         for (SocketIOClient client : clients) {
-            clientCallback.incrementCounter();
-            client.sendEvent(name, data, ackCallback);
+            client.sendEvent(name, data, ackCallback.createClientCallback(client));
         }
-        clientCallback.loopFinished();
+        ackCallback.loopFinished();
     }
 
 }

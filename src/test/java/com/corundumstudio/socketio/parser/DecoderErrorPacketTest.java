@@ -24,20 +24,20 @@ public class DecoderErrorPacketTest extends DecoderBaseTest {
 
     @Test
     public void testDecode() throws IOException {
-        Packet packet = decoder.decodePacket("7:::");
+        Packet packet = decoder.decodePacket("7:::", null);
         Assert.assertEquals(PacketType.ERROR, packet.getType());
     }
 
     @Test
     public void testDecodeWithReason() throws IOException {
-        Packet packet = decoder.decodePacket("7:::0");
+        Packet packet = decoder.decodePacket("7:::0", null);
         Assert.assertEquals(PacketType.ERROR, packet.getType());
         Assert.assertEquals(ErrorReason.TRANSPORT_NOT_SUPPORTED, packet.getReason());
     }
 
     @Test
     public void testDecodeWithReasonAndAdvice() throws IOException {
-        Packet packet = decoder.decodePacket("7:::2+0");
+        Packet packet = decoder.decodePacket("7:::2+0", null);
         Assert.assertEquals(PacketType.ERROR, packet.getType());
         Assert.assertEquals(ErrorReason.UNAUTHORIZED, packet.getReason());
         Assert.assertEquals(ErrorAdvice.RECONNECT, packet.getAdvice());
@@ -45,7 +45,7 @@ public class DecoderErrorPacketTest extends DecoderBaseTest {
 
     @Test
     public void testDecodeWithEndpoint() throws IOException {
-        Packet packet = decoder.decodePacket("7::/woot");
+        Packet packet = decoder.decodePacket("7::/woot", null);
         Assert.assertEquals(PacketType.ERROR, packet.getType());
         Assert.assertEquals("/woot", packet.getEndpoint());
     }

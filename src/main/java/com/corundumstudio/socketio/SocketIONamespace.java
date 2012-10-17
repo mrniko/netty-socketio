@@ -19,6 +19,6 @@ import com.corundumstudio.socketio.listener.ClientListeners;
 
 public interface SocketIONamespace extends ClientListeners {
 
-    ClientOperations getBroadcastOperations();
+    BroadcastOperations getBroadcastOperations();
 
 }

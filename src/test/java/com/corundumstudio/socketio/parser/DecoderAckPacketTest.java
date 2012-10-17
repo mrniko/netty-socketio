@@ -17,16 +17,21 @@ package com.corundumstudio.socketio.parser;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.UUID;
 
-import org.codehaus.jackson.map.JsonMappingException;
+import mockit.Expectations;
+
+import org.codehaus.jackson.JsonParseException;
 import org.junit.Assert;
 import org.junit.Test;
+
+import com.corundumstudio.socketio.AckCallback;
 
 public class DecoderAckPacketTest extends DecoderBaseTest {
 
     @Test
     public void testDecode() throws IOException {
-        Packet packet = decoder.decodePacket("6:::140");
+        Packet packet = decoder.decodePacket("6:::140", null);
         Assert.assertEquals(PacketType.ACK, packet.getType());
         Assert.assertEquals(140, (long)packet.getAckId());
         Assert.assertTrue(packet.getArgs().isEmpty());
@@ -34,15 +39,29 @@ public class DecoderAckPacketTest extends DecoderBaseTest {
 
     @Test
     public void testDecodeWithArgs() throws IOException {
-        Packet packet = decoder.decodePacket("6:::12+[\"woot\",\"wa\"]");
+        initExpectations();
+
+        Packet packet = decoder.decodePacket("6:::12+[\"woot\",\"wa\"]", null);
         Assert.assertEquals(PacketType.ACK, packet.getType());
         Assert.assertEquals(12, (long)packet.getAckId());
         Assert.assertEquals(Arrays.asList("woot", "wa"), packet.getArgs());
     }
 
-    @Test(expected = JsonMappingException.class)
+    private void initExpectations() {
+        new Expectations() {{
+            ackManager.getCallback((UUID)any, anyInt);
+            result = new AckCallback<String>(String.class) {
+                @Override
+                public void onSuccess(String result) {
+                }
+            };
+        }};
+    }
+
+    @Test(expected = JsonParseException.class)
     public void testDecodeWithBadJson() throws IOException {
-        decoder.decodePacket("6:::1+{\"++]");
+        initExpectations();
+        decoder.decodePacket("6:::1+{\"++]", null);
     }
 
 }

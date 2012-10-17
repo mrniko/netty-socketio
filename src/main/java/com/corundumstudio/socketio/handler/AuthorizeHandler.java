@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.corundumstudio.socketio;
+package com.corundumstudio.socketio.handler;
 
 import static org.jboss.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 
@@ -42,6 +42,9 @@ import org.jboss.netty.handler.codec.http.QueryStringDecoder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.corundumstudio.socketio.Configuration;
+import com.corundumstudio.socketio.Disconnectable;
+import com.corundumstudio.socketio.SocketIOClient;
 import com.corundumstudio.socketio.messages.AuthorizeMessage;
 import com.corundumstudio.socketio.namespace.Namespace;
 import com.corundumstudio.socketio.namespace.NamespacesHub;
@@ -88,34 +91,34 @@ public class AuthorizeHandler extends SimpleChannelUpstreamHandler implements Di
                 return;
             }
             if (queryDecoder.getPath().equals(connectPath)) {
-                authorize(channel, req, queryDecoder.getParameters());
+                String origin = req.getHeader(HttpHeaders.Names.ORIGIN);
+                authorize(channel, origin, queryDecoder.getParameters());
                 return;
             }
         }
         ctx.sendUpstream(e);
     }
 
-    private void authorize(Channel channel, HttpRequest req, Map<String, List<String>> params)
+    private void authorize(Channel channel, String origin, Map<String, List<String>> params)
             throws IOException {
         final UUID sessionId = UUID.randomUUID();
         authorizedSessionIds.add(sessionId);
 
         scheduleDisconnect(channel, sessionId);
 
-        String transports = "websocket,xhr-polling";
         String heartbeatTimeoutVal = String.valueOf(configuration.getHeartbeatTimeout());
         if (!configuration.isHeartbeatsEnabled()) {
             heartbeatTimeoutVal = "";
         }
 
-        String msg = sessionId + ":" + heartbeatTimeoutVal + ":" + configuration.getCloseTimeout() + ":" + transports;
+        String msg = sessionId + ":" + heartbeatTimeoutVal + ":" + configuration.getCloseTimeout() + ":" + configuration.getTransports();
 
         List<String> jsonpParams = params.get("jsonp");
         String jsonpParam = null;
         if (jsonpParams != null) {
             jsonpParam = jsonpParams.get(0);
         }
-        String origin = req.getHeader(HttpHeaders.Names.ORIGIN);
+
         channel.write(new AuthorizeMessage(msg, jsonpParam, origin, sessionId));
         log.debug("New sessionId: {} authorized", sessionId);
     }

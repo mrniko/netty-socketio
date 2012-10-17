@@ -24,7 +24,7 @@ public class DecoderMessagePacketTest extends DecoderBaseTest {
 
     @Test
     public void testDecodeId() throws IOException {
-        Packet packet = decoder.decodePacket("3:1::asdfasdf");
+        Packet packet = decoder.decodePacket("3:1::asdfasdf", null);
         Assert.assertEquals(PacketType.MESSAGE, packet.getType());
         Assert.assertEquals(1, (long)packet.getId());
         Assert.assertTrue(packet.getArgs().isEmpty());
@@ -33,14 +33,14 @@ public class DecoderMessagePacketTest extends DecoderBaseTest {
 
     @Test
     public void testDecode() throws IOException {
-        Packet packet = decoder.decodePacket("3:::woot");
+        Packet packet = decoder.decodePacket("3:::woot", null);
         Assert.assertEquals(PacketType.MESSAGE, packet.getType());
         Assert.assertEquals("woot", packet.getData());
     }
 
     @Test
     public void testDecodeWithIdAndEndpoint() throws IOException {
-        Packet packet = decoder.decodePacket("3:5:/tobi");
+        Packet packet = decoder.decodePacket("3:5:/tobi", null);
         Assert.assertEquals(PacketType.MESSAGE, packet.getType());
         Assert.assertEquals(5, (long)packet.getId());
         Assert.assertEquals(true, packet.getAck());

@@ -13,26 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.corundumstudio.socketio.parser;
+package com.corundumstudio.socketio;
 
-import org.junit.Before;
+import com.corundumstudio.socketio.transport.FlashSocketTransport;
+import com.corundumstudio.socketio.transport.WebSocketTransport;
+import com.corundumstudio.socketio.transport.XHRPollingTransport;
 
-import mockit.Mocked;
+public enum Transport {
 
-import com.corundumstudio.socketio.Configuration;
-import com.corundumstudio.socketio.ack.AckManager;
+    WEBSOCKET(WebSocketTransport.NAME),
+    FLASHSOCKET(FlashSocketTransport.NAME),
+    XHRPOLLING(XHRPollingTransport.NAME);
 
+    private final String value;
 
-public class DecoderBaseTest {
+    Transport(String value) {
+        this.value = value;
+    }
 
-    @Mocked
-    protected AckManager ackManager;
-
-    protected Decoder decoder;
-
-    @Before
-    public void before() {
-        decoder = new Decoder(new JacksonJsonSupport(new Configuration()), ackManager);
+    public String getValue() {
+        return value;
     }
 
 }

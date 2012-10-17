@@ -15,6 +15,7 @@
  */
 package com.corundumstudio.socketio;
 
+import com.corundumstudio.socketio.ack.AckManager;
 import com.corundumstudio.socketio.namespace.Namespace;
 import com.corundumstudio.socketio.namespace.NamespacesHub;
 import com.corundumstudio.socketio.parser.Packet;
@@ -32,7 +33,11 @@ public class PacketListener {
         this.namespacesHub = namespacesHub;
     }
 
-    public void onPacket(Packet packet, SocketIOClient client) {
+    public void onPacket(Packet packet, SocketIOClient client, AckRequest ackRequest) {
+        if (packet.isAck()) {
+            ackManager.initAckIndex(client.getSessionId(), packet.getId());
+        }
+
         switch (packet.getType()) {
         case CONNECT: {
             client.send(packet);
@@ -50,7 +55,7 @@ public class PacketListener {
                 data = packet.getArgs().get(0);
             }
             Namespace namespace = namespacesHub.get(packet.getEndpoint());
-            namespace.onEvent(client, packet.getName(), data);
+            namespace.onEvent(client, packet.getName(), data, ackRequest);
             break;
         }
 
@@ -61,13 +66,13 @@ public class PacketListener {
 
         case MESSAGE: {
             Namespace namespace = namespacesHub.get(packet.getEndpoint());
-            namespace.onMessage(client, packet.getData().toString());
+            namespace.onMessage(client, packet.getData().toString(), ackRequest);
             break;
         }
 
         case JSON: {
             Namespace namespace = namespacesHub.get(packet.getEndpoint());
-            namespace.onJsonObject(client, packet.getData());
+            namespace.onJsonObject(client, packet.getData(), ackRequest);
             break;
         }
 

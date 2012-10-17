@@ -16,9 +16,7 @@
 package com.corundumstudio.socketio.transport;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -32,7 +30,6 @@ import org.jboss.netty.channel.ChannelHandler.Sharable;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.Channels;
 import org.jboss.netty.channel.MessageEvent;
-import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
 import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.jboss.netty.handler.codec.http.HttpMethod;
 import org.jboss.netty.handler.codec.http.HttpRequest;
@@ -40,13 +37,11 @@ import org.jboss.netty.handler.codec.http.QueryStringDecoder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.corundumstudio.socketio.AckManager;
-import com.corundumstudio.socketio.AuthorizeHandler;
-import com.corundumstudio.socketio.CompositeIterable;
 import com.corundumstudio.socketio.Configuration;
-import com.corundumstudio.socketio.Disconnectable;
 import com.corundumstudio.socketio.DisconnectableHub;
 import com.corundumstudio.socketio.SocketIOClient;
+import com.corundumstudio.socketio.ack.AckManager;
+import com.corundumstudio.socketio.handler.AuthorizeHandler;
 import com.corundumstudio.socketio.messages.PacketsMessage;
 import com.corundumstudio.socketio.messages.XHRErrorMessage;
 import com.corundumstudio.socketio.messages.XHRPostMessage;
@@ -59,11 +54,14 @@ import com.corundumstudio.socketio.scheduler.SchedulerKey;
 import com.corundumstudio.socketio.scheduler.SchedulerKey.Type;
 
 @Sharable
-public class XHRPollingTransport extends SimpleChannelUpstreamHandler implements Disconnectable {
+public class XHRPollingTransport extends BaseTransport {
+
+    public static final String NAME = "xhr-polling";
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private final Map<UUID, XHRPollingClient> sessionId2Client = new ConcurrentHashMap<UUID, XHRPollingClient>();
+    private final Map<UUID, XHRPollingClient> sessionId2Client =
+                                                    new ConcurrentHashMap<UUID, XHRPollingClient>();
     private final CancelableScheduler scheduler;
 
     private final AckManager ackManager;
@@ -74,7 +72,7 @@ public class XHRPollingTransport extends SimpleChannelUpstreamHandler implements
 
     public XHRPollingTransport(String connectPath, AckManager ackManager, DisconnectableHub disconnectable, CancelableScheduler scheduler,
                                 AuthorizeHandler authorizeHandler, Configuration configuration) {
-        this.path = connectPath + "xhr-polling/";
+        this.path = connectPath + NAME + "/";
         this.ackManager = ackManager;
         this.authorizeHandler = authorizeHandler;
         this.configuration = configuration;
@@ -97,7 +95,8 @@ public class XHRPollingTransport extends SimpleChannelUpstreamHandler implements
         ctx.sendUpstream(e);
     }
 
-    private void handleMessage(HttpRequest req, QueryStringDecoder queryDecoder, Channel channel) throws IOException {
+    private void handleMessage(HttpRequest req, QueryStringDecoder queryDecoder, Channel channel)
+                                                                                throws IOException {
         String[] parts = queryDecoder.getPath().split("/");
         if (parts.length > 3) {
             UUID sessionId = UUID.fromString(parts[4]);
@@ -154,7 +153,8 @@ public class XHRPollingTransport extends SimpleChannelUpstreamHandler implements
         });
     }
 
-    private void onPost(UUID sessionId, Channel channel, String origin, ChannelBuffer content) throws IOException {
+    private void onPost(UUID sessionId, Channel channel, String origin, ChannelBuffer content)
+                                                                                throws IOException {
         XHRPollingClient client = sessionId2Client.get(sessionId);
         if (client == null) {
             log.debug("Client with sessionId: {} was already disconnected. Channel closed!", sessionId);
@@ -172,7 +172,7 @@ public class XHRPollingTransport extends SimpleChannelUpstreamHandler implements
             return;
         }
 
-        XHRPollingClient client = (XHRPollingClient)sessionId2Client.get(sessionId);
+        XHRPollingClient client = (XHRPollingClient) sessionId2Client.get(sessionId);
         if (client == null) {
             client = createClient(origin, channel, sessionId);
         }
@@ -205,8 +205,7 @@ public class XHRPollingTransport extends SimpleChannelUpstreamHandler implements
     @Override
     public void onDisconnect(BaseClient client) {
         if (client instanceof XHRPollingClient) {
-            XHRPollingClient xhrClient = (XHRPollingClient) client;
-            UUID sessionId = xhrClient.getSessionId();
+            UUID sessionId = client.getSessionId();
 
             sessionId2Client.remove(sessionId);
             SchedulerKey noopKey = new SchedulerKey(Type.POLLING, sessionId);
@@ -218,11 +217,7 @@ public class XHRPollingTransport extends SimpleChannelUpstreamHandler implements
 
     public Iterable<SocketIOClient> getAllClients() {
         Collection<XHRPollingClient> clients = sessionId2Client.values();
-        List<Iterable<SocketIOClient>> allClients = new ArrayList<Iterable<SocketIOClient>>(clients.size());
-        for (XHRPollingClient client : sessionId2Client.values()) {
-            allClients.add(client.getAllChildClients());
-        }
-        return new CompositeIterable<SocketIOClient>(allClients);
+        return getAllClients(clients);
     }
 
 }

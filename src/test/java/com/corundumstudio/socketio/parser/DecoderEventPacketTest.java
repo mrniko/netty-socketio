@@ -28,27 +28,27 @@ public class DecoderEventPacketTest extends DecoderBaseTest {
 
     @Test
     public void testDecode() throws IOException {
-        Packet packet = decoder.decodePacket("5:::{\"name\":\"woot\"}");
+        Packet packet = decoder.decodePacket("5:::{\"name\":\"woot\"}", null);
         Assert.assertEquals(PacketType.EVENT, packet.getType());
         Assert.assertEquals("woot", packet.getName());
     }
 
     @Test
     public void testDecodeWithMessageIdAndAck() throws IOException {
-        Packet packet = decoder.decodePacket("5:1+::{\"name\":\"tobi\"}");
+        Packet packet = decoder.decodePacket("5:1+::{\"name\":\"tobi\"}", null);
         Assert.assertEquals(PacketType.EVENT, packet.getType());
         Assert.assertEquals(1, (long)packet.getId());
-        Assert.assertEquals("data", packet.getAck());
+        Assert.assertEquals(Packet.ACK_DATA, packet.getAck());
         Assert.assertEquals("tobi", packet.getName());
     }
 
     @Test
     public void testDecodeWithData() throws IOException {
         JacksonJsonSupport jsonSupport = new JacksonJsonSupport(new Configuration());
-        Decoder decoder = new Decoder(jsonSupport);
         jsonSupport.addEventMapping("edwald", HashMap.class);
+        Decoder decoder = new Decoder(jsonSupport, ackManager);
 
-        Packet packet = decoder.decodePacket("5:::{\"name\":\"edwald\",\"args\":[{\"a\": \"b\"},2,\"3\"]}");
+        Packet packet = decoder.decodePacket("5:::{\"name\":\"edwald\",\"args\":[{\"a\": \"b\"},2,\"3\"]}", null);
         Assert.assertEquals(PacketType.EVENT, packet.getType());
         Assert.assertEquals("edwald", packet.getName());
         Assert.assertEquals(3, packet.getArgs().size());

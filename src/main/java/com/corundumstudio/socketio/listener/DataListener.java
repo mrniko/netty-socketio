@@ -15,6 +15,7 @@
  */
 package com.corundumstudio.socketio.listener;
 
+import com.corundumstudio.socketio.AckRequest;
 import com.corundumstudio.socketio.SocketIOClient;
 
 public interface DataListener<T> {
@@ -25,6 +26,6 @@ public interface DataListener<T> {
      * @param client - receiver
      * @param data - received object
      */
-    void onData(SocketIOClient client, T data);
+    void onData(SocketIOClient client, T data, AckRequest ackSender);
 
 }

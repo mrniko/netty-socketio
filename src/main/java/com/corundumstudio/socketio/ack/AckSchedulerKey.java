@@ -13,29 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.corundumstudio.socketio.scheduler;
+package com.corundumstudio.socketio.ack;
 
 import java.util.UUID;
 
-public class SchedulerKey {
+import com.corundumstudio.socketio.scheduler.SchedulerKey;
 
-    public enum Type {POLLING, HEARBEAT_TIMEOUT, CLOSE_TIMEOUT, AUTHORIZE, ACK_TIMEOUT};
+public class AckSchedulerKey extends SchedulerKey {
 
-    private final Type type;
-    private final UUID sessionId;
+    private final long index;
 
-    public SchedulerKey(Type type, UUID sessionId) {
-        this.type = type;
-        this.sessionId = sessionId;
+    public AckSchedulerKey(Type type, UUID sessionId, long index) {
+        super(type, sessionId);
+        this.index = index;
+    }
+
+    public long getIndex() {
+        return index;
     }
 
     @Override
     public int hashCode() {
         final int prime = 31;
-        int result = 1;
-        result = prime * result
-                + ((sessionId == null) ? 0 : sessionId.hashCode());
-        result = prime * result + ((type == null) ? 0 : type.hashCode());
+        int result = super.hashCode();
+        result = prime * result + (int) (index ^ (index >>> 32));
         return result;
     }
 
@@ -43,17 +44,12 @@ public class SchedulerKey {
     public boolean equals(Object obj) {
         if (this == obj)
             return true;
-        if (obj == null)
+        if (!super.equals(obj))
             return false;
         if (getClass() != obj.getClass())
             return false;
-        SchedulerKey other = (SchedulerKey) obj;
-        if (sessionId == null) {
-            if (other.sessionId != null)
-                return false;
-        } else if (!sessionId.equals(other.sessionId))
-            return false;
-        if (type != other.type)
+        AckSchedulerKey other = (AckSchedulerKey) obj;
+        if (index != other.index)
             return false;
         return true;
     }

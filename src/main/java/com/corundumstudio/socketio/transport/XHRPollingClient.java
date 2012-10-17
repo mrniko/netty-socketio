@@ -20,8 +20,8 @@ import java.util.UUID;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelFuture;
 
-import com.corundumstudio.socketio.AckManager;
 import com.corundumstudio.socketio.DisconnectableHub;
+import com.corundumstudio.socketio.ack.AckManager;
 import com.corundumstudio.socketio.messages.XHRNewChannelMessage;
 import com.corundumstudio.socketio.messages.XHRPacketMessage;
 import com.corundumstudio.socketio.parser.Packet;

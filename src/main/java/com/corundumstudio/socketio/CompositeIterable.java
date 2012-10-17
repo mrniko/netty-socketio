@@ -68,6 +68,7 @@ public class CompositeIterable<T> implements Iterable<T>, Iterator<T> {
 
     @Override
     public T next() {
+        hasNext();
         return currentIterator.next();
     }
 

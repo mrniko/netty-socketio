@@ -18,8 +18,43 @@ package com.corundumstudio.socketio;
 import java.net.SocketAddress;
 import java.util.UUID;
 
+import com.corundumstudio.socketio.parser.Packet;
+
 
 public interface SocketIOClient extends ClientOperations {
+
+    /**
+     * Send event with ack callback
+     *
+     * @param name - event name
+     * @param data - event data
+     * @param ackCallback - ack callback
+     */
+    void sendEvent(String name, Object data, AckCallback<?> ackCallback);
+
+    /**
+     * Send packet with ack callback
+     *
+     * @param packet - packet to send
+     * @param ackCallback - ack callback
+     */
+    void send(Packet packet, AckCallback<?> ackCallback);
+
+    /**
+     * Send object with ack callback
+     *
+     * @param object - object to send
+     * @param ackCallback - ack callback
+     */
+    void sendJsonObject(Object object, AckCallback<?> ackCallback);
+
+    /**
+     * Send message with ack callback
+     *
+     * @param message - message to send
+     * @param ackCallback - ack callback
+     */
+    void sendMessage(String message, AckCallback<?> ackCallback);
 
     /**
      * Client namespace

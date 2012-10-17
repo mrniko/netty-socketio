@@ -27,6 +27,7 @@ import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelHandler.Sharable;
 import org.jboss.netty.channel.ChannelHandlerContext;
+import org.jboss.netty.channel.ChannelPipeline;
 import org.jboss.netty.channel.ChannelStateEvent;
 import org.jboss.netty.channel.Channels;
 import org.jboss.netty.channel.MessageEvent;
@@ -41,17 +42,20 @@ import org.jboss.netty.handler.codec.http.websocketx.WebSocketServerHandshakerFa
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.corundumstudio.socketio.AckManager;
-import com.corundumstudio.socketio.AuthorizeHandler;
 import com.corundumstudio.socketio.CompositeIterable;
 import com.corundumstudio.socketio.Disconnectable;
 import com.corundumstudio.socketio.DisconnectableHub;
 import com.corundumstudio.socketio.HeartbeatHandler;
 import com.corundumstudio.socketio.SocketIOClient;
+import com.corundumstudio.socketio.SocketIOPipelineFactory;
+import com.corundumstudio.socketio.ack.AckManager;
+import com.corundumstudio.socketio.handler.AuthorizeHandler;
 import com.corundumstudio.socketio.messages.PacketsMessage;
 
 @Sharable
-public class WebSocketTransport extends SimpleChannelUpstreamHandler implements Disconnectable {
+public class WebSocketTransport extends BaseTransport {
+
+    public static final String NAME = "websocket";
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -62,13 +66,13 @@ public class WebSocketTransport extends SimpleChannelUpstreamHandler implements 
     private final HeartbeatHandler heartbeatHandler;
     private final AuthorizeHandler authorizeHandler;
     private final DisconnectableHub disconnectableHub;
-    private final String path;
     private final boolean isSsl;
+    protected String path;
 
 
     public WebSocketTransport(String connectPath, boolean isSsl, AckManager ackManager, DisconnectableHub disconnectable,
             AuthorizeHandler authorizeHandler, HeartbeatHandler heartbeatHandler) {
-        this.path = connectPath + "websocket";
+        this.path = connectPath + NAME;
         this.isSsl = isSsl;
         this.authorizeHandler = authorizeHandler;
         this.ackManager = ackManager;
@@ -86,7 +90,13 @@ public class WebSocketTransport extends SimpleChannelUpstreamHandler implements 
             receivePackets(ctx, frame.getBinaryData());
         } else if (msg instanceof HttpRequest) {
             HttpRequest req = (HttpRequest) msg;
-            handshake(ctx, req);
+            QueryStringDecoder queryDecoder = new QueryStringDecoder(req.getUri());
+            String path = queryDecoder.getPath();
+            if (path.startsWith(this.path)) {
+                handshake(ctx, path, req);
+            } else {
+                ctx.sendUpstream(e);
+            }
         } else {
             ctx.sendUpstream(e);
         }
@@ -103,14 +113,8 @@ public class WebSocketTransport extends SimpleChannelUpstreamHandler implements 
         }
     }
 
-    private void handshake(ChannelHandlerContext ctx, HttpRequest req) {
-        QueryStringDecoder queryDecoder = new QueryStringDecoder(req.getUri());
+    private void handshake(ChannelHandlerContext ctx, String path, HttpRequest req) {
         Channel channel = ctx.getChannel();
-        String path = queryDecoder.getPath();
-        if (!path.startsWith(this.path)) {
-            return;
-        }
-
         String[] parts = path.split("/");
         if (parts.length <= 3) {
             log.warn("Wrong GET request path: {}, from ip: {}. Channel closed!",
@@ -152,6 +156,11 @@ public class WebSocketTransport extends SimpleChannelUpstreamHandler implements 
         authorizeHandler.connect(client);
 
         heartbeatHandler.onHeartbeat(client);
+        removeHandler(channel.getPipeline());
+    }
+
+    protected void removeHandler(ChannelPipeline pipeline) {
+        pipeline.remove(SocketIOPipelineFactory.FLASH_SOCKET_TRANSPORT);
     }
 
     private String getWebSocketLocation(HttpRequest req) {
@@ -172,13 +181,8 @@ public class WebSocketTransport extends SimpleChannelUpstreamHandler implements 
     }
 
     public Iterable<SocketIOClient> getAllClients() {
-        // TODO remove CPD!
         Collection<WebSocketClient> clients = sessionId2Client.values();
-        List<Iterable<SocketIOClient>> allClients = new ArrayList<Iterable<SocketIOClient>>(clients.size());
-        for (WebSocketClient client : sessionId2Client.values()) {
-            allClients.add(client.getAllChildClients());
-        }
-        return new CompositeIterable<SocketIOClient>(allClients);
+        return getAllClients(clients);
     }
 
 }

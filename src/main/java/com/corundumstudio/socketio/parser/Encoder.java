@@ -156,7 +156,7 @@ public class Encoder {
         String endpoint = packet.getEndpoint();
         Object ack = packet.getAck();
 
-        if ("data".equals(ack)) {
+        if (Packet.ACK_DATA.equals(ack)) {
             buffer.writeBytes(toChars(id));
             buffer.writeByte('+');
         } else {

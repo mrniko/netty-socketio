@@ -15,24 +15,19 @@
  */
 package com.corundumstudio.socketio.parser;
 
-import org.junit.Before;
+import java.util.List;
 
-import mockit.Mocked;
+public class AckArgs {
 
-import com.corundumstudio.socketio.Configuration;
-import com.corundumstudio.socketio.ack.AckManager;
+    private List<?> args;
 
+    public AckArgs(List<?> args) {
+        super();
+        this.args = args;
+    }
 
-public class DecoderBaseTest {
-
-    @Mocked
-    protected AckManager ackManager;
-
-    protected Decoder decoder;
-
-    @Before
-    public void before() {
-        decoder = new Decoder(new JacksonJsonSupport(new Configuration()), ackManager);
+    public List<?> getArgs() {
+        return args;
     }
 
 }
