@@ -21,7 +21,7 @@ import java.util.UUID;
 
 import mockit.Expectations;
 
-import org.codehaus.jackson.JsonParseException;
+import com.fasterxml.jackson.core.JsonParseException;
 import org.junit.Assert;
 import org.junit.Test;
 
