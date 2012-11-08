@@ -19,6 +19,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import com.corundumstudio.socketio.listener.DataListener;
 import com.corundumstudio.socketio.parser.Packet;
 import com.corundumstudio.socketio.parser.PacketType;
 
@@ -26,6 +27,14 @@ import com.corundumstudio.socketio.parser.PacketType;
  * Ack request received from Socket.IO client.
  * You can always check is it <code>true<code> through
  * {@link #isAckRequested()} method.
+ *
+ * You can call {@link #sendAckData} methods only during
+ * {@link DataListener#onData} invocation. If {@link #sendAckData}
+ * not called it will be invoked with empty arguments right after
+ * {@link DataListener#onData} method execution by server.
+ *
+ * This object is NOT actual anymore if {@link #sendAckData} was
+ * executed or {@link DataListener#onData} invocation finished.
  *
  */
 public class AckRequest {
@@ -50,7 +59,8 @@ public class AckRequest {
 
     /**
      * Send ack data to client.
-     * Can be invoked only once.
+     * Can be invoked only once during {@link DataListener#onData}
+     * method invocation.
      *
      * @param objs - ack data objects
      */
@@ -61,7 +71,8 @@ public class AckRequest {
 
     /**
      * Send ack data to client.
-     * Can be invoked only once.
+     * Can be invoked only once during {@link DataListener#onData}
+     * method invocation.
      *
      * @param objs - ack data object list
      */

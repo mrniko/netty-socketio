@@ -70,6 +70,9 @@ public class PacketHandler extends SimpleChannelUpstreamHandler {
                 SocketIOClient client = message.getClient().getChildClient(ns);
                 AckRequest ackSender = new AckRequest(packet, client);
                 packetListener.onPacket(packet, client, ackSender);
+
+                // send ack response if it not executed
+				// during {@link DataListener#onData} invocation
                 ackSender.sendAckData(Collections.emptyList());
             }
         } else {

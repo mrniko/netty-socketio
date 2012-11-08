@@ -15,11 +15,19 @@
  */
 package com.corundumstudio.socketio;
 
+
 /**
  * Base ack callback class.
  *
  * Notifies about acknowledgement received from client
  * via {@link #onSuccess} callback method.
+ *
+ * By default it may wait acknowledgement from client
+ * while {@link SocketIOClient} is alive. Timeout can be
+ * defined {@link #timeout} as constructor argument.
+ *
+ * This object is NOT actual anymore if {@link #onSuccess} or
+ * {@link #onTimeout} was executed.
  *
  * @param <T> - any serializable type
  */
@@ -52,6 +60,11 @@ public abstract class AckCallback<T> {
         return timeout;
     }
 
+    /**
+     * Executes only once when acknowledgement received from client.
+     *
+     * @param result - object sended by client
+     */
     public abstract void onSuccess(T result);
 
     /**
