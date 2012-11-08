@@ -27,20 +27,19 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.JsonParseException;
-import org.codehaus.jackson.JsonParser;
-import org.codehaus.jackson.JsonProcessingException;
-import org.codehaus.jackson.Version;
-import org.codehaus.jackson.map.DeserializationContext;
-import org.codehaus.jackson.map.JsonMappingException;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.annotate.JsonSerialize;
-import org.codehaus.jackson.map.deser.std.StdDeserializer;
-import org.codehaus.jackson.map.module.SimpleModule;
-import org.codehaus.jackson.node.ObjectNode;
-
 import com.corundumstudio.socketio.Configuration;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.Version;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
+import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public class JacksonJsonSupport implements JsonSupport {
 
@@ -81,7 +80,7 @@ public class JacksonJsonSupport implements JsonSupport {
                     // skip it
                 }
             }
-            Object val = mapper.readValue(root, clazz);
+            Object val = mapper.treeToValue(root, clazz);
             return val;
         }
 
@@ -113,22 +112,22 @@ public class JacksonJsonSupport implements JsonSupport {
                 // TODO refactor it!
                 if (arg.isNumber()) {
                     if (clazz.equals(Long.class)) {
-                        val = arg.asLong();
+                        val = arg.longValue();
                     }
                     if (clazz.equals(BigDecimal.class)) {
-                        val = arg.getBigIntegerValue();
+                        val = arg.bigIntegerValue();
                     }
                     if (clazz.equals(Double.class)) {
-                        val = arg.asDouble();
+                        val = arg.doubleValue();
                     }
                     if (clazz.equals(Integer.class)) {
-                        val = arg.asInt();
+                        val = arg.intValue();
                     }
                     if (clazz.equals(Float.class)) {
-                        val = (float)arg.getDoubleValue();
+                        val = (float)arg.doubleValue();
                     }
                 }
-                val = mapper.readValue(arg, clazz);
+                val = mapper.treeToValue(arg, clazz);
                 args.add(val);
             }
             return result;
@@ -155,15 +154,15 @@ public class JacksonJsonSupport implements JsonSupport {
             Event event = new Event(eventName, eventArgs);
             JsonNode args = root.get("args");
             if (args != null) {
-                Iterator<JsonNode> iterator = args.getElements();
+                Iterator<JsonNode> iterator = args.elements();
                 if (iterator.hasNext()) {
                     JsonNode node = iterator.next();
                     Class<?> eventClass = eventMapping.get(eventName);
-                    Object arg = mapper.readValue(node, eventClass);
+                    Object arg = mapper.treeToValue(node, eventClass);
                     eventArgs.add(arg);
                     while (iterator.hasNext()) {
                         node = iterator.next();
-                        arg = mapper.readValue(node, Object.class);
+                        arg = mapper.treeToValue(node, Object.class);
                         eventArgs.add(arg);
                     }
                 }
@@ -183,13 +182,13 @@ public class JacksonJsonSupport implements JsonSupport {
     public JacksonJsonSupport(Configuration configuration) {
         this.configuration = configuration;
 
-        SimpleModule module = new SimpleModule("EventDeserializerModule", new Version(1, 0, 0, null));
+        SimpleModule module = new SimpleModule("EventDeserializerModule", new Version(1, 0, 0, null, null, null));
         module.addDeserializer(Event.class, eventDeserializer);
         module.addDeserializer(JsonObject.class, jsonObjectDeserializer);
         module.addDeserializer(AckArgs.class, ackArgsDeserializer);
         objectMapper.registerModule(module);
 
-        objectMapper.setSerializationInclusion(JsonSerialize.Inclusion.NON_NULL);
+        objectMapper.setSerializationInclusion(Include.NON_NULL);
 
 //        TODO If jsonObjectDeserializer will be not enough
 //        TypeResolverBuilder<?> typer = new DefaultTypeResolverBuilder(DefaultTyping.NON_FINAL);
