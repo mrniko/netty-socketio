@@ -29,9 +29,11 @@ import com.corundumstudio.socketio.listener.ConnectListener;
 import com.corundumstudio.socketio.listener.DataListener;
 import com.corundumstudio.socketio.listener.DisconnectListener;
 import com.corundumstudio.socketio.parser.JsonSupport;
+<<<<<<< HEAD
 import com.corundumstudio.socketio.transport.NamespaceClient;
 import com.corundumstudio.socketio.utils.ConcurrentHashSet;
-
+=======
+>>>>>>> e797a715fffed6621cb25e781922c7b1459889f9
 
 public class Namespace implements SocketIONamespace {
 
