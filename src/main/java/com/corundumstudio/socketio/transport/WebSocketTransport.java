@@ -168,7 +168,7 @@ public class WebSocketTransport extends BaseTransport {
         if (isSsl) {
             protocol = "wss://";
         }
-        return protocol + req.getHeader(HttpHeaders.Names.HOST) + path;
+        return protocol + req.getHeader(HttpHeaders.Names.HOST) + req.getUri();
     }
 
     @Override
