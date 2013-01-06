@@ -23,6 +23,7 @@ import org.jboss.netty.handler.codec.frame.TooLongFrameException;
 
 import com.corundumstudio.socketio.parser.JacksonJsonSupport;
 import com.corundumstudio.socketio.parser.JsonSupport;
+import com.corundumstudio.socketio.parser.JsonSupportWrapper;
 
 public class Configuration {
 
@@ -68,7 +69,7 @@ public class Configuration {
         setHeartbeatThreadPoolSize(conf.getHeartbeatThreadPoolSize());
         setHeartbeatTimeout(conf.getHeartbeatTimeout());
         setHostname(conf.getHostname());
-        setJsonSupport(conf.getJsonSupport());
+        setJsonSupport(new JsonSupportWrapper(conf.getJsonSupport()));
         setPort(conf.getPort());
         setWorkerExecutor(conf.getWorkerExecutor());
         setContext(conf.getContext());

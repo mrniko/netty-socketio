@@ -16,8 +16,6 @@
 package com.corundumstudio.socketio.parser;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -25,6 +23,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+
+import org.jboss.netty.buffer.ChannelBufferInputStream;
+import org.jboss.netty.buffer.ChannelBufferOutputStream;
 
 import com.corundumstudio.socketio.Configuration;
 import com.corundumstudio.socketio.utils.ConcurrentHashSet;
@@ -214,18 +215,18 @@ public class JacksonJsonSupport implements JsonSupport {
     }
 
     @Override
-    public <T> T readValue(InputStream src, Class<T> valueType) throws IOException {
+    public <T> T readValue(ChannelBufferInputStream src, Class<T> valueType) throws IOException {
         return objectMapper.readValue(src, valueType);
     }
 
     @Override
-    public AckArgs readAckArgs(InputStream src, Class<?> argType) throws IOException {
+    public AckArgs readAckArgs(ChannelBufferInputStream src, Class<?> argType) throws IOException {
         currentAckClass.set(argType);
         return objectMapper.readValue(src, AckArgs.class);
     }
 
     @Override
-    public void writeValue(OutputStream out, Object value) throws IOException {
+    public void writeValue(ChannelBufferOutputStream out, Object value) throws IOException {
         objectMapper.writeValue(out, value);
 
     }
