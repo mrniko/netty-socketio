@@ -29,10 +29,14 @@ import com.corundumstudio.socketio.listener.ConnectListener;
 import com.corundumstudio.socketio.listener.DataListener;
 import com.corundumstudio.socketio.listener.DisconnectListener;
 import com.corundumstudio.socketio.parser.JsonSupport;
-import com.corundumstudio.socketio.transport.NamespaceClient;
 import com.corundumstudio.socketio.utils.ConcurrentHashSet;
 
-
+/**
+ * Hub object for all clients in one namespace.
+ * Namespace shares by different network-clients.
+ *
+ * @see com.corundumstudio.socketio.transport.NamespaceClient
+ */
 public class Namespace implements SocketIONamespace {
 
     public static final String DEFAULT_NAME = "";
