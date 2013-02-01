@@ -25,6 +25,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import junit.framework.Assert;
 import mockit.Mocked;
 
+import com.corundumstudio.socketio.transport.NamespaceClient;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.Channel;
@@ -68,7 +69,7 @@ public class PacketHandlerTest {
     private PacketListener createTestListener(final List<Packet> packets) {
         PacketListener listener = new PacketListener(null, null, null) {
             @Override
-            public void onPacket(Packet packet, SocketIOClient client, AckRequest ackRequest) {
+            public void onPacket(Packet packet, NamespaceClient client) {
                 int index = invocations.incrementAndGet();
                 Packet currentPacket = packets.get(index-1);
                 Assert.assertEquals(currentPacket.getType(), packet.getType());
@@ -139,7 +140,7 @@ public class PacketHandlerTest {
     public void testDecodePerf() throws Exception {
         PacketListener listener = new PacketListener(null, null, null) {
             @Override
-            public void onPacket(Packet packet, SocketIOClient client, AckRequest ackRequest) {
+            public void onPacket(Packet packet, NamespaceClient client) {
             }
         };
         PacketHandler handler = new PacketHandler(listener, decoder, namespacesHub);

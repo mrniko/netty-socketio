@@ -15,6 +15,8 @@
  */
 package com.corundumstudio.socketio;
 
+import java.util.Collections;
+
 import com.corundumstudio.socketio.ack.AckManager;
 import com.corundumstudio.socketio.namespace.Namespace;
 import com.corundumstudio.socketio.namespace.NamespacesHub;
@@ -33,7 +35,9 @@ public class PacketListener {
         this.namespacesHub = namespacesHub;
     }
 
-    public void onPacket(Packet packet, SocketIOClient client, AckRequest ackRequest) {
+    public void onPacket(Packet packet, NamespaceClient client) {
+        final AckRequest ackRequest = new AckRequest(packet, client);
+
         if (packet.isAck()) {
             ackManager.initAckIndex(client.getSessionId(), packet.getId());
         }
@@ -60,8 +64,7 @@ public class PacketListener {
         }
 
         case HEARTBEAT:
-            NamespaceClient nc = (NamespaceClient)client;
-            heartbeatHandler.onHeartbeat(nc.getBaseClient());
+            heartbeatHandler.onHeartbeat(client.getBaseClient());
             break;
 
         case MESSAGE: {
@@ -77,9 +80,13 @@ public class PacketListener {
         }
 
         case DISCONNECT:
-            ((NamespaceClient)client).onDisconnect();
+            client.onDisconnect();
             break;
         }
+
+        // send ack response if it not executed
+        // during {@link DataListener#onData} invocation
+        ackRequest.sendAckData(Collections.emptyList());
     }
 
 }

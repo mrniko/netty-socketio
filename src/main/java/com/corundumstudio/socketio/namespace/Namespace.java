@@ -29,11 +29,12 @@ import com.corundumstudio.socketio.listener.ConnectListener;
 import com.corundumstudio.socketio.listener.DataListener;
 import com.corundumstudio.socketio.listener.DisconnectListener;
 import com.corundumstudio.socketio.parser.JsonSupport;
+import com.corundumstudio.socketio.transport.NamespaceClient;
 import com.corundumstudio.socketio.utils.ConcurrentHashSet;
 
 /**
  * Hub object for all clients in one namespace.
- * Namespace shares by different network-clients.
+ * Namespace shares by different namespace-clients.
  *
  * @see com.corundumstudio.socketio.transport.NamespaceClient
  */
@@ -82,18 +83,6 @@ public class Namespace implements SocketIONamespace {
         jsonSupport.addEventMapping(eventName, eventClass);
     }
 
-    @SuppressWarnings({"rawtypes", "unchecked"})
-    public void onEvent(SocketIOClient client, String eventName, Object data, AckRequest ackRequest) {
-        EventEntry entry = eventListeners.get(eventName);
-        if (entry == null) {
-            return;
-        }
-        Queue<DataListener> listeners = entry.getListeners();
-        for (DataListener dataListener : listeners) {
-            dataListener.onData(client, data, ackRequest);
-        }
-    }
-
     @Override
     public <T> void addJsonObjectListener(Class<T> clazz, DataListener<T> listener) {
         Queue<DataListener<?>> queue = jsonObjectListeners.get(clazz);
@@ -108,7 +97,25 @@ public class Namespace implements SocketIONamespace {
         jsonSupport.addJsonClass(clazz);
     }
 
-    public void onJsonObject(SocketIOClient client, Object data, AckRequest ackRequest) {
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    public void onEvent(NamespaceClient client, String eventName, Object data, AckRequest ackRequest) {
+        EventEntry entry = eventListeners.get(eventName);
+        if (entry == null) {
+            return;
+        }
+        Queue<DataListener> listeners = entry.getListeners();
+        for (DataListener dataListener : listeners) {
+            dataListener.onData(client, data, ackRequest);
+        }
+    }
+
+    public void onMessage(NamespaceClient client, String data, AckRequest ackRequest) {
+        for (DataListener<String> listener : messageListeners) {
+            listener.onData(client, data, ackRequest);
+        }
+    }
+
+    public void onJsonObject(NamespaceClient client, Object data, AckRequest ackRequest) {
         Queue<DataListener<?>> queue = jsonObjectListeners.get(data.getClass());
         if (queue == null) {
             return;
@@ -148,12 +155,6 @@ public class Namespace implements SocketIONamespace {
 
     public Queue<DataListener<String>> getMessageListeners() {
         return messageListeners;
-    }
-
-    public void onMessage(SocketIOClient client, String data, AckRequest ackRequest) {
-        for (DataListener<String> listener : messageListeners) {
-            listener.onData(client, data, ackRequest);
-        }
     }
 
     @Override

@@ -15,8 +15,6 @@
  */
 package com.corundumstudio.socketio.handler;
 
-import java.util.Collections;
-
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.channel.ChannelHandler.Sharable;
 import org.jboss.netty.channel.ChannelHandlerContext;
@@ -27,14 +25,14 @@ import org.jboss.netty.util.CharsetUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.corundumstudio.socketio.AckRequest;
 import com.corundumstudio.socketio.PacketListener;
-import com.corundumstudio.socketio.SocketIOClient;
 import com.corundumstudio.socketio.messages.PacketsMessage;
 import com.corundumstudio.socketio.namespace.Namespace;
 import com.corundumstudio.socketio.namespace.NamespacesHub;
 import com.corundumstudio.socketio.parser.Decoder;
 import com.corundumstudio.socketio.parser.Packet;
+import com.corundumstudio.socketio.transport.BaseClient;
+import com.corundumstudio.socketio.transport.NamespaceClient;
 
 @Sharable
 public class PacketHandler extends SimpleChannelUpstreamHandler {
@@ -59,21 +57,17 @@ public class PacketHandler extends SimpleChannelUpstreamHandler {
         if (msg instanceof PacketsMessage) {
             PacketsMessage message = (PacketsMessage) msg;
             ChannelBuffer content = message.getContent();
+            BaseClient client = message.getClient();
 
             if (log.isTraceEnabled()) {
-                log.trace("In message: {} sessionId: {}", new Object[] {content.toString(CharsetUtil.UTF_8), message.getClient().getSessionId()});
+                log.trace("In message: {} sessionId: {}", new Object[] {content.toString(CharsetUtil.UTF_8), client.getSessionId()});
             }
             while (content.readable()) {
-                Packet packet = decoder.decodePackets(content, message.getClient().getSessionId());
+                Packet packet = decoder.decodePackets(content, client.getSessionId());
                 Namespace ns = namespacesHub.get(packet.getEndpoint());
 
-                SocketIOClient client = message.getClient().getChildClient(ns);
-                AckRequest ackSender = new AckRequest(packet, client);
-                packetListener.onPacket(packet, client, ackSender);
-
-                // send ack response if it not executed
-				// during {@link DataListener#onData} invocation
-                ackSender.sendAckData(Collections.emptyList());
+                NamespaceClient nClient = (NamespaceClient) client.getChildClient(ns);
+                packetListener.onPacket(packet, nClient);
             }
         } else {
             ctx.sendUpstream(e);
