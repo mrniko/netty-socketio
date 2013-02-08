@@ -47,7 +47,7 @@ public class Configuration {
     private int maxHttpContentLength = 64 * 1024;
 
     private String hostname;
-    private int port;
+    private int port = -1;
 
     private InputStream keyStore;
     private String keyStorePassword;
@@ -118,6 +118,13 @@ public class Configuration {
     public String getHostname() {
         return hostname;
     }
+
+    /**
+     * Optional parameter. If not set then bind address
+     * will be 0.0.0.0 or ::0
+     *
+     * @param hostname
+     */
     public void setHostname(String hostname) {
         this.hostname = hostname;
     }

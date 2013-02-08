@@ -35,20 +35,20 @@ public class SocketIOServer implements ClientListeners {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private ServerBootstrap bootstrap;
+    private final Configuration configCopy;
+    private final Configuration configuration;
 
     private final NamespacesHub namespacesHub;
     private final SocketIONamespace mainNamespace;
 
+    private ServerBootstrap bootstrap;
     private SocketIOPipelineFactory pipelineFactory = new SocketIOPipelineFactory();
-
     private Channel mainChannel;
-    private Configuration config;
-    private boolean started;
 
     public SocketIOServer(Configuration configuration) {
-        this.config = new Configuration(configuration);
-        namespacesHub = new NamespacesHub(this.config.getJsonSupport());
+        this.configuration = configuration;
+        this.configCopy = new Configuration(configuration);
+        namespacesHub = new NamespacesHub(this.configCopy.getJsonSupport());
         mainNamespace = addNamespace(Namespace.DEFAULT_NAME);
     }
 
@@ -73,17 +73,21 @@ public class SocketIOServer implements ClientListeners {
      * Start server
      */
     public void start() {
-        ChannelFactory factory = new NioServerSocketChannelFactory(config.getBossExecutor(), config.getWorkerExecutor());
+        ChannelFactory factory = new NioServerSocketChannelFactory(configCopy.getBossExecutor(), configCopy.getWorkerExecutor());
         bootstrap = new ServerBootstrap(factory);
 
-        pipelineFactory.start(config, namespacesHub);
+        InetSocketAddress addr = new InetSocketAddress(configCopy.getPort());
+        if (configCopy.getHostname() != null) {
+            addr = new InetSocketAddress(configCopy.getHostname(), configCopy.getPort());
+        }
+        pipelineFactory.start(configCopy, namespacesHub);
         bootstrap.setPipelineFactory(pipelineFactory);
         bootstrap.setOption("child.tcpNoDelay", true);
         bootstrap.setOption("child.keepAlive", true);
-        mainChannel = bootstrap.bind(new InetSocketAddress(config.getHostname(), config.getPort()));
 
-        started = true;
-        log.info("SocketIO server started at port: {}", config.getPort());
+        mainChannel = bootstrap.bind(addr);
+
+        log.info("SocketIO server started at port: {}", configCopy.getPort());
     }
 
     /**
@@ -93,7 +97,6 @@ public class SocketIOServer implements ClientListeners {
         pipelineFactory.stop();
         mainChannel.close();
         bootstrap.releaseExternalResources();
-        started = false;
     }
 
     public SocketIONamespace addNamespace(String name) {
@@ -106,6 +109,17 @@ public class SocketIOServer implements ClientListeners {
 
     public void removeNamespace(String name) {
         namespacesHub.remove(name);
+    }
+
+    /**
+     * Allows to get configuration provided
+     * during server creation. Further changes on
+     * this object not affect server.
+     *
+     * @return Configuration object
+     */
+    public Configuration getConfiguration() {
+        return configuration;
     }
 
     @Override
