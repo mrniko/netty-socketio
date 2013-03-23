@@ -44,7 +44,7 @@ import com.corundumstudio.socketio.ack.AckManager;
 import com.corundumstudio.socketio.handler.AuthorizeHandler;
 import com.corundumstudio.socketio.messages.PacketsMessage;
 import com.corundumstudio.socketio.messages.XHRErrorMessage;
-import com.corundumstudio.socketio.messages.XHRPostMessage;
+import com.corundumstudio.socketio.messages.XHROutMessage;
 import com.corundumstudio.socketio.parser.ErrorAdvice;
 import com.corundumstudio.socketio.parser.ErrorReason;
 import com.corundumstudio.socketio.parser.Packet;
@@ -102,14 +102,14 @@ public class XHRPollingTransport extends BaseTransport {
             UUID sessionId = UUID.fromString(parts[4]);
 
             String origin = req.getHeader(HttpHeaders.Names.ORIGIN);
-            if (HttpMethod.POST.equals(req.getMethod())) {
+            if (queryDecoder.getParameters().containsKey("disconnect")) {
+                BaseClient client = sessionId2Client.get(sessionId);
+                client.onChannelDisconnect();
+                channel.write(new XHROutMessage(origin));
+            } else if (HttpMethod.POST.equals(req.getMethod())) {
                 onPost(sessionId, channel, origin, req.getContent());
             } else if (HttpMethod.GET.equals(req.getMethod())) {
                 onGet(sessionId, channel, origin);
-            }
-            if (queryDecoder.getParameters().containsKey("disconnect")) {
-                BaseClient client = sessionId2Client.get(sessionId);
-                disconnectable.onDisconnect(client);
             }
         } else {
             log.warn("Wrong {} method request path: {}, from ip: {}. Channel closed!",
@@ -144,7 +144,7 @@ public class XHRPollingTransport extends BaseTransport {
                     public void run() {
                         XHRPollingClient client = sessionId2Client.get(sessionId);
                         if (client != null) {
-                            disconnectable.onDisconnect(client);
+                            client.onChannelDisconnect();
                             log.debug("Client: {} disconnected due to connection timeout", sessionId);
                         }
                     }
@@ -162,7 +162,7 @@ public class XHRPollingTransport extends BaseTransport {
             return;
         }
 
-        channel.write(new XHRPostMessage(origin));
+        channel.write(new XHROutMessage(origin));
         Channels.fireMessageReceived(channel, new PacketsMessage(client, content));
     }
 

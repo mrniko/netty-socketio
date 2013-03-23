@@ -25,7 +25,7 @@ import com.corundumstudio.socketio.messages.WebsocketErrorMessage;
 import com.corundumstudio.socketio.messages.XHRErrorMessage;
 import com.corundumstudio.socketio.messages.XHRNewChannelMessage;
 import com.corundumstudio.socketio.messages.XHRPacketMessage;
-import com.corundumstudio.socketio.messages.XHRPostMessage;
+import com.corundumstudio.socketio.messages.XHROutMessage;
 
 public interface MessageHandler {
 
@@ -33,7 +33,7 @@ public interface MessageHandler {
 
     void handle(XHRPacketMessage xhrPacketMessage, Channel channel) throws IOException;
 
-    void handle(XHRPostMessage xhrPostMessage, Channel channel);
+    void handle(XHROutMessage xhrPostMessage, Channel channel);
 
     void handle(AuthorizeMessage authorizeMessage, Channel channel) throws IOException;
 

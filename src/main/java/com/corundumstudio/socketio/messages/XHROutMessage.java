@@ -19,11 +19,11 @@ import org.jboss.netty.channel.Channel;
 
 import com.corundumstudio.socketio.MessageHandler;
 
-public class XHRPostMessage extends BaseMessage {
+public class XHROutMessage extends BaseMessage {
 
     private final String origin;
 
-    public XHRPostMessage(String origin) {
+    public XHROutMessage(String origin) {
         this.origin = origin;
     }
 

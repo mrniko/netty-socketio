@@ -54,7 +54,7 @@ import com.corundumstudio.socketio.messages.WebsocketErrorMessage;
 import com.corundumstudio.socketio.messages.XHRErrorMessage;
 import com.corundumstudio.socketio.messages.XHRNewChannelMessage;
 import com.corundumstudio.socketio.messages.XHRPacketMessage;
-import com.corundumstudio.socketio.messages.XHRPostMessage;
+import com.corundumstudio.socketio.messages.XHROutMessage;
 import com.corundumstudio.socketio.parser.Encoder;
 import com.corundumstudio.socketio.parser.Packet;
 
@@ -174,7 +174,7 @@ public class SocketIOEncoder extends SimpleChannelDownstreamHandler implements M
     }
 
     @Override
-    public void handle(XHRPostMessage xhrPostMessage, Channel channel) {
+    public void handle(XHROutMessage xhrPostMessage, Channel channel) {
         sendMessage(xhrPostMessage.getOrigin(), null, channel, ChannelBuffers.EMPTY_BUFFER);
     }
 
