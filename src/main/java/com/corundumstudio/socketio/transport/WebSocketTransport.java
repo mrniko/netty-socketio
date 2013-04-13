@@ -16,9 +16,7 @@
 package com.corundumstudio.socketio.transport;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -31,7 +29,6 @@ import org.jboss.netty.channel.ChannelPipeline;
 import org.jboss.netty.channel.ChannelStateEvent;
 import org.jboss.netty.channel.Channels;
 import org.jboss.netty.channel.MessageEvent;
-import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
 import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.QueryStringDecoder;
@@ -42,12 +39,11 @@ import org.jboss.netty.handler.codec.http.websocketx.WebSocketServerHandshakerFa
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.corundumstudio.socketio.CompositeIterable;
-import com.corundumstudio.socketio.Disconnectable;
 import com.corundumstudio.socketio.DisconnectableHub;
 import com.corundumstudio.socketio.HeartbeatHandler;
 import com.corundumstudio.socketio.SocketIOClient;
 import com.corundumstudio.socketio.SocketIOPipelineFactory;
+import com.corundumstudio.socketio.Transport;
 import com.corundumstudio.socketio.ack.AckManager;
 import com.corundumstudio.socketio.handler.AuthorizeHandler;
 import com.corundumstudio.socketio.messages.PacketsMessage;
@@ -149,7 +145,7 @@ public class WebSocketTransport extends BaseTransport {
             return;
         }
 
-        WebSocketClient client = new WebSocketClient(channel, ackManager, disconnectableHub, sessionId);
+        WebSocketClient client = new WebSocketClient(channel, ackManager, disconnectableHub, sessionId, getTransport());
 
         channelId2Client.put(channel.getId(), client);
         sessionId2Client.put(sessionId, client);
@@ -159,6 +155,10 @@ public class WebSocketTransport extends BaseTransport {
         removeHandler(channel.getPipeline());
     }
 
+    protected Transport getTransport() {
+        return Transport.WEBSOCKET;
+    }
+    
     protected void removeHandler(ChannelPipeline pipeline) {
         pipeline.remove(SocketIOPipelineFactory.FLASH_SOCKET_TRANSPORT);
     }

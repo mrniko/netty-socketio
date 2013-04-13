@@ -40,6 +40,7 @@ import org.slf4j.LoggerFactory;
 import com.corundumstudio.socketio.Configuration;
 import com.corundumstudio.socketio.DisconnectableHub;
 import com.corundumstudio.socketio.SocketIOClient;
+import com.corundumstudio.socketio.Transport;
 import com.corundumstudio.socketio.ack.AckManager;
 import com.corundumstudio.socketio.handler.AuthorizeHandler;
 import com.corundumstudio.socketio.messages.PacketsMessage;
@@ -184,7 +185,7 @@ public class XHRPollingTransport extends BaseTransport {
     }
 
     private XHRPollingClient createClient(String origin, Channel channel, UUID sessionId) {
-        XHRPollingClient client = new XHRPollingClient(ackManager, disconnectable, sessionId);
+        XHRPollingClient client = new XHRPollingClient(ackManager, disconnectable, sessionId, Transport.XHRPOLLING);
 
         sessionId2Client.put(sessionId, client);
         client.update(channel, origin);

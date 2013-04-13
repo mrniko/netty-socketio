@@ -21,6 +21,7 @@ import java.util.UUID;
 
 import com.corundumstudio.socketio.AckCallback;
 import com.corundumstudio.socketio.SocketIOClient;
+import com.corundumstudio.socketio.Transport;
 import com.corundumstudio.socketio.namespace.Namespace;
 import com.corundumstudio.socketio.parser.Packet;
 import com.corundumstudio.socketio.parser.PacketType;
@@ -38,6 +39,10 @@ public class NamespaceClient implements SocketIOClient {
 
     public BaseClient getBaseClient() {
         return baseClient;
+    }
+    
+    public Transport getTransport() {
+        return baseClient.getTransport();
     }
 
     public Namespace getNamespace() {

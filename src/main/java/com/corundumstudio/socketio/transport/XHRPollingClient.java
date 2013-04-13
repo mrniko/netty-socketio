@@ -21,6 +21,7 @@ import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelFuture;
 
 import com.corundumstudio.socketio.DisconnectableHub;
+import com.corundumstudio.socketio.Transport;
 import com.corundumstudio.socketio.ack.AckManager;
 import com.corundumstudio.socketio.messages.XHRNewChannelMessage;
 import com.corundumstudio.socketio.messages.XHRPacketMessage;
@@ -30,8 +31,8 @@ public class XHRPollingClient extends BaseClient {
 
     private String origin;
 
-    public XHRPollingClient(AckManager ackManager, DisconnectableHub disconnectable, UUID sessionId) {
-        super(sessionId, ackManager, disconnectable);
+    public XHRPollingClient(AckManager ackManager, DisconnectableHub disconnectable, UUID sessionId, Transport transport) {
+        super(sessionId, ackManager, disconnectable, transport);
     }
 
     public void update(Channel channel, String origin) {

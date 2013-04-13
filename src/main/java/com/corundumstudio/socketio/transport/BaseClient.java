@@ -27,6 +27,7 @@ import org.jboss.netty.channel.ChannelFutureListener;
 
 import com.corundumstudio.socketio.DisconnectableHub;
 import com.corundumstudio.socketio.SocketIOClient;
+import com.corundumstudio.socketio.Transport;
 import com.corundumstudio.socketio.ack.AckManager;
 import com.corundumstudio.socketio.namespace.Namespace;
 import com.corundumstudio.socketio.parser.Packet;
@@ -47,14 +48,20 @@ public abstract class BaseClient {
     private final DisconnectableHub disconnectable;
     private final AckManager ackManager;
     private final UUID sessionId;
+    private final Transport transport;
     protected Channel channel;
 
-    public BaseClient(UUID sessionId, AckManager ackManager, DisconnectableHub disconnectable) {
+    public BaseClient(UUID sessionId, AckManager ackManager, DisconnectableHub disconnectable, Transport transport) {
         this.sessionId = sessionId;
         this.ackManager = ackManager;
         this.disconnectable = disconnectable;
+        this.transport = transport;
     }
 
+    public Transport getTransport() {
+        return transport;
+    }
+    
     public abstract ChannelFuture send(Packet packet);
 
     public void removeChildClient(SocketIOClient client) {

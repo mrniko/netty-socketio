@@ -24,6 +24,13 @@ import com.corundumstudio.socketio.parser.Packet;
 public interface SocketIOClient extends ClientOperations {
 
     /**
+     * Current client transport protocol
+     * 
+     * @return transport protocol
+     */
+    Transport getTransport();
+    
+    /**
      * Send event with ack callback
      *
      * @param name - event name
