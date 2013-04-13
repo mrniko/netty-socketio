@@ -76,8 +76,11 @@ public class ResourceHandler extends SimpleChannelUpstreamHandler {
 
     private void addResource(String pathPart, String resourcePath) {
         URL resource = getClass().getResource(resourcePath);
-        File file = new File(resource.getFile());
-        resources.put(pathPart, file);
+        // in case of usage exclude-swf-files profile
+        if (resource != null) {
+            File file = new File(resource.getFile());
+            resources.put(pathPart, file);
+        }
     }
 
     @Override
