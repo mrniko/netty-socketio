@@ -18,6 +18,7 @@ package com.corundumstudio.socketio.parser;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -150,6 +151,9 @@ public class JacksonJsonSupport implements JsonSupport {
             ObjectMapper mapper = (ObjectMapper) jp.getCodec();
             ObjectNode root = (ObjectNode) mapper.readTree(jp);
             String eventName = root.get("name").asText();
+            if (!eventMapping.containsKey(eventName)) {
+                return new Event(eventName, Collections.emptyList());
+            }
 
             List eventArgs = new ArrayList();
             Event event = new Event(eventName, eventArgs);
