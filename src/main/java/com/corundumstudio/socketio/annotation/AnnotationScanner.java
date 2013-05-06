@@ -13,22 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.corundumstudio.socketio.listener;
+package com.corundumstudio.socketio.annotation;
 
-public interface ClientListeners {
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
 
-    <T> void addEventListener(String eventName, Class<T> eventClass, DataListener<T> listener);
+import com.corundumstudio.socketio.namespace.Namespace;
 
-    <T> void addJsonObjectListener(Class<T> clazz, DataListener<T> listener);
+public interface AnnotationScanner {
 
-    void addDisconnectListener(DisconnectListener listener);
+    Class<? extends Annotation> getScanAnnotation();
 
-    void addConnectListener(ConnectListener listener);
+    void addListener(Namespace namespace, Object object, Class clazz, Method method);
 
-    void addMessageListener(DataListener<String> listener);
-
-    void addListeners(Object listeners);
-
-    void addListeners(Object listeners, Class listenersClass);
+    void validate(Method method, Class clazz);
 
 }

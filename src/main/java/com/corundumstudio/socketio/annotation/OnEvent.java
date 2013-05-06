@@ -13,22 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.corundumstudio.socketio.listener;
+package com.corundumstudio.socketio.annotation;
 
-public interface ClientListeners {
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-    <T> void addEventListener(String eventName, Class<T> eventClass, DataListener<T> listener);
+/**
+ * Annotation that defines <b>Event</b> handler.
+ * The value is required, and represents event name.
+ *
+ * Arguments in method:
+ *
+ *   - SocketIOClient (optional)
+ *   - AckRequest (optional)
+ *   - 'type of Event' (required)
+ *
+ */
+@Target(ElementType.METHOD)
+@Retention(RetentionPolicy.RUNTIME)
+public @interface OnEvent {
 
-    <T> void addJsonObjectListener(Class<T> clazz, DataListener<T> listener);
-
-    void addDisconnectListener(DisconnectListener listener);
-
-    void addConnectListener(ConnectListener listener);
-
-    void addMessageListener(DataListener<String> listener);
-
-    void addListeners(Object listeners);
-
-    void addListeners(Object listeners, Class listenersClass);
+    /**
+     * Event name
+     */
+    String value();
 
 }

@@ -147,4 +147,15 @@ public class SocketIOServer implements ClientListeners {
         mainNamespace.addMessageListener(listener);
     }
 
+    @Override
+    public void addListeners(Object listeners) {
+        mainNamespace.addListeners(listeners);
+    }
+
+    @Override
+    public void addListeners(Object listeners, Class listenersClass) {
+        mainNamespace.addListeners(listeners, listenersClass);
+    }
+
+
 }

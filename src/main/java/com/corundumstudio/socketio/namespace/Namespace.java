@@ -25,6 +25,7 @@ import com.corundumstudio.socketio.AckRequest;
 import com.corundumstudio.socketio.BroadcastOperations;
 import com.corundumstudio.socketio.SocketIOClient;
 import com.corundumstudio.socketio.SocketIONamespace;
+import com.corundumstudio.socketio.annotation.ScannerEngine;
 import com.corundumstudio.socketio.listener.ConnectListener;
 import com.corundumstudio.socketio.listener.DataListener;
 import com.corundumstudio.socketio.listener.DisconnectListener;
@@ -115,6 +116,7 @@ public class Namespace implements SocketIONamespace {
         }
     }
 
+    @SuppressWarnings({"rawtypes", "unchecked"})
     public void onJsonObject(NamespaceClient client, Object data, AckRequest ackRequest) {
         Queue<DataListener<?>> queue = jsonObjectListeners.get(data.getClass());
         if (queue == null) {
@@ -186,6 +188,18 @@ public class Namespace implements SocketIONamespace {
         } else if (!name.equals(other.name))
             return false;
         return true;
+    }
+
+    @Override
+    public void addListeners(Object listeners) {
+        ScannerEngine engine = new ScannerEngine();
+        engine.scan(this, listeners, listeners.getClass());
+    }
+
+    @Override
+    public void addListeners(Object listeners, Class listenersClass) {
+        ScannerEngine engine = new ScannerEngine();
+        engine.scan(this, listeners, listenersClass);
     }
 
 }

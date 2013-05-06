@@ -7,9 +7,9 @@ Checkout [Demo project](https://github.com/mrniko/netty-socketio-demo)
 
 Licensed under the Apache License 2.0.
 
-### Features
-
-* Supports 0.7+ version of [Socket.IO-client](https://github.com/LearnBoost/socket.io-client) up to latest - 0.9.6
+Features
+================================
+* Supports 0.7+ version of [Socket.IO-client](https://github.com/LearnBoost/socket.io-client) up to latest - 0.9.11
 * Supports xhr-polling transport
 * Supports flashsocket transport
 * Supports websocket transport (Hixie-75/76/Hybi-00, Hybi-10..Hybi-13)
@@ -17,10 +17,11 @@ Licensed under the Apache License 2.0.
 * Supports ack (acknowledgment of received data)
 * Supports SSL
 * Lock-free implementation
+* Declarative handler configuration via annotations
 
 
-#Usage example
-
+Usage example
+================================
 ##Server
 
         Configuration config = new Configuration();
