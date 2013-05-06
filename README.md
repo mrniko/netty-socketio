@@ -23,11 +23,16 @@ Licensed under the Apache License 2.0.
 
 ##Server
 
+Base configuration. More details about Configuration object is [here](https://github.com/mrniko/netty-socketio/wiki/Configuration-details).
+
         Configuration config = new Configuration();
         config.setHostname("localhost");
         config.setPort(81);
 
         SocketIOServer server = new SocketIOServer(config);
+        
+Programmatic handlers binding
+        
         server.addMessageListener(new DataListener<String>() {
             @Override
             public void onData(SocketIOClient client, String message, AckRequest ackRequest) {
