@@ -31,7 +31,7 @@ Base configuration. More details about Configuration object is [here](https://gi
 
         SocketIOServer server = new SocketIOServer(config);
         
-Programmatic handlers binding
+Programmatic handlers binding:
         
         server.addMessageListener(new DataListener<String>() {
             @Override
@@ -78,14 +78,57 @@ Programmatic handlers binding
                 client.sendJsonObject(obj);
             }
         });
+        
+Declarative handlers binding. Handlers could be bound via annotations on any object:
 
-	server.start();
+        pubic class SomeBusinessService {
+        
+             ...
+             // some stuff code
+             ...
+
+             // only data object is required in arguments, 
+             // SocketIOClient and AckRequest could be ommited
+             @OnEvent('someevent')
+             public void onSomeEventHandler(SocketIOClient client, SomeClass data, AckRequest ackRequest) {
+                 ...
+             }
+             
+             @OnConnect
+             public void onConnectHandler(SocketIOClient client) {
+                 ...
+             }
+
+             @OnDisconnect
+             public void onDisconnectHandler(SocketIOClient client) {
+                 ...
+             }
+
+             // only data object is required in arguments, 
+             // SocketIOClient and AckRequest could be ommited
+             @OnJsonObject
+             public void onSomeEventHandler(SocketIOClient client, SomeClass data, AckRequest ackRequest) {
+                 ...
+             }
+
+             // only data object is required in arguments, 
+             // SocketIOClient and AckRequest could be ommited
+             @OnMessage
+             public void onSomeEventHandler(SocketIOClient client, String data, AckRequest ackRequest) {
+                 ...
+             }
+
+        }
+        
+        SomeBusinessService someService = new SomeBusinessService();
+        server.addListeners(someService);
 
 
-	...
-
-	
-	server.stop();
+        server.start();
+        
+        ...
+        
+        server.stop();
 
 ##Client
 
