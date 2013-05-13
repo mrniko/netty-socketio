@@ -40,11 +40,18 @@ public class NamespaceClient implements SocketIOClient {
     public BaseClient getBaseClient() {
         return baseClient;
     }
-    
+
+    @Override
     public Transport getTransport() {
         return baseClient.getTransport();
     }
 
+	@Override
+	public boolean isChannelOpen() {
+		return baseClient.getChannel().isOpen();
+	}
+
+	@Override
     public Namespace getNamespace() {
         return namespace;
     }

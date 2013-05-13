@@ -25,11 +25,11 @@ public interface SocketIOClient extends ClientOperations {
 
     /**
      * Current client transport protocol
-     * 
+     *
      * @return transport protocol
      */
     Transport getTransport();
-    
+
     /**
      * Send event with ack callback
      *
@@ -83,5 +83,12 @@ public interface SocketIOClient extends ClientOperations {
      * @return remote address
      */
     SocketAddress getRemoteAddress();
+
+    /**
+     * Check is underlying channel open
+     *
+     * @return <code>true</code> if channel open, otherwise <code>false</code>
+     */
+    boolean isChannelOpen();
 
 }

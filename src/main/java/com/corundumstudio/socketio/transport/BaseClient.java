@@ -49,7 +49,7 @@ public abstract class BaseClient {
     private final AckManager ackManager;
     private final UUID sessionId;
     private final Transport transport;
-    protected Channel channel;
+    private Channel channel;
 
     public BaseClient(UUID sessionId, AckManager ackManager, DisconnectableHub disconnectable, Transport transport) {
         this.sessionId = sessionId;
@@ -61,7 +61,7 @@ public abstract class BaseClient {
     public Transport getTransport() {
         return transport;
     }
-    
+
     public abstract ChannelFuture send(Packet packet);
 
     public void removeChildClient(SocketIOClient client) {
@@ -111,5 +111,13 @@ public abstract class BaseClient {
 
         onChannelDisconnect();
     }
+
+    Channel getChannel() {
+		return channel;
+	}
+
+    void setChannel(Channel channel) {
+		this.channel = channel;
+	}
 
 }

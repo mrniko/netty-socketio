@@ -28,19 +28,15 @@ import com.corundumstudio.socketio.parser.Packet;
 
 public class WebSocketClient extends BaseClient {
 
-    public WebSocketClient(Channel channel, AckManager ackManager, 
+    public WebSocketClient(Channel channel, AckManager ackManager,
                             DisconnectableHub disconnectable, UUID sessionId,
                              Transport transport) {
         super(sessionId, ackManager, disconnectable, transport);
-        this.channel = channel;
-    }
-
-    public Channel getChannel() {
-        return channel;
+        setChannel(channel);
     }
 
     public ChannelFuture send(Packet packet) {
-        return channel.write(new WebSocketPacketMessage(getSessionId(), packet));
+        return getChannel().write(new WebSocketPacketMessage(getSessionId(), packet));
     }
 
 }
