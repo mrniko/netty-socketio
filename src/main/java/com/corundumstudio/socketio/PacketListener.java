@@ -44,6 +44,9 @@ public class PacketListener {
 
         switch (packet.getType()) {
         case CONNECT: {
+        	Namespace namespace = namespacesHub.get(packet.getEndpoint());
+        	namespace.onConnect(client);
+        	// send connect handshake back to client
             client.send(packet);
             break;
         }
