@@ -186,7 +186,10 @@ public class JacksonJsonSupport implements JsonSupport {
 
     public JacksonJsonSupport(Configuration configuration) {
         this.configuration = configuration;
+        init(objectMapper);
+    }
 
+    protected void init(ObjectMapper objectMapper) {
         SimpleModule module = new SimpleModule("EventDeserializerModule", new Version(1, 0, 0, null, null, null));
         module.addDeserializer(Event.class, eventDeserializer);
         module.addDeserializer(JsonObject.class, jsonObjectDeserializer);
