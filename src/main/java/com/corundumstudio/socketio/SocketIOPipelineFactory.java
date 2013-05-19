@@ -39,6 +39,8 @@ import com.corundumstudio.socketio.ack.AckManager;
 import com.corundumstudio.socketio.handler.AuthorizeHandler;
 import com.corundumstudio.socketio.handler.PacketHandler;
 import com.corundumstudio.socketio.handler.ResourceHandler;
+import com.corundumstudio.socketio.misc.CompositeIterable;
+import com.corundumstudio.socketio.misc.IterableCollection;
 import com.corundumstudio.socketio.namespace.NamespacesHub;
 import com.corundumstudio.socketio.parser.Decoder;
 import com.corundumstudio.socketio.parser.Encoder;

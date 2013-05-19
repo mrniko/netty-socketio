@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.corundumstudio.socketio;
+package com.corundumstudio.socketio.misc;
 
 import java.util.AbstractCollection;
 import java.util.Iterator;

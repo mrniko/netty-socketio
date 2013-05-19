@@ -23,6 +23,8 @@ import java.util.List;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.corundumstudio.socketio.misc.CompositeIterable;
+
 public class JoinIteratorsTest {
 
     @Test

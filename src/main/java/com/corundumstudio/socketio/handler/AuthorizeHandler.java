@@ -46,6 +46,7 @@ import com.corundumstudio.socketio.Configuration;
 import com.corundumstudio.socketio.Disconnectable;
 import com.corundumstudio.socketio.SocketIOClient;
 import com.corundumstudio.socketio.messages.AuthorizeMessage;
+import com.corundumstudio.socketio.misc.ConcurrentHashSet;
 import com.corundumstudio.socketio.namespace.Namespace;
 import com.corundumstudio.socketio.namespace.NamespacesHub;
 import com.corundumstudio.socketio.parser.Packet;
@@ -54,7 +55,6 @@ import com.corundumstudio.socketio.scheduler.CancelableScheduler;
 import com.corundumstudio.socketio.scheduler.SchedulerKey;
 import com.corundumstudio.socketio.scheduler.SchedulerKey.Type;
 import com.corundumstudio.socketio.transport.BaseClient;
-import com.corundumstudio.socketio.utils.ConcurrentHashSet;
 
 @Sharable
 public class AuthorizeHandler extends SimpleChannelUpstreamHandler implements Disconnectable {

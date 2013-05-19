@@ -29,7 +29,7 @@ import org.jboss.netty.buffer.ChannelBufferInputStream;
 import org.jboss.netty.buffer.ChannelBufferOutputStream;
 
 import com.corundumstudio.socketio.Configuration;
-import com.corundumstudio.socketio.utils.ConcurrentHashSet;
+import com.corundumstudio.socketio.misc.ConcurrentHashSet;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonParser;

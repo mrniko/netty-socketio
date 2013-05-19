@@ -29,9 +29,9 @@ import com.corundumstudio.socketio.annotation.ScannerEngine;
 import com.corundumstudio.socketio.listener.ConnectListener;
 import com.corundumstudio.socketio.listener.DataListener;
 import com.corundumstudio.socketio.listener.DisconnectListener;
+import com.corundumstudio.socketio.misc.ConcurrentHashSet;
 import com.corundumstudio.socketio.parser.JsonSupport;
 import com.corundumstudio.socketio.transport.NamespaceClient;
-import com.corundumstudio.socketio.utils.ConcurrentHashSet;
 
 /**
  * Hub object for all clients in one namespace.

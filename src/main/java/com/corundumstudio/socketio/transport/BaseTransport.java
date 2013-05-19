@@ -21,9 +21,9 @@ import java.util.List;
 
 import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
 
-import com.corundumstudio.socketio.CompositeIterable;
 import com.corundumstudio.socketio.Disconnectable;
 import com.corundumstudio.socketio.SocketIOClient;
+import com.corundumstudio.socketio.misc.CompositeIterable;
 
 public abstract class BaseTransport extends SimpleChannelUpstreamHandler implements Disconnectable {
 
