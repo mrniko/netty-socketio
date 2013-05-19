@@ -35,6 +35,11 @@ public class CompositeIterable<T> implements Iterable<T>, Iterator<T> {
         this.iterables = iterables;
     }
 
+    public CompositeIterable(CompositeIterable<T> iterable) {
+        this.iterables = iterable.iterables;
+        this.iterablesList = iterable.iterablesList;
+    }
+
     @Override
     public Iterator<T> iterator() {
         List<Iterator<T>> iterators = new ArrayList<Iterator<T>>();
@@ -48,6 +53,7 @@ public class CompositeIterable<T> implements Iterable<T>, Iterator<T> {
             }
         }
         listIterator = iterators.iterator();
+        currentIterator = null;
         return this;
     }
 

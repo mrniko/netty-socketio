@@ -46,12 +46,12 @@ public class NamespaceClient implements SocketIOClient {
         return baseClient.getTransport();
     }
 
-	@Override
-	public boolean isChannelOpen() {
-		return baseClient.getChannel().isOpen();
-	}
+    @Override
+    public boolean isChannelOpen() {
+        return baseClient.getChannel().isOpen();
+    }
 
-	@Override
+    @Override
     public Namespace getNamespace() {
         return namespace;
     }
@@ -142,7 +142,8 @@ public class NamespaceClient implements SocketIOClient {
         final int prime = 31;
         int result = 1;
         result = prime * result + ((getSessionId() == null) ? 0 : getSessionId().hashCode());
-        result = prime * result + ((getNamespace().getName() == null) ? 0 : getNamespace().getName().hashCode());
+        result = prime * result
+                + ((getNamespace().getName() == null) ? 0 : getNamespace().getName().hashCode());
         return result;
     }
 

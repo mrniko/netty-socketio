@@ -36,8 +36,8 @@ import com.corundumstudio.socketio.parser.PacketType;
 /**
  * Base class for main client.
  *
- * Each main client can have multiple namespace clients,
- * when all namespace clients has disconnected then main client disconnects too.
+ * Each main client can have multiple namespace clients, when all namespace
+ * clients has disconnected then main client disconnects too.
  *
  *
  */
@@ -51,7 +51,8 @@ public abstract class BaseClient {
     private final Transport transport;
     private Channel channel;
 
-    public BaseClient(UUID sessionId, AckManager ackManager, DisconnectableHub disconnectable, Transport transport) {
+    public BaseClient(UUID sessionId, AckManager ackManager, DisconnectableHub disconnectable,
+            Transport transport) {
         this.sessionId = sessionId;
         this.ackManager = ackManager;
         this.disconnectable = disconnectable;
@@ -65,7 +66,7 @@ public abstract class BaseClient {
     public abstract ChannelFuture send(Packet packet);
 
     public void removeChildClient(SocketIOClient client) {
-        namespaceClients.remove((Namespace)client.getNamespace());
+        namespaceClients.remove((Namespace) client.getNamespace());
         if (namespaceClients.isEmpty()) {
             disconnectable.onDisconnect(this);
         }
@@ -113,11 +114,11 @@ public abstract class BaseClient {
     }
 
     Channel getChannel() {
-		return channel;
-	}
+        return channel;
+    }
 
     void setChannel(Channel channel) {
-		this.channel = channel;
-	}
+        this.channel = channel;
+    }
 
 }

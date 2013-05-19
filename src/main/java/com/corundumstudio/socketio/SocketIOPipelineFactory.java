@@ -20,6 +20,7 @@ import static org.jboss.netty.channel.Channels.pipeline;
 import java.io.InputStream;
 import java.security.KeyStore;
 import java.security.Security;
+import java.util.Collection;
 
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
@@ -118,12 +119,13 @@ public class SocketIOPipelineFactory implements ChannelPipelineFactory, Disconne
         socketIOEncoder = new SocketIOEncoder(encoder);
     }
 
-    public Iterable<SocketIOClient> getAllClients() {
+    public Collection<SocketIOClient> getAllClients() {
         // TODO refactor to transport registry
         Iterable<SocketIOClient> xhrClients = xhrPollingTransport.getAllClients();
         Iterable<SocketIOClient> webSocketClients = webSocketTransport.getAllClients();
         Iterable<SocketIOClient> flashSocketClients = flashSocketTransport.getAllClients();
-        return new CompositeIterable<SocketIOClient>(xhrClients, webSocketClients, flashSocketClients);
+        CompositeIterable<SocketIOClient> mainIterable = new CompositeIterable<SocketIOClient>(xhrClients, webSocketClients, flashSocketClients);
+        return new IterableCollection<SocketIOClient>(mainIterable);
     }
 
     public ChannelPipeline getPipeline() throws Exception {
