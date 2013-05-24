@@ -42,7 +42,10 @@ public class OnEventScanner implements AnnotationScanner {
         final int socketIOClientIndex = paramIndex(method, SocketIOClient.class);
         final int ackRequestIndex = paramIndex(method, AckRequest.class);
         final int dataIndex = dataIndex(method);
-        Class objectType = method.getParameterTypes()[dataIndex];
+        Class objectType = Void.class;
+        if (dataIndex != -1) {
+            objectType = method.getParameterTypes()[dataIndex];
+        }
         namespace.addEventListener(annotation.value(), objectType, new DataListener<Object>() {
             @Override
             public void onData(SocketIOClient client, Object data, AckRequest ackSender) {
@@ -95,7 +98,7 @@ public class OnEventScanner implements AnnotationScanner {
         final int ackRequestIndex = paramIndex(method, AckRequest.class);
         final int dataIndex = dataIndex(method);
         if (dataIndex == -1) {
-            throw new IllegalArgumentException("Wrong OnEvent listener signature: " + clazz + "." + method.getName() + " Data parameter is mandatory.");
+            paramsCount--;
         }
         if (socketIOClientIndex == -1) {
             paramsCount--;

@@ -88,8 +88,7 @@ Declarative handlers binding. Handlers could be bound via annotations on any obj
              // some stuff code
              ...
 
-             // only data object is required in arguments, 
-             // SocketIOClient and AckRequest could be ommited
+             // SocketIOClient, AckRequest and Data could be ommited
              @OnEvent('someevent')
              public void onSomeEventHandler(SocketIOClient client, SomeClass data, AckRequest ackRequest) {
                  ...
