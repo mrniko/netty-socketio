@@ -39,6 +39,9 @@ public class OnEventScanner implements AnnotationScanner {
     @SuppressWarnings("unchecked")
     public void addListener(Namespace namespace, final Object object, final Class clazz, final Method method) {
         OnEvent annotation = method.getAnnotation(OnEvent.class);
+        if (annotation.value() == null || annotation.value().trim().length() == 0) {
+            throw new IllegalArgumentException("OnEvent \"value\" parameter is required");
+        }
         final int socketIOClientIndex = paramIndex(method, SocketIOClient.class);
         final int ackRequestIndex = paramIndex(method, AckRequest.class);
         final int dataIndex = dataIndex(method);

@@ -28,7 +28,7 @@ import java.lang.annotation.Target;
  *
  *   - SocketIOClient (optional)
  *   - AckRequest (optional)
- *   - 'type of Event' (required)
+ *   - Event data (optional)
  *
  */
 @Target(ElementType.METHOD)
