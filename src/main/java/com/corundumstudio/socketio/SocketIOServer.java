@@ -16,6 +16,7 @@
 package com.corundumstudio.socketio;
 
 import java.net.InetSocketAddress;
+import java.util.Collection;
 
 import org.jboss.netty.bootstrap.ServerBootstrap;
 import org.jboss.netty.channel.Channel;
@@ -61,12 +62,17 @@ public class SocketIOServer implements ClientListeners {
      *
      * @return Iterable object with clients
      */
-    public Iterable<SocketIOClient> getAllClients() {
+    public Collection<SocketIOClient> getAllClients() {
         return pipelineFactory.getAllClients();
     }
 
     public BroadcastOperations getBroadcastOperations() {
         return getBroadcastOperations(pipelineFactory.getAllClients());
+    }
+
+    public <T> BroadcastOperations getRoomOperations(T roomKey) {
+        Iterable<SocketIOClient> clients = namespacesHub.getRoomClients(roomKey);
+        return new BroadcastOperations(clients);
     }
 
     public BroadcastOperations getBroadcastOperations(Iterable<SocketIOClient> clients) {

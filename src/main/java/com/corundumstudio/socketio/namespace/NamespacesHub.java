@@ -15,9 +15,13 @@
  */
 package com.corundumstudio.socketio.namespace;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+import com.corundumstudio.socketio.SocketIOClient;
+import com.corundumstudio.socketio.misc.CompositeIterable;
 import com.corundumstudio.socketio.parser.JsonSupport;
 
 public class NamespacesHub {
@@ -39,6 +43,15 @@ public class NamespacesHub {
             }
         }
         return namespace;
+    }
+
+    public <T> Iterable<SocketIOClient> getRoomClients(T roomKey) {
+        List<Iterable<SocketIOClient>> allClients = new ArrayList<Iterable<SocketIOClient>>();
+        for (Namespace namespace : namespaces.values()) {
+            Iterable<SocketIOClient> clients = namespace.getRoomClients(roomKey);
+            allClients.add(clients);
+        }
+        return new CompositeIterable<SocketIOClient>(allClients);
     }
 
     public Namespace get(String name) {

@@ -15,6 +15,9 @@
  */
 package com.corundumstudio.socketio;
 
+import java.util.Collection;
+
+import com.corundumstudio.socketio.misc.IterableCollection;
 import com.corundumstudio.socketio.parser.Packet;
 
 public class BroadcastOperations implements ClientOperations {
@@ -24,6 +27,10 @@ public class BroadcastOperations implements ClientOperations {
     public BroadcastOperations(Iterable<SocketIOClient> clients) {
         super();
         this.clients = clients;
+    }
+
+    public Collection<SocketIOClient> getClients() {
+        return new IterableCollection<SocketIOClient>(clients);
     }
 
     @Override

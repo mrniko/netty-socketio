@@ -15,6 +15,7 @@
  */
 package com.corundumstudio.socketio.namespace;
 
+import java.util.Collections;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -43,7 +44,7 @@ public class Namespace implements SocketIONamespace {
 
     public static final String DEFAULT_NAME = "";
 
-    private final Set<SocketIOClient> clients = new ConcurrentHashSet<SocketIOClient>();
+    private final Set<SocketIOClient> allClients = new ConcurrentHashSet<SocketIOClient>();
     private final ConcurrentMap<String, EventEntry<?>> eventListeners =
                                                             new ConcurrentHashMap<String, EventEntry<?>>();
     private final ConcurrentMap<Class<?>, Queue<DataListener<?>>> jsonObjectListeners =
@@ -51,6 +52,8 @@ public class Namespace implements SocketIONamespace {
     private final Queue<DataListener<String>> messageListeners = new ConcurrentLinkedQueue<DataListener<String>>();
     private final Queue<ConnectListener> connectListeners = new ConcurrentLinkedQueue<ConnectListener>();
     private final Queue<DisconnectListener> disconnectListeners = new ConcurrentLinkedQueue<DisconnectListener>();
+
+    private final ConcurrentMap<Object, Queue<SocketIOClient>> roomClients = new ConcurrentHashMap<Object, Queue<SocketIOClient>>();
 
     private final String name;
     private final JsonSupport jsonSupport;
@@ -62,7 +65,7 @@ public class Namespace implements SocketIONamespace {
     }
 
     public void addClient(SocketIOClient client) {
-        clients.add(client);
+        allClients.add(client);
     }
 
     public String getName() {
@@ -136,7 +139,7 @@ public class Namespace implements SocketIONamespace {
         for (DisconnectListener listener : disconnectListeners) {
             listener.onDisconnect(client);
         }
-        clients.remove(client);
+        allClients.remove(client);
     }
 
     @Override
@@ -161,7 +164,7 @@ public class Namespace implements SocketIONamespace {
 
     @Override
     public BroadcastOperations getBroadcastOperations() {
-        return new BroadcastOperations(clients);
+        return new BroadcastOperations(allClients);
     }
 
 
@@ -200,6 +203,45 @@ public class Namespace implements SocketIONamespace {
     public void addListeners(Object listeners, Class listenersClass) {
         ScannerEngine engine = new ScannerEngine();
         engine.scan(this, listeners, listenersClass);
+    }
+
+    public void joinRoom(Object roomKey, SocketIOClient namespaceClient) {
+        Queue<SocketIOClient> clients = roomClients.get(roomKey);
+        if (clients == null) {
+            clients = new ConcurrentLinkedQueue<SocketIOClient>();
+            Queue<SocketIOClient> oldClients = roomClients.putIfAbsent(roomKey, clients);
+            if (oldClients != null) {
+                clients = oldClients;
+            }
+        }
+        clients.add(namespaceClient);
+        if (clients != roomClients.get(roomKey)) {
+            // re-join if queue has been replaced
+            joinRoom(roomKey, namespaceClient);
+        }
+    }
+
+    public void leaveRoom(Object roomKey, SocketIOClient namespaceClient) {
+        Queue<SocketIOClient> clients = roomClients.get(roomKey);
+        if (clients == null) {
+            return;
+        }
+        clients.remove(namespaceClient);
+        if (clients.isEmpty()) {
+            roomClients.remove(roomKey);
+            // join which was added after queue deletion
+            for (SocketIOClient socketIOClient : clients) {
+                joinRoom(roomKey, socketIOClient);
+            }
+        }
+    }
+
+    public Iterable<SocketIOClient> getRoomClients(Object roomKey) {
+        Queue<SocketIOClient> clients = roomClients.get(roomKey);
+        if (clients == null) {
+            return Collections.emptyList();
+        }
+        return clients;
     }
 
 }

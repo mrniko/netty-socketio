@@ -91,4 +91,8 @@ public interface SocketIOClient extends ClientOperations {
      */
     boolean isChannelOpen();
 
+    <T> void joinRoom(T roomKey);
+
+    <T> void leaveRoom(T roomKey);
+
 }

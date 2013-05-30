@@ -169,4 +169,14 @@ public class NamespaceClient implements SocketIOClient {
         return true;
     }
 
+    @Override
+    public <T> void joinRoom(T roomKey) {
+        namespace.joinRoom(roomKey, this);
+    }
+
+    @Override
+    public <T> void leaveRoom(T roomKey) {
+        namespace.leaveRoom(roomKey, this);
+    }
+
 }
