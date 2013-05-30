@@ -20,22 +20,20 @@ import java.util.Iterator;
 
 public class IterableCollection<T> extends AbstractCollection<T> {
 
-    private final Iterable<T> iterable;
-    private final Iterable<T> sizeIterable;
+    private final CompositeIterable<T> iterable;
 
     public IterableCollection(CompositeIterable<T> iterable) {
         this.iterable = iterable;
-        this.sizeIterable = new CompositeIterable<T>(iterable);
     }
 
     @Override
     public Iterator<T> iterator() {
-        return iterable.iterator();
+        return new CompositeIterable(iterable).iterator();
     }
 
     @Override
     public int size() {
-        Iterator<T> iterator = sizeIterable.iterator();
+        Iterator<T> iterator = new CompositeIterable(iterable).iterator();
         int count = 0;
         while (iterator.hasNext()) {
           iterator.next();
