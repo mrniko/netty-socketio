@@ -16,8 +16,18 @@ Features
 * Supports namespaces
 * Supports ack (acknowledgment of received data)
 * Supports SSL
+* Supports Rooms
 * Lock-free implementation
 * Declarative handler configuration via annotations
+
+
+Recent Releases
+================================
+####Please Note: trunk is current development branch.
+
+####07-Jun-2013 - version 1.0.0 released
+First stable release.
+
 
 
 Usage example
