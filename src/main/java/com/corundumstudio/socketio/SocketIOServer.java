@@ -60,7 +60,7 @@ public class SocketIOServer implements ClientListeners {
     /**
      * Get all clients
      *
-     * @return Iterable object with clients
+     * @return clients collection
      */
     public Collection<SocketIOClient> getAllClients() {
         return pipelineFactory.getAllClients();
@@ -70,6 +70,13 @@ public class SocketIOServer implements ClientListeners {
         return getBroadcastOperations(pipelineFactory.getAllClients());
     }
 
+    /**
+     * Get broadcast operations for clients within
+     * room by <code>roomKey</code>
+     *
+     * @param roomKey - any object with correct hashcode & equals implementation
+     * @return
+     */
     public <T> BroadcastOperations getRoomOperations(T roomKey) {
         Iterable<SocketIOClient> clients = namespacesHub.getRoomClients(roomKey);
         return new BroadcastOperations(clients);
