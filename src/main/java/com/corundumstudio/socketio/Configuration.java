@@ -29,6 +29,8 @@ public class Configuration {
 
     private String jsonTypeFieldName = "@class";
     private String context = "/socket.io";
+    private String webappDir = "webapp";
+    private boolean webappEnabled = false;
 
     private String transports = join(new Transport[] {Transport.WEBSOCKET, Transport.FLASHSOCKET, Transport.XHRPOLLING});
 
@@ -80,7 +82,33 @@ public class Configuration {
         setKeyStore(conf.getKeyStore());
         setTransports(conf.getTransports());
         setMaxHttpContentLength(conf.getMaxHttpContentLength());
+        setWebappDir(conf.getWebappDir());
+        setWebappEnabled(conf.isWebappEnabled());
     }
+    
+    /**
+     * Defines the folder that will be used to serve static content. <br/> 
+     * Can be a full path (/var/www/webapp) or the relative path (mywebapp/static)
+     * @param webappDir
+     */
+    public void setWebappDir(String webappDir) {
+		this.webappDir = webappDir;
+	}
+    
+    /**
+     * Enable to serve static contents (html/js/images)
+     */
+    public void setWebappEnabled(boolean webappEnabled) {
+		this.webappEnabled = webappEnabled;
+	}
+    
+    public String getWebappDir() {
+		return webappDir;
+	}
+    
+    public boolean isWebappEnabled() {
+		return webappEnabled;
+	}
 
     private String join(Transport[] transports) {
         StringBuilder result = new StringBuilder();

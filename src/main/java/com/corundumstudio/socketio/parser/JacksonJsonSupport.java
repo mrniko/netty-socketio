@@ -36,6 +36,7 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -188,14 +189,16 @@ public class JacksonJsonSupport implements JsonSupport {
         this.configuration = configuration;
         init(objectMapper);
     }
-
+    
     protected void init(ObjectMapper objectMapper) {
         SimpleModule module = new SimpleModule("EventDeserializerModule", new Version(1, 0, 0, null, null, null));
         module.addDeserializer(Event.class, eventDeserializer);
         module.addDeserializer(JsonObject.class, jsonObjectDeserializer);
         module.addDeserializer(AckArgs.class, ackArgsDeserializer);
         objectMapper.registerModule(module);
+        
 
+        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         objectMapper.setSerializationInclusion(Include.NON_NULL);
 
 //        TODO If jsonObjectDeserializer will be not enough

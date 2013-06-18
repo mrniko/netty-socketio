@@ -39,6 +39,7 @@ import com.corundumstudio.socketio.ack.AckManager;
 import com.corundumstudio.socketio.handler.AuthorizeHandler;
 import com.corundumstudio.socketio.handler.PacketHandler;
 import com.corundumstudio.socketio.handler.ResourceHandler;
+import com.corundumstudio.socketio.handler.StaticResourceHandler;
 import com.corundumstudio.socketio.misc.CompositeIterable;
 import com.corundumstudio.socketio.misc.IterableCollection;
 import com.corundumstudio.socketio.namespace.NamespacesHub;
@@ -63,6 +64,8 @@ public class SocketIOPipelineFactory implements ChannelPipelineFactory, Disconne
     public static final String HTTP_ENCODER = "encoder";
     public static final String HTTP_AGGREGATOR = "aggregator";
     public static final String HTTP_REQUEST_DECODER = "decoder";
+    public static final String HTTP_STATIC_HANDLER = "staticHandler";
+    
     public static final String SSL_HANDLER = "ssl";
     public static final String FLASH_POLICY_HANDLER = "flashPolicyHandler";
     public static final String RESOURCE_HANDLER = "resourceHandler";
@@ -147,10 +150,15 @@ public class SocketIOPipelineFactory implements ChannelPipelineFactory, Disconne
         pipeline.addLast(HTTP_REQUEST_DECODER, new HttpRequestDecoder());
         pipeline.addLast(HTTP_AGGREGATOR, new HttpChunkAggregator(configuration.getMaxHttpContentLength()));
         pipeline.addLast(HTTP_ENCODER, new HttpResponseEncoder());
-
+        
         if (isFlashTransport) {
             pipeline.addLast(RESOURCE_HANDLER, resourceHandler);
         }
+        
+        if(configuration.isWebappEnabled()){
+        	pipeline.addLast(HTTP_STATIC_HANDLER, new StaticResourceHandler(configuration.getWebappDir()));
+        }
+        
         pipeline.addLast(PACKET_HANDLER, packetHandler);
 
         pipeline.addLast(AUTHORIZE_HANDLER, authorizeHandler);
@@ -159,6 +167,8 @@ public class SocketIOPipelineFactory implements ChannelPipelineFactory, Disconne
         pipeline.addLast(FLASH_SOCKET_TRANSPORT, flashSocketTransport);
 
         pipeline.addLast(SOCKETIO_ENCODER, socketIOEncoder);
+        
+   
 
         return pipeline;
     }
