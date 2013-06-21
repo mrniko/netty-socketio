@@ -198,7 +198,7 @@ public class JacksonJsonSupport implements JsonSupport {
         objectMapper.registerModule(module);
         
 
-        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false); 
         objectMapper.setSerializationInclusion(Include.NON_NULL);
 
 //        TODO If jsonObjectDeserializer will be not enough

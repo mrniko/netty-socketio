@@ -48,6 +48,149 @@
              </resources>
          </build>
      </profile>
+
+	<profile>
+		<id>build-android-compined</id>
+
+		<build>
+			<plugins>
+			      <plugin>
+			        <groupId>org.apache.maven.plugins</groupId>
+			        <artifactId>maven-shade-plugin</artifactId>
+			        <version>2.1</version>
+			        <executions>
+			          <execution>
+			            <phase>package</phase>
+			            <goals>
+			              <goal>shade</goal>
+			            </goals>
+			            <configuration>
+			               <shadedArtifactAttached>true</shadedArtifactAttached> 
+			               <shadedClassifierName>combined</shadedClassifierName>  
+			              <artifactSet>
+			                <excludes>
+			                  <exclude>log4j:log4j:jar:</exclude>
+			                  <exclude>org.slf4j:slf4j-api</exclude>
+			                </excludes>
+			              </artifactSet>
+			            </configuration>
+			          </execution>
+			        </executions>
+			      </plugin>
+			</plugins>
+
+		</build>
+	</profile>
+     
+     <profile>
+     	<id>build-release</id>
+		<activation>
+			<property>
+				<name>env</name>
+				<value>production</value>
+			</property>
+		</activation>	
+     	<build>
+     	    <plugins>
+		       	<plugin>
+		          <groupId>org.apache.maven.plugins</groupId>
+		          <artifactId>maven-source-plugin</artifactId>
+		          <version>2.2.1</version>
+		          <executions>
+		      	   <execution>
+		      	     <id>attach-sources</id>
+		      	     <goals>
+		      		<goal>jar</goal>
+		      	     </goals>
+		      	   </execution>
+		          </executions>
+		      	</plugin>
+		
+		
+		        <plugin>
+		            <groupId>org.apache.maven.plugins</groupId>
+		            <artifactId>maven-surefire-plugin</artifactId>
+		            <version>2.12.3</version>
+		            <configuration>
+		                <argLine>-Dfile.encoding=utf-8</argLine>
+		            </configuration>
+		        </plugin>
+
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-checkstyle-plugin</artifactId>
+					<version>2.9.1</version>
+					<executions>
+						<execution>
+							<phase>verify</phase>
+							<goals>
+								<goal>checkstyle</goal>
+							</goals>
+						</execution>
+					</executions>
+					<configuration>
+						<consoleOutput>true</consoleOutput>
+						<enableRSS>false</enableRSS>
+						<configLocation>/checkstyle.xml</configLocation>
+					</configuration>
+				</plugin>
+			        		
+		       <plugin>
+		            <groupId>com.mycila.maven-license-plugin</groupId>
+		            <artifactId>maven-license-plugin</artifactId>
+		            <version>1.10.b1</version>
+		            <configuration>
+		                <basedir>${basedir}</basedir>
+		                <header>${basedir}/header.txt</header>
+		                <quiet>false</quiet>
+		                <failIfMissing>true</failIfMissing>
+		                <aggregate>false</aggregate>
+		                <includes>
+		                    <include>src/**</include>
+		                </includes>
+		                <excludes>
+		                    <exclude>target/**</exclude>
+		                </excludes>
+		                <useDefaultExcludes>true</useDefaultExcludes>
+		                <mapping>
+		                    <java>JAVADOC_STYLE</java>
+		                </mapping>
+		                <strictCheck>true</strictCheck>
+		                <useDefaultMapping>true</useDefaultMapping>
+		                <encoding>UTF-8</encoding>
+		            </configuration>
+		            <executions>
+		                <execution>
+		                    <goals>
+		                        <goal>check</goal>
+		                    </goals>
+		                </execution>
+		            </executions>
+		        </plugin> 
+		        
+		        <plugin>
+		          <groupId>org.apache.maven.plugins</groupId>
+		          <artifactId>maven-pmd-plugin</artifactId>
+		          <version>2.7.1</version>
+		          <executions>
+		            <execution>
+		              <phase>verify</phase>
+		              <goals>
+		                <goal>pmd</goal>
+		                <goal>cpd</goal>
+		              </goals>
+		            </execution>
+		          </executions>
+		          <configuration>
+		            <linkXref>true</linkXref>
+		            <minimumTokens>100</minimumTokens>
+		            <targetJdk>1.5</targetJdk>
+		            <verbose>true</verbose>
+		          </configuration>
+		        </plugin>
+     	    </plugins>
+     	</build>		    
+     </profile>
  </profiles>
 
  <dependencies>
@@ -86,8 +229,15 @@
   </dependency>
  </dependencies>
 
-
  <build>
+
+	<resources>
+		<resource>
+			<directory>src/main/resources/archive-files</directory>
+			<targetPath>META-INF</targetPath>
+		</resource>
+	</resources>
+
   <plugins>
        <plugin>
            <groupId>org.apache.maven.plugins</groupId>
@@ -99,114 +249,17 @@
            </configuration>
        </plugin>
 
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-pmd-plugin</artifactId>
-          <version>2.7.1</version>
-          <executions>
-            <execution>
-              <phase>verify</phase>
-              <goals>
-                <goal>pmd</goal>
-                <goal>cpd</goal>
-              </goals>
-            </execution>
-          </executions>
-          <configuration>
-            <linkXref>true</linkXref>
-            <minimumTokens>100</minimumTokens>
-            <targetJdk>1.5</targetJdk>
-            <verbose>true</verbose>
-          </configuration>
-        </plugin>
-
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-checkstyle-plugin</artifactId>
-          <version>2.9.1</version>
-          <executions>
-            <execution>
-              <phase>verify</phase>
-              <goals>
-                <goal>checkstyle</goal>
-              </goals>
-            </execution>
-          </executions>
-          <configuration>
-            <consoleOutput>true</consoleOutput>
-            <enableRSS>false</enableRSS>
-            <configLocation>/checkstyle.xml</configLocation>
-          </configuration>
-        </plugin>
-
        <plugin>
          <artifactId>maven-compiler-plugin</artifactId>
          <version>2.5.1</version>
          <configuration>
-           <source>1.5</source>
-           <target>1.5</target>
+           <source>1.6</source>
+           <target>1.6</target>
            <optimize>true</optimize>
            <showDeprecations>true</showDeprecations>
          </configuration>
        </plugin>
 
-      	<plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-source-plugin</artifactId>
-          <version>2.2.1</version>
-          <executions>
-      	   <execution>
-      	     <id>attach-sources</id>
-      	     <goals>
-      		<goal>jar</goal>
-      	     </goals>
-      	   </execution>
-          </executions>
-      	</plugin>
-
-
-        <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-surefire-plugin</artifactId>
-            <version>2.12.3</version>
-            <configuration>
-                <argLine>-Dfile.encoding=utf-8</argLine>
-            </configuration>
-        </plugin>
-
-       
-       <plugin>
-            <groupId>com.mycila.maven-license-plugin</groupId>
-            <artifactId>maven-license-plugin</artifactId>
-            <version>1.10.b1</version>
-            <configuration>
-                <basedir>${basedir}</basedir>
-                <header>${basedir}/header.txt</header>
-                <quiet>false</quiet>
-                <failIfMissing>true</failIfMissing>
-                <aggregate>false</aggregate>
-                <includes>
-                    <include>src/**</include>
-                </includes>
-                <excludes>
-                    <exclude>target/**</exclude>
-                </excludes>
-                <useDefaultExcludes>true</useDefaultExcludes>
-                <mapping>
-                    <java>JAVADOC_STYLE</java>
-                </mapping>
-                <strictCheck>true</strictCheck>
-                <useDefaultMapping>true</useDefaultMapping>
-                <encoding>UTF-8</encoding>
-            </configuration>
-            <executions>
-                <execution>
-                    <goals>
-                        <goal>check</goal>
-                    </goals>
-                </execution>
-            </executions>
-        </plugin>
   </plugins>
  </build>
 

@@ -29,7 +29,7 @@ public class Configuration {
 
     private String jsonTypeFieldName = "@class";
     private String context = "/socket.io";
-    private String webappDir = "webapp";
+    private String webappDir = "jar:webapp";
     private boolean webappEnabled = false;
 
     private String transports = join(new Transport[] {Transport.WEBSOCKET, Transport.FLASHSOCKET, Transport.XHRPOLLING});

@@ -20,21 +20,23 @@ import static org.jboss.netty.handler.codec.http.HttpHeaders.Names.CONTENT_TYPE;
 import static org.jboss.netty.handler.codec.http.HttpResponseStatus.NOT_FOUND;
 import static org.jboss.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
+import java.net.URLConnection;
 import java.net.URLDecoder;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
-import java.util.HashMap;
 import java.util.Locale;
-import java.util.Map;
 import java.util.TimeZone;
 
 import javax.activation.MimetypesFileTypeMap;
@@ -44,33 +46,48 @@ import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelFuture;
 import org.jboss.netty.channel.ChannelFutureListener;
 import org.jboss.netty.channel.ChannelFutureProgressListener;
+import org.jboss.netty.channel.ChannelHandler.Sharable;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.DefaultFileRegion;
 import org.jboss.netty.channel.FileRegion;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
-import org.jboss.netty.channel.ChannelHandler.Sharable;
 import org.jboss.netty.handler.codec.http.DefaultHttpResponse;
 import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.HttpResponse;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
-import org.jboss.netty.handler.codec.http.QueryStringDecoder;
 import org.jboss.netty.handler.ssl.SslHandler;
 import org.jboss.netty.handler.stream.ChunkedFile;
 import org.jboss.netty.util.CharsetUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Sharable
 public class StaticResourceHandler extends SimpleChannelUpstreamHandler {
+	
+	private static Logger log = LoggerFactory.getLogger(StaticResourceHandler.class);
 
     public static final String HTTP_DATE_FORMAT = "EEE, dd MMM yyyy HH:mm:ss zzz";
     public static final String HTTP_DATE_GMT_TIMEZONE = "GMT";
     public static final int HTTP_CACHE_SECONDS = 60;
+    
+    private static File defaultTempDir;
 
 	private String webappDir;
 
 	public StaticResourceHandler(String webappDir) {
 		this.webappDir = webappDir;
+	}
+	
+	/**
+	 * Sets the temporary directory where the static content will be extracted. <br/>
+	 * Should only be used when you are hosting your files inside the JAR.
+	 * By default it will be the temporary folder of the OS. In android it is necessary 
+	 * to manually set the value: context.getCacheDir ();
+	 */
+	public static void setDefaultTempDir(File defaultTempDir) {
+		StaticResourceHandler.defaultTempDir = defaultTempDir;
 	}
 
     @Override
@@ -87,9 +104,15 @@ public class StaticResourceHandler extends SimpleChannelUpstreamHandler {
         	
             // QueryStringDecoder queryDecoder = new QueryStringDecoder(req.getUri());
             
-            File resource = new File(sanitizeUri(req.getUri()));
-            
-            if (resource != null) {
+    		String filePath = getFilePathToUri(req.getUri());
+    		
+            if (filePath != null && filePath.trim().length() > 0) {
+            	
+            	File resource = new File(filePath);
+            	
+            	log.debug("serving: "+ resource + " ("+resource.exists()+")");
+            	
+            	
                 HttpResponse res = new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.OK);
 
                 if (isNotModified(req, resource)) {
@@ -110,6 +133,9 @@ public class StaticResourceHandler extends SimpleChannelUpstreamHandler {
                 setContentTypeHeader(res, resource);
                 setDateAndCacheHeaders(res, resource);
                 writeContent(raf, fileLength, e.getChannel());
+                return;
+            }else{
+                sendError(ctx, NOT_FOUND);
                 return;
             }
         }
@@ -227,7 +253,7 @@ public class StaticResourceHandler extends SimpleChannelUpstreamHandler {
         response.setHeader(HttpHeaders.Names.CONTENT_TYPE, mimeTypesMap.getContentType(file.getPath()));
     }
     
-	private String sanitizeUri(String uri) {
+	private String getFilePathToUri(String uri) {
 		// Decode the path.
 		try {
 			uri = URLDecoder.decode(uri, "UTF-8");
@@ -257,11 +283,59 @@ public class StaticResourceHandler extends SimpleChannelUpstreamHandler {
 		
 		StringBuffer path = new StringBuffer();
 		
-		if(webappDir != null){
+		if(webappDir != null && webappDir.trim().length() != 0){
 			
 			// Absolute file path, like /var/www/mywebapp or c:\webapp
 			if(webappDir.startsWith("/") || isWindowsPath(webappDir)){
 				path.append(webappDir).append(File.separator).append(uri);
+			
+			// Embedded into jar	
+			}else if(webappDir.startsWith("jar:")){
+				
+				String basedir = webappDir.replaceAll("jar:", ""); // remove 'jar:' prefix
+				String jarPath = basedir + (!uri.startsWith("/") ? "/" : "") + uri; // mount relative path
+				
+				ClassLoader loader = this.getClass().getClassLoader();
+				URL resource = loader.getResource(jarPath);
+				
+				if(resource != null){
+						
+					try {
+						
+						String name = new File(resource.getFile()).getName();
+						File tempFile = null;
+						
+						// Static temp folder to extract files..
+						if(defaultTempDir != null){
+							
+							tempFile = new File(defaultTempDir, uri);
+							
+							tempFile.getParentFile().mkdirs();
+							
+							if(!tempFile.exists()) {
+								log.debug("Extracting file: " + tempFile);
+								copyFromJarToFile(resource, tempFile);
+							}
+						// Use temp folder of S.O
+						// NOTE: use the same logic as above ??
+						}else{
+							tempFile = File.createTempFile("webapp_static_", "_"+name);
+							
+							if(!tempFile.exists())
+								copyFromJarToFile(resource, tempFile);						
+						}
+						
+						path.append(tempFile.getAbsolutePath());
+						
+					} catch (Exception e) {
+						log.error(e.getMessage(), e);
+						return null;
+					}
+
+				}else{
+					return null;
+				}
+				
 			// Relative to current dir.	
 			}else{
 				String current = System.getProperty("user.dir");
@@ -276,6 +350,26 @@ public class StaticResourceHandler extends SimpleChannelUpstreamHandler {
 		// Convert to absolute path.
 		return path.toString();
 	}
+	
+	private File copyFromJarToFile(URL url, File f) throws Exception {
+	    byte[] buffer = new byte[1024];
+	    int bytesRead;
+	 
+	    BufferedInputStream inputStream = null;
+	    BufferedOutputStream outputStream = null;
+	    URLConnection connection = url.openConnection();
+	    // If you need to use a proxy for your connection, the URL class has another openConnection method.
+	    // For example, to connect to my local SOCKS proxy I can use:
+	    // url.openConnection(new Proxy(Proxy.Type.SOCKS, newInetSocketAddress("localhost", 5555)));
+	    inputStream = new BufferedInputStream(connection.getInputStream());
+	    outputStream = new BufferedOutputStream(new FileOutputStream(f));
+	    while ((bytesRead = inputStream.read(buffer)) != -1) {
+	      outputStream.write(buffer, 0, bytesRead);
+	    }
+	    inputStream.close();
+	    outputStream.close();
+	    return f;
+	  }
 	
 	private static boolean isWindowsPath(String text)
 	{
