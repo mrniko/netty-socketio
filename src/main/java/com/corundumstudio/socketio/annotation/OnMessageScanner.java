@@ -18,17 +18,13 @@ package com.corundumstudio.socketio.annotation;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.corundumstudio.socketio.AckRequest;
 import com.corundumstudio.socketio.SocketIOClient;
+import com.corundumstudio.socketio.handler.SocketIOException;
 import com.corundumstudio.socketio.listener.DataListener;
 import com.corundumstudio.socketio.namespace.Namespace;
 
 public class OnMessageScanner implements AnnotationScanner {
-
-    private final Logger log = LoggerFactory.getLogger(getClass());
 
     @Override
     public Class<? extends Annotation> getScanAnnotation() {
@@ -56,8 +52,7 @@ public class OnMessageScanner implements AnnotationScanner {
                     }
                     method.invoke(object, args);
                 } catch (Exception e) {
-                    log.error("Can't invoke OnMessage listener on: " + clazz.getName() + ", method: "
-                            + method.getName(), e);
+                    throw new SocketIOException(e);
                 }
             }
         });

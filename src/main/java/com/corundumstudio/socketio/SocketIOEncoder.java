@@ -199,7 +199,7 @@ public class SocketIOEncoder extends SimpleChannelDownstreamHandler implements M
         if (channel.isOpen()) {
             channel.write(res);
         } else {
-            log.trace("Channel was closed, for sessionId: {}", webSocketPacketMessage.getSessionId());
+            log.debug("Channel was closed, for sessionId: {}", webSocketPacketMessage.getSessionId());
         }
     }
 

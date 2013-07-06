@@ -22,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.corundumstudio.socketio.SocketIOClient;
+import com.corundumstudio.socketio.handler.SocketIOException;
 import com.corundumstudio.socketio.listener.DisconnectListener;
 import com.corundumstudio.socketio.namespace.Namespace;
 
@@ -42,7 +43,7 @@ public class OnDisconnectScanner implements AnnotationScanner {
                 try {
                     method.invoke(object, client);
                 } catch (Exception e) {
-                    log.error("Can't invoke OnDisconnect listener on: " + clazz.getName() + ", method: " + method.getName(), e);
+                    throw new SocketIOException(e);
                 }
             }
         });

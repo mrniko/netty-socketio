@@ -63,11 +63,16 @@ public class PacketHandler extends SimpleChannelUpstreamHandler {
                 log.trace("In message: {} sessionId: {}", new Object[] {content.toString(CharsetUtil.UTF_8), client.getSessionId()});
             }
             while (content.readable()) {
-                Packet packet = decoder.decodePackets(content, client.getSessionId());
-                Namespace ns = namespacesHub.get(packet.getEndpoint());
+                try {
+                    Packet packet = decoder.decodePackets(content, client.getSessionId());
+                    Namespace ns = namespacesHub.get(packet.getEndpoint());
 
-                NamespaceClient nClient = (NamespaceClient) client.getChildClient(ns);
-                packetListener.onPacket(packet, nClient);
+                    NamespaceClient nClient = (NamespaceClient) client.getChildClient(ns);
+                    packetListener.onPacket(packet, nClient);
+                } catch (Exception ex) {
+                    String c = content.toString(CharsetUtil.UTF_8);
+                    log.error("Error during data processing. Client sessionId: " + client.getSessionId() + ", data: " + c, ex);
+                }
             }
         } else {
             ctx.sendUpstream(e);
