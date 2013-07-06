@@ -42,7 +42,7 @@
      <repository>
          <id>repo1</id>
          <name>Release</name>
-         <url>C:\123</url>
+         <url>file://C:/123</url>
      </repository>
  </distributionManagement>
 
