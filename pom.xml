@@ -38,6 +38,14 @@
      </developer>
  </developers>
 
+ <distributionManagement>
+     <repository>
+         <id>repo1</id>
+         <name>Release</name>
+         <url>C:\123</url>
+     </repository>
+ </distributionManagement>
+
  <properties>
      <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
  </properties>
