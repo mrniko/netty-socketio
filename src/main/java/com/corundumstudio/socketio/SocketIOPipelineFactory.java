@@ -181,13 +181,14 @@ public class SocketIOPipelineFactory implements ChannelPipelineFactory, Disconne
     }
 
     public void onDisconnect(BaseClient client) {
-        log.debug("Client with sessionId: {} disconnected", client.getSessionId());
         heartbeatHandler.onDisconnect(client);
         ackManager.onDisconnect(client);
         xhrPollingTransport.onDisconnect(client);
         webSocketTransport.onDisconnect(client);
         flashSocketTransport.onDisconnect(client);
         authorizeHandler.onDisconnect(client);
+        socketIOEncoder.onDisconnect(client);
+        log.debug("Client with sessionId: {} disconnected", client.getSessionId());
     }
 
     public void stop() {

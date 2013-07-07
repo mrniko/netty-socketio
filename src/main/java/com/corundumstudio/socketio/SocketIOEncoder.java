@@ -57,9 +57,10 @@ import com.corundumstudio.socketio.messages.XHRPacketMessage;
 import com.corundumstudio.socketio.messages.XHROutMessage;
 import com.corundumstudio.socketio.parser.Encoder;
 import com.corundumstudio.socketio.parser.Packet;
+import com.corundumstudio.socketio.transport.BaseClient;
 
 @Sharable
-public class SocketIOEncoder extends SimpleChannelDownstreamHandler implements MessageHandler {
+public class SocketIOEncoder extends SimpleChannelDownstreamHandler implements MessageHandler, Disconnectable {
 
     class XHRClientEntry {
 
@@ -214,6 +215,11 @@ public class SocketIOEncoder extends SimpleChannelDownstreamHandler implements M
     public void handle(XHRErrorMessage xhrErrorMessage, Channel channel) throws IOException {
         ChannelBuffer message = encoder.encodePacket(xhrErrorMessage.getPacket());
         sendMessage(xhrErrorMessage.getOrigin(), null, channel, message);
+    }
+
+    @Override
+    public void onDisconnect(BaseClient client) {
+        sessionId2ActiveChannelId.remove(client.getSessionId());
     }
 
 }
