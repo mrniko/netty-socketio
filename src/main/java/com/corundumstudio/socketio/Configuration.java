@@ -46,6 +46,7 @@ public class Configuration {
 
     private int maxHttpContentLength = 64 * 1024;
 
+    private String packagePrefix;
     private String hostname;
     private int port = -1;
 
@@ -80,6 +81,7 @@ public class Configuration {
         setKeyStore(conf.getKeyStore());
         setTransports(conf.getTransports());
         setMaxHttpContentLength(conf.getMaxHttpContentLength());
+        setPackagePrefix(conf.getPackagePrefix());
     }
 
     private String join(Transport[] transports) {
@@ -296,6 +298,24 @@ public class Configuration {
     }
     public String getTransports() {
         return transports;
+    }
+
+    /**
+     * Package prefix for sending json-object from client
+     * without full class name.
+     *
+     * With defined package prefix socket.io client
+     * just need to define '@class: 'SomeType'' in json object
+     * instead of '@class: 'com.full.package.name.SomeType''
+     *
+     * @param packagePrefix - prefix string
+     *
+     */
+    public void setPackagePrefix(String packagePrefix) {
+        this.packagePrefix = packagePrefix;
+    }
+    public String getPackagePrefix() {
+        return packagePrefix;
     }
 
 }

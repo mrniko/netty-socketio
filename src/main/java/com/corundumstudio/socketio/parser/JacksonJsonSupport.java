@@ -74,6 +74,9 @@ public class JacksonJsonSupport implements JsonSupport {
             if (node != null) {
                 try {
                     String typeName = node.asText();
+                    if (configuration.getPackagePrefix() != null) {
+                        typeName = configuration.getPackagePrefix() + "." + typeName;
+                    }
                     Class<?> supportClazz = Class.forName(typeName);
                     if (classes.contains(supportClazz)) {
                         clazz = supportClazz;
