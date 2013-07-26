@@ -15,13 +15,15 @@
  */
 package com.corundumstudio.socketio;
 
+import io.netty.bootstrap.ServerBootstrap;
+import io.netty.channel.ChannelOption;
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.nio.NioServerSocketChannel;
+
 import java.net.InetSocketAddress;
 import java.util.Collection;
 
-import org.jboss.netty.bootstrap.ServerBootstrap;
-import org.jboss.netty.channel.Channel;
-import org.jboss.netty.channel.ChannelFactory;
-import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,9 +44,10 @@ public class SocketIOServer implements ClientListeners {
     private final NamespacesHub namespacesHub;
     private final SocketIONamespace mainNamespace;
 
-    private ServerBootstrap bootstrap;
     private SocketIOPipelineFactory pipelineFactory = new SocketIOPipelineFactory();
-    private Channel mainChannel;
+
+    private EventLoopGroup bossGroup;
+    private EventLoopGroup workerGroup;
 
     public SocketIOServer(Configuration configuration) {
         this.configuration = configuration;
@@ -90,20 +93,22 @@ public class SocketIOServer implements ClientListeners {
      * Start server
      */
     public void start() {
-        ChannelFactory factory = new NioServerSocketChannelFactory(configCopy.getBossExecutor(), configCopy.getWorkerExecutor());
-        bootstrap = new ServerBootstrap(factory);
+        EventLoopGroup bossGroup = new NioEventLoopGroup();
+        EventLoopGroup workerGroup = new NioEventLoopGroup();
+
+        ServerBootstrap b = new ServerBootstrap();
+        b.group(bossGroup, workerGroup)
+            .option(ChannelOption.TCP_NODELAY, true)
+            .option(ChannelOption.SO_KEEPALIVE, true)
+            .channel(NioServerSocketChannel.class)
+            .childHandler(pipelineFactory);
 
         InetSocketAddress addr = new InetSocketAddress(configCopy.getPort());
         if (configCopy.getHostname() != null) {
             addr = new InetSocketAddress(configCopy.getHostname(), configCopy.getPort());
         }
-        pipelineFactory.start(configCopy, namespacesHub);
-        bootstrap.setPipelineFactory(pipelineFactory);
-        bootstrap.setOption("child.tcpNoDelay", true);
-        bootstrap.setOption("child.keepAlive", true);
 
-        mainChannel = bootstrap.bind(addr);
-
+        b.bind(addr).syncUninterruptibly();
         log.info("SocketIO server started at port: {}", configCopy.getPort());
     }
 
@@ -111,9 +116,8 @@ public class SocketIOServer implements ClientListeners {
      * Stop server
      */
     public void stop() {
-        pipelineFactory.stop();
-        mainChannel.close();
-        bootstrap.releaseExternalResources();
+        bossGroup.shutdownGracefully();
+        workerGroup.shutdownGracefully();
     }
 
     public SocketIONamespace addNamespace(String name) {

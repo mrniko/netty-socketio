@@ -15,10 +15,10 @@
  */
 package com.corundumstudio.socketio.messages;
 
+import io.netty.channel.Channel;
+
 import java.io.IOException;
 import java.util.UUID;
-
-import org.jboss.netty.channel.Channel;
 
 import com.corundumstudio.socketio.MessageHandler;
 

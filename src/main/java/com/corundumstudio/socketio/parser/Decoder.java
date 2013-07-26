@@ -15,14 +15,14 @@
  */
 package com.corundumstudio.socketio.parser;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufInputStream;
+import io.netty.buffer.Unpooled;
+
 import java.io.IOException;
 import java.util.UUID;
 
-import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.buffer.ChannelBufferIndexFinder;
-import org.jboss.netty.buffer.ChannelBufferInputStream;
-import org.jboss.netty.buffer.ChannelBuffers;
-import org.jboss.netty.util.CharsetUtil;
+import io.netty.util.CharsetUtil;
 
 import com.corundumstudio.socketio.AckCallback;
 import com.corundumstudio.socketio.ack.AckManager;
@@ -31,13 +31,6 @@ import com.corundumstudio.socketio.namespace.Namespace;
 public class Decoder {
 
     private final UTF8CharsScanner charsScanner = new UTF8CharsScanner();
-
-    private final ChannelBufferIndexFinder delimiterFinder = new ChannelBufferIndexFinder() {
-        @Override
-        public boolean find(ChannelBuffer buffer, int guessedIndex) {
-            return   isCurrentDelimiter(buffer, guessedIndex);
-        }
-    };
 
     private final JsonSupport jsonSupport;
     private final AckManager ackManager;
@@ -48,11 +41,11 @@ public class Decoder {
     }
 
     // fastest way to parse chars to int
-    private long parseLong(ChannelBuffer chars) {
+    private long parseLong(ByteBuf chars) {
         return parseLong(chars, chars.readerIndex() + chars.readableBytes());
     }
 
-    private long parseLong(ChannelBuffer chars, int length) {
+    private long parseLong(ByteBuf chars, int length) {
         long result = 0;
         for (int i = chars.readerIndex(); i < length; i++) {
             int digit = ((int)chars.getByte(i) & 0xF);
@@ -64,7 +57,7 @@ public class Decoder {
         return result;
     }
 
-    private Packet decodePacket(ChannelBuffer buffer, UUID uuid) throws IOException {
+    private Packet decodePacket(ByteBuf buffer, UUID uuid) throws IOException {
         if (buffer.readableBytes() < 3) {
             throw new DecoderException("Can't parse " + buffer.toString(CharsetUtil.UTF_8));
         }
@@ -131,7 +124,7 @@ public class Decoder {
 
         switch (type) {
         case ERROR: {
-            if (!buffer.readable()) {
+            if (!buffer.isReadable()) {
                 break;
             }
             String[] pieces = buffer.toString(CharsetUtil.UTF_8).split("\\+");
@@ -147,7 +140,7 @@ public class Decoder {
         }
 
         case MESSAGE: {
-            if (buffer.readable()) {
+            if (buffer.isReadable()) {
                 packet.setData(buffer.toString(CharsetUtil.UTF_8));
             } else {
                 packet.setData("");
@@ -156,7 +149,7 @@ public class Decoder {
         }
 
         case EVENT: {
-            ChannelBufferInputStream in = new ChannelBufferInputStream(buffer);
+            ByteBufInputStream in = new ByteBufInputStream(buffer);
             Event event = jsonSupport.readValue(in, Event.class);
             packet.setName(event.getName());
             if (event.getArgs() != null) {
@@ -166,7 +159,7 @@ public class Decoder {
         }
 
         case JSON: {
-            ChannelBufferInputStream in = new ChannelBufferInputStream(buffer);
+            ByteBufInputStream in = new ByteBufInputStream(buffer);
             JsonObject obj = jsonSupport.readValue(in, JsonObject.class);
             if (obj != null) {
                 packet.setData(obj.getObject());
@@ -179,14 +172,14 @@ public class Decoder {
         }
 
         case CONNECT: {
-            if (buffer.readable()) {
+            if (buffer.isReadable()) {
                 packet.setQs(buffer.toString(CharsetUtil.UTF_8));
             }
             break;
         }
 
         case ACK: {
-            if (!buffer.readable()) {
+            if (!buffer.isReadable()) {
                 break;
             }
             boolean validFormat = true;
@@ -214,7 +207,7 @@ public class Decoder {
                 packet.setAckId(parseLong(buffer, plusIndex));
                 buffer.readerIndex(plusIndex+1);
 
-                ChannelBufferInputStream in = new ChannelBufferInputStream(buffer);
+                ByteBufInputStream in = new ByteBufInputStream(buffer);
                 AckCallback<?> callback = ackManager.getCallback(uuid, packet.getAckId());
                 AckArgs args = jsonSupport.readAckArgs(in, callback.getResultClass());
                 packet.setArgs(args.getArgs());
@@ -224,6 +217,7 @@ public class Decoder {
 
         case DISCONNECT:
         case HEARTBEAT:
+        case NOOP:
             break;
         }
 
@@ -231,7 +225,7 @@ public class Decoder {
         return packet;
     }
 
-    private PacketType getType(ChannelBuffer buffer) {
+    private PacketType getType(ByteBuf buffer) {
         int typeId = buffer.getByte(buffer.readerIndex()) & 0xF;
         if (typeId >= PacketType.VALUES.length
                 || buffer.getByte(buffer.readerIndex()+1) != Packet.SEPARATOR) {
@@ -241,17 +235,17 @@ public class Decoder {
     }
 
     public Packet decodePacket(String string, UUID uuid) throws IOException {
-        return decodePacket(ChannelBuffers.copiedBuffer(string, CharsetUtil.UTF_8), uuid);
+        return decodePacket(Unpooled.copiedBuffer(string, CharsetUtil.UTF_8), uuid);
     }
 
-    public Packet decodePackets(ChannelBuffer buffer, UUID uuid) throws IOException {
+    public Packet decodePackets(ByteBuf buffer, UUID uuid) throws IOException {
         if (isCurrentDelimiter(buffer, buffer.readerIndex())) {
             buffer.readerIndex(buffer.readerIndex() + Packet.DELIMITER_BYTES.length);
 
             Integer len = extractLength(buffer);
 
             int startIndex = buffer.readerIndex();
-            ChannelBuffer frame = buffer.slice(startIndex, len);
+            ByteBuf frame = buffer.slice(startIndex, len);
             Packet packet = decodePacket(frame, uuid);
             buffer.readerIndex(startIndex + len);
             return packet;
@@ -261,7 +255,7 @@ public class Decoder {
         }
     }
 
-    private Integer extractLength(ChannelBuffer buffer) {
+    private Integer extractLength(ByteBuf buffer) {
         int len = (int)parseLengthHeader(buffer);
 
         // scan utf8 symbols if needed
@@ -273,8 +267,8 @@ public class Decoder {
         return len;
     }
 
-    private long parseLengthHeader(ChannelBuffer buffer) {
-        int delimiterIndex = ChannelBuffers.indexOf(buffer, buffer.readerIndex(), buffer.readerIndex() + buffer.readableBytes(), delimiterFinder);
+    private long parseLengthHeader(ByteBuf buffer) {
+        int delimiterIndex = delimiterIndexOf(buffer, buffer.readerIndex(), buffer.readableBytes());
         if (delimiterIndex == -1) {
             throw new DecoderException("Can't find tail delimiter");
         }
@@ -284,7 +278,17 @@ public class Decoder {
         return len;
     }
 
-    private boolean isCurrentDelimiter(ChannelBuffer buffer, int index) {
+    private int delimiterIndexOf(ByteBuf buffer, int startIndex, int length) {
+        ByteBuf buf = buffer.slice(startIndex, length);
+        for (int i = 0; i < buf.readableBytes(); i++) {
+            if (isCurrentDelimiter(buf, i)) {
+                return startIndex + i;
+            }
+        }
+        return -1;
+    }
+
+    private boolean isCurrentDelimiter(ByteBuf buffer, int index) {
         for (int i = 0; i < Packet.DELIMITER_BYTES.length; i++) {
             if (buffer.getByte(index + i) != Packet.DELIMITER_BYTES[i]) {
                 return false;

@@ -15,6 +15,9 @@
  */
 package com.corundumstudio.socketio.parser;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.util.CharsetUtil;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -22,8 +25,6 @@ import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.util.CharsetUtil;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -33,7 +34,7 @@ public class EncoderJsonPacketTest extends EncoderBaseTest {
     public void testEncode() throws IOException {
         Packet packet = new Packet(PacketType.JSON);
         packet.setData("2");
-        ChannelBuffer result = encoder.encodePacket(packet);
+        ByteBuf result = encoder.encodePacket(packet);
         Assert.assertEquals("4:::\"2\"", result.toString(CharsetUtil.UTF_8));
     }
 
@@ -43,7 +44,7 @@ public class EncoderJsonPacketTest extends EncoderBaseTest {
         packet.setId(1L);
         packet.setAck(Packet.ACK_DATA);
         packet.setData(Collections.singletonMap("a", "b"));
-        ChannelBuffer result = encoder.encodePacket(packet);
+        ByteBuf result = encoder.encodePacket(packet);
         Assert.assertEquals("4:1+::{\"a\":\"b\"}", result.toString(CharsetUtil.UTF_8));
     }
 

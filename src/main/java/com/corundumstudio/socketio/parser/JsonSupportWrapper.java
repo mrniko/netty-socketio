@@ -15,10 +15,11 @@
  */
 package com.corundumstudio.socketio.parser;
 
+import io.netty.buffer.ByteBufInputStream;
+import io.netty.buffer.ByteBufOutputStream;
+
 import java.io.IOException;
 
-import org.jboss.netty.buffer.ChannelBufferInputStream;
-import org.jboss.netty.buffer.ChannelBufferOutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,7 +33,7 @@ public class JsonSupportWrapper implements JsonSupport {
         this.delegate = delegate;
     }
 
-    public AckArgs readAckArgs(ChannelBufferInputStream src, Class<?> argType) throws IOException {
+    public AckArgs readAckArgs(ByteBufInputStream src, Class<?> argType) throws IOException {
         try {
             return delegate.readAckArgs(src, argType);
         } catch (IOException e) {
@@ -46,7 +47,7 @@ public class JsonSupportWrapper implements JsonSupport {
         }
     }
 
-    public <T> T readValue(ChannelBufferInputStream src, Class<T> valueType) throws IOException {
+    public <T> T readValue(ByteBufInputStream src, Class<T> valueType) throws IOException {
         try {
             return delegate.readValue(src, valueType);
         } catch (IOException e) {
@@ -60,7 +61,7 @@ public class JsonSupportWrapper implements JsonSupport {
         }
     }
 
-    public void writeValue(ChannelBufferOutputStream out, Object value) throws IOException {
+    public void writeValue(ByteBufOutputStream out, Object value) throws IOException {
         try {
             delegate.writeValue(out, value);
         } catch (IOException e) {

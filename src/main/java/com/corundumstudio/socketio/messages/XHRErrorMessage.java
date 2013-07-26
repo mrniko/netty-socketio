@@ -15,9 +15,9 @@
  */
 package com.corundumstudio.socketio.messages;
 
-import java.io.IOException;
+import io.netty.channel.Channel;
 
-import org.jboss.netty.channel.Channel;
+import java.io.IOException;
 
 import com.corundumstudio.socketio.MessageHandler;
 import com.corundumstudio.socketio.parser.Packet;

@@ -15,13 +15,13 @@
  */
 package com.corundumstudio.socketio.parser;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufOutputStream;
+import io.netty.buffer.Unpooled;
+
 import java.io.IOException;
 import java.util.List;
 import java.util.Queue;
-
-import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.buffer.ChannelBufferOutputStream;
-import org.jboss.netty.buffer.ChannelBuffers;
 
 public class Encoder {
 
@@ -32,33 +32,35 @@ public class Encoder {
         this.jsonSupport = jsonSupport;
     }
 
-    public ChannelBuffer encodeJsonP(String param, String msg) throws IOException {
+    public ByteBuf encodeJsonP(String param, String msg) throws IOException {
         String message = "io.j[" + param + "]("
                 + jsonSupport.writeValueAsString(msg) + ");";
-        return ChannelBuffers.wrappedBuffer(message.getBytes());
+        return Unpooled.wrappedBuffer(message.getBytes());
     }
 
-    public ChannelBuffer encodePacket(Packet packet) throws IOException {
-        ChannelBuffer buffer = ChannelBuffers.dynamicBuffer();
-        ChannelBufferOutputStream out = new ChannelBufferOutputStream(buffer);
+    public ByteBuf encodePacket(Packet packet) throws IOException {
+        // TODO refactor
+        ByteBuf buffer = Unpooled.buffer();
+        ByteBufOutputStream out = new ByteBufOutputStream(buffer);
         encodePacket(packet, out);
         return buffer;
     }
 
-    public ChannelBuffer encodePackets(Queue<Packet> packets) throws IOException {
+    public ByteBuf encodePackets(Queue<Packet> packets) throws IOException {
         if (packets.size() == 1) {
             Packet packet = packets.poll();
             return encodePacket(packet);
         } else {
-            ChannelBuffer buffer = ChannelBuffers.dynamicBuffer();
+            ByteBuf buffer = Unpooled.buffer();
             while (true) {
                 Packet packet = packets.poll();
                 if (packet == null) {
                     break;
                 }
 
-                ChannelBuffer packetBuffer = ChannelBuffers.dynamicBuffer();
-                ChannelBufferOutputStream out = new ChannelBufferOutputStream(packetBuffer);
+             // TODO refactor
+                ByteBuf packetBuffer = Unpooled.buffer();
+                ByteBufOutputStream out = new ByteBufOutputStream(packetBuffer);
                 int len = encodePacket(packet, out);
                 byte[] lenBytes = toChars(len);
 
@@ -145,8 +147,8 @@ public class Encoder {
         return buf;
     }
 
-    private int encodePacket(Packet packet, ChannelBufferOutputStream out) throws IOException {
-        ChannelBuffer buffer = out.buffer();
+    private int encodePacket(Packet packet, ByteBufOutputStream out) throws IOException {
+        ByteBuf buffer = out.buffer();
         int start = buffer.writerIndex();
         int type = packet.getType().getValue();
         buffer.writeByte(toChar(type));

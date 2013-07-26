@@ -19,6 +19,6 @@ import com.corundumstudio.socketio.Configuration;
 
 public class EncoderBaseTest {
 
-    protected final Encoder encoder = new Encoder(new JacksonJsonSupport(new Configuration()));
+    final Encoder encoder = new Encoder(new JacksonJsonSupport(new Configuration()));
 
 }

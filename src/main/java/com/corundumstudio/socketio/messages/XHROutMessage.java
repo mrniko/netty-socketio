@@ -15,7 +15,7 @@
  */
 package com.corundumstudio.socketio.messages;
 
-import org.jboss.netty.channel.Channel;
+import io.netty.channel.Channel;
 
 import com.corundumstudio.socketio.MessageHandler;
 

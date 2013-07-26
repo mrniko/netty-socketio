@@ -15,30 +15,28 @@
  */
 package com.corundumstudio.socketio.handler;
 
-import static org.jboss.netty.handler.codec.http.HttpVersion.HTTP_1_1;
+import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
+import io.netty.channel.ChannelHandler.Sharable;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.handler.codec.http.DefaultHttpResponse;
+import io.netty.handler.codec.http.FullHttpRequest;
+import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.HttpRequest;
+import io.netty.handler.codec.http.HttpResponse;
+import io.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.handler.codec.http.QueryStringDecoder;
 
 import java.io.IOException;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
-import org.jboss.netty.channel.Channel;
-import org.jboss.netty.channel.ChannelFuture;
-import org.jboss.netty.channel.ChannelFutureListener;
-import org.jboss.netty.channel.ChannelHandler.Sharable;
-import org.jboss.netty.channel.ChannelHandlerContext;
-import org.jboss.netty.channel.MessageEvent;
-import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
-import org.jboss.netty.handler.codec.http.DefaultHttpResponse;
-import org.jboss.netty.handler.codec.http.HttpHeaders;
-import org.jboss.netty.handler.codec.http.HttpRequest;
-import org.jboss.netty.handler.codec.http.HttpResponse;
-import org.jboss.netty.handler.codec.http.HttpResponseStatus;
-import org.jboss.netty.handler.codec.http.QueryStringDecoder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,7 +55,7 @@ import com.corundumstudio.socketio.scheduler.SchedulerKey.Type;
 import com.corundumstudio.socketio.transport.BaseClient;
 
 @Sharable
-public class AuthorizeHandler extends SimpleChannelUpstreamHandler implements Disconnectable {
+public class AuthorizeHandler extends SimpleChannelInboundHandler<FullHttpRequest> implements Disconnectable {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -77,26 +75,20 @@ public class AuthorizeHandler extends SimpleChannelUpstreamHandler implements Di
     }
 
     @Override
-    public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) throws Exception {
-        Object msg = e.getMessage();
-        if (msg instanceof HttpRequest) {
-            HttpRequest req = (HttpRequest) msg;
-            Channel channel = ctx.getChannel();
-            QueryStringDecoder queryDecoder = new QueryStringDecoder(req.getUri());
-            if (!configuration.isAllowCustomRequests()
-                    && !queryDecoder.getPath().startsWith(connectPath)) {
-                HttpResponse res = new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.BAD_REQUEST);
-                ChannelFuture f = channel.write(res);
-                f.addListener(ChannelFutureListener.CLOSE);
-                return;
-            }
-            if (queryDecoder.getPath().equals(connectPath)) {
-                String origin = req.getHeader(HttpHeaders.Names.ORIGIN);
-                authorize(channel, origin, queryDecoder.getParameters());
-                return;
-            }
+    protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest msg) throws Exception {
+        HttpRequest req = (HttpRequest) msg;
+        Channel channel = ctx.channel();
+        QueryStringDecoder queryDecoder = new QueryStringDecoder(req.getUri());
+        if (!configuration.isAllowCustomRequests()
+                && !queryDecoder.path().startsWith(connectPath)) {
+            HttpResponse res = new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.BAD_REQUEST);
+            ChannelFuture f = channel.write(res);
+            f.addListener(ChannelFutureListener.CLOSE);
         }
-        ctx.sendUpstream(e);
+        if (queryDecoder.path().equals(connectPath)) {
+            String origin = req.headers().get(HttpHeaders.Names.ORIGIN);
+            authorize(channel, origin, queryDecoder.parameters());
+        }
     }
 
     private void authorize(Channel channel, String origin, Map<String, List<String>> params)
@@ -124,8 +116,7 @@ public class AuthorizeHandler extends SimpleChannelUpstreamHandler implements Di
     }
 
     private void scheduleDisconnect(Channel channel, final UUID sessionId) {
-        ChannelFuture future = channel.getCloseFuture();
-        future.addListener(new ChannelFutureListener() {
+        channel.closeFuture().addListener(new ChannelFutureListener() {
             @Override
             public void operationComplete(ChannelFuture future) throws Exception {
                 SchedulerKey key = new SchedulerKey(Type.AUTHORIZE, sessionId);

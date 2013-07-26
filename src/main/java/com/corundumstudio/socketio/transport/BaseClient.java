@@ -15,15 +15,15 @@
  */
 package com.corundumstudio.socketio.transport;
 
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
+
 import java.net.SocketAddress;
 import java.util.Collection;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-
-import org.jboss.netty.channel.Channel;
-import org.jboss.netty.channel.ChannelFuture;
-import org.jboss.netty.channel.ChannelFutureListener;
 
 import com.corundumstudio.socketio.DisconnectableHub;
 import com.corundumstudio.socketio.SocketIOClient;
@@ -103,7 +103,7 @@ public abstract class BaseClient {
     }
 
     public SocketAddress getRemoteAddress() {
-        return channel.getRemoteAddress();
+        return channel.remoteAddress();
     }
 
     public void disconnect() {

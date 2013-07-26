@@ -15,11 +15,9 @@
  */
 package com.corundumstudio.socketio;
 
-import java.io.InputStream;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
+import io.netty.handler.codec.TooLongFrameException;
 
-import org.jboss.netty.handler.codec.frame.TooLongFrameException;
+import java.io.InputStream;
 
 import com.corundumstudio.socketio.parser.JacksonJsonSupport;
 import com.corundumstudio.socketio.parser.JsonSupport;
@@ -32,8 +30,8 @@ public class Configuration {
 
     private String transports = join(new Transport[] {Transport.WEBSOCKET, Transport.FLASHSOCKET, Transport.XHRPOLLING});
 
-    private Executor bossExecutor = Executors.newCachedThreadPool();
-    private Executor workerExecutor = Executors.newCachedThreadPool();
+    private int bossThreads = 0; // 0 = current_processors_amount * 2
+    private int workerThreads = 0; // 0 = current_processors_amount * 2
 
     private boolean allowCustomRequests = false;
 
@@ -64,21 +62,27 @@ public class Configuration {
      * @param configuration - Configuration object to clone
      */
     Configuration(Configuration conf) {
-        setBossExecutor(conf.getBossExecutor());
+        setBossThreads(conf.getBossThreads());
+        setWorkerThreads(conf.getWorkerThreads());
+
         setCloseTimeout(conf.getCloseTimeout());
+
         setHeartbeatInterval(conf.getHeartbeatInterval());
         setHeartbeatThreadPoolSize(conf.getHeartbeatThreadPoolSize());
         setHeartbeatTimeout(conf.getHeartbeatTimeout());
+
         setHostname(conf.getHostname());
-        setJsonSupport(new JsonSupportWrapper(conf.getJsonSupport()));
         setPort(conf.getPort());
-        setWorkerExecutor(conf.getWorkerExecutor());
+
+        setJsonSupport(new JsonSupportWrapper(conf.getJsonSupport()));
+        setJsonTypeFieldName(conf.getJsonTypeFieldName());
         setContext(conf.getContext());
         setAllowCustomRequests(conf.isAllowCustomRequests());
         setPollingDuration(conf.getPollingDuration());
-        setJsonTypeFieldName(conf.getJsonTypeFieldName());
+
         setKeyStorePassword(conf.getKeyStorePassword());
         setKeyStore(conf.getKeyStore());
+
         setTransports(conf.getTransports());
         setMaxHttpContentLength(conf.getMaxHttpContentLength());
         setPackagePrefix(conf.getPackagePrefix());
@@ -138,18 +142,18 @@ public class Configuration {
         this.port = port;
     }
 
-    public Executor getBossExecutor() {
-        return bossExecutor;
+    public int getBossThreads() {
+        return bossThreads;
     }
-    public void setBossExecutor(Executor bossExecutor) {
-        this.bossExecutor = bossExecutor;
+    public void setBossThreads(int bossThreads) {
+        this.bossThreads = bossThreads;
     }
 
-    public Executor getWorkerExecutor() {
-        return workerExecutor;
+    public int getWorkerThreads() {
+        return workerThreads;
     }
-    public void setWorkerExecutor(Executor workerExecutor) {
-        this.workerExecutor = workerExecutor;
+    public void setWorkerThreads(int workerThreads) {
+        this.workerThreads = workerThreads;
     }
 
     /**

@@ -15,8 +15,6 @@
  */
 package com.corundumstudio.socketio;
 
-import static org.jboss.netty.channel.Channels.pipeline;
-
 import java.io.InputStream;
 import java.security.KeyStore;
 import java.security.Security;
@@ -26,12 +24,14 @@ import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 
-import org.jboss.netty.channel.ChannelPipeline;
-import org.jboss.netty.channel.ChannelPipelineFactory;
-import org.jboss.netty.handler.codec.http.HttpChunkAggregator;
-import org.jboss.netty.handler.codec.http.HttpRequestDecoder;
-import org.jboss.netty.handler.codec.http.HttpResponseEncoder;
-import org.jboss.netty.handler.ssl.SslHandler;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.ChannelPipeline;
+import io.netty.handler.codec.http.HttpObjectAggregator;
+import io.netty.handler.codec.http.HttpRequestDecoder;
+import io.netty.handler.codec.http.HttpResponseEncoder;
+import io.netty.handler.ssl.SslHandler;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,7 +52,7 @@ import com.corundumstudio.socketio.transport.FlashSocketTransport;
 import com.corundumstudio.socketio.transport.WebSocketTransport;
 import com.corundumstudio.socketio.transport.XHRPollingTransport;
 
-public class SocketIOPipelineFactory implements ChannelPipelineFactory, DisconnectableHub {
+public class SocketIOPipelineFactory extends ChannelInitializer<Channel> implements DisconnectableHub {
 
     public static final String SOCKETIO_ENCODER = "socketioEncoder";
     public static final String WEB_SOCKET_TRANSPORT = "webSocketTransport";
@@ -130,9 +130,9 @@ public class SocketIOPipelineFactory implements ChannelPipelineFactory, Disconne
         return new IterableCollection<SocketIOClient>(mainIterable);
     }
 
-    public ChannelPipeline getPipeline() throws Exception {
-        ChannelPipeline pipeline = pipeline();
-
+    @Override
+    protected void initChannel(Channel ch) throws Exception {
+        ChannelPipeline pipeline = ch.pipeline();
         boolean isFlashTransport = configuration.getTransports().contains(FlashSocketTransport.NAME);
         if (isFlashTransport) {
             pipeline.addLast(FLASH_POLICY_HANDLER, flashPolicyHandler);
@@ -145,7 +145,7 @@ public class SocketIOPipelineFactory implements ChannelPipelineFactory, Disconne
         }
 
         pipeline.addLast(HTTP_REQUEST_DECODER, new HttpRequestDecoder());
-        pipeline.addLast(HTTP_AGGREGATOR, new HttpChunkAggregator(configuration.getMaxHttpContentLength()));
+        pipeline.addLast(HTTP_AGGREGATOR, new HttpObjectAggregator(configuration.getMaxHttpContentLength()));
         pipeline.addLast(HTTP_ENCODER, new HttpResponseEncoder());
 
         if (isFlashTransport) {
@@ -159,8 +159,6 @@ public class SocketIOPipelineFactory implements ChannelPipelineFactory, Disconne
         pipeline.addLast(FLASH_SOCKET_TRANSPORT, flashSocketTransport);
 
         pipeline.addLast(SOCKETIO_ENCODER, socketIOEncoder);
-
-        return pipeline;
     }
 
     private SSLContext createSSLContext(InputStream keyStoreFile, String keyStoreFilePassword) throws Exception {

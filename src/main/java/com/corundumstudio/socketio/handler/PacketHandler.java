@@ -15,13 +15,12 @@
  */
 package com.corundumstudio.socketio.handler;
 
-import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.channel.ChannelHandler.Sharable;
-import org.jboss.netty.channel.ChannelHandlerContext;
-import org.jboss.netty.channel.ExceptionEvent;
-import org.jboss.netty.channel.MessageEvent;
-import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
-import org.jboss.netty.util.CharsetUtil;
+import io.netty.buffer.ByteBuf;
+import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.channel.ChannelHandler.Sharable;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.util.CharsetUtil;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,7 +34,7 @@ import com.corundumstudio.socketio.transport.BaseClient;
 import com.corundumstudio.socketio.transport.NamespaceClient;
 
 @Sharable
-public class PacketHandler extends SimpleChannelUpstreamHandler {
+public class PacketHandler extends SimpleChannelInboundHandler<PacketsMessage> {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -51,36 +50,31 @@ public class PacketHandler extends SimpleChannelUpstreamHandler {
     }
 
     @Override
-    public void messageReceived(ChannelHandlerContext ctx, MessageEvent e)
+    protected void channelRead0(io.netty.channel.ChannelHandlerContext ctx, PacketsMessage msg)
             throws Exception {
-        Object msg = e.getMessage();
-        if (msg instanceof PacketsMessage) {
-            PacketsMessage message = (PacketsMessage) msg;
-            ChannelBuffer content = message.getContent();
-            BaseClient client = message.getClient();
+        PacketsMessage message = (PacketsMessage) msg;
+        ByteBuf content = message.getContent();
+        BaseClient client = message.getClient();
 
-            if (log.isTraceEnabled()) {
-                log.trace("In message: {} sessionId: {}", new Object[] {content.toString(CharsetUtil.UTF_8), client.getSessionId()});
-            }
-            while (content.readable()) {
-                try {
-                    Packet packet = decoder.decodePackets(content, client.getSessionId());
-                    Namespace ns = namespacesHub.get(packet.getEndpoint());
+        if (log.isTraceEnabled()) {
+            log.trace("In message: {} sessionId: {}", new Object[] {content.toString(CharsetUtil.UTF_8), client.getSessionId()});
+        }
+        while (content.isReadable()) {
+            try {
+                Packet packet = decoder.decodePackets(content, client.getSessionId());
+                Namespace ns = namespacesHub.get(packet.getEndpoint());
 
-                    NamespaceClient nClient = (NamespaceClient) client.getChildClient(ns);
-                    packetListener.onPacket(packet, nClient);
-                } catch (Exception ex) {
-                    String c = content.toString(CharsetUtil.UTF_8);
-                    log.error("Error during data processing. Client sessionId: " + client.getSessionId() + ", data: " + c, ex);
-                }
+                NamespaceClient nClient = (NamespaceClient) client.getChildClient(ns);
+                packetListener.onPacket(packet, nClient);
+            } catch (Exception ex) {
+                String c = content.toString(CharsetUtil.UTF_8);
+                log.error("Error during data processing. Client sessionId: " + client.getSessionId() + ", data: " + c, ex);
             }
-        } else {
-            ctx.sendUpstream(e);
         }
     }
 
     @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e) throws Exception {
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable e) throws Exception {
         log.error("Exception occurs", e.getCause());
     }
 
