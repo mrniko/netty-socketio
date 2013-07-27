@@ -96,6 +96,7 @@ public class SocketIOServer implements ClientListeners {
         EventLoopGroup bossGroup = new NioEventLoopGroup();
         EventLoopGroup workerGroup = new NioEventLoopGroup();
 
+        pipelineFactory.start(configCopy, namespacesHub);
         ServerBootstrap b = new ServerBootstrap();
         b.group(bossGroup, workerGroup)
             .option(ChannelOption.TCP_NODELAY, true)

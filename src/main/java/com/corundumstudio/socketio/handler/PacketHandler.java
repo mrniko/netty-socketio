@@ -50,9 +50,8 @@ public class PacketHandler extends SimpleChannelInboundHandler<PacketsMessage> {
     }
 
     @Override
-    protected void channelRead0(io.netty.channel.ChannelHandlerContext ctx, PacketsMessage msg)
-            throws Exception {
-        PacketsMessage message = (PacketsMessage) msg;
+    protected void channelRead0(io.netty.channel.ChannelHandlerContext ctx, PacketsMessage message)
+                throws Exception {
         ByteBuf content = message.getContent();
         BaseClient client = message.getClient();
 
@@ -75,7 +74,7 @@ public class PacketHandler extends SimpleChannelInboundHandler<PacketsMessage> {
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable e) throws Exception {
-        log.error("Exception occurs", e.getCause());
+        log.error("Exception occurs", e);
     }
 
 }

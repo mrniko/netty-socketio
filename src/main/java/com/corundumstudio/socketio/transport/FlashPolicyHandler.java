@@ -19,15 +19,13 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.SimpleChannelInboundHandler;
-import io.netty.util.CharsetUtil;
 import io.netty.channel.ChannelHandler.Sharable;
-
-import com.corundumstudio.socketio.SocketIOPipelineFactory;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.util.CharsetUtil;
 
 @Sharable
-public class FlashPolicyHandler extends SimpleChannelInboundHandler<ByteBuf> {
+public class FlashPolicyHandler extends ChannelInboundHandlerAdapter {
 
     private final ByteBuf requestBuffer = Unpooled.copiedBuffer("<policy-file-request/>", CharsetUtil.UTF_8);
     private final ByteBuf responseBuffer = Unpooled.copiedBuffer(
@@ -39,14 +37,17 @@ public class FlashPolicyHandler extends SimpleChannelInboundHandler<ByteBuf> {
                             + "</cross-domain-policy>", CharsetUtil.UTF_8);
 
     @Override
-    protected void channelRead0(ChannelHandlerContext ctx, ByteBuf msg) throws Exception {
-        ByteBuf data = msg.slice(0, requestBuffer.readableBytes());
-        if (data.equals(requestBuffer)) {
-            ChannelFuture f = ctx.write(responseBuffer);
-            f.addListener(ChannelFutureListener.CLOSE);
-            return;
+    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+        if (msg instanceof ByteBuf) {
+            ByteBuf message = (ByteBuf) msg;
+            ByteBuf data = message.slice(0, requestBuffer.readableBytes());
+            if (data.equals(requestBuffer)) {
+                ChannelFuture f = ctx.write(responseBuffer);
+                f.addListener(ChannelFutureListener.CLOSE);
+                return;
+            }
+            ctx.pipeline().remove(this);
         }
-        ctx.pipeline().remove(SocketIOPipelineFactory.FLASH_POLICY_HANDLER);
         ctx.fireChannelRead(msg);
     }
 

@@ -104,7 +104,7 @@ public class XHRPollingTransport extends BaseTransport {
             if (queryDecoder.parameters().containsKey("disconnect")) {
                 BaseClient client = sessionId2Client.get(sessionId);
                 client.onChannelDisconnect();
-                ctx.write(new XHROutMessage(origin));
+                ctx.channel().write(new XHROutMessage(origin, sessionId));
             } else if (HttpMethod.POST.equals(req.getMethod())) {
                 onPost(sessionId, ctx, origin, req.content());
             } else if (HttpMethod.GET.equals(req.getMethod())) {
@@ -113,7 +113,7 @@ public class XHRPollingTransport extends BaseTransport {
         } else {
             log.warn("Wrong {} method request path: {}, from ip: {}. Channel closed!",
                     new Object[] {req.getMethod(), path, ctx.channel().remoteAddress()});
-            ctx.close();
+            ctx.channel().close();
         }
     }
 
@@ -157,12 +157,13 @@ public class XHRPollingTransport extends BaseTransport {
         XHRPollingClient client = sessionId2Client.get(sessionId);
         if (client == null) {
             log.debug("Client with sessionId: {} was already disconnected. Channel closed!", sessionId);
-            ctx.close();
+            ctx.channel().close();
             return;
         }
 
-        ctx.write(new XHROutMessage(origin));
-        ctx.fireChannelRead(new PacketsMessage(client, content));
+        // release POST response before message processing
+        ctx.channel().writeAndFlush(new XHROutMessage(origin, sessionId));
+        ctx.pipeline().fireChannelRead(new PacketsMessage(client, content));
     }
 
     private void onGet(UUID sessionId, ChannelHandlerContext ctx, String origin) {
@@ -198,7 +199,7 @@ public class XHRPollingTransport extends BaseTransport {
         Packet packet = new Packet(PacketType.ERROR);
         packet.setReason(ErrorReason.CLIENT_NOT_HANDSHAKEN);
         packet.setAdvice(ErrorAdvice.RECONNECT);
-        ctx.write(new XHRErrorMessage(packet, origin));
+        ctx.channel().write(new XHRErrorMessage(packet, origin));
     }
 
     @Override

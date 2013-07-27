@@ -21,6 +21,7 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.DefaultHttpResponse;
 import io.netty.handler.codec.http.FullHttpRequest;
@@ -55,7 +56,7 @@ import com.corundumstudio.socketio.scheduler.SchedulerKey.Type;
 import com.corundumstudio.socketio.transport.BaseClient;
 
 @Sharable
-public class AuthorizeHandler extends SimpleChannelInboundHandler<FullHttpRequest> implements Disconnectable {
+public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Disconnectable {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -75,20 +76,25 @@ public class AuthorizeHandler extends SimpleChannelInboundHandler<FullHttpReques
     }
 
     @Override
-    protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest msg) throws Exception {
-        HttpRequest req = (HttpRequest) msg;
-        Channel channel = ctx.channel();
-        QueryStringDecoder queryDecoder = new QueryStringDecoder(req.getUri());
-        if (!configuration.isAllowCustomRequests()
-                && !queryDecoder.path().startsWith(connectPath)) {
-            HttpResponse res = new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.BAD_REQUEST);
-            ChannelFuture f = channel.write(res);
-            f.addListener(ChannelFutureListener.CLOSE);
+    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+        if (msg instanceof HttpRequest) {
+            HttpRequest req = (HttpRequest) msg;
+            Channel channel = ctx.channel();
+            QueryStringDecoder queryDecoder = new QueryStringDecoder(req.getUri());
+            if (!configuration.isAllowCustomRequests()
+                    && !queryDecoder.path().startsWith(connectPath)) {
+                HttpResponse res = new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.BAD_REQUEST);
+                ChannelFuture f = channel.write(res);
+                f.addListener(ChannelFutureListener.CLOSE);
+                return;
+            }
+            if (queryDecoder.path().equals(connectPath)) {
+                String origin = req.headers().get(HttpHeaders.Names.ORIGIN);
+                authorize(channel, origin, queryDecoder.parameters());
+                return;
+            }
         }
-        if (queryDecoder.path().equals(connectPath)) {
-            String origin = req.headers().get(HttpHeaders.Names.ORIGIN);
-            authorize(channel, origin, queryDecoder.parameters());
-        }
+        ctx.fireChannelRead(msg);
     }
 
     private void authorize(Channel channel, String origin, Map<String, List<String>> params)

@@ -34,6 +34,7 @@ import io.netty.handler.codec.http.DefaultHttpResponse;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.handler.codec.http.LastHttpContent;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketFrame;
 import io.netty.util.CharsetUtil;
@@ -87,7 +88,7 @@ public class SocketIOEncoder extends ChannelOutboundHandlerAdapter implements Me
          */
         public boolean tryToWrite(Channel channel) {
             Channel prevVal = lastChannel.get();
-            return !prevVal.equals(channel)
+            return !channel.equals(prevVal)
                             && lastChannel.compareAndSet(prevVal, channel);
         }
 
@@ -127,26 +128,32 @@ public class SocketIOEncoder extends ChannelOutboundHandlerAdapter implements Me
 
     private void sendMessage(String origin, UUID sessionId, Channel channel,
             ByteBuf message) {
-        HttpResponse res = new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.OK);
-        addHeaders(origin, res);
-        HttpHeaders.setContentLength(res, message.readableBytes());
+        HttpResponse res = createHttpResponse(origin, message);
+
+        channel.write(res);
 
         if (log.isTraceEnabled()) {
             log.trace("Out message: {} - sessionId: {}",
-                        new Object[] { message.toString(CharsetUtil.UTF_8), sessionId });
+                    new Object[] { message.toString(CharsetUtil.UTF_8), sessionId });
         }
-        ChannelFuture f = channel.write(res);
         channel.write(message);
+
+        ChannelFuture f = channel.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
         f.addListener(ChannelFutureListener.CLOSE);
     }
 
-    private void addHeaders(String origin, HttpResponse res) {
+    private HttpResponse createHttpResponse(String origin, ByteBuf message) {
+        HttpResponse res = new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.OK);
+
         HttpHeaders.addHeader(res, CONTENT_TYPE, "text/plain; charset=UTF-8");
         HttpHeaders.addHeader(res, CONNECTION, KEEP_ALIVE);
         if (origin != null) {
             HttpHeaders.addHeader(res, ACCESS_CONTROL_ALLOW_ORIGIN, origin);
             HttpHeaders.addHeader(res, ACCESS_CONTROL_ALLOW_CREDENTIALS, "true");
         }
+        HttpHeaders.setContentLength(res, message.readableBytes());
+
+        return res;
     }
 
     @Override
@@ -176,7 +183,7 @@ public class SocketIOEncoder extends ChannelOutboundHandlerAdapter implements Me
 
     @Override
     public void handle(XHROutMessage xhrPostMessage, Channel channel) {
-        sendMessage(xhrPostMessage.getOrigin(), null, channel, channel.alloc().buffer(0, 0));
+        sendMessage(xhrPostMessage.getOrigin(), xhrPostMessage.getSessionId(), channel, channel.alloc().buffer(0, 0));
     }
 
     @Override
