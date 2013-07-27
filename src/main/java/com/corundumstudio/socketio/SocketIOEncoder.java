@@ -204,7 +204,7 @@ public class SocketIOEncoder extends ChannelOutboundHandlerAdapter implements Me
         WebSocketFrame res = new TextWebSocketFrame(message);
         log.trace("Out message: {} sessionId: {}", new Object[] {
                 message.toString(CharsetUtil.UTF_8), webSocketPacketMessage.getSessionId()});
-        if (channel.isOpen()) {
+        if (channel.isActive()) {
             channel.write(res);
         } else {
             log.debug("Channel was closed, for sessionId: {}", webSocketPacketMessage.getSessionId());

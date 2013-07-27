@@ -165,10 +165,9 @@ public class ResourceHandler extends ChannelOutboundHandlerAdapter {
             // No encryption - use zero-copy.
             final FileRegion region = new DefaultFileRegion(raf.getChannel(), 0, fileLength);
             writeFuture = ch.write(region);
-            writeFuture.addListener(new GenericFutureListener<Future<? super Void>>() {
-
+            writeFuture.addListener(new ChannelFutureListener() {
                 @Override
-                public void operationComplete(Future<? super Void> future) throws Exception {
+                public void operationComplete(ChannelFuture future) throws Exception {
                     region.release();
                 }
             });

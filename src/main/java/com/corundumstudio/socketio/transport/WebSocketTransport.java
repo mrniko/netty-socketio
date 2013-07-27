@@ -17,6 +17,8 @@ package com.corundumstudio.socketio.transport;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPipeline;
@@ -26,6 +28,7 @@ import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.QueryStringDecoder;
 import io.netty.handler.codec.http.websocketx.CloseWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
+import io.netty.handler.codec.http.websocketx.WebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketServerHandshaker;
 import io.netty.handler.codec.http.websocketx.WebSocketServerHandshakerFactory;
 
@@ -96,6 +99,10 @@ public class WebSocketTransport extends BaseTransport {
         }
     }
 
+    @Override
+    public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
+        ctx.flush();
+    }
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
@@ -108,7 +115,7 @@ public class WebSocketTransport extends BaseTransport {
     }
 
     private void handshake(ChannelHandlerContext ctx, String path, FullHttpRequest req) {
-        Channel channel = ctx.channel();
+        final Channel channel = ctx.channel();
         String[] parts = path.split("/");
         if (parts.length <= 3) {
             log.warn("Wrong GET request path: {}, from ip: {}. Channel closed!",
@@ -117,14 +124,19 @@ public class WebSocketTransport extends BaseTransport {
             return;
         }
 
-        UUID sessionId = UUID.fromString(parts[4]);
+        final UUID sessionId = UUID.fromString(parts[4]);
 
         WebSocketServerHandshakerFactory factory = new WebSocketServerHandshakerFactory(
                 getWebSocketLocation(req), null, false);
         WebSocketServerHandshaker handshaker = factory.newHandshaker(req);
         if (handshaker != null) {
-            handshaker.handshake(channel, req);
-            connectClient(channel, sessionId);
+            ChannelFuture f = handshaker.handshake(channel, req);
+            f.addListener(new ChannelFutureListener() {
+                @Override
+                public void operationComplete(ChannelFuture future) throws Exception {
+                    connectClient(channel, sessionId);
+                }
+            });
         } else {
             WebSocketServerHandshakerFactory.sendUnsupportedWebSocketVersionResponse(ctx.channel());
         }
@@ -132,7 +144,7 @@ public class WebSocketTransport extends BaseTransport {
 
     private void receivePackets(ChannelHandlerContext ctx, ByteBuf channelBuffer) throws IOException {
         WebSocketClient client = channelId2Client.get(ctx.channel());
-        ctx.fireChannelRead(new PacketsMessage(client, channelBuffer));
+        ctx.pipeline().fireChannelRead(new PacketsMessage(client, channelBuffer));
     }
 
     private void connectClient(Channel channel, UUID sessionId) {

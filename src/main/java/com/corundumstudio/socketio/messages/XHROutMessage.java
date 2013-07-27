@@ -15,6 +15,8 @@
  */
 package com.corundumstudio.socketio.messages;
 
+import java.util.UUID;
+
 import io.netty.channel.Channel;
 
 import com.corundumstudio.socketio.MessageHandler;
@@ -22,13 +24,19 @@ import com.corundumstudio.socketio.MessageHandler;
 public class XHROutMessage extends BaseMessage {
 
     private final String origin;
+    private final UUID sessionId;
 
-    public XHROutMessage(String origin) {
+    public XHROutMessage(String origin, UUID sessionId) {
         this.origin = origin;
+        this.sessionId = sessionId;
     }
 
     public String getOrigin() {
         return origin;
+    }
+
+    public UUID getSessionId() {
+        return sessionId;
     }
 
     @Override
