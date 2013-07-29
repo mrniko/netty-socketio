@@ -67,7 +67,8 @@ public class PayloadTest {
         packet2.setData("53d");
         packets.add(packet2);
 
-        ByteBuf result = encoder.encodePackets(packets);
+        ByteBuf result = Unpooled.buffer();
+        encoder.encodePackets(packets, result);
         Assert.assertEquals("\ufffd5\ufffd3:::5\ufffd7\ufffd3:::53d", result.toString(CharsetUtil.UTF_8));
     }
 

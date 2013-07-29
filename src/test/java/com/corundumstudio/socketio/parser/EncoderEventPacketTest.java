@@ -16,6 +16,7 @@
 package com.corundumstudio.socketio.parser;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import io.netty.util.CharsetUtil;
 
 import java.io.IOException;
@@ -31,7 +32,8 @@ public class EncoderEventPacketTest extends EncoderBaseTest {
     public void testEncode() throws IOException {
         Packet packet = new Packet(PacketType.EVENT);
         packet.setName("woot");
-        ByteBuf result = encoder.encodePacket(packet);
+        ByteBuf result = Unpooled.buffer();
+        encoder.encodePacket(packet, result);
         Assert.assertEquals("5:::{\"name\":\"woot\"}", result.toString(CharsetUtil.UTF_8));
     }
 
@@ -41,7 +43,8 @@ public class EncoderEventPacketTest extends EncoderBaseTest {
         packet.setId(1L);
         packet.setAck(Packet.ACK_DATA);
         packet.setName("tobi");
-        ByteBuf result = encoder.encodePacket(packet);
+        ByteBuf result = Unpooled.buffer();
+        encoder.encodePacket(packet, result);
         Assert.assertEquals("5:1+::{\"name\":\"tobi\"}", result.toString(CharsetUtil.UTF_8));
     }
 
@@ -50,7 +53,8 @@ public class EncoderEventPacketTest extends EncoderBaseTest {
         Packet packet = new Packet(PacketType.EVENT);
         packet.setName("edwald");
         packet.setArgs(Arrays.asList(Collections.singletonMap("a", "b"), 2, "3"));
-        ByteBuf result = encoder.encodePacket(packet);
+        ByteBuf result = Unpooled.buffer();
+        encoder.encodePacket(packet, result);
         Assert.assertEquals("5:::{\"name\":\"edwald\",\"args\":[{\"a\":\"b\"},2,\"3\"]}",
                                     result.toString(CharsetUtil.UTF_8));
     }

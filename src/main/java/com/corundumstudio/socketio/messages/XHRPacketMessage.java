@@ -15,12 +15,8 @@
  */
 package com.corundumstudio.socketio.messages;
 
-import io.netty.channel.Channel;
-
-import java.io.IOException;
 import java.util.UUID;
 
-import com.corundumstudio.socketio.MessageHandler;
 import com.corundumstudio.socketio.parser.Packet;
 
 public class XHRPacketMessage extends BaseMessage {
@@ -45,11 +41,6 @@ public class XHRPacketMessage extends BaseMessage {
 
     public UUID getSessionId() {
         return sessionId;
-    }
-
-    @Override
-    public void handleMessage(MessageHandler handler, Channel channel) throws IOException {
-        handler.handle(this, channel);
     }
 
 }

@@ -88,6 +88,7 @@ public class XHRPollingTransport extends BaseTransport {
 
             if (queryDecoder.path().startsWith(path)) {
                 handleMessage(req, queryDecoder, ctx);
+                req.release();
                 return;
             }
         }

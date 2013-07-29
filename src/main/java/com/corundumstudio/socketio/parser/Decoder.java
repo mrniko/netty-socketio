@@ -235,7 +235,10 @@ public class Decoder {
     }
 
     public Packet decodePacket(String string, UUID uuid) throws IOException {
-        return decodePacket(Unpooled.copiedBuffer(string, CharsetUtil.UTF_8), uuid);
+        ByteBuf buf = Unpooled.copiedBuffer(string, CharsetUtil.UTF_8);
+        Packet packet = decodePacket(buf, uuid);
+        buf.release();
+        return packet;
     }
 
     public Packet decodePackets(ByteBuf buffer, UUID uuid) throws IOException {

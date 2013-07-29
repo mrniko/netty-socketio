@@ -134,7 +134,8 @@ public class PacketHandlerTest {
 
     private void testHandler(PacketHandler handler, Queue<Packet> packets) throws Exception {
         int size = packets.size();
-        ByteBuf buffer = encoder.encodePackets(packets);
+        ByteBuf buffer = Unpooled.buffer();
+        encoder.encodePackets(packets, buffer);
         handler.channelRead0(null, new PacketsMessage(client, buffer));
         Assert.assertEquals(size, invocations.get());
     }

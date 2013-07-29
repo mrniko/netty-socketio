@@ -15,12 +15,7 @@
  */
 package com.corundumstudio.socketio.messages;
 
-import io.netty.channel.Channel;
-
-import java.io.IOException;
 import java.util.UUID;
-
-import com.corundumstudio.socketio.MessageHandler;
 
 public class AuthorizeMessage extends BaseMessage {
 
@@ -50,11 +45,6 @@ public class AuthorizeMessage extends BaseMessage {
 
     public String getJsonpParam() {
         return jsonpParam;
-    }
-
-    @Override
-    public void handleMessage(MessageHandler handler, Channel channel) throws IOException {
-        handler.handle(this, channel);
     }
 
 }

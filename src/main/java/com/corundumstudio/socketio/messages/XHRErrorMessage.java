@@ -15,11 +15,6 @@
  */
 package com.corundumstudio.socketio.messages;
 
-import io.netty.channel.Channel;
-
-import java.io.IOException;
-
-import com.corundumstudio.socketio.MessageHandler;
 import com.corundumstudio.socketio.parser.Packet;
 
 public class XHRErrorMessage extends BaseMessage {
@@ -38,11 +33,6 @@ public class XHRErrorMessage extends BaseMessage {
 
     public Packet getPacket() {
         return packet;
-    }
-
-    @Override
-    public void handleMessage(MessageHandler handler, Channel channel) throws IOException {
-        handler.handle(this, channel);
     }
 
 }

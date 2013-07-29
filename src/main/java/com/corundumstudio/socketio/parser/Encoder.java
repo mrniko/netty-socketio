@@ -32,44 +32,34 @@ public class Encoder {
         this.jsonSupport = jsonSupport;
     }
 
-    public ByteBuf encodeJsonP(String param, String msg) throws IOException {
+    public void encodeJsonP(String param, String msg, ByteBuf out) throws IOException {
         String message = "io.j[" + param + "]("
                 + jsonSupport.writeValueAsString(msg) + ");";
-        return Unpooled.wrappedBuffer(message.getBytes());
+        out.writeBytes(message.getBytes());
     }
 
-    public ByteBuf encodePacket(Packet packet) throws IOException {
-        // TODO refactor
-        ByteBuf buffer = Unpooled.buffer();
-        ByteBufOutputStream out = new ByteBufOutputStream(buffer);
-        encodePacket(packet, out);
-        return buffer;
-    }
-
-    public ByteBuf encodePackets(Queue<Packet> packets) throws IOException {
+    public void encodePackets(Queue<Packet> packets, ByteBuf buffer) throws IOException {
         if (packets.size() == 1) {
             Packet packet = packets.poll();
-            return encodePacket(packet);
+            encodePacket(packet, buffer);
         } else {
-            ByteBuf buffer = Unpooled.buffer();
             while (true) {
                 Packet packet = packets.poll();
                 if (packet == null) {
                     break;
                 }
 
-             // TODO refactor
+                // TODO user polled
                 ByteBuf packetBuffer = Unpooled.buffer();
-                ByteBufOutputStream out = new ByteBufOutputStream(packetBuffer);
-                int len = encodePacket(packet, out);
+                int len = encodePacket(packet, packetBuffer);
                 byte[] lenBytes = toChars(len);
 
                 buffer.writeBytes(Packet.DELIMITER_BYTES);
                 buffer.writeBytes(lenBytes);
                 buffer.writeBytes(Packet.DELIMITER_BYTES);
                 buffer.writeBytes(packetBuffer);
+                packetBuffer.release();
             }
-            return buffer;
         }
     }
 
@@ -147,8 +137,8 @@ public class Encoder {
         return buf;
     }
 
-    private int encodePacket(Packet packet, ByteBufOutputStream out) throws IOException {
-        ByteBuf buffer = out.buffer();
+    public int encodePacket(Packet packet, ByteBuf buffer) throws IOException {
+        ByteBufOutputStream out = new ByteBufOutputStream(buffer);
         int start = buffer.writerIndex();
         int type = packet.getType().getValue();
         buffer.writeByte(toChar(type));

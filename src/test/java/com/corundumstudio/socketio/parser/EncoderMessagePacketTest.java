@@ -16,6 +16,7 @@
 package com.corundumstudio.socketio.parser;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import io.netty.util.CharsetUtil;
 
 import java.io.IOException;
@@ -29,7 +30,8 @@ public class EncoderMessagePacketTest extends EncoderBaseTest {
     public void testEncode() throws IOException {
         Packet packet = new Packet(PacketType.MESSAGE);
         packet.setData("woot");
-        ByteBuf result = encoder.encodePacket(packet);
+        ByteBuf result = Unpooled.buffer();
+        encoder.encodePacket(packet, result);
         Assert.assertEquals("3:::woot", result.toString(CharsetUtil.UTF_8));
     }
 
@@ -39,7 +41,8 @@ public class EncoderMessagePacketTest extends EncoderBaseTest {
         packet.setId(5L);
         packet.setAck(true);
         packet.setEndpoint("/tobi");
-        ByteBuf result = encoder.encodePacket(packet);
+        ByteBuf result = Unpooled.buffer();
+        encoder.encodePacket(packet, result);
         Assert.assertEquals("3:5:/tobi", result.toString(CharsetUtil.UTF_8));
     }
 

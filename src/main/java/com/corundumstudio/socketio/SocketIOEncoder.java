@@ -62,9 +62,8 @@ import com.corundumstudio.socketio.parser.Encoder;
 import com.corundumstudio.socketio.parser.Packet;
 import com.corundumstudio.socketio.transport.BaseClient;
 
-// TODO rewrite to MessageToByteEncoder
 @Sharable
-public class SocketIOEncoder extends ChannelOutboundHandlerAdapter implements MessageHandler, Disconnectable {
+public class SocketIOEncoder extends ChannelOutboundHandlerAdapter implements Disconnectable {
 
     class XHRClientEntry {
 
@@ -116,27 +115,30 @@ public class SocketIOEncoder extends ChannelOutboundHandlerAdapter implements Me
     }
 
     private void write(UUID sessionId, String origin, XHRClientEntry clientEntry,
-            Channel channel) throws IOException {
+            Channel channel, ByteBuf out) throws IOException {
         if (!channel.isActive() || clientEntry.getPackets().isEmpty()
                     || !clientEntry.tryToWrite(channel)) {
+            out.release();
             return;
         }
 
-        ByteBuf message = encoder.encodePackets(clientEntry.getPackets());
-        sendMessage(origin, sessionId, channel, message);
+        encoder.encodePackets(clientEntry.getPackets(), out);
+        sendMessage(origin, sessionId, channel, out);
     }
 
-    private void sendMessage(String origin, UUID sessionId, Channel channel,
-            ByteBuf message) {
-        HttpResponse res = createHttpResponse(origin, message);
-
+    private void sendMessage(String origin, UUID sessionId, Channel channel, ByteBuf out) {
+        HttpResponse res = createHttpResponse(origin, out);
         channel.write(res);
 
-        if (log.isTraceEnabled()) {
-            log.trace("Out message: {} - sessionId: {}",
-                    new Object[] { message.toString(CharsetUtil.UTF_8), sessionId });
+        if (out.isReadable()) {
+            if (log.isTraceEnabled()) {
+                log.trace("Out message: {} - sessionId: {}",
+                        new Object[] { out.toString(CharsetUtil.UTF_8), sessionId });
+            }
+            channel.write(out);
+        } else {
+            out.release();
         }
-        channel.write(message);
 
         ChannelFuture f = channel.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
         f.addListener(ChannelFutureListener.CLOSE);
@@ -158,75 +160,91 @@ public class SocketIOEncoder extends ChannelOutboundHandlerAdapter implements Me
 
     @Override
     public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
-        if (msg instanceof BaseMessage) {
-            BaseMessage message = (BaseMessage) msg;
-            message.handleMessage(this, ctx.channel());
-        } else {
+        if (!(msg instanceof BaseMessage)) {
             super.write(ctx, msg, promise);
+        }
+
+//      TODO use it!
+//        ByteBuf out = ctx.alloc().ioBuffer();
+        ByteBuf out = Unpooled.buffer();
+
+        if (msg instanceof AuthorizeMessage) {
+            handle((AuthorizeMessage) msg, ctx.channel(), out);
+        }
+
+        if (msg instanceof XHRNewChannelMessage) {
+            handle((XHRNewChannelMessage) msg, ctx.channel(), out);
+        }
+        if (msg instanceof XHRPacketMessage) {
+            handle((XHRPacketMessage) msg, ctx.channel(), out);
+        }
+        if (msg instanceof XHROutMessage) {
+            handle((XHROutMessage) msg, ctx.channel(), out);
+        }
+        if (msg instanceof XHRErrorMessage) {
+            handle((XHRErrorMessage) msg, ctx.channel(), out);
+        }
+
+        if (msg instanceof WebSocketPacketMessage) {
+            handle((WebSocketPacketMessage) msg, ctx.channel(), out);
+        }
+        if (msg instanceof WebsocketErrorMessage) {
+            handle((WebsocketErrorMessage) msg, ctx.channel(), out);
         }
     }
 
-    @Override
-    public void handle(XHRNewChannelMessage xhrNewChannelMessage, Channel channel) throws IOException {
+    public void handle(XHRNewChannelMessage xhrNewChannelMessage, Channel channel, ByteBuf out) throws IOException {
         XHRClientEntry clientEntry = getXHRClientEntry(channel, xhrNewChannelMessage.getSessionId());
 
-        write(xhrNewChannelMessage.getSessionId(), xhrNewChannelMessage.getOrigin(), clientEntry, channel);
+        write(xhrNewChannelMessage.getSessionId(), xhrNewChannelMessage.getOrigin(), clientEntry, channel, out);
     }
 
-    @Override
-    public void handle(XHRPacketMessage xhrPacketMessage, Channel channel) throws IOException {
+    public void handle(XHRPacketMessage xhrPacketMessage, Channel channel, ByteBuf out) throws IOException {
         XHRClientEntry clientEntry = getXHRClientEntry(channel, xhrPacketMessage.getSessionId());
         clientEntry.addPacket(xhrPacketMessage.getPacket());
 
-        write(xhrPacketMessage.getSessionId(), xhrPacketMessage.getOrigin(), clientEntry, channel);
+        write(xhrPacketMessage.getSessionId(), xhrPacketMessage.getOrigin(), clientEntry, channel, out);
     }
 
-    @Override
-    public void handle(XHROutMessage xhrPostMessage, Channel channel) {
-        sendMessage(xhrPostMessage.getOrigin(), xhrPostMessage.getSessionId(), channel, channel.alloc().buffer(0, 0));
+    public void handle(XHROutMessage xhrPostMessage, Channel channel, ByteBuf out) {
+        sendMessage(xhrPostMessage.getOrigin(), xhrPostMessage.getSessionId(), channel, out);
     }
 
-    @Override
-    public void handle(AuthorizeMessage authMsg, Channel channel) throws IOException {
-        ByteBuf msg;
+    public void handle(AuthorizeMessage authMsg, Channel channel, ByteBuf out) throws IOException {
         String message = authMsg.getMsg();
         if (authMsg.getJsonpParam() != null) {
-            msg = encoder.encodeJsonP(authMsg.getJsonpParam(), message);
+            encoder.encodeJsonP(authMsg.getJsonpParam(), message, out);
         } else {
-            msg = Unpooled.wrappedBuffer(message.getBytes());
+            out.writeBytes(message.getBytes());
         }
-        sendMessage(authMsg.getOrigin(), authMsg.getSessionId(), channel, msg);
+        sendMessage(authMsg.getOrigin(), authMsg.getSessionId(), channel, out);
     }
 
-    @Override
-    public void handle(WebSocketPacketMessage webSocketPacketMessage, Channel channel) throws IOException {
-        ByteBuf message = encoder.encodePacket(webSocketPacketMessage.getPacket());
-        WebSocketFrame res = new TextWebSocketFrame(message);
-        log.trace("Out message: {} sessionId: {}", new Object[] {
-                message.toString(CharsetUtil.UTF_8), webSocketPacketMessage.getSessionId()});
-        if (channel.isActive()) {
-            channel.write(res);
-        } else {
-            log.debug("Channel was closed, for sessionId: {}", webSocketPacketMessage.getSessionId());
-        }
-    }
-
-    @Override
-    public void handle(WebsocketErrorMessage websocketErrorMessage, Channel channel) throws IOException {
-        ByteBuf message = encoder.encodePacket(websocketErrorMessage.getPacket());
-        TextWebSocketFrame frame = new TextWebSocketFrame(message);
-        channel.write(frame);
-    }
-
-    @Override
-    public void handle(XHRErrorMessage xhrErrorMessage, Channel channel) throws IOException {
-        ByteBuf message = encoder.encodePacket(xhrErrorMessage.getPacket());
-        sendMessage(xhrErrorMessage.getOrigin(), null, channel, message);
+    public void handle(XHRErrorMessage xhrErrorMessage, Channel channel, ByteBuf out) throws IOException {
+        encoder.encodePacket(xhrErrorMessage.getPacket(), out);
+        sendMessage(xhrErrorMessage.getOrigin(), null, channel, out);
     }
 
     @Override
     public void onDisconnect(BaseClient client) {
         sessionId2ActiveChannelId.remove(client.getSessionId());
+    }
+
+    public void handle(WebSocketPacketMessage webSocketPacketMessage, Channel channel, ByteBuf out) throws IOException {
+        encoder.encodePacket(webSocketPacketMessage.getPacket(), out);
+        WebSocketFrame res = new TextWebSocketFrame(out);
+        log.trace("Out message: {} sessionId: {}", new Object[] {
+                out.toString(CharsetUtil.UTF_8), webSocketPacketMessage.getSessionId()});
+        channel.write(res);
+        if (!out.isReadable()) {
+            out.release();
+        }
+    }
+
+    public void handle(WebsocketErrorMessage websocketErrorMessage, Channel channel, ByteBuf out) throws IOException {
+        encoder.encodePacket(websocketErrorMessage.getPacket(), out);
+        TextWebSocketFrame frame = new TextWebSocketFrame(out);
+        channel.write(frame);
     }
 
 }

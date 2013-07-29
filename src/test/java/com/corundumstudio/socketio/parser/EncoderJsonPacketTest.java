@@ -16,6 +16,7 @@
 package com.corundumstudio.socketio.parser;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import io.netty.util.CharsetUtil;
 
 import java.io.IOException;
@@ -34,7 +35,8 @@ public class EncoderJsonPacketTest extends EncoderBaseTest {
     public void testEncode() throws IOException {
         Packet packet = new Packet(PacketType.JSON);
         packet.setData("2");
-        ByteBuf result = encoder.encodePacket(packet);
+        ByteBuf result = Unpooled.buffer();
+        encoder.encodePacket(packet, result);
         Assert.assertEquals("4:::\"2\"", result.toString(CharsetUtil.UTF_8));
     }
 
@@ -44,7 +46,8 @@ public class EncoderJsonPacketTest extends EncoderBaseTest {
         packet.setId(1L);
         packet.setAck(Packet.ACK_DATA);
         packet.setData(Collections.singletonMap("a", "b"));
-        ByteBuf result = encoder.encodePacket(packet);
+        ByteBuf result = Unpooled.buffer();
+        encoder.encodePacket(packet, result);
         Assert.assertEquals("4:1+::{\"a\":\"b\"}", result.toString(CharsetUtil.UTF_8));
     }
 
@@ -67,7 +70,7 @@ public class EncoderJsonPacketTest extends EncoderBaseTest {
         long t = System.currentTimeMillis();
 
         for (int i = 0; i < 5000; i++) {
-            encoder.encodePackets(queues.get(i));
+            encoder.encodePackets(queues.get(i), Unpooled.buffer());
 //            String message = encoder.encodePackets(queues.get(i));
 //            ChannelBuffers.copiedBuffer(message, CharsetUtil.UTF_8);
         }
