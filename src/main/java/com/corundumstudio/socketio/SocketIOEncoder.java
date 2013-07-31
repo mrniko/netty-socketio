@@ -67,7 +67,7 @@ public class SocketIOEncoder extends ChannelOutboundHandlerAdapter implements Di
 
     class XHRClientEntry {
 
-        // AtomicInteger works faster than locking
+        // works faster than locking
         final AtomicReference<Channel> lastChannel = new AtomicReference<Channel>();
         final Queue<Packet> packets = new ConcurrentLinkedQueue<Packet>();
 
@@ -130,11 +130,11 @@ public class SocketIOEncoder extends ChannelOutboundHandlerAdapter implements Di
         HttpResponse res = createHttpResponse(origin, out);
         channel.write(res);
 
+        if (log.isTraceEnabled()) {
+            log.trace("Out message: {} - sessionId: {}",
+                    new Object[] { out.toString(CharsetUtil.UTF_8), sessionId });
+        }
         if (out.isReadable()) {
-            if (log.isTraceEnabled()) {
-                log.trace("Out message: {} - sessionId: {}",
-                        new Object[] { out.toString(CharsetUtil.UTF_8), sessionId });
-            }
             channel.write(out);
         } else {
             out.release();
