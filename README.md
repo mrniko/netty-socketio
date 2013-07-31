@@ -29,6 +29,16 @@ Recent Releases
 First stable release.
 
 
+### Maven 
+
+Include the following to your dependency list:
+
+    <dependency>
+     <groupId>com.corundumstudio.socketio</groupId>
+     <artifactId>netty-socketio</artifactId>
+     <version>1.0.0</version>
+    </dependency>
+
 
 Usage example
 ================================
