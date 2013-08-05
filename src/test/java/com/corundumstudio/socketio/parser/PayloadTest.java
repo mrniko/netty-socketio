@@ -17,6 +17,7 @@ package com.corundumstudio.socketio.parser;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import io.netty.buffer.UnpooledByteBufAllocator;
 import io.netty.util.CharsetUtil;
 
 import java.io.IOException;
@@ -68,7 +69,7 @@ public class PayloadTest {
         packets.add(packet2);
 
         ByteBuf result = Unpooled.buffer();
-        encoder.encodePackets(packets, result);
+        encoder.encodePackets(packets, result, UnpooledByteBufAllocator.DEFAULT);
         Assert.assertEquals("\ufffd5\ufffd3:::5\ufffd7\ufffd3:::53d", result.toString(CharsetUtil.UTF_8));
     }
 

@@ -17,26 +17,15 @@ package com.corundumstudio.socketio.messages;
 
 import java.util.UUID;
 
-public class AuthorizeMessage extends BaseMessage {
+public class AuthorizeMessage extends HttpMessage {
 
-    private final UUID sessionId;
-    private final String origin;
     private final String msg;
     private final String jsonpParam;
 
     public AuthorizeMessage(String msg, String jsonpParam, String origin, UUID sessionId) {
-        this.origin = origin;
+        super(origin, sessionId);
         this.msg = msg;
         this.jsonpParam = jsonpParam;
-        this.sessionId = sessionId;
-    }
-
-    public UUID getSessionId() {
-        return sessionId;
-    }
-
-    public String getOrigin() {
-        return origin;
     }
 
     public String getMsg() {

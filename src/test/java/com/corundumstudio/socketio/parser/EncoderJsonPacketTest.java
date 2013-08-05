@@ -17,6 +17,7 @@ package com.corundumstudio.socketio.parser;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import io.netty.buffer.UnpooledByteBufAllocator;
 import io.netty.util.CharsetUtil;
 
 import java.io.IOException;
@@ -70,7 +71,7 @@ public class EncoderJsonPacketTest extends EncoderBaseTest {
         long t = System.currentTimeMillis();
 
         for (int i = 0; i < 5000; i++) {
-            encoder.encodePackets(queues.get(i), Unpooled.buffer());
+            encoder.encodePackets(queues.get(i), Unpooled.buffer(), UnpooledByteBufAllocator.DEFAULT);
 //            String message = encoder.encodePackets(queues.get(i));
 //            ChannelBuffers.copiedBuffer(message, CharsetUtil.UTF_8);
         }

@@ -200,7 +200,7 @@ public class XHRPollingTransport extends BaseTransport {
         Packet packet = new Packet(PacketType.ERROR);
         packet.setReason(ErrorReason.CLIENT_NOT_HANDSHAKEN);
         packet.setAdvice(ErrorAdvice.RECONNECT);
-        ctx.channel().write(new XHRErrorMessage(packet, origin));
+        ctx.channel().write(new XHRErrorMessage(packet, origin, sessionId));
     }
 
     @Override

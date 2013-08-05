@@ -31,6 +31,7 @@ import com.corundumstudio.socketio.transport.NamespaceClient;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import io.netty.buffer.UnpooledByteBufAllocator;
 import io.netty.channel.Channel;
 
 import org.junit.Before;
@@ -135,7 +136,7 @@ public class PacketHandlerTest {
     private void testHandler(PacketHandler handler, Queue<Packet> packets) throws Exception {
         int size = packets.size();
         ByteBuf buffer = Unpooled.buffer();
-        encoder.encodePackets(packets, buffer);
+        encoder.encodePackets(packets, buffer, UnpooledByteBufAllocator.DEFAULT);
         handler.channelRead0(null, new PacketsMessage(client, buffer));
         Assert.assertEquals(size, invocations.get());
     }

@@ -17,22 +17,10 @@ package com.corundumstudio.socketio.messages;
 
 import java.util.UUID;
 
-public class XHRNewChannelMessage extends BaseMessage {
+public class XHRNewChannelMessage extends HttpMessage {
 
-    private final UUID sessionId;
-    private final String origin;
-
-    public XHRNewChannelMessage(UUID sessionId, String origin) {
-        this.sessionId = sessionId;
-        this.origin = origin;
-    }
-
-    public String getOrigin() {
-        return origin;
-    }
-
-    public UUID getSessionId() {
-        return sessionId;
+    public XHRNewChannelMessage(String origin, UUID sessionId) {
+        super(origin, sessionId);
     }
 
 }

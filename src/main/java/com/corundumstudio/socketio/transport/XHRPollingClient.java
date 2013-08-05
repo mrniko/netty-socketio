@@ -38,7 +38,7 @@ public class XHRPollingClient extends BaseClient {
     public void update(Channel channel, String origin) {
         this.origin = origin;
         setChannel(channel);
-        channel.write(new XHRNewChannelMessage(getSessionId(), origin));
+        channel.write(new XHRNewChannelMessage(origin, getSessionId()));
     }
 
     public String getOrigin() {

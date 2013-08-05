@@ -19,28 +19,17 @@ import java.util.UUID;
 
 import com.corundumstudio.socketio.parser.Packet;
 
-public class XHRPacketMessage extends BaseMessage {
+public class XHRPacketMessage extends HttpMessage {
 
-    private final UUID sessionId;
-    private final String origin;
     private final Packet packet;
 
     public XHRPacketMessage(UUID sessionId, String origin, Packet packet) {
-        this.sessionId = sessionId;
-        this.origin = origin;
+        super(origin, sessionId);
         this.packet = packet;
     }
 
     public Packet getPacket() {
         return packet;
-    }
-
-    public String getOrigin() {
-        return origin;
-    }
-
-    public UUID getSessionId() {
-        return sessionId;
     }
 
 }

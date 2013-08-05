@@ -17,19 +17,22 @@ package com.corundumstudio.socketio.messages;
 
 import java.util.UUID;
 
-import com.corundumstudio.socketio.parser.Packet;
+public class HttpMessage extends BaseMessage {
 
-public class XHRErrorMessage extends HttpMessage {
+    private final String origin;
+    private final UUID sessionId;
 
-    private final Packet packet;
-
-    public XHRErrorMessage(Packet packet, String origin, UUID sessionId) {
-        super(origin, sessionId);
-        this.packet = packet;
+    public HttpMessage(String origin, UUID sessionId) {
+        this.origin = origin;
+        this.sessionId = sessionId;
     }
 
-    public Packet getPacket() {
-        return packet;
+    public String getOrigin() {
+        return origin;
+    }
+
+    public UUID getSessionId() {
+        return sessionId;
     }
 
 }

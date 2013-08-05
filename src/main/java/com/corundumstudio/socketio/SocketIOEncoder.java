@@ -55,6 +55,7 @@ import com.corundumstudio.socketio.messages.BaseMessage;
 import com.corundumstudio.socketio.messages.WebSocketPacketMessage;
 import com.corundumstudio.socketio.messages.WebsocketErrorMessage;
 import com.corundumstudio.socketio.messages.XHRErrorMessage;
+import com.corundumstudio.socketio.messages.HttpMessage;
 import com.corundumstudio.socketio.messages.XHRNewChannelMessage;
 import com.corundumstudio.socketio.messages.XHROutMessage;
 import com.corundumstudio.socketio.messages.XHRPacketMessage;
@@ -102,7 +103,7 @@ public class SocketIOEncoder extends ChannelOutboundHandlerAdapter implements Di
         this.encoder = encoder;
     }
 
-    private XHRClientEntry getXHRClientEntry(Channel channel, UUID sessionId) {
+    private XHRClientEntry getXHRClientEntry(UUID sessionId) {
         XHRClientEntry clientEntry = sessionId2ActiveChannelId.get(sessionId);
         if (clientEntry == null) {
             clientEntry = new XHRClientEntry();
@@ -114,25 +115,31 @@ public class SocketIOEncoder extends ChannelOutboundHandlerAdapter implements Di
         return clientEntry;
     }
 
-    private void write(UUID sessionId, String origin, XHRClientEntry clientEntry,
-            Channel channel, ByteBuf out) throws IOException {
+    private void write(HttpMessage xhrMessage, Packet packet,
+            ChannelHandlerContext ctx, ByteBuf out) throws IOException {
+        XHRClientEntry clientEntry = getXHRClientEntry(xhrMessage.getSessionId());
+        if (packet != null) {
+            clientEntry.addPacket(packet);
+        }
+
+        Channel channel = ctx.channel();
         if (!channel.isActive() || clientEntry.getPackets().isEmpty()
                     || !clientEntry.tryToWrite(channel)) {
             out.release();
             return;
         }
 
-        encoder.encodePackets(clientEntry.getPackets(), out);
-        sendMessage(origin, sessionId, channel, out);
+        encoder.encodePackets(clientEntry.getPackets(), out, ctx.alloc());
+        sendMessage(xhrMessage, channel, out);
     }
 
-    private void sendMessage(String origin, UUID sessionId, Channel channel, ByteBuf out) {
-        HttpResponse res = createHttpResponse(origin, out);
+    private void sendMessage(HttpMessage msg, Channel channel, ByteBuf out) {
+        HttpResponse res = createHttpResponse(msg.getOrigin(), out);
         channel.write(res);
 
         if (log.isTraceEnabled()) {
             log.trace("Out message: {} - sessionId: {}",
-                    new Object[] { out.toString(CharsetUtil.UTF_8), sessionId });
+                    new Object[] { out.toString(CharsetUtil.UTF_8), msg.getSessionId() });
         }
         if (out.isReadable()) {
             channel.write(out);
@@ -173,16 +180,19 @@ public class SocketIOEncoder extends ChannelOutboundHandlerAdapter implements Di
         }
 
         if (msg instanceof XHRNewChannelMessage) {
-            handle((XHRNewChannelMessage) msg, ctx.channel(), out);
+            write((XHRNewChannelMessage) msg, null, ctx, out);
         }
         if (msg instanceof XHRPacketMessage) {
-            handle((XHRPacketMessage) msg, ctx.channel(), out);
+            XHRPacketMessage m = (XHRPacketMessage) msg;
+            write(m, m.getPacket(), ctx, out);
         }
         if (msg instanceof XHROutMessage) {
-            handle((XHROutMessage) msg, ctx.channel(), out);
+            sendMessage((XHROutMessage) msg, ctx.channel(), out);
         }
         if (msg instanceof XHRErrorMessage) {
-            handle((XHRErrorMessage) msg, ctx.channel(), out);
+            XHRErrorMessage xhrErrorMessage = (XHRErrorMessage) msg;
+            encoder.encodePacket(xhrErrorMessage.getPacket(), out);
+            sendMessage(xhrErrorMessage, ctx.channel(), out);
         }
 
         if (msg instanceof WebSocketPacketMessage) {
@@ -193,44 +203,17 @@ public class SocketIOEncoder extends ChannelOutboundHandlerAdapter implements Di
         }
     }
 
-    public void handle(XHRNewChannelMessage xhrNewChannelMessage, Channel channel, ByteBuf out) throws IOException {
-        XHRClientEntry clientEntry = getXHRClientEntry(channel, xhrNewChannelMessage.getSessionId());
-
-        write(xhrNewChannelMessage.getSessionId(), xhrNewChannelMessage.getOrigin(), clientEntry, channel, out);
-    }
-
-    public void handle(XHRPacketMessage xhrPacketMessage, Channel channel, ByteBuf out) throws IOException {
-        XHRClientEntry clientEntry = getXHRClientEntry(channel, xhrPacketMessage.getSessionId());
-        clientEntry.addPacket(xhrPacketMessage.getPacket());
-
-        write(xhrPacketMessage.getSessionId(), xhrPacketMessage.getOrigin(), clientEntry, channel, out);
-    }
-
-    public void handle(XHROutMessage xhrPostMessage, Channel channel, ByteBuf out) {
-        sendMessage(xhrPostMessage.getOrigin(), xhrPostMessage.getSessionId(), channel, out);
-    }
-
-    public void handle(AuthorizeMessage authMsg, Channel channel, ByteBuf out) throws IOException {
+    private void handle(AuthorizeMessage authMsg, Channel channel, ByteBuf out) throws IOException {
         String message = authMsg.getMsg();
         if (authMsg.getJsonpParam() != null) {
             encoder.encodeJsonP(authMsg.getJsonpParam(), message, out);
         } else {
             out.writeBytes(message.getBytes());
         }
-        sendMessage(authMsg.getOrigin(), authMsg.getSessionId(), channel, out);
+        sendMessage(authMsg, channel, out);
     }
 
-    public void handle(XHRErrorMessage xhrErrorMessage, Channel channel, ByteBuf out) throws IOException {
-        encoder.encodePacket(xhrErrorMessage.getPacket(), out);
-        sendMessage(xhrErrorMessage.getOrigin(), null, channel, out);
-    }
-
-    @Override
-    public void onDisconnect(BaseClient client) {
-        sessionId2ActiveChannelId.remove(client.getSessionId());
-    }
-
-    public void handle(WebSocketPacketMessage webSocketPacketMessage, Channel channel, ByteBuf out) throws IOException {
+    private void handle(WebSocketPacketMessage webSocketPacketMessage, Channel channel, ByteBuf out) throws IOException {
         encoder.encodePacket(webSocketPacketMessage.getPacket(), out);
         WebSocketFrame res = new TextWebSocketFrame(out);
         log.trace("Out message: {} sessionId: {}", new Object[] {
@@ -241,10 +224,15 @@ public class SocketIOEncoder extends ChannelOutboundHandlerAdapter implements Di
         }
     }
 
-    public void handle(WebsocketErrorMessage websocketErrorMessage, Channel channel, ByteBuf out) throws IOException {
+    private void handle(WebsocketErrorMessage websocketErrorMessage, Channel channel, ByteBuf out) throws IOException {
         encoder.encodePacket(websocketErrorMessage.getPacket(), out);
         TextWebSocketFrame frame = new TextWebSocketFrame(out);
         channel.write(frame);
+    }
+
+    @Override
+    public void onDisconnect(BaseClient client) {
+        sessionId2ActiveChannelId.remove(client.getSessionId());
     }
 
 }

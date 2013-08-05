@@ -28,7 +28,6 @@ import org.slf4j.LoggerFactory;
 import com.corundumstudio.socketio.AckCallback;
 import com.corundumstudio.socketio.Disconnectable;
 import com.corundumstudio.socketio.SocketIOClient;
-import com.corundumstudio.socketio.ack.AckManager.AckEntry;
 import com.corundumstudio.socketio.parser.Packet;
 import com.corundumstudio.socketio.scheduler.CancelableScheduler;
 import com.corundumstudio.socketio.scheduler.SchedulerKey;

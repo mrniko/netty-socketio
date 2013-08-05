@@ -16,6 +16,7 @@
 package com.corundumstudio.socketio.parser;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.ByteBufOutputStream;
 import io.netty.buffer.Unpooled;
 
@@ -38,7 +39,7 @@ public class Encoder {
         out.writeBytes(message.getBytes());
     }
 
-    public void encodePackets(Queue<Packet> packets, ByteBuf buffer) throws IOException {
+    public void encodePackets(Queue<Packet> packets, ByteBuf buffer, ByteBufAllocator allocator) throws IOException {
         if (packets.size() == 1) {
             Packet packet = packets.poll();
             encodePacket(packet, buffer);
@@ -50,7 +51,8 @@ public class Encoder {
                 }
 
                 // TODO user polled
-                ByteBuf packetBuffer = Unpooled.buffer();
+//                ByteBuf packetBuffer = Unpooled.buffer();
+                ByteBuf packetBuffer = allocator.ioBuffer();
                 int len = encodePacket(packet, packetBuffer);
                 byte[] lenBytes = toChars(len);
 
