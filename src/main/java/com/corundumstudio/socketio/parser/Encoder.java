@@ -50,8 +50,6 @@ public class Encoder {
                     break;
                 }
 
-                // TODO user polled
-//                ByteBuf packetBuffer = Unpooled.buffer();
                 ByteBuf packetBuffer = allocator.ioBuffer();
                 int len = encodePacket(packet, packetBuffer);
                 byte[] lenBytes = toChars(len);

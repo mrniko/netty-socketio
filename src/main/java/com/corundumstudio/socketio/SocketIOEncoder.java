@@ -22,7 +22,6 @@ import static io.netty.handler.codec.http.HttpHeaders.Names.CONTENT_TYPE;
 import static io.netty.handler.codec.http.HttpHeaders.Values.KEEP_ALIVE;
 import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
@@ -52,10 +51,10 @@ import org.slf4j.LoggerFactory;
 
 import com.corundumstudio.socketio.messages.AuthorizeMessage;
 import com.corundumstudio.socketio.messages.BaseMessage;
+import com.corundumstudio.socketio.messages.HttpMessage;
 import com.corundumstudio.socketio.messages.WebSocketPacketMessage;
 import com.corundumstudio.socketio.messages.WebsocketErrorMessage;
 import com.corundumstudio.socketio.messages.XHRErrorMessage;
-import com.corundumstudio.socketio.messages.HttpMessage;
 import com.corundumstudio.socketio.messages.XHRNewChannelMessage;
 import com.corundumstudio.socketio.messages.XHROutMessage;
 import com.corundumstudio.socketio.messages.XHRPacketMessage;
@@ -169,11 +168,10 @@ public class SocketIOEncoder extends ChannelOutboundHandlerAdapter implements Di
     public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
         if (!(msg instanceof BaseMessage)) {
             super.write(ctx, msg, promise);
+            return;
         }
 
-//      TODO use it!
-//        ByteBuf out = ctx.alloc().ioBuffer();
-        ByteBuf out = Unpooled.buffer();
+        ByteBuf out = ctx.alloc().ioBuffer();
 
         if (msg instanceof AuthorizeMessage) {
             handle((AuthorizeMessage) msg, ctx.channel(), out);
@@ -218,7 +216,7 @@ public class SocketIOEncoder extends ChannelOutboundHandlerAdapter implements Di
         WebSocketFrame res = new TextWebSocketFrame(out);
         log.trace("Out message: {} sessionId: {}", new Object[] {
                 out.toString(CharsetUtil.UTF_8), webSocketPacketMessage.getSessionId()});
-        channel.write(res);
+        channel.writeAndFlush(res);
         if (!out.isReadable()) {
             out.release();
         }
@@ -227,7 +225,7 @@ public class SocketIOEncoder extends ChannelOutboundHandlerAdapter implements Di
     private void handle(WebsocketErrorMessage websocketErrorMessage, Channel channel, ByteBuf out) throws IOException {
         encoder.encodePacket(websocketErrorMessage.getPacket(), out);
         TextWebSocketFrame frame = new TextWebSocketFrame(out);
-        channel.write(frame);
+        channel.writeAndFlush(frame);
     }
 
     @Override
