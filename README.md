@@ -1,7 +1,10 @@
 #Netty-socketio Overview
 
 This project is an open-source Java implementation of [Socket.IO](http://socket.io/) server. Based on [Netty](http://netty.io/) server framework.  
-Required JDK 1.5 (or above).
+
+1.0.1 version - JDK 1.5 compatible (based on Netty 3.6.6)  
+1.5.0-SNAPSHOT version - JDK 1.6 compatible (based on Netty 4.0.6)
+
 
 Checkout [Demo project](https://github.com/mrniko/netty-socketio-demo)
 
@@ -25,12 +28,12 @@ Recent Releases
 ================================
 ####Please Note: trunk is current development branch.
 
-####03-Aug-2013 - version 1.0.1 released
+####03-Aug-2013 - version 1.0.1 released (JDK 1.5+ compatible)
 Fixed - error on unknown property during deserialization.  
 Fixed - memory leak in long polling transport.  
 Improvement - logging error info with inbound data.
  
-####07-Jun-2013 - version 1.0.0 released
+####07-Jun-2013 - version 1.0.0 released (JDK 1.5+ compatible)
 First stable release.
 
 
