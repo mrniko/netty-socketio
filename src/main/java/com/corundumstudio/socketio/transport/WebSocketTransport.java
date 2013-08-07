@@ -15,27 +15,28 @@
  */
 package com.corundumstudio.socketio.transport;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
+import io.netty.channel.ChannelHandler.Sharable;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelPipeline;
+import io.netty.handler.codec.http.FullHttpRequest;
+import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.HttpRequest;
+import io.netty.handler.codec.http.QueryStringDecoder;
+import io.netty.handler.codec.http.websocketx.CloseWebSocketFrame;
+import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
+import io.netty.handler.codec.http.websocketx.WebSocketServerHandshaker;
+import io.netty.handler.codec.http.websocketx.WebSocketServerHandshakerFactory;
+
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.channel.Channel;
-import org.jboss.netty.channel.ChannelHandler.Sharable;
-import org.jboss.netty.channel.ChannelHandlerContext;
-import org.jboss.netty.channel.ChannelPipeline;
-import org.jboss.netty.channel.ChannelStateEvent;
-import org.jboss.netty.channel.Channels;
-import org.jboss.netty.channel.MessageEvent;
-import org.jboss.netty.handler.codec.http.HttpHeaders;
-import org.jboss.netty.handler.codec.http.HttpRequest;
-import org.jboss.netty.handler.codec.http.QueryStringDecoder;
-import org.jboss.netty.handler.codec.http.websocketx.CloseWebSocketFrame;
-import org.jboss.netty.handler.codec.http.websocketx.TextWebSocketFrame;
-import org.jboss.netty.handler.codec.http.websocketx.WebSocketServerHandshaker;
-import org.jboss.netty.handler.codec.http.websocketx.WebSocketServerHandshakerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,7 +57,7 @@ public class WebSocketTransport extends BaseTransport {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     private final Map<UUID, WebSocketClient> sessionId2Client = new ConcurrentHashMap<UUID, WebSocketClient>();
-    private final Map<Integer, WebSocketClient> channelId2Client = new ConcurrentHashMap<Integer, WebSocketClient>();
+    private final Map<Channel, WebSocketClient> channelId2Client = new ConcurrentHashMap<Channel, WebSocketClient>();
 
     private final AckManager ackManager;
     private final HeartbeatHandler heartbeatHandler;
@@ -77,88 +78,99 @@ public class WebSocketTransport extends BaseTransport {
     }
 
     @Override
-    public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) throws Exception {
-        Object msg = e.getMessage();
+    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         if (msg instanceof CloseWebSocketFrame) {
-            ctx.getChannel().close();
+            ctx.channel().close();
+            ((CloseWebSocketFrame)msg).release();
         } else if (msg instanceof TextWebSocketFrame) {
             TextWebSocketFrame frame = (TextWebSocketFrame) msg;
-            receivePackets(ctx, frame.getBinaryData());
-        } else if (msg instanceof HttpRequest) {
-            HttpRequest req = (HttpRequest) msg;
+            receivePackets(ctx, frame.content());
+            frame.release();
+        } else if (msg instanceof FullHttpRequest) {
+            FullHttpRequest req = (FullHttpRequest) msg;
             QueryStringDecoder queryDecoder = new QueryStringDecoder(req.getUri());
-            String path = queryDecoder.getPath();
+            String path = queryDecoder.path();
             if (path.startsWith(this.path)) {
                 handshake(ctx, path, req);
+                req.release();
             } else {
-                ctx.sendUpstream(e);
+                ctx.fireChannelRead(msg);
             }
         } else {
-            ctx.sendUpstream(e);
+            ctx.fireChannelRead(msg);
         }
     }
 
     @Override
-    public void channelDisconnected(ChannelHandlerContext ctx, ChannelStateEvent e)
-            throws Exception {
-        WebSocketClient client = channelId2Client.get(ctx.getChannel().getId());
+    public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
+        ctx.flush();
+    }
+
+    @Override
+    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+        WebSocketClient client = channelId2Client.get(ctx.channel());
         if (client != null) {
             client.onChannelDisconnect();
         } else {
-            super.channelDisconnected(ctx, e);
+            super.channelInactive(ctx);
         }
     }
 
-    private void handshake(ChannelHandlerContext ctx, String path, HttpRequest req) {
-        Channel channel = ctx.getChannel();
+    private void handshake(ChannelHandlerContext ctx, String path, FullHttpRequest req) {
+        final Channel channel = ctx.channel();
         String[] parts = path.split("/");
         if (parts.length <= 3) {
             log.warn("Wrong GET request path: {}, from ip: {}. Channel closed!",
-                    new Object[] {path, channel.getRemoteAddress()});
+                    new Object[] {path, channel.remoteAddress()});
             channel.close();
             return;
         }
 
-        UUID sessionId = UUID.fromString(parts[4]);
+        final UUID sessionId = UUID.fromString(parts[4]);
 
         WebSocketServerHandshakerFactory factory = new WebSocketServerHandshakerFactory(
                 getWebSocketLocation(req), null, false);
         WebSocketServerHandshaker handshaker = factory.newHandshaker(req);
         if (handshaker != null) {
-            handshaker.handshake(channel, req);
-            connectClient(channel, sessionId);
+            ChannelFuture f = handshaker.handshake(channel, req);
+            f.addListener(new ChannelFutureListener() {
+                @Override
+                public void operationComplete(ChannelFuture future) throws Exception {
+                    connectClient(channel, sessionId);
+                }
+            });
         } else {
-            factory.sendUnsupportedWebSocketVersionResponse(ctx.getChannel());
+            WebSocketServerHandshakerFactory.sendUnsupportedWebSocketVersionResponse(ctx.channel());
         }
     }
 
-    private void receivePackets(ChannelHandlerContext ctx, ChannelBuffer channelBuffer) throws IOException {
-        WebSocketClient client = channelId2Client.get(ctx.getChannel().getId());
-        Channels.fireMessageReceived(ctx.getChannel(), new PacketsMessage(client, channelBuffer));
+    private void receivePackets(ChannelHandlerContext ctx, ByteBuf channelBuffer) throws IOException {
+        WebSocketClient client = channelId2Client.get(ctx.channel());
+        ctx.pipeline().fireChannelRead(new PacketsMessage(client, channelBuffer));
     }
 
     private void connectClient(Channel channel, UUID sessionId) {
         if (!authorizeHandler.isSessionAuthorized(sessionId)) {
             log.warn("Unauthorized client with sessionId: {}, from ip: {}. Channel closed!", new Object[] {
-                    sessionId, channel.getRemoteAddress()});
+                    sessionId, channel.remoteAddress()});
             channel.close();
             return;
         }
 
         WebSocketClient client = new WebSocketClient(channel, ackManager, disconnectableHub, sessionId, getTransport());
 
-        channelId2Client.put(channel.getId(), client);
+        channelId2Client.put(channel, client);
         sessionId2Client.put(sessionId, client);
         authorizeHandler.connect(client);
 
         heartbeatHandler.onHeartbeat(client);
-        removeHandler(channel.getPipeline());
+        removeHandler(channel.pipeline());
     }
 
     protected Transport getTransport() {
         return Transport.WEBSOCKET;
     }
-    
+
     protected void removeHandler(ChannelPipeline pipeline) {
         pipeline.remove(SocketIOPipelineFactory.FLASH_SOCKET_TRANSPORT);
     }
@@ -168,7 +180,7 @@ public class WebSocketTransport extends BaseTransport {
         if (isSsl) {
             protocol = "wss://";
         }
-        return protocol + req.getHeader(HttpHeaders.Names.HOST) + req.getUri();
+        return protocol + req.headers().get(HttpHeaders.Names.HOST) + req.getUri();
     }
 
     @Override
@@ -176,7 +188,7 @@ public class WebSocketTransport extends BaseTransport {
         if (client instanceof WebSocketClient) {
             WebSocketClient webClient = (WebSocketClient) client;
             sessionId2Client.remove(webClient.getSessionId());
-            channelId2Client.remove(webClient.getChannel().getId());
+            channelId2Client.remove(webClient.getChannel());
         }
     }
 

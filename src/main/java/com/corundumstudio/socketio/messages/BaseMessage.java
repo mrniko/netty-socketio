@@ -15,14 +15,7 @@
  */
 package com.corundumstudio.socketio.messages;
 
-import java.io.IOException;
-
-import org.jboss.netty.channel.Channel;
-
-import com.corundumstudio.socketio.MessageHandler;
 
 public abstract class BaseMessage {
-
-    public abstract void handleMessage(MessageHandler handler, Channel channel) throws IOException;
 
 }

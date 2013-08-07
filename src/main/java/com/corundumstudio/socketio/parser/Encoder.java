@@ -15,13 +15,14 @@
  */
 package com.corundumstudio.socketio.parser;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufAllocator;
+import io.netty.buffer.ByteBufOutputStream;
+import io.netty.buffer.Unpooled;
+
 import java.io.IOException;
 import java.util.List;
 import java.util.Queue;
-
-import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.buffer.ChannelBufferOutputStream;
-import org.jboss.netty.buffer.ChannelBuffers;
 
 public class Encoder {
 
@@ -32,42 +33,33 @@ public class Encoder {
         this.jsonSupport = jsonSupport;
     }
 
-    public ChannelBuffer encodeJsonP(String param, String msg) throws IOException {
+    public void encodeJsonP(String param, String msg, ByteBuf out) throws IOException {
         String message = "io.j[" + param + "]("
                 + jsonSupport.writeValueAsString(msg) + ");";
-        return ChannelBuffers.wrappedBuffer(message.getBytes());
+        out.writeBytes(message.getBytes());
     }
 
-    public ChannelBuffer encodePacket(Packet packet) throws IOException {
-        ChannelBuffer buffer = ChannelBuffers.dynamicBuffer();
-        ChannelBufferOutputStream out = new ChannelBufferOutputStream(buffer);
-        encodePacket(packet, out);
-        return buffer;
-    }
-
-    public ChannelBuffer encodePackets(Queue<Packet> packets) throws IOException {
+    public void encodePackets(Queue<Packet> packets, ByteBuf buffer, ByteBufAllocator allocator) throws IOException {
         if (packets.size() == 1) {
             Packet packet = packets.poll();
-            return encodePacket(packet);
+            encodePacket(packet, buffer);
         } else {
-            ChannelBuffer buffer = ChannelBuffers.dynamicBuffer();
             while (true) {
                 Packet packet = packets.poll();
                 if (packet == null) {
                     break;
                 }
 
-                ChannelBuffer packetBuffer = ChannelBuffers.dynamicBuffer();
-                ChannelBufferOutputStream out = new ChannelBufferOutputStream(packetBuffer);
-                int len = encodePacket(packet, out);
+                ByteBuf packetBuffer = allocator.ioBuffer();
+                int len = encodePacket(packet, packetBuffer);
                 byte[] lenBytes = toChars(len);
 
                 buffer.writeBytes(Packet.DELIMITER_BYTES);
                 buffer.writeBytes(lenBytes);
                 buffer.writeBytes(Packet.DELIMITER_BYTES);
                 buffer.writeBytes(packetBuffer);
+                packetBuffer.release();
             }
-            return buffer;
         }
     }
 
@@ -145,8 +137,8 @@ public class Encoder {
         return buf;
     }
 
-    private int encodePacket(Packet packet, ChannelBufferOutputStream out) throws IOException {
-        ChannelBuffer buffer = out.buffer();
+    public int encodePacket(Packet packet, ByteBuf buffer) throws IOException {
+        ByteBufOutputStream out = new ByteBufOutputStream(buffer);
         int start = buffer.writerIndex();
         int type = packet.getType().getValue();
         buffer.writeByte(toChar(type));

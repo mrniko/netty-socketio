@@ -15,17 +15,17 @@
  */
 package com.corundumstudio.socketio.transport;
 
+import io.netty.channel.ChannelInboundHandlerAdapter;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-
-import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
 
 import com.corundumstudio.socketio.Disconnectable;
 import com.corundumstudio.socketio.SocketIOClient;
 import com.corundumstudio.socketio.misc.CompositeIterable;
 
-public abstract class BaseTransport extends SimpleChannelUpstreamHandler implements Disconnectable {
+public abstract class BaseTransport extends ChannelInboundHandlerAdapter implements Disconnectable {
 
     protected Iterable<SocketIOClient> getAllClients(Collection<? extends BaseClient> clients) {
         List<Iterable<SocketIOClient>> allClients = new ArrayList<Iterable<SocketIOClient>>(clients.size());

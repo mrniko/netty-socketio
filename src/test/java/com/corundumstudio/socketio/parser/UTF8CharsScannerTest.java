@@ -15,21 +15,21 @@
  */
 package com.corundumstudio.socketio.parser;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import junit.framework.Assert;
 
-import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.buffer.ChannelBuffers;
 import org.junit.Test;
 
 public class UTF8CharsScannerTest {
 
-	@Test
-	public void testfindTailIndex() {
-    	String str = "132 4  \ufffd\ufffd  \\Привет";
-    	UTF8CharsScanner p = new UTF8CharsScanner();
-    	ChannelBuffer b = ChannelBuffers.wrappedBuffer(str.getBytes());
-    	int len = p.findTailIndex(b, b.readerIndex(), b.capacity(), str.length());
-    	Assert.assertEquals(b.capacity(), len);
-	}
+    @Test
+    public void testfindTailIndex() {
+        String str = "132 4  \ufffd\ufffd  \\Привет";
+        UTF8CharsScanner p = new UTF8CharsScanner();
+        ByteBuf b = Unpooled.wrappedBuffer(str.getBytes());
+        int len = p.findTailIndex(b, b.readerIndex(), b.capacity(), str.length());
+        Assert.assertEquals(b.capacity(), len);
+    }
 
 }

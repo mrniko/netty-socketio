@@ -15,10 +15,12 @@
  */
 package com.corundumstudio.socketio.parser;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
+import io.netty.util.CharsetUtil;
+
 import java.io.IOException;
 
-import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.util.CharsetUtil;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -27,7 +29,8 @@ public class EncoderConnectionPacketTest extends EncoderBaseTest {
     @Test
     public void testEncodeHeartbeat() throws IOException {
         Packet packet = new Packet(PacketType.HEARTBEAT);
-        ChannelBuffer result = encoder.encodePacket(packet);
+        ByteBuf result = Unpooled.buffer();
+        encoder.encodePacket(packet, result);
         Assert.assertEquals("2::", result.toString(CharsetUtil.UTF_8));
     }
 
@@ -35,7 +38,8 @@ public class EncoderConnectionPacketTest extends EncoderBaseTest {
     public void testEncodeDisconnection() throws IOException {
         Packet packet = new Packet(PacketType.DISCONNECT);
         packet.setEndpoint("/woot");
-        ChannelBuffer result = encoder.encodePacket(packet);
+        ByteBuf result = Unpooled.buffer();
+        encoder.encodePacket(packet, result);
         Assert.assertEquals("0::/woot", result.toString(CharsetUtil.UTF_8));
     }
 
@@ -43,7 +47,8 @@ public class EncoderConnectionPacketTest extends EncoderBaseTest {
     public void testEncode() throws IOException {
         Packet packet = new Packet(PacketType.CONNECT);
         packet.setEndpoint("/tobi");
-        ChannelBuffer result = encoder.encodePacket(packet);
+        ByteBuf result = Unpooled.buffer();
+        encoder.encodePacket(packet, result);
         Assert.assertEquals("1::/tobi", result.toString(CharsetUtil.UTF_8));
     }
 
@@ -52,7 +57,8 @@ public class EncoderConnectionPacketTest extends EncoderBaseTest {
         Packet packet = new Packet(PacketType.CONNECT);
         packet.setEndpoint("/test");
         packet.setQs("?test=1");
-        ChannelBuffer result = encoder.encodePacket(packet);
+        ByteBuf result = Unpooled.buffer();
+        encoder.encodePacket(packet, result);
         Assert.assertEquals("1::/test:?test=1", result.toString(CharsetUtil.UTF_8));
     }
 

@@ -15,10 +15,10 @@
  */
 package com.corundumstudio.socketio.parser;
 
-import java.io.IOException;
+import io.netty.buffer.ByteBufInputStream;
+import io.netty.buffer.ByteBufOutputStream;
 
-import org.jboss.netty.buffer.ChannelBufferInputStream;
-import org.jboss.netty.buffer.ChannelBufferOutputStream;
+import java.io.IOException;
 
 /**
  * JSON infrastructure interface.
@@ -28,11 +28,11 @@ import org.jboss.netty.buffer.ChannelBufferOutputStream;
  */
 public interface JsonSupport {
 
-    AckArgs readAckArgs(ChannelBufferInputStream src, Class<?> argType) throws IOException;
+    AckArgs readAckArgs(ByteBufInputStream src, Class<?> argType) throws IOException;
 
-    <T> T readValue(ChannelBufferInputStream src, Class<T> valueType) throws IOException;
+    <T> T readValue(ByteBufInputStream src, Class<T> valueType) throws IOException;
 
-    void writeValue(ChannelBufferOutputStream out, Object value) throws IOException;
+    void writeValue(ByteBufOutputStream out, Object value) throws IOException;
 
     String writeValueAsString(Object value) throws IOException;
 

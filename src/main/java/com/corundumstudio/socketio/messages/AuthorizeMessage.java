@@ -15,33 +15,17 @@
  */
 package com.corundumstudio.socketio.messages;
 
-import java.io.IOException;
 import java.util.UUID;
 
-import org.jboss.netty.channel.Channel;
+public class AuthorizeMessage extends HttpMessage {
 
-import com.corundumstudio.socketio.MessageHandler;
-
-public class AuthorizeMessage extends BaseMessage {
-
-    private final UUID sessionId;
-    private final String origin;
     private final String msg;
     private final String jsonpParam;
 
     public AuthorizeMessage(String msg, String jsonpParam, String origin, UUID sessionId) {
-        this.origin = origin;
+        super(origin, sessionId);
         this.msg = msg;
         this.jsonpParam = jsonpParam;
-        this.sessionId = sessionId;
-    }
-
-    public UUID getSessionId() {
-        return sessionId;
-    }
-
-    public String getOrigin() {
-        return origin;
     }
 
     public String getMsg() {
@@ -50,11 +34,6 @@ public class AuthorizeMessage extends BaseMessage {
 
     public String getJsonpParam() {
         return jsonpParam;
-    }
-
-    @Override
-    public void handleMessage(MessageHandler handler, Channel channel) throws IOException {
-        handler.handle(this, channel);
     }
 
 }

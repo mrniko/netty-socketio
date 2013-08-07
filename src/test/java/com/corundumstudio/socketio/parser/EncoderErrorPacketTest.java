@@ -15,10 +15,12 @@
  */
 package com.corundumstudio.socketio.parser;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
+import io.netty.util.CharsetUtil;
+
 import java.io.IOException;
 
-import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.util.CharsetUtil;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -27,7 +29,8 @@ public class EncoderErrorPacketTest extends EncoderBaseTest {
     @Test
     public void testEncode() throws IOException {
         Packet packet = new Packet(PacketType.ERROR);
-        ChannelBuffer result = encoder.encodePacket(packet);
+        ByteBuf result = Unpooled.buffer();
+        encoder.encodePacket(packet, result);
         Assert.assertEquals("7::", result.toString(CharsetUtil.UTF_8));
     }
 
@@ -35,7 +38,8 @@ public class EncoderErrorPacketTest extends EncoderBaseTest {
     public void testEncodeWithReason() throws IOException {
         Packet packet = new Packet(PacketType.ERROR);
         packet.setReason(ErrorReason.TRANSPORT_NOT_SUPPORTED);
-        ChannelBuffer result = encoder.encodePacket(packet);
+        ByteBuf result = Unpooled.buffer();
+        encoder.encodePacket(packet, result);
         Assert.assertEquals("7:::0", result.toString(CharsetUtil.UTF_8));
     }
 
@@ -44,7 +48,8 @@ public class EncoderErrorPacketTest extends EncoderBaseTest {
         Packet packet = new Packet(PacketType.ERROR);
         packet.setReason(ErrorReason.UNAUTHORIZED);
         packet.setAdvice(ErrorAdvice.RECONNECT);
-        ChannelBuffer result = encoder.encodePacket(packet);
+        ByteBuf result = Unpooled.buffer();
+        encoder.encodePacket(packet, result);
         Assert.assertEquals("7:::2+0", result.toString(CharsetUtil.UTF_8));
     }
 
@@ -52,7 +57,8 @@ public class EncoderErrorPacketTest extends EncoderBaseTest {
     public void testEncodeWithEndpoint() throws IOException {
         Packet packet = new Packet(PacketType.ERROR);
         packet.setEndpoint("/woot");
-        ChannelBuffer result = encoder.encodePacket(packet);
+        ByteBuf result = Unpooled.buffer();
+        encoder.encodePacket(packet, result);
         Assert.assertEquals("7::/woot", result.toString(CharsetUtil.UTF_8));
     }
 }

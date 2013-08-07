@@ -15,16 +15,16 @@
  */
 package com.corundumstudio.socketio.messages;
 
-import org.jboss.netty.buffer.ChannelBuffer;
+import io.netty.buffer.ByteBuf;
 
 import com.corundumstudio.socketio.transport.BaseClient;
 
 public class PacketsMessage {
 
     private final BaseClient client;
-    private final ChannelBuffer content;
+    private final ByteBuf content;
 
-    public PacketsMessage(BaseClient client, ChannelBuffer content) {
+    public PacketsMessage(BaseClient client, ByteBuf content) {
         this.client = client;
         this.content = content;
     }
@@ -33,7 +33,7 @@ public class PacketsMessage {
         return client;
     }
 
-    public ChannelBuffer getContent() {
+    public ByteBuf getContent() {
         return content;
     }
 

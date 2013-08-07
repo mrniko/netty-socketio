@@ -15,7 +15,7 @@
  */
 package com.corundumstudio.socketio.parser;
 
-import org.jboss.netty.buffer.ChannelBuffer;
+import io.netty.buffer.ByteBuf;
 
 public class UTF8CharsScanner {
 
@@ -67,7 +67,7 @@ public class UTF8CharsScanner {
         sInputCodesUtf8 = table;
     }
 
-    private int getCharTailIndex(ChannelBuffer inputBuffer, int i) {
+    private int getCharTailIndex(ByteBuf inputBuffer, int i) {
         int c = (int) inputBuffer.getByte(i) & 0xFF;
         switch (sInputCodesUtf8[c]) {
         case 2: // 2-byte UTF
@@ -86,7 +86,7 @@ public class UTF8CharsScanner {
         return i;
     }
 
-    public int getLength(ChannelBuffer inputBuffer, int start) {
+    public int getLength(ByteBuf inputBuffer, int start) {
         int len = 0;
         for (int i = start; i < inputBuffer.writerIndex();) {
             i = getCharTailIndex(inputBuffer, i);
@@ -95,7 +95,7 @@ public class UTF8CharsScanner {
         return len;
     }
 
-    public int findTailIndex(ChannelBuffer inputBuffer, int start, int end,
+    public int findTailIndex(ByteBuf inputBuffer, int start, int end,
             int charsToRead) {
         int len = 0;
         int i = start;

@@ -15,8 +15,9 @@
  */
 package com.corundumstudio.socketio.transport;
 
-import org.jboss.netty.channel.ChannelPipeline;
-import org.jboss.netty.channel.ChannelHandler.Sharable;
+import io.netty.channel.ChannelPipeline;
+
+import io.netty.channel.ChannelHandler.Sharable;
 
 import com.corundumstudio.socketio.DisconnectableHub;
 import com.corundumstudio.socketio.HeartbeatHandler;
@@ -36,7 +37,7 @@ public class FlashSocketTransport extends WebSocketTransport {
         super(connectPath, isSsl, ackManager, disconnectable, authorizeHandler, heartbeatHandler);
         path = connectPath + NAME;
     }
-    
+
     @Override
     protected Transport getTransport() {
         return Transport.FLASHSOCKET;

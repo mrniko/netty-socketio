@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.corundumstudio.socketio;
+package com.corundumstudio.socketio.handler;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -25,11 +25,15 @@ import java.util.concurrent.atomic.AtomicInteger;
 import junit.framework.Assert;
 import mockit.Mocked;
 
+import com.corundumstudio.socketio.Configuration;
+import com.corundumstudio.socketio.PacketListener;
 import com.corundumstudio.socketio.transport.NamespaceClient;
-import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.buffer.ChannelBuffers;
-import org.jboss.netty.channel.Channel;
-import org.jboss.netty.channel.UpstreamMessageEvent;
+
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
+import io.netty.buffer.UnpooledByteBufAllocator;
+import io.netty.channel.Channel;
+
 import org.junit.Before;
 import org.junit.Test;
 
@@ -131,8 +135,9 @@ public class PacketHandlerTest {
 
     private void testHandler(PacketHandler handler, Queue<Packet> packets) throws Exception {
         int size = packets.size();
-        ChannelBuffer buffer = encoder.encodePackets(packets);
-        handler.messageReceived(null, new UpstreamMessageEvent(channel, new PacketsMessage(client, buffer), null));
+        ByteBuf buffer = Unpooled.buffer();
+        encoder.encodePackets(packets, buffer, UnpooledByteBufAllocator.DEFAULT);
+        handler.channelRead0(null, new PacketsMessage(client, buffer));
         Assert.assertEquals(size, invocations.get());
     }
 
@@ -145,9 +150,9 @@ public class PacketHandlerTest {
         };
         PacketHandler handler = new PacketHandler(listener, decoder, namespacesHub);
         long start = System.currentTimeMillis();
-        ChannelBuffer buffer = ChannelBuffers.wrappedBuffer("\ufffd10\ufffd3:::Привет\ufffd7\ufffd3:::53d\ufffd3\ufffd0::\ufffd5\ufffd3:::5\ufffd7\ufffd3:::53d\ufffd3\ufffd0::\ufffd5\ufffd3:::5\ufffd7\ufffd3:::53d\ufffd3\ufffd0::\ufffd5\ufffd3:::5\ufffd7\ufffd3:::53d\ufffd3\ufffd0::\ufffd5\ufffd3:::5\ufffd7\ufffd3:::53d\ufffd3\ufffd0::".getBytes());
+        ByteBuf buffer = Unpooled.wrappedBuffer("\ufffd10\ufffd3:::Привет\ufffd7\ufffd3:::53d\ufffd3\ufffd0::\ufffd5\ufffd3:::5\ufffd7\ufffd3:::53d\ufffd3\ufffd0::\ufffd5\ufffd3:::5\ufffd7\ufffd3:::53d\ufffd3\ufffd0::\ufffd5\ufffd3:::5\ufffd7\ufffd3:::53d\ufffd3\ufffd0::\ufffd5\ufffd3:::5\ufffd7\ufffd3:::53d\ufffd3\ufffd0::".getBytes());
         for (int i = 0; i < 50000; i++) {
-            handler.messageReceived(null, new UpstreamMessageEvent(channel, new PacketsMessage(client, buffer), null));
+            handler.channelRead0(null, new PacketsMessage(client, buffer));
             buffer.readerIndex(0);
         }
         long end = System.currentTimeMillis() - start;

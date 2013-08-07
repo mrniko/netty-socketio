@@ -15,10 +15,10 @@
  */
 package com.corundumstudio.socketio.transport;
 
-import java.util.UUID;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
 
-import org.jboss.netty.channel.Channel;
-import org.jboss.netty.channel.ChannelFuture;
+import java.util.UUID;
 
 import com.corundumstudio.socketio.DisconnectableHub;
 import com.corundumstudio.socketio.Transport;
@@ -38,7 +38,7 @@ public class XHRPollingClient extends BaseClient {
     public void update(Channel channel, String origin) {
         this.origin = origin;
         setChannel(channel);
-        channel.write(new XHRNewChannelMessage(getSessionId(), origin));
+        channel.write(new XHRNewChannelMessage(origin, getSessionId()));
     }
 
     public String getOrigin() {

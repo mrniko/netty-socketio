@@ -17,21 +17,18 @@ package com.corundumstudio.socketio.messages;
 
 import java.util.UUID;
 
-import com.corundumstudio.socketio.parser.Packet;
+public class HttpMessage extends BaseMessage {
 
-public class WebSocketPacketMessage extends BaseMessage {
-
+    private final String origin;
     private final UUID sessionId;
-    private final Packet packet;
 
-    public WebSocketPacketMessage(UUID sessionId, Packet packet) {
-        super();
+    public HttpMessage(String origin, UUID sessionId) {
+        this.origin = origin;
         this.sessionId = sessionId;
-        this.packet = packet;
     }
 
-    public Packet getPacket() {
-        return packet;
+    public String getOrigin() {
+        return origin;
     }
 
     public UUID getSessionId() {

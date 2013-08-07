@@ -15,15 +15,17 @@
  */
 package com.corundumstudio.socketio.parser;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
+import io.netty.buffer.UnpooledByteBufAllocator;
+import io.netty.util.CharsetUtil;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.buffer.ChannelBuffers;
-import org.jboss.netty.util.CharsetUtil;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -37,9 +39,9 @@ public class PayloadTest {
 
     @Test
     public void testPayloadDecode() throws IOException {
-        ChannelBuffer buffer = ChannelBuffers.wrappedBuffer("\ufffd5\ufffd3:::5\ufffd7\ufffd3:::53d\ufffd3\ufffd0::".getBytes());
+        ByteBuf buffer = Unpooled.wrappedBuffer("\ufffd5\ufffd3:::5\ufffd7\ufffd3:::53d\ufffd3\ufffd0::".getBytes());
         List<Packet> payload = new ArrayList<Packet>();
-        while (buffer.readable()) {
+        while (buffer.isReadable()) {
             Packet packet = decoder.decodePackets(buffer, null);
             payload.add(packet);
         }
@@ -66,7 +68,8 @@ public class PayloadTest {
         packet2.setData("53d");
         packets.add(packet2);
 
-        ChannelBuffer result = encoder.encodePackets(packets);
+        ByteBuf result = Unpooled.buffer();
+        encoder.encodePackets(packets, result, UnpooledByteBufAllocator.DEFAULT);
         Assert.assertEquals("\ufffd5\ufffd3:::5\ufffd7\ufffd3:::53d", result.toString(CharsetUtil.UTF_8));
     }
 

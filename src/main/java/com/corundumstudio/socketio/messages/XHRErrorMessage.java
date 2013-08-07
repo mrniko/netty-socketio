@@ -15,34 +15,21 @@
  */
 package com.corundumstudio.socketio.messages;
 
-import java.io.IOException;
+import java.util.UUID;
 
-import org.jboss.netty.channel.Channel;
-
-import com.corundumstudio.socketio.MessageHandler;
 import com.corundumstudio.socketio.parser.Packet;
 
-public class XHRErrorMessage extends BaseMessage {
+public class XHRErrorMessage extends HttpMessage {
 
     private final Packet packet;
-    private final String origin;
 
-    public XHRErrorMessage(Packet packet, String origin) {
+    public XHRErrorMessage(Packet packet, String origin, UUID sessionId) {
+        super(origin, sessionId);
         this.packet = packet;
-        this.origin = origin;
-    }
-
-    public String getOrigin() {
-        return origin;
     }
 
     public Packet getPacket() {
         return packet;
-    }
-
-    @Override
-    public void handleMessage(MessageHandler handler, Channel channel) throws IOException {
-        handler.handle(this, channel);
     }
 
 }

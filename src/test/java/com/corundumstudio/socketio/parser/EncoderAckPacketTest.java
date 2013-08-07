@@ -15,11 +15,13 @@
  */
 package com.corundumstudio.socketio.parser;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
+import io.netty.util.CharsetUtil;
+
 import java.io.IOException;
 import java.util.Arrays;
 
-import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.util.CharsetUtil;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -29,7 +31,8 @@ public class EncoderAckPacketTest extends EncoderBaseTest {
     public void testEncode() throws IOException {
         Packet packet = new Packet(PacketType.ACK);
         packet.setAckId(140L);
-        ChannelBuffer result = encoder.encodePacket(packet);
+        ByteBuf result = Unpooled.buffer();
+        encoder.encodePacket(packet, result);
         Assert.assertEquals("6:::140", result.toString(CharsetUtil.UTF_8));
     }
 
@@ -38,7 +41,8 @@ public class EncoderAckPacketTest extends EncoderBaseTest {
         Packet packet = new Packet(PacketType.ACK);
         packet.setAckId(12L);
         packet.setArgs(Arrays.asList("woot", "wa"));
-        ChannelBuffer result = encoder.encodePacket(packet);
+        ByteBuf result = Unpooled.buffer();
+        encoder.encodePacket(packet, result);
         Assert.assertEquals("6:::12+[\"woot\",\"wa\"]", result.toString(CharsetUtil.UTF_8));
     }
 

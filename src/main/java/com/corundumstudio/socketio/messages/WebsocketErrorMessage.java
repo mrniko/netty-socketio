@@ -15,11 +15,6 @@
  */
 package com.corundumstudio.socketio.messages;
 
-import java.io.IOException;
-
-import org.jboss.netty.channel.Channel;
-
-import com.corundumstudio.socketio.MessageHandler;
 import com.corundumstudio.socketio.parser.Packet;
 
 public class WebsocketErrorMessage extends BaseMessage {
@@ -33,11 +28,6 @@ public class WebsocketErrorMessage extends BaseMessage {
 
     public Packet getPacket() {
         return packet;
-    }
-
-    @Override
-    public void handleMessage(MessageHandler handler, Channel channel) throws IOException {
-        handler.handle(this, channel);
     }
 
 }
