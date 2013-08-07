@@ -41,7 +41,7 @@ Include the following to your dependency list:
     <dependency>
      <groupId>com.corundumstudio.socketio</groupId>
      <artifactId>netty-socketio</artifactId>
-     <version>1.0.0</version>
+     <version>1.0.1</version>
     </dependency>
 
 
