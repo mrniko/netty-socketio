@@ -85,7 +85,7 @@ public class SocketIOEncoder extends ChannelOutboundHandlerAdapter implements Di
          * @param channel
          * @return true - can write
          */
-        public boolean tryToWrite(Channel channel) {
+        public boolean writeOnce(Channel channel) {
             Channel prevVal = lastChannel.get();
             return !channel.equals(prevVal)
                             && lastChannel.compareAndSet(prevVal, channel);
@@ -123,7 +123,7 @@ public class SocketIOEncoder extends ChannelOutboundHandlerAdapter implements Di
 
         Channel channel = ctx.channel();
         if (!channel.isActive() || clientEntry.getPackets().isEmpty()
-                    || !clientEntry.tryToWrite(channel)) {
+                    || !clientEntry.writeOnce(channel)) {
             out.release();
             return;
         }
@@ -171,7 +171,7 @@ public class SocketIOEncoder extends ChannelOutboundHandlerAdapter implements Di
             return;
         }
 
-        ByteBuf out = ctx.alloc().ioBuffer();
+        ByteBuf out = encoder.allocateBuffer(ctx.alloc());
 
         if (msg instanceof AuthorizeMessage) {
             handle((AuthorizeMessage) msg, ctx.channel(), out);

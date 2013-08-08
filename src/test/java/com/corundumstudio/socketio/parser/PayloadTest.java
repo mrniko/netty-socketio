@@ -35,7 +35,7 @@ public class PayloadTest {
 
     private final JacksonJsonSupport support = new JacksonJsonSupport(new Configuration());
     private final Decoder decoder = new Decoder(support, null);
-    private final Encoder encoder = new Encoder(support);
+    private final Encoder encoder = new Encoder(new Configuration(), support);
 
     @Test
     public void testPayloadDecode() throws IOException {

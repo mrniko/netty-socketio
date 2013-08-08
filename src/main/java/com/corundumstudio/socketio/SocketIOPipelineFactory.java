@@ -95,7 +95,7 @@ public class SocketIOPipelineFactory extends ChannelInitializer<Channel> impleme
         ackManager = new AckManager(scheduler);
 
         JsonSupport jsonSupport = configuration.getJsonSupport();
-        Encoder encoder = new Encoder(jsonSupport);
+        Encoder encoder = new Encoder(configuration, jsonSupport);
         Decoder decoder = new Decoder(jsonSupport, ackManager);
 
         heartbeatHandler = new HeartbeatHandler(configuration, scheduler);

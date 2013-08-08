@@ -18,25 +18,36 @@ package com.corundumstudio.socketio.parser;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.ByteBufOutputStream;
-import io.netty.buffer.Unpooled;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.Queue;
 
+import com.corundumstudio.socketio.Configuration;
+
 public class Encoder {
 
     private final UTF8CharsScanner charsScanner = new UTF8CharsScanner();
     private final JsonSupport jsonSupport;
+    private final Configuration configuration;
 
-    public Encoder(JsonSupport jsonSupport) {
+    public Encoder(Configuration configuration, JsonSupport jsonSupport) {
         this.jsonSupport = jsonSupport;
+        this.configuration = configuration;
     }
 
     public void encodeJsonP(String param, String msg, ByteBuf out) throws IOException {
         String message = "io.j[" + param + "]("
                 + jsonSupport.writeValueAsString(msg) + ");";
         out.writeBytes(message.getBytes());
+    }
+
+    public ByteBuf allocateBuffer(ByteBufAllocator allocator) {
+        if (configuration.isPreferDirectBuffer()) {
+            return allocator.ioBuffer();
+        }
+
+        return allocator.heapBuffer();
     }
 
     public void encodePackets(Queue<Packet> packets, ByteBuf buffer, ByteBufAllocator allocator) throws IOException {
@@ -50,7 +61,7 @@ public class Encoder {
                     break;
                 }
 
-                ByteBuf packetBuffer = allocator.ioBuffer();
+                ByteBuf packetBuffer = allocateBuffer(allocator);
                 int len = encodePacket(packet, packetBuffer);
                 byte[] lenBytes = toChars(len);
 

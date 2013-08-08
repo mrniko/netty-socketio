@@ -51,6 +51,8 @@ public class Configuration {
     private InputStream keyStore;
     private String keyStorePassword;
 
+    private boolean preferDirectBuffer = true;
+
     private JsonSupport jsonSupport = new JacksonJsonSupport(this);
 
     public Configuration() {
@@ -86,6 +88,8 @@ public class Configuration {
         setTransports(conf.getTransports());
         setMaxHttpContentLength(conf.getMaxHttpContentLength());
         setPackagePrefix(conf.getPackagePrefix());
+
+        setPreferDirectBuffer(conf.isPreferDirectBuffer());
     }
 
     private String join(Transport[] transports) {
@@ -226,8 +230,9 @@ public class Configuration {
      * Allow to service custom requests differs from socket.io protocol.
      * In this case it's necessary to add own handler which handle them
      * to avoid hang connections.
+     * Default is {@code false}
      *
-     * @param allowCustomRequests - true to allow
+     * @param allowCustomRequests - {@code true} to allow
      */
     public void setAllowCustomRequests(boolean allowCustomRequests) {
         this.allowCustomRequests = allowCustomRequests;
@@ -320,6 +325,21 @@ public class Configuration {
     }
     public String getPackagePrefix() {
         return packagePrefix;
+    }
+
+    /**
+     * Buffer allocation method used during packet encoding.
+     * Default is {@code true}
+     *
+     * @param preferDirectBuffer    {@code true} if a direct buffer should be tried to be used as target for
+     *                              the encoded messages. If {@code false} is used it will allocate a heap
+     *                              buffer, which is backed by an byte array.
+     */
+    public void setPreferDirectBuffer(boolean preferDirectBuffer) {
+        this.preferDirectBuffer = preferDirectBuffer;
+    }
+    public boolean isPreferDirectBuffer() {
+        return preferDirectBuffer;
     }
 
 }
