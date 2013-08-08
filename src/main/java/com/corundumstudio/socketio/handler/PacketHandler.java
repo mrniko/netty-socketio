@@ -56,7 +56,7 @@ public class PacketHandler extends SimpleChannelInboundHandler<PacketsMessage> {
         BaseClient client = message.getClient();
 
         if (log.isTraceEnabled()) {
-            log.trace("In message: {} sessionId: {}", new Object[] {content.toString(CharsetUtil.UTF_8), client.getSessionId()});
+            log.trace("In message: {} sessionId: {}", content.toString(CharsetUtil.UTF_8), client.getSessionId());
         }
         while (content.isReadable()) {
             try {

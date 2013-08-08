@@ -138,7 +138,7 @@ public class SocketIOEncoder extends ChannelOutboundHandlerAdapter implements Di
 
         if (log.isTraceEnabled()) {
             log.trace("Out message: {} - sessionId: {}",
-                    new Object[] { out.toString(CharsetUtil.UTF_8), msg.getSessionId() });
+                        out.toString(CharsetUtil.UTF_8), msg.getSessionId());
         }
         if (out.isReadable()) {
             channel.write(out);
@@ -214,8 +214,8 @@ public class SocketIOEncoder extends ChannelOutboundHandlerAdapter implements Di
     private void handle(WebSocketPacketMessage webSocketPacketMessage, Channel channel, ByteBuf out) throws IOException {
         encoder.encodePacket(webSocketPacketMessage.getPacket(), out);
         WebSocketFrame res = new TextWebSocketFrame(out);
-        log.trace("Out message: {} sessionId: {}", new Object[] {
-                out.toString(CharsetUtil.UTF_8), webSocketPacketMessage.getSessionId()});
+        log.trace("Out message: {} sessionId: {}",
+                        out.toString(CharsetUtil.UTF_8), webSocketPacketMessage.getSessionId());
         channel.writeAndFlush(res);
         if (!out.isReadable()) {
             out.release();

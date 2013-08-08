@@ -113,7 +113,7 @@ public class XHRPollingTransport extends BaseTransport {
             }
         } else {
             log.warn("Wrong {} method request path: {}, from ip: {}. Channel closed!",
-                    new Object[] {req.getMethod(), path, ctx.channel().remoteAddress()});
+                        req.getMethod(), path, ctx.channel().remoteAddress());
             ctx.channel().close();
         }
     }

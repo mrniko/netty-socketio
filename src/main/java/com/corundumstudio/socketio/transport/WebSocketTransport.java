@@ -121,7 +121,7 @@ public class WebSocketTransport extends BaseTransport {
         String[] parts = path.split("/");
         if (parts.length <= 3) {
             log.warn("Wrong GET request path: {}, from ip: {}. Channel closed!",
-                    new Object[] {path, channel.remoteAddress()});
+                        path, channel.remoteAddress());
             channel.close();
             return;
         }
@@ -151,8 +151,8 @@ public class WebSocketTransport extends BaseTransport {
 
     private void connectClient(Channel channel, UUID sessionId) {
         if (!authorizeHandler.isSessionAuthorized(sessionId)) {
-            log.warn("Unauthorized client with sessionId: {}, from ip: {}. Channel closed!", new Object[] {
-                    sessionId, channel.remoteAddress()});
+            log.warn("Unauthorized client with sessionId: {}, from ip: {}. Channel closed!",
+                        sessionId, channel.remoteAddress());
             channel.close();
             return;
         }
