@@ -15,7 +15,6 @@
  */
 package com.corundumstudio.socketio.transport;
 
-import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
@@ -31,7 +30,6 @@ import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketServerHandshaker;
 import io.netty.handler.codec.http.websocketx.WebSocketServerHandshakerFactory;
 
-import java.io.IOException;
 import java.util.Collection;
 import java.util.Map;
 import java.util.UUID;
@@ -84,7 +82,8 @@ public class WebSocketTransport extends BaseTransport {
             ((CloseWebSocketFrame)msg).release();
         } else if (msg instanceof TextWebSocketFrame) {
             TextWebSocketFrame frame = (TextWebSocketFrame) msg;
-            receivePackets(ctx, frame.content());
+            WebSocketClient client = channelId2Client.get(ctx.channel());
+            ctx.pipeline().fireChannelRead(new PacketsMessage(client, frame.content()));
             frame.release();
         } else if (msg instanceof FullHttpRequest) {
             FullHttpRequest req = (FullHttpRequest) msg;
@@ -142,11 +141,6 @@ public class WebSocketTransport extends BaseTransport {
         } else {
             WebSocketServerHandshakerFactory.sendUnsupportedWebSocketVersionResponse(ctx.channel());
         }
-    }
-
-    private void receivePackets(ChannelHandlerContext ctx, ByteBuf channelBuffer) throws IOException {
-        WebSocketClient client = channelId2Client.get(ctx.channel());
-        ctx.pipeline().fireChannelRead(new PacketsMessage(client, channelBuffer));
     }
 
     private void connectClient(Channel channel, UUID sessionId) {

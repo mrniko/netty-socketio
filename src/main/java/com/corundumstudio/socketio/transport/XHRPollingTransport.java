@@ -178,7 +178,7 @@ public class XHRPollingTransport extends BaseTransport {
             client = createClient(origin, ctx.channel(), sessionId);
         }
 
-        client.update(ctx.channel(), origin);
+        client.bindChannel(ctx.channel(), origin);
 
         scheduleDisconnect(ctx.channel(), sessionId);
         scheduleNoop(sessionId);
@@ -188,7 +188,7 @@ public class XHRPollingTransport extends BaseTransport {
         XHRPollingClient client = new XHRPollingClient(ackManager, disconnectable, sessionId, Transport.XHRPOLLING);
 
         sessionId2Client.put(sessionId, client);
-        client.update(channel, origin);
+        client.bindChannel(channel, origin);
 
         authorizeHandler.connect(client);
         log.debug("Client for sessionId: {} was created", sessionId);
