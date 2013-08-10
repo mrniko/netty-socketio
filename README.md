@@ -3,7 +3,7 @@
 This project is an open-source Java implementation of [Socket.IO](http://socket.io/) server. Based on [Netty](http://netty.io/) server framework.  
 
 1.0.1 version - JDK 1.5 compatible (based on Netty 3.6.6)  
-1.5.0-SNAPSHOT version - JDK 1.6 compatible (based on Netty 4.0.6)
+1.5.0-SNAPSHOT version - JDK 1.6 compatible (based on Netty 4.0.7)
 
 
 Checkout [Demo project](https://github.com/mrniko/netty-socketio-demo)
