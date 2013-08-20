@@ -41,7 +41,7 @@ import org.slf4j.LoggerFactory;
 import com.corundumstudio.socketio.DisconnectableHub;
 import com.corundumstudio.socketio.HeartbeatHandler;
 import com.corundumstudio.socketio.SocketIOClient;
-import com.corundumstudio.socketio.SocketIOPipelineFactory;
+import com.corundumstudio.socketio.SocketIOChannelInitializer;
 import com.corundumstudio.socketio.Transport;
 import com.corundumstudio.socketio.ack.AckManager;
 import com.corundumstudio.socketio.handler.AuthorizeHandler;
@@ -166,7 +166,7 @@ public class WebSocketTransport extends BaseTransport {
     }
 
     protected void removeHandler(ChannelPipeline pipeline) {
-        pipeline.remove(SocketIOPipelineFactory.FLASH_SOCKET_TRANSPORT);
+        pipeline.remove(SocketIOChannelInitializer.FLASH_SOCKET_TRANSPORT);
     }
 
     private String getWebSocketLocation(HttpRequest req) {

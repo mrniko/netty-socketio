@@ -21,7 +21,7 @@ import io.netty.channel.ChannelHandler.Sharable;
 
 import com.corundumstudio.socketio.DisconnectableHub;
 import com.corundumstudio.socketio.HeartbeatHandler;
-import com.corundumstudio.socketio.SocketIOPipelineFactory;
+import com.corundumstudio.socketio.SocketIOChannelInitializer;
 import com.corundumstudio.socketio.Transport;
 import com.corundumstudio.socketio.ack.AckManager;
 import com.corundumstudio.socketio.handler.AuthorizeHandler;
@@ -45,7 +45,7 @@ public class FlashSocketTransport extends WebSocketTransport {
 
     @Override
     protected void removeHandler(ChannelPipeline pipeline) {
-        pipeline.remove(SocketIOPipelineFactory.WEB_SOCKET_TRANSPORT);
+        pipeline.remove(SocketIOChannelInitializer.WEB_SOCKET_TRANSPORT);
     }
 
 }

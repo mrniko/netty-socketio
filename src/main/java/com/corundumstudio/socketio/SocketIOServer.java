@@ -44,7 +44,7 @@ public class SocketIOServer implements ClientListeners {
     private final NamespacesHub namespacesHub;
     private final SocketIONamespace mainNamespace;
 
-    private SocketIOPipelineFactory pipelineFactory = new SocketIOPipelineFactory();
+    private SocketIOChannelInitializer pipelineFactory = new SocketIOChannelInitializer();
 
     private EventLoopGroup bossGroup;
     private EventLoopGroup workerGroup;
@@ -56,7 +56,7 @@ public class SocketIOServer implements ClientListeners {
         mainNamespace = addNamespace(Namespace.DEFAULT_NAME);
     }
 
-    public void setPipelineFactory(SocketIOPipelineFactory pipelineFactory) {
+    public void setPipelineFactory(SocketIOChannelInitializer pipelineFactory) {
         this.pipelineFactory = pipelineFactory;
     }
 

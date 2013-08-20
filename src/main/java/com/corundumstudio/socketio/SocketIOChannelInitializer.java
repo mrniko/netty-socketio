@@ -52,7 +52,7 @@ import com.corundumstudio.socketio.transport.FlashSocketTransport;
 import com.corundumstudio.socketio.transport.WebSocketTransport;
 import com.corundumstudio.socketio.transport.XHRPollingTransport;
 
-public class SocketIOPipelineFactory extends ChannelInitializer<Channel> implements DisconnectableHub {
+public class SocketIOChannelInitializer extends ChannelInitializer<Channel> implements DisconnectableHub {
 
     public static final String SOCKETIO_ENCODER = "socketioEncoder";
     public static final String WEB_SOCKET_TRANSPORT = "webSocketTransport";
