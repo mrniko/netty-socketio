@@ -38,13 +38,19 @@ public class FlashPolicyHandler extends ChannelInboundHandlerAdapter {
                             + "   <allow-access-from domain=\"*\" to-ports=\"*\" />"
                             + "</cross-domain-policy>", CharsetUtil.UTF_8));
 
-    @Override
+	public FlashPolicyHandler() {
+		super();
+		responseBuffer.markReaderIndex();
+	}
+
+	@Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         if (msg instanceof ByteBuf) {
             ByteBuf message = (ByteBuf) msg;
             ByteBuf data = message.slice(0, requestBuffer.readableBytes());
             if (data.equals(requestBuffer)) {
                 message.release();
+                responseBuffer.resetReaderIndex();
                 ChannelFuture f = ctx.writeAndFlush(responseBuffer);
                 f.addListener(ChannelFutureListener.CLOSE);
                 return;
