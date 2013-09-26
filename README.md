@@ -2,10 +2,6 @@
 
 This project is an open-source Java implementation of [Socket.IO](http://socket.io/) server. Based on [Netty](http://netty.io/) server framework.  
 
-1.0.1 version - JDK 1.5 compatible (based on Netty 3.6.6)  
-1.5.0-SNAPSHOT version - JDK 1.6 compatible (based on Netty 4.0.7)
-
-
 Checkout [Demo project](https://github.com/mrniko/netty-socketio-demo)
 
 Licensed under the Apache License 2.0.
@@ -28,6 +24,10 @@ Recent Releases
 ================================
 ####Please Note: trunk is current development branch.
 
+####27-Aug-2013 - version 1.5.0 released (JDK 1.6+ compatible, Netty 4.0.7)
+Improvement - encoding buffers allocation optimization.  
+Improvement - encoding buffers now pooled in memory to reduce GC pressure (netty 4.x feature).  
+
 ####03-Aug-2013 - version 1.0.1 released (JDK 1.5+ compatible)
 Fixed - error on unknown property during deserialization.  
 Fixed - memory leak in long polling transport.  
@@ -44,7 +44,7 @@ Include the following to your dependency list:
     <dependency>
      <groupId>com.corundumstudio.socketio</groupId>
      <artifactId>netty-socketio</artifactId>
-     <version>1.0.1</version>
+     <version>1.5.0</version>
     </dependency>
 
 
