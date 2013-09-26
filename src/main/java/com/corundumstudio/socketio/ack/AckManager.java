@@ -94,7 +94,7 @@ public class AckManager implements Disconnectable {
     }
 
     public void onAck(SocketIOClient client, Packet packet) {
-        SchedulerKey key = new SchedulerKey(Type.ACK_TIMEOUT, client.getSessionId());
+        AckSchedulerKey key = new AckSchedulerKey(Type.ACK_TIMEOUT, client.getSessionId(), packet.getAckId());
         scheduler.cancel(key);
 
         AckCallback callback = removeCallback(client.getSessionId(), packet.getAckId());
