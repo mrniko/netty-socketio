@@ -68,6 +68,7 @@ public class PacketHandler extends SimpleChannelInboundHandler<PacketsMessage> {
             } catch (Exception ex) {
                 String c = content.toString(CharsetUtil.UTF_8);
                 log.error("Error during data processing. Client sessionId: " + client.getSessionId() + ", data: " + c, ex);
+                return;
             }
         }
     }
