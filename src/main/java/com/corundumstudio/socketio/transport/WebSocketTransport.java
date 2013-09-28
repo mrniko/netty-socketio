@@ -83,6 +83,13 @@ public class WebSocketTransport extends BaseTransport {
         } else if (msg instanceof TextWebSocketFrame) {
             TextWebSocketFrame frame = (TextWebSocketFrame) msg;
             WebSocketClient client = channelId2Client.get(ctx.channel());
+            if (client == null) {
+                log.debug("Client with was already disconnected. Channel closed!");
+                ctx.channel().close();
+                frame.release();
+                return;
+            }
+
             ctx.pipeline().fireChannelRead(new PacketsMessage(client, frame.content()));
             frame.release();
         } else if (msg instanceof FullHttpRequest) {
