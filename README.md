@@ -24,6 +24,12 @@ Recent Releases
 ================================
 ####Please Note: trunk is current development branch.
 
+####13-Oct-2013 - version 1.5.1 released (JDK 1.6+ compatible, Netty 4.0.9)
+Fixed - wrong ack timeout invocation  
+Fixed - bigdecimal serialization for JSON  
+Fixed - infinity loop during packet handling exception  
+Fixed - 'client not found' handling  
+
 ####27-Aug-2013 - version 1.5.0 released (JDK 1.6+ compatible, Netty 4.0.7)
 Improvement - encoding buffers allocation optimization.  
 Improvement - encoding buffers now pooled in memory to reduce GC pressure (netty 4.x feature).  
