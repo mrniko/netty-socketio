@@ -11,7 +11,7 @@ Features
 * Supports 0.7+ version of [Socket.IO-client](https://github.com/LearnBoost/socket.io-client) up to latest - 0.9.11
 * Supports xhr-polling transport
 * Supports flashsocket transport
-* Supports websocket transport (Hixie-75/76/Hybi-00, Hybi-10..Hybi-13)
+* Supports websocket transport: HyBi 00 (which is the same as Hixie 76), HyBi 8-10 and HyBi 13-17 (17 is the same as IETF 6455).
 * Supports namespaces
 * Supports ack (acknowledgment of received data)
 * Supports SSL
