@@ -36,148 +36,152 @@ import com.corundumstudio.socketio.namespace.NamespacesHub;
 
 public class SocketIOServer implements ClientListeners {
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
+	private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private final Configuration configCopy;
-    private final Configuration configuration;
+	private final Configuration configCopy;
+	private final Configuration configuration;
 
-    private final NamespacesHub namespacesHub;
-    private final SocketIONamespace mainNamespace;
+	private final NamespacesHub namespacesHub;
+	private final SocketIONamespace mainNamespace;
 
-    private SocketIOChannelInitializer pipelineFactory = new SocketIOChannelInitializer();
+	private SocketIOChannelInitializer pipelineFactory = new SocketIOChannelInitializer();
 
-    private EventLoopGroup bossGroup;
-    private EventLoopGroup workerGroup;
+	private EventLoopGroup bossGroup;
+	private EventLoopGroup workerGroup;
 
-    public SocketIOServer(Configuration configuration) {
-        this.configuration = configuration;
-        this.configCopy = new Configuration(configuration);
-        namespacesHub = new NamespacesHub(this.configCopy.getJsonSupport());
-        mainNamespace = addNamespace(Namespace.DEFAULT_NAME);
-    }
+	public SocketIOServer(Configuration configuration) {
+		this.configuration = configuration;
+		this.configCopy = new Configuration(configuration);
+		namespacesHub = new NamespacesHub(this.configCopy.getJsonSupport());
+		mainNamespace = addNamespace(Namespace.DEFAULT_NAME);
+	}
 
-    public void setPipelineFactory(SocketIOChannelInitializer pipelineFactory) {
-        this.pipelineFactory = pipelineFactory;
-    }
+	public void setPipelineFactory(SocketIOChannelInitializer pipelineFactory) {
+		this.pipelineFactory = pipelineFactory;
+	}
 
-    /**
-     * Get all clients
-     *
-     * @return clients collection
-     */
-    public Collection<SocketIOClient> getAllClients() {
-        return pipelineFactory.getAllClients();
-    }
+	public SocketIOChannelInitializer getPipelineFactory() {
+		return this.pipelineFactory;
+	}
 
-    public BroadcastOperations getBroadcastOperations() {
-        return getBroadcastOperations(pipelineFactory.getAllClients());
-    }
+	/**
+	 * Get all clients
+	 *
+	 * @return clients collection
+	 */
+	public Collection<SocketIOClient> getAllClients() {
+		return pipelineFactory.getAllClients();
+	}
 
-    /**
-     * Get broadcast operations for clients within
-     * room by <code>roomKey</code>
-     *
-     * @param roomKey - any object with correct hashcode & equals implementation
-     * @return
-     */
-    public <T> BroadcastOperations getRoomOperations(T roomKey) {
-        Iterable<SocketIOClient> clients = namespacesHub.getRoomClients(roomKey);
-        return new BroadcastOperations(clients);
-    }
+	public BroadcastOperations getBroadcastOperations() {
+		return getBroadcastOperations(pipelineFactory.getAllClients());
+	}
 
-    public BroadcastOperations getBroadcastOperations(Iterable<SocketIOClient> clients) {
-        return new BroadcastOperations(clients);
-    }
+	/**
+	 * Get broadcast operations for clients within
+	 * room by <code>roomKey</code>
+	 *
+	 * @param roomKey - any object with correct hashcode & equals implementation
+	 * @return
+	 */
+	public <T> BroadcastOperations getRoomOperations(T roomKey) {
+		Iterable<SocketIOClient> clients = namespacesHub.getRoomClients(roomKey);
+		return new BroadcastOperations(clients);
+	}
 
-    /**
-     * Start server
-     */
-    public void start() {
-        EventLoopGroup bossGroup = new NioEventLoopGroup();
-        EventLoopGroup workerGroup = new NioEventLoopGroup();
+	public BroadcastOperations getBroadcastOperations(Iterable<SocketIOClient> clients) {
+		return new BroadcastOperations(clients);
+	}
 
-        pipelineFactory.start(configCopy, namespacesHub);
-        ServerBootstrap b = new ServerBootstrap();
-        b.group(bossGroup, workerGroup)
-            .option(ChannelOption.TCP_NODELAY, true)
-            .option(ChannelOption.SO_KEEPALIVE, true)
-            .channel(NioServerSocketChannel.class)
-            .childHandler(pipelineFactory);
+	/**
+	 * Start server
+	 */
+	public void start() {
+		EventLoopGroup bossGroup = new NioEventLoopGroup();
+		EventLoopGroup workerGroup = new NioEventLoopGroup();
 
-        InetSocketAddress addr = new InetSocketAddress(configCopy.getPort());
-        if (configCopy.getHostname() != null) {
-            addr = new InetSocketAddress(configCopy.getHostname(), configCopy.getPort());
-        }
+		pipelineFactory.start(configCopy, namespacesHub);
+		ServerBootstrap b = new ServerBootstrap();
+		b.group(bossGroup, workerGroup)
+		.option(ChannelOption.TCP_NODELAY, true)
+		.option(ChannelOption.SO_KEEPALIVE, true)
+		.channel(NioServerSocketChannel.class)
+		.childHandler(pipelineFactory);
 
-        b.bind(addr).syncUninterruptibly();
-        log.info("SocketIO server started at port: {}", configCopy.getPort());
-    }
+		InetSocketAddress addr = new InetSocketAddress(configCopy.getPort());
+		if (configCopy.getHostname() != null) {
+			addr = new InetSocketAddress(configCopy.getHostname(), configCopy.getPort());
+		}
 
-    /**
-     * Stop server
-     */
-    public void stop() {
-        bossGroup.shutdownGracefully();
-        workerGroup.shutdownGracefully();
-    }
+		b.bind(addr).syncUninterruptibly();
+		log.info("SocketIO server started at port: {}", configCopy.getPort());
+	}
 
-    public SocketIONamespace addNamespace(String name) {
-        return namespacesHub.create(name);
-    }
+	/**
+	 * Stop server
+	 */
+	public void stop() {
+		bossGroup.shutdownGracefully();
+		workerGroup.shutdownGracefully();
+	}
 
-    public SocketIONamespace getNamespace(String name) {
-        return namespacesHub.get(name);
-    }
+	public SocketIONamespace addNamespace(String name) {
+		return namespacesHub.create(name);
+	}
 
-    public void removeNamespace(String name) {
-        namespacesHub.remove(name);
-    }
+	public SocketIONamespace getNamespace(String name) {
+		return namespacesHub.get(name);
+	}
 
-    /**
-     * Allows to get configuration provided
-     * during server creation. Further changes on
-     * this object not affect server.
-     *
-     * @return Configuration object
-     */
-    public Configuration getConfiguration() {
-        return configuration;
-    }
+	public void removeNamespace(String name) {
+		namespacesHub.remove(name);
+	}
 
-    @Override
-    public <T> void addEventListener(String eventName, Class<T> eventClass, DataListener<T> listener) {
-        mainNamespace.addEventListener(eventName, eventClass, listener);
-    }
+	/**
+	 * Allows to get configuration provided
+	 * during server creation. Further changes on
+	 * this object not affect server.
+	 *
+	 * @return Configuration object
+	 */
+	public Configuration getConfiguration() {
+		return configuration;
+	}
 
-    @Override
-    public <T> void addJsonObjectListener(Class<T> clazz, DataListener<T> listener) {
-        mainNamespace.addJsonObjectListener(clazz, listener);
-    }
+	@Override
+	public <T> void addEventListener(String eventName, Class<T> eventClass, DataListener<T> listener) {
+		mainNamespace.addEventListener(eventName, eventClass, listener);
+	}
 
-    @Override
-    public void addDisconnectListener(DisconnectListener listener) {
-        mainNamespace.addDisconnectListener(listener);
-    }
+	@Override
+	public <T> void addJsonObjectListener(Class<T> clazz, DataListener<T> listener) {
+		mainNamespace.addJsonObjectListener(clazz, listener);
+	}
 
-    @Override
-    public void addConnectListener(ConnectListener listener) {
-        mainNamespace.addConnectListener(listener);
-    }
+	@Override
+	public void addDisconnectListener(DisconnectListener listener) {
+		mainNamespace.addDisconnectListener(listener);
+	}
 
-    @Override
-    public void addMessageListener(DataListener<String> listener) {
-        mainNamespace.addMessageListener(listener);
-    }
+	@Override
+	public void addConnectListener(ConnectListener listener) {
+		mainNamespace.addConnectListener(listener);
+	}
 
-    @Override
-    public void addListeners(Object listeners) {
-        mainNamespace.addListeners(listeners);
-    }
+	@Override
+	public void addMessageListener(DataListener<String> listener) {
+		mainNamespace.addMessageListener(listener);
+	}
 
-    @Override
-    public void addListeners(Object listeners, Class listenersClass) {
-        mainNamespace.addListeners(listeners, listenersClass);
-    }
+	@Override
+	public void addListeners(Object listeners) {
+		mainNamespace.addListeners(listeners);
+	}
+
+	@Override
+	public void addListeners(Object listeners, Class listenersClass) {
+		mainNamespace.addListeners(listeners, listenersClass);
+	}
 
 
 }
