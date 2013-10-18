@@ -243,5 +243,10 @@ public class Namespace implements SocketIONamespace {
         }
         return clients;
     }
+    
+    // Utility function to check if there are anymore clients in namespace
+    public boolean isEmpty(){
+    	return allClients.isEmpty();
+    }
 
 }

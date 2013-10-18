@@ -11,7 +11,7 @@ Features
 * Supports 0.7+ version of [Socket.IO-client](https://github.com/LearnBoost/socket.io-client) up to latest - 0.9.11
 * Supports xhr-polling transport
 * Supports flashsocket transport
-* Supports websocket transport (Hixie-75/76/Hybi-00, Hybi-10..Hybi-13)
+* Supports websocket transport: HyBi 00 (which is the same as Hixie 76), HyBi 8-10 and HyBi 13-17 (17 is the same as IETF 6455).
 * Supports namespaces
 * Supports ack (acknowledgment of received data)
 * Supports SSL
@@ -23,6 +23,12 @@ Features
 Recent Releases
 ================================
 ####Please Note: trunk is current development branch.
+
+####13-Oct-2013 - version 1.5.1 released (JDK 1.6+ compatible, Netty 4.0.9)
+Fixed - wrong ack timeout callback invocation  
+Fixed - bigdecimal serialization for JSON  
+Fixed - infinity loop during packet handling exception  
+Fixed - 'client not found' handling  
 
 ####27-Aug-2013 - version 1.5.0 released (JDK 1.6+ compatible, Netty 4.0.7)
 Improvement - encoding buffers allocation optimization.  
@@ -44,7 +50,7 @@ Include the following to your dependency list:
     <dependency>
      <groupId>com.corundumstudio.socketio</groupId>
      <artifactId>netty-socketio</artifactId>
-     <version>1.5.0</version>
+     <version>1.5.1</version>
     </dependency>
 
 
