@@ -21,6 +21,11 @@ import java.util.UUID;
 import com.corundumstudio.socketio.parser.Packet;
 
 
+/**
+ * SocketIO client abstraction.
+ * All implementations are thread-safe.
+ *
+ */
 public interface SocketIOClient extends ClientOperations {
 
     /**

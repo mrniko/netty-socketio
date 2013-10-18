@@ -93,8 +93,7 @@ public class SocketIOServer implements ClientListeners {
      * Start server
      */
     public void start() {
-        EventLoopGroup bossGroup = new NioEventLoopGroup();
-        EventLoopGroup workerGroup = new NioEventLoopGroup();
+        initGroups();
 
         pipelineFactory.start(configCopy, namespacesHub);
         ServerBootstrap b = new ServerBootstrap();
@@ -111,6 +110,11 @@ public class SocketIOServer implements ClientListeners {
 
         b.bind(addr).syncUninterruptibly();
         log.info("SocketIO server started at port: {}", configCopy.getPort());
+    }
+
+    protected void initGroups() {
+        bossGroup = new NioEventLoopGroup(configCopy.getBossThreads());
+        workerGroup = new NioEventLoopGroup(configCopy.getWorkerThreads());
     }
 
     /**
