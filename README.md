@@ -24,6 +24,10 @@ Recent Releases
 ================================
 ####Please Note: trunk is current development branch.
 
+####24-Oct-2013 - version 1.5.1 released (JDK 1.6+ compatible, Netty 4.0.11)
+Fixed - NPE during shutdown  
+Improvement - isEmpty method added to Namespace
+
 ####13-Oct-2013 - version 1.5.1 released (JDK 1.6+ compatible, Netty 4.0.9)
 Fixed - wrong ack timeout callback invocation  
 Fixed - bigdecimal serialization for JSON  
@@ -50,7 +54,7 @@ Include the following to your dependency list:
     <dependency>
      <groupId>com.corundumstudio.socketio</groupId>
      <artifactId>netty-socketio</artifactId>
-     <version>1.5.1</version>
+     <version>1.5.2</version>
     </dependency>
 
 
