@@ -24,7 +24,7 @@ Recent Releases
 ================================
 ####Please Note: trunk is current development branch.
 
-####24-Oct-2013 - version 1.5.1 released (JDK 1.6+ compatible, Netty 4.0.11)
+####24-Oct-2013 - version 1.5.2 released (JDK 1.6+ compatible, Netty 4.0.11)
 Fixed - NPE during shutdown  
 Improvement - isEmpty method added to Namespace
 
