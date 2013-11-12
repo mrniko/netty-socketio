@@ -26,8 +26,7 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelOutboundHandlerAdapter;
-import io.netty.channel.ChannelPromise;
+import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.DefaultFileRegion;
 import io.netty.channel.FileRegion;
 import io.netty.handler.codec.http.DefaultHttpResponse;
@@ -59,7 +58,7 @@ import java.util.TimeZone;
 import javax.activation.MimetypesFileTypeMap;
 
 @Sharable
-public class ResourceHandler extends ChannelOutboundHandlerAdapter {
+public class ResourceHandler extends ChannelInboundHandlerAdapter {
 
     public static final String HTTP_DATE_FORMAT = "EEE, dd MMM yyyy HH:mm:ss zzz";
     public static final String HTTP_DATE_GMT_TIMEZONE = "GMT";
@@ -74,7 +73,7 @@ public class ResourceHandler extends ChannelOutboundHandlerAdapter {
                         "/static/flashsocket/WebSocketMainInsecure.swf");
     }
 
-    private void addResource(String pathPart, String resourcePath) {
+    public void addResource(String pathPart, String resourcePath) {
         URL resource = getClass().getResource(resourcePath);
         // in case of usage exclude-swf-files profile
         if (resource != null) {
@@ -83,43 +82,47 @@ public class ResourceHandler extends ChannelOutboundHandlerAdapter {
         }
     }
 
-    @Override
-    public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
-        if (msg instanceof FullHttpRequest) {
-            FullHttpRequest req = (FullHttpRequest) msg;
-            QueryStringDecoder queryDecoder = new QueryStringDecoder(req.getUri());
-            File resource = resources.get(queryDecoder.path());
-            if (resource != null) {
-                HttpResponse res = new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.OK);
+	@Override
+	public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
 
-                if (isNotModified(req, resource)) {
-                    sendNotModified(ctx);
-                    req.release();
-                    return;
-                }
+		if (msg instanceof FullHttpRequest) {
+			FullHttpRequest req = (FullHttpRequest) msg;
+			QueryStringDecoder queryDecoder = new QueryStringDecoder(req.getUri());
+			File resource = resources.get(queryDecoder.path());
+			if (resource != null) {
+				HttpResponse res = new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.OK);
 
-                req.release();
+				if (isNotModified(req, resource)) {
+					sendNotModified(ctx);
+					req.release();
+					return;
+				}
 
-                RandomAccessFile raf;
-                try {
-                    raf = new RandomAccessFile(resource, "r");
-                } catch (FileNotFoundException fnfe) {
-                    sendError(ctx, NOT_FOUND);
-                    return;
-                }
-                long fileLength = raf.length();
+				RandomAccessFile raf;
+				try {
+					raf = new RandomAccessFile(resource, "r");
+				} catch (FileNotFoundException fnfe) {
+					sendError(ctx, NOT_FOUND);
+					return;
+				}
+				long fileLength = raf.length();
 
-                setContentLength(res, fileLength);
-                setContentTypeHeader(res, resource);
-                setDateAndCacheHeaders(res, resource);
-                writeContent(raf, fileLength, ctx.channel());
-                return;
-            }
-        }
-        // TODO Auto-generated method stub
-        super.write(ctx, msg, promise);
-    }
+				setContentLength(res, fileLength);
+				setContentTypeHeader(res, resource);
+				setDateAndCacheHeaders(res, resource);
+				// write the response header
+				ctx.write(res);
+				// write the content to the channel
+				ChannelFuture writeFuture = writeContent(raf, fileLength, ctx.channel());
+				// close the request channel
+				writeFuture.addListener(ChannelFutureListener.CLOSE);
 
+				return;
+			}
+		}
+		super.channelRead(ctx, msg);
+	}
+	
     private boolean isNotModified(HttpRequest request, File file) throws ParseException {
         String ifModifiedSince = request.headers().get(HttpHeaders.Names.IF_MODIFIED_SINCE);
         if (ifModifiedSince != null && !ifModifiedSince.equals("")) {
@@ -157,7 +160,7 @@ public class ResourceHandler extends ChannelOutboundHandlerAdapter {
         HttpHeaders.setHeader(response, HttpHeaders.Names.DATE, dateFormatter.format(time.getTime()));
     }
 
-    private void writeContent(RandomAccessFile raf, long fileLength, Channel ch) throws IOException {
+    private ChannelFuture writeContent(RandomAccessFile raf, long fileLength, Channel ch) throws IOException {
         ChannelFuture writeFuture;
         if (ch.pipeline().get(SslHandler.class) != null) {
             // Cannot use zero-copy with HTTPS.
@@ -166,15 +169,9 @@ public class ResourceHandler extends ChannelOutboundHandlerAdapter {
             // No encryption - use zero-copy.
             final FileRegion region = new DefaultFileRegion(raf.getChannel(), 0, fileLength);
             writeFuture = ch.write(region);
-            writeFuture.addListener(new ChannelFutureListener() {
-                @Override
-                public void operationComplete(ChannelFuture future) throws Exception {
-                    region.release();
-                }
-            });
         }
 
-        writeFuture.addListener(ChannelFutureListener.CLOSE);
+        return writeFuture;
     }
 
     private void sendError(ChannelHandlerContext ctx, HttpResponseStatus status) {
