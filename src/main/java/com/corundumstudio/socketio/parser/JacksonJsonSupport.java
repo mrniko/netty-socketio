@@ -38,6 +38,7 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
@@ -189,7 +190,15 @@ public class JacksonJsonSupport implements JsonSupport {
     private final AckArgsDeserializer ackArgsDeserializer = new AckArgsDeserializer();
 
     public JacksonJsonSupport(Configuration configuration) {
+        this(configuration, null);
+    }
+
+    public JacksonJsonSupport(Configuration configuration, Module... modules) {
         this.configuration = configuration;
+
+        if (modules != null && modules.length > 0) {
+            objectMapper.registerModules(modules);
+        }
         init(objectMapper);
     }
 
