@@ -22,8 +22,7 @@ import com.corundumstudio.socketio.parser.Packet;
 
 
 /**
- * SocketIO client abstraction.
- * All implementations are thread-safe.
+ * Thread-safe SocketIO client.
  *
  */
 public interface SocketIOClient extends ClientOperations {

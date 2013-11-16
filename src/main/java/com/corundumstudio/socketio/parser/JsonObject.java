@@ -15,7 +15,7 @@
  */
 package com.corundumstudio.socketio.parser;
 
-public class JsonObject {
+class JsonObject {
 
     private final Object object;
 

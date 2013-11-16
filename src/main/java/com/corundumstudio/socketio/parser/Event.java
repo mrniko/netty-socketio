@@ -17,7 +17,7 @@ package com.corundumstudio.socketio.parser;
 
 import java.util.List;
 
-public class Event {
+class Event {
 
     private String name;
     private List<?> args;
