@@ -15,6 +15,14 @@
  */
 package com.corundumstudio.socketio;
 
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.ChannelPipeline;
+import io.netty.handler.codec.http.HttpObjectAggregator;
+import io.netty.handler.codec.http.HttpRequestDecoder;
+import io.netty.handler.codec.http.HttpResponseEncoder;
+import io.netty.handler.ssl.SslHandler;
+
 import java.io.InputStream;
 import java.security.KeyStore;
 import java.security.Security;
@@ -24,14 +32,6 @@ import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelPipeline;
-import io.netty.handler.codec.http.HttpObjectAggregator;
-import io.netty.handler.codec.http.HttpRequestDecoder;
-import io.netty.handler.codec.http.HttpResponseEncoder;
-import io.netty.handler.ssl.SslHandler;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,6 +39,7 @@ import com.corundumstudio.socketio.ack.AckManager;
 import com.corundumstudio.socketio.handler.AuthorizeHandler;
 import com.corundumstudio.socketio.handler.PacketHandler;
 import com.corundumstudio.socketio.handler.ResourceHandler;
+import com.corundumstudio.socketio.handler.WrongUrlHandler;
 import com.corundumstudio.socketio.misc.CompositeIterable;
 import com.corundumstudio.socketio.misc.IterableCollection;
 import com.corundumstudio.socketio.namespace.NamespacesHub;
@@ -66,6 +67,7 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
     public static final String SSL_HANDLER = "ssl";
     public static final String FLASH_POLICY_HANDLER = "flashPolicyHandler";
     public static final String RESOURCE_HANDLER = "resourceHandler";
+    public static final String WRONG_URL_HANDLER = "wrongUrlBlocker";
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -80,6 +82,7 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
     private final FlashPolicyHandler flashPolicyHandler = new FlashPolicyHandler();
     private ResourceHandler resourceHandler;
     private SocketIOEncoder socketIOEncoder;
+    private WrongUrlHandler wrongUrlHandler;
 
     private CancelableScheduler scheduler;
 
@@ -119,6 +122,7 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
         flashSocketTransport = new FlashSocketTransport(connectPath, isSsl, ackManager, this, authorizeHandler, heartbeatHandler);
         resourceHandler = new ResourceHandler(configuration.getContext());
         socketIOEncoder = new SocketIOEncoder(encoder);
+        wrongUrlHandler = new WrongUrlHandler();
     }
 
     public Collection<SocketIOClient> getAllClients() {
@@ -159,6 +163,8 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
         pipeline.addLast(FLASH_SOCKET_TRANSPORT, flashSocketTransport);
 
         pipeline.addLast(SOCKETIO_ENCODER, socketIOEncoder);
+
+        pipeline.addLast(WRONG_URL_HANDLER, wrongUrlHandler);
     }
 
     private SSLContext createSSLContext(InputStream keyStoreFile, String keyStoreFilePassword) throws Exception {

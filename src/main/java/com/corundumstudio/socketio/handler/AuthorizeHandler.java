@@ -85,6 +85,7 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
                 ChannelFuture f = channel.write(res);
                 f.addListener(ChannelFutureListener.CLOSE);
                 req.release();
+                log.warn("Blocked wrong request! url: {}, ip: {}", queryDecoder.path(), channel.remoteAddress());
                 return;
             }
             if (queryDecoder.path().equals(connectPath)) {
