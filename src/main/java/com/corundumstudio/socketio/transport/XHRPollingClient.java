@@ -50,7 +50,8 @@ public class XHRPollingClient extends MainBaseClient {
     }
 
     public ChannelFuture send(final Packet packet) {
-        ChannelPromise promise = getChannel().newPromise();
+        Channel currChannel = getChannel();
+        ChannelPromise promise = currChannel.newPromise();
         promise.addListener(new GenericFutureListener<Future<Void>>() {
             @Override
             public void operationComplete(Future<Void> future) throws Exception {
@@ -62,7 +63,7 @@ public class XHRPollingClient extends MainBaseClient {
             }
         });
 
-        return getChannel().write(new XHRPacketMessage(getSessionId(), origin, packet), promise);
+        return currChannel.write(new XHRPacketMessage(getSessionId(), origin, packet), promise);
     }
 
 }
