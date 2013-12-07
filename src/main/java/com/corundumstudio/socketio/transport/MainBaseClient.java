@@ -25,8 +25,10 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+import com.corundumstudio.socketio.ClientStore;
 import com.corundumstudio.socketio.DisconnectableHub;
 import com.corundumstudio.socketio.SocketIOClient;
+import com.corundumstudio.socketio.StoreFactory;
 import com.corundumstudio.socketio.Transport;
 import com.corundumstudio.socketio.ack.AckManager;
 import com.corundumstudio.socketio.namespace.Namespace;
@@ -41,9 +43,10 @@ import com.corundumstudio.socketio.parser.PacketType;
  *
  *
  */
-public abstract class BaseClient {
+public abstract class MainBaseClient {
 
     private final ConcurrentMap<Namespace, SocketIOClient> namespaceClients = new ConcurrentHashMap<Namespace, SocketIOClient>();
+    private final ClientStore store;
 
     private final DisconnectableHub disconnectable;
     private final AckManager ackManager;
@@ -51,12 +54,13 @@ public abstract class BaseClient {
     private final Transport transport;
     private Channel channel;
 
-    public BaseClient(UUID sessionId, AckManager ackManager, DisconnectableHub disconnectable,
-            Transport transport) {
+    public MainBaseClient(UUID sessionId, AckManager ackManager, DisconnectableHub disconnectable,
+            Transport transport, StoreFactory storeFactory) {
         this.sessionId = sessionId;
         this.ackManager = ackManager;
         this.disconnectable = disconnectable;
         this.transport = transport;
+        this.store = storeFactory.create(sessionId);
     }
 
     public Transport getTransport() {
@@ -119,6 +123,10 @@ public abstract class BaseClient {
 
     void setChannel(Channel channel) {
         this.channel = channel;
+    }
+
+    public ClientStore getStore() {
+        return store;
     }
 
 }

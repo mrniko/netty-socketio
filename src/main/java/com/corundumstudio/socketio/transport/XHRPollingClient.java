@@ -21,18 +21,19 @@ import io.netty.channel.ChannelFuture;
 import java.util.UUID;
 
 import com.corundumstudio.socketio.DisconnectableHub;
+import com.corundumstudio.socketio.StoreFactory;
 import com.corundumstudio.socketio.Transport;
 import com.corundumstudio.socketio.ack.AckManager;
 import com.corundumstudio.socketio.messages.XHRNewChannelMessage;
 import com.corundumstudio.socketio.messages.XHRPacketMessage;
 import com.corundumstudio.socketio.parser.Packet;
 
-public class XHRPollingClient extends BaseClient {
+public class XHRPollingClient extends MainBaseClient {
 
     private String origin;
 
-    public XHRPollingClient(AckManager ackManager, DisconnectableHub disconnectable, UUID sessionId, Transport transport) {
-        super(sessionId, ackManager, disconnectable, transport);
+    public XHRPollingClient(AckManager ackManager, DisconnectableHub disconnectable, UUID sessionId, Transport transport, StoreFactory storeFactory) {
+        super(sessionId, ackManager, disconnectable, transport, storeFactory);
     }
 
     public void bindChannel(Channel channel, String origin) {

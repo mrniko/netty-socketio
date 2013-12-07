@@ -106,7 +106,7 @@ public class XHRPollingTransport extends BaseTransport {
 
             String origin = req.headers().get(HttpHeaders.Names.ORIGIN);
             if (queryDecoder.parameters().containsKey("disconnect")) {
-                BaseClient client = sessionId2Client.get(sessionId);
+                MainBaseClient client = sessionId2Client.get(sessionId);
                 client.onChannelDisconnect();
                 ctx.channel().write(new XHROutMessage(origin, sessionId));
             } else if (HttpMethod.POST.equals(req.getMethod())) {
@@ -188,7 +188,7 @@ public class XHRPollingTransport extends BaseTransport {
     }
 
     private XHRPollingClient createClient(String origin, Channel channel, UUID sessionId) {
-        XHRPollingClient client = new XHRPollingClient(ackManager, disconnectable, sessionId, Transport.XHRPOLLING);
+        XHRPollingClient client = new XHRPollingClient(ackManager, disconnectable, sessionId, Transport.XHRPOLLING, configuration.getClientStoreFactory());
 
         sessionId2Client.put(sessionId, client);
         client.bindChannel(channel, origin);
@@ -207,7 +207,7 @@ public class XHRPollingTransport extends BaseTransport {
     }
 
     @Override
-    public void onDisconnect(BaseClient client) {
+    public void onDisconnect(MainBaseClient client) {
         if (client instanceof XHRPollingClient) {
             UUID sessionId = client.getSessionId();
 

@@ -42,6 +42,7 @@ import com.corundumstudio.socketio.DisconnectableHub;
 import com.corundumstudio.socketio.HeartbeatHandler;
 import com.corundumstudio.socketio.SocketIOClient;
 import com.corundumstudio.socketio.SocketIOChannelInitializer;
+import com.corundumstudio.socketio.StoreFactory;
 import com.corundumstudio.socketio.Transport;
 import com.corundumstudio.socketio.ack.AckManager;
 import com.corundumstudio.socketio.handler.AuthorizeHandler;
@@ -61,18 +62,21 @@ public class WebSocketTransport extends BaseTransport {
     private final HeartbeatHandler heartbeatHandler;
     private final AuthorizeHandler authorizeHandler;
     private final DisconnectableHub disconnectableHub;
+    private final StoreFactory storeFactory;
+
     private final boolean isSsl;
     protected String path;
 
 
     public WebSocketTransport(String connectPath, boolean isSsl, AckManager ackManager, DisconnectableHub disconnectable,
-            AuthorizeHandler authorizeHandler, HeartbeatHandler heartbeatHandler) {
+            AuthorizeHandler authorizeHandler, HeartbeatHandler heartbeatHandler, StoreFactory storeFactory) {
         this.path = connectPath + NAME;
         this.isSsl = isSsl;
         this.authorizeHandler = authorizeHandler;
         this.ackManager = ackManager;
         this.disconnectableHub = disconnectable;
         this.heartbeatHandler = heartbeatHandler;
+        this.storeFactory = storeFactory;
     }
 
     @Override
@@ -158,7 +162,7 @@ public class WebSocketTransport extends BaseTransport {
             return;
         }
 
-        WebSocketClient client = new WebSocketClient(channel, ackManager, disconnectableHub, sessionId, getTransport());
+        WebSocketClient client = new WebSocketClient(channel, ackManager, disconnectableHub, sessionId, getTransport(), storeFactory);
 
         channelId2Client.put(channel, client);
         sessionId2Client.put(sessionId, client);
@@ -185,7 +189,7 @@ public class WebSocketTransport extends BaseTransport {
     }
 
     @Override
-    public void onDisconnect(BaseClient client) {
+    public void onDisconnect(MainBaseClient client) {
         if (client instanceof WebSocketClient) {
             WebSocketClient webClient = (WebSocketClient) client;
             sessionId2Client.remove(webClient.getSessionId());

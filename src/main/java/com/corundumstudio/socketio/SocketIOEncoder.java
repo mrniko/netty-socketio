@@ -60,7 +60,7 @@ import com.corundumstudio.socketio.messages.XHROutMessage;
 import com.corundumstudio.socketio.messages.XHRPacketMessage;
 import com.corundumstudio.socketio.parser.Encoder;
 import com.corundumstudio.socketio.parser.Packet;
-import com.corundumstudio.socketio.transport.BaseClient;
+import com.corundumstudio.socketio.transport.MainBaseClient;
 
 @Sharable
 public class SocketIOEncoder extends ChannelOutboundHandlerAdapter implements Disconnectable {
@@ -229,7 +229,7 @@ public class SocketIOEncoder extends ChannelOutboundHandlerAdapter implements Di
     }
 
     @Override
-    public void onDisconnect(BaseClient client) {
+    public void onDisconnect(MainBaseClient client) {
         sessionId2ActiveChannelId.remove(client.getSessionId());
     }
 

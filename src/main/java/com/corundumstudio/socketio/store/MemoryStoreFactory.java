@@ -13,28 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.corundumstudio.socketio.messages;
+package com.corundumstudio.socketio.store;
 
-import io.netty.buffer.ByteBuf;
+import java.util.UUID;
 
+import com.corundumstudio.socketio.ClientStore;
+import com.corundumstudio.socketio.Disconnectable;
+import com.corundumstudio.socketio.StoreFactory;
 import com.corundumstudio.socketio.transport.MainBaseClient;
 
-public class PacketsMessage {
+public class MemoryStoreFactory implements StoreFactory, Disconnectable {
 
-    private final MainBaseClient client;
-    private final ByteBuf content;
-
-    public PacketsMessage(MainBaseClient client, ByteBuf content) {
-        this.client = client;
-        this.content = content;
+    @Override
+    public ClientStore create(UUID sessionId) {
+        return new MemoryStore();
     }
 
-    public MainBaseClient getClient() {
-        return client;
-    }
-
-    public ByteBuf getContent() {
-        return content;
+    @Override
+    public void onDisconnect(MainBaseClient client) {
+        // do nothing
     }
 
 }

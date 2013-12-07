@@ -51,7 +51,7 @@ import com.corundumstudio.socketio.parser.PacketType;
 import com.corundumstudio.socketio.scheduler.CancelableScheduler;
 import com.corundumstudio.socketio.scheduler.SchedulerKey;
 import com.corundumstudio.socketio.scheduler.SchedulerKey.Type;
-import com.corundumstudio.socketio.transport.BaseClient;
+import com.corundumstudio.socketio.transport.MainBaseClient;
 
 @Sharable
 public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Disconnectable {
@@ -142,7 +142,7 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
         return authorizedSessionIds.contains(sessionId);
     }
 
-    public void connect(BaseClient client) {
+    public void connect(MainBaseClient client) {
         SchedulerKey key = new SchedulerKey(Type.AUTHORIZE, client.getSessionId());
         disconnectScheduler.cancel(key);
         client.send(new Packet(PacketType.CONNECT));
@@ -153,7 +153,7 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
     }
 
     @Override
-    public void onDisconnect(BaseClient client) {
+    public void onDisconnect(MainBaseClient client) {
         authorizedSessionIds.remove(client.getSessionId());
     }
 

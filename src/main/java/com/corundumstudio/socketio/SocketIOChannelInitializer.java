@@ -47,9 +47,9 @@ import com.corundumstudio.socketio.parser.Decoder;
 import com.corundumstudio.socketio.parser.Encoder;
 import com.corundumstudio.socketio.parser.JsonSupport;
 import com.corundumstudio.socketio.scheduler.CancelableScheduler;
-import com.corundumstudio.socketio.transport.BaseClient;
 import com.corundumstudio.socketio.transport.FlashPolicyHandler;
 import com.corundumstudio.socketio.transport.FlashSocketTransport;
+import com.corundumstudio.socketio.transport.MainBaseClient;
 import com.corundumstudio.socketio.transport.WebSocketTransport;
 import com.corundumstudio.socketio.transport.XHRPollingTransport;
 
@@ -117,9 +117,11 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
 
         packetHandler = new PacketHandler(packetListener, decoder, namespacesHub);
         authorizeHandler = new AuthorizeHandler(connectPath, scheduler, configuration, namespacesHub);
+
         xhrPollingTransport = new XHRPollingTransport(connectPath, ackManager, this, scheduler, authorizeHandler, configuration);
-        webSocketTransport = new WebSocketTransport(connectPath, isSsl, ackManager, this, authorizeHandler, heartbeatHandler);
-        flashSocketTransport = new FlashSocketTransport(connectPath, isSsl, ackManager, this, authorizeHandler, heartbeatHandler);
+        webSocketTransport = new WebSocketTransport(connectPath, isSsl, ackManager, this, authorizeHandler, heartbeatHandler, configuration.getClientStoreFactory());
+        flashSocketTransport = new FlashSocketTransport(connectPath, isSsl, ackManager, this, authorizeHandler, heartbeatHandler, configuration.getClientStoreFactory());
+
         resourceHandler = new ResourceHandler(configuration.getContext());
         socketIOEncoder = new SocketIOEncoder(encoder);
         wrongUrlHandler = new WrongUrlHandler();
@@ -184,7 +186,7 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
         return serverContext;
     }
 
-    public void onDisconnect(BaseClient client) {
+    public void onDisconnect(MainBaseClient client) {
         heartbeatHandler.onDisconnect(client);
         ackManager.onDisconnect(client);
         xhrPollingTransport.onDisconnect(client);

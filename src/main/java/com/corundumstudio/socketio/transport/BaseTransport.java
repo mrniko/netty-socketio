@@ -27,9 +27,9 @@ import com.corundumstudio.socketio.misc.CompositeIterable;
 
 public abstract class BaseTransport extends ChannelInboundHandlerAdapter implements Disconnectable {
 
-    protected Iterable<SocketIOClient> getAllClients(Collection<? extends BaseClient> clients) {
+    protected Iterable<SocketIOClient> getAllClients(Collection<? extends MainBaseClient> clients) {
         List<Iterable<SocketIOClient>> allClients = new ArrayList<Iterable<SocketIOClient>>(clients.size());
-        for (BaseClient client : clients) {
+        for (MainBaseClient client : clients) {
             allClients.add(client.getAllChildClients());
         }
         return new CompositeIterable<SocketIOClient>(allClients);

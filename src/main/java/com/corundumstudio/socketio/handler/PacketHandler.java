@@ -30,7 +30,7 @@ import com.corundumstudio.socketio.namespace.Namespace;
 import com.corundumstudio.socketio.namespace.NamespacesHub;
 import com.corundumstudio.socketio.parser.Decoder;
 import com.corundumstudio.socketio.parser.Packet;
-import com.corundumstudio.socketio.transport.BaseClient;
+import com.corundumstudio.socketio.transport.MainBaseClient;
 import com.corundumstudio.socketio.transport.NamespaceClient;
 
 @Sharable
@@ -53,7 +53,7 @@ public class PacketHandler extends SimpleChannelInboundHandler<PacketsMessage> {
     protected void channelRead0(io.netty.channel.ChannelHandlerContext ctx, PacketsMessage message)
                 throws Exception {
         ByteBuf content = message.getContent();
-        BaseClient client = message.getClient();
+        MainBaseClient client = message.getClient();
 
         if (log.isTraceEnabled()) {
             log.trace("In message: {} sessionId: {}", content.toString(CharsetUtil.UTF_8), client.getSessionId());

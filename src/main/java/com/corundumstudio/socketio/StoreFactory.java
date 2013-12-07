@@ -13,28 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.corundumstudio.socketio.messages;
+package com.corundumstudio.socketio;
 
-import io.netty.buffer.ByteBuf;
+import java.util.UUID;
 
-import com.corundumstudio.socketio.transport.MainBaseClient;
+public interface StoreFactory {
 
-public class PacketsMessage {
-
-    private final MainBaseClient client;
-    private final ByteBuf content;
-
-    public PacketsMessage(MainBaseClient client, ByteBuf content) {
-        this.client = client;
-        this.content = content;
-    }
-
-    public MainBaseClient getClient() {
-        return client;
-    }
-
-    public ByteBuf getContent() {
-        return content;
-    }
+    ClientStore create(UUID sessionId);
 
 }

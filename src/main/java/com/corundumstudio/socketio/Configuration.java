@@ -21,6 +21,7 @@ import java.io.InputStream;
 
 import com.corundumstudio.socketio.parser.JacksonJsonSupport;
 import com.corundumstudio.socketio.parser.JsonSupport;
+import com.corundumstudio.socketio.store.MemoryStoreFactory;
 
 public class Configuration {
 
@@ -51,6 +52,8 @@ public class Configuration {
     private String keyStorePassword;
 
     private boolean preferDirectBuffer = true;
+
+    private StoreFactory clientStoreFactory = new MemoryStoreFactory();
 
     private JsonSupport jsonSupport = new JacksonJsonSupport(this);
 
@@ -89,6 +92,7 @@ public class Configuration {
         setPackagePrefix(conf.getPackagePrefix());
 
         setPreferDirectBuffer(conf.isPreferDirectBuffer());
+        setClientStoreFactory(conf.getClientStoreFactory());
     }
 
     private String join(Transport[] transports) {
@@ -340,5 +344,22 @@ public class Configuration {
     public boolean isPreferDirectBuffer() {
         return preferDirectBuffer;
     }
+
+    /**
+     * Client data store aka session store.
+     * Default is {@code MemoryStoreFactory}
+     *
+     * @param clientStoreFactory - implements StoreFactory
+     *
+     * @see com.corundumstudio.socketio.store.MemoryStoreFactory
+     * @see com.corundumstudio.socketio.store.RedisStoreFactory
+     */
+    public void setClientStoreFactory(StoreFactory clientStoreFactory) {
+        this.clientStoreFactory = clientStoreFactory;
+    }
+    public StoreFactory getClientStoreFactory() {
+        return clientStoreFactory;
+    }
+
 
 }

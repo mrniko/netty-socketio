@@ -48,7 +48,7 @@ import com.corundumstudio.socketio.parser.JacksonJsonSupport;
 import com.corundumstudio.socketio.parser.JsonSupport;
 import com.corundumstudio.socketio.parser.Packet;
 import com.corundumstudio.socketio.parser.PacketType;
-import com.corundumstudio.socketio.transport.BaseClient;
+import com.corundumstudio.socketio.transport.MainBaseClient;
 
 public class PacketHandlerTest {
 
@@ -59,7 +59,7 @@ public class PacketHandlerTest {
     @Mocked
     private Channel channel;
     @Mocked
-    private BaseClient client;
+    private MainBaseClient client;
     private final AtomicInteger invocations = new AtomicInteger();
 
     @Before

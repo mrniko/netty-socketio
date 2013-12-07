@@ -28,16 +28,16 @@ import com.corundumstudio.socketio.parser.PacketType;
 
 public class NamespaceClient implements SocketIOClient {
 
-    private final BaseClient baseClient;
+    private final MainBaseClient baseClient;
     private final Namespace namespace;
 
-    public NamespaceClient(BaseClient baseClient, Namespace namespace) {
+    public NamespaceClient(MainBaseClient baseClient, Namespace namespace) {
         this.baseClient = baseClient;
         this.namespace = namespace;
         namespace.addClient(this);
     }
 
-    public BaseClient getBaseClient() {
+    public MainBaseClient getBaseClient() {
         return baseClient;
     }
 
@@ -177,6 +177,26 @@ public class NamespaceClient implements SocketIOClient {
     @Override
     public <T> void leaveRoom(T roomKey) {
         namespace.leaveRoom(roomKey, this);
+    }
+
+    @Override
+    public void set(String key, String val) {
+        baseClient.getStore().set(key, val);
+    }
+
+    @Override
+    public String get(String key) {
+        return baseClient.getStore().get(key);
+    }
+
+    @Override
+    public boolean has(String key) {
+        return baseClient.getStore().has(key);
+    }
+
+    @Override
+    public void del(String key) {
+        baseClient.getStore().del(key);
     }
 
 }
