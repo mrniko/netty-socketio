@@ -31,7 +31,6 @@ import com.corundumstudio.socketio.ack.AckManager;
 import com.corundumstudio.socketio.messages.XHRNewChannelMessage;
 import com.corundumstudio.socketio.messages.XHRPacketMessage;
 import com.corundumstudio.socketio.parser.Packet;
-import com.corundumstudio.socketio.parser.PacketType;
 
 public class XHRPollingClient extends MainBaseClient {
 
@@ -56,25 +55,23 @@ public class XHRPollingClient extends MainBaseClient {
     public ChannelFuture send(final Packet packet) {
         final Channel currChannel = getChannel();
         ChannelFuture res = currChannel.write(new XHRPacketMessage(getSessionId(), origin, packet));
-        if (!packet.getType().equals(PacketType.NOOP)) {
-            res.addListener(new GenericFutureListener<Future<Void>>() {
-                @Override
-                public void operationComplete(Future<Void> future) throws Exception {
-                    if (future.isSuccess()) {
-                        return;
-                    }
-
-                    // channel could be closed because new channel was bound
-                    // so we need to resend packet
-                    if (!getChannel().equals(currChannel)) {
-                        send(packet);
-                        sendPackets();
-                    } else {
-                        packetQueue.add(packet);
-                    }
+        res.addListener(new GenericFutureListener<Future<Void>>() {
+            @Override
+            public void operationComplete(Future<Void> future) throws Exception {
+                if (future.isSuccess()) {
+                    return;
                 }
-            });
-        }
+
+                // channel could be closed because new channel was bound
+                // so we need to resend packet
+                if (!getChannel().equals(currChannel)) {
+                    send(packet);
+                    sendPackets();
+                } else {
+                    packetQueue.add(packet);
+                }
+            }
+        });
 
         return res;
     }
