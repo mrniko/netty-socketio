@@ -17,6 +17,9 @@ package com.corundumstudio.socketio.transport;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelPromise;
+import io.netty.util.concurrent.Future;
+import io.netty.util.concurrent.GenericFutureListener;
 
 import java.util.UUID;
 
@@ -46,8 +49,20 @@ public class XHRPollingClient extends MainBaseClient {
         return origin;
     }
 
-    public ChannelFuture send(Packet packet) {
-        return getChannel().write(new XHRPacketMessage(getSessionId(), origin, packet));
+    public ChannelFuture send(final Packet packet) {
+        ChannelPromise promise = getChannel().newPromise();
+        promise.addListener(new GenericFutureListener<Future<Void>>() {
+            @Override
+            public void operationComplete(Future<Void> future) throws Exception {
+                // channel could be closed because new channel was bound
+                // so we need to resend packet
+                if (!future.isSuccess()) {
+                    send(packet);
+                }
+            }
+        });
+
+        return getChannel().write(new XHRPacketMessage(getSessionId(), origin, packet), promise);
     }
 
 }

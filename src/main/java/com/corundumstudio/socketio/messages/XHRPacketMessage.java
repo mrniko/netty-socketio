@@ -32,4 +32,9 @@ public class XHRPacketMessage extends HttpMessage {
         return packet;
     }
 
+    @Override
+    public String toString() {
+        return "XHRPacketMessage [packet=" + packet + "]";
+    }
+
 }

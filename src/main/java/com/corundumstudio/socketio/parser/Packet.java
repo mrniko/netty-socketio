@@ -150,4 +150,9 @@ public class Packet {
         return getId() != null && (isEventAck() || isJsonAck());
     }
 
+    @Override
+    public String toString() {
+        return "Packet [type=" + type + ", args=" + args + ", id=" + id + "]";
+    }
+
 }
