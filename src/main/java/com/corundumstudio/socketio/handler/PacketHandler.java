@@ -62,6 +62,10 @@ public class PacketHandler extends SimpleChannelInboundHandler<PacketsMessage> {
             try {
                 Packet packet = decoder.decodePackets(content, client.getSessionId());
                 Namespace ns = namespacesHub.get(packet.getEndpoint());
+                if (ns == null) {
+                    log.warn("Can't find namespace for endpoint: {} probably it was removed.", packet.getEndpoint());
+                    return;
+                }
 
                 NamespaceClient nClient = (NamespaceClient) client.getChildClient(ns);
                 packetListener.onPacket(packet, nClient);
