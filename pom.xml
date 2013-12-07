@@ -109,7 +109,7 @@
   <dependency>
       <groupId>io.netty</groupId>
       <artifactId>netty-all</artifactId>
-      <version>4.0.11.Final</version>
+      <version>4.0.13.Final</version>
   </dependency>
   <dependency>
       <groupId>org.slf4j</groupId>
@@ -126,11 +126,6 @@
   	<artifactId>jackson-databind</artifactId>
   	<version>2.2.3</version>
   </dependency>
-  <dependency>
-		<groupId>javax.activation</groupId>
-		<artifactId>activation</artifactId>
-		<version>1.1-rev-1</version>
-	</dependency>
  </dependencies>
 
 
