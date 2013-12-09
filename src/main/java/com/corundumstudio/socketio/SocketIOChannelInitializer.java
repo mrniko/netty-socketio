@@ -193,7 +193,6 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
         webSocketTransport.onDisconnect(client);
         flashSocketTransport.onDisconnect(client);
         authorizeHandler.onDisconnect(client);
-        socketIOEncoder.onDisconnect(client);
         log.debug("Client with sessionId: {} disconnected", client.getSessionId());
     }
 

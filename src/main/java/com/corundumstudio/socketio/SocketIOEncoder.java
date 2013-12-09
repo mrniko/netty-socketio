@@ -36,15 +36,11 @@ import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.LastHttpContent;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketFrame;
+import io.netty.util.Attribute;
+import io.netty.util.AttributeKey;
 import io.netty.util.CharsetUtil;
 
 import java.io.IOException;
-import java.util.Queue;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.atomic.AtomicReference;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,81 +51,37 @@ import com.corundumstudio.socketio.messages.HttpMessage;
 import com.corundumstudio.socketio.messages.WebSocketPacketMessage;
 import com.corundumstudio.socketio.messages.WebsocketErrorMessage;
 import com.corundumstudio.socketio.messages.XHRErrorMessage;
-import com.corundumstudio.socketio.messages.XHRNewChannelMessage;
 import com.corundumstudio.socketio.messages.XHROutMessage;
-import com.corundumstudio.socketio.messages.XHRPacketMessage;
+import com.corundumstudio.socketio.messages.XHRSendPacketsMessage;
 import com.corundumstudio.socketio.parser.Encoder;
-import com.corundumstudio.socketio.parser.Packet;
 import com.corundumstudio.socketio.transport.MainBaseClient;
 
 @Sharable
-public class SocketIOEncoder extends ChannelOutboundHandlerAdapter implements Disconnectable {
+public class SocketIOEncoder extends ChannelOutboundHandlerAdapter {
 
-    class XHRClientEntry {
-
-        // works faster than locking
-        final AtomicReference<Channel> lastChannel = new AtomicReference<Channel>();
-        final Queue<Packet> packets = new ConcurrentLinkedQueue<Packet>();
-
-        public void addPacket(Packet packet) {
-            packets.add(packet);
-        }
-
-        public Queue<Packet> getPackets() {
-            return packets;
-        }
-
-        /**
-         * We can write to channel only once.
-         *
-         * @param channel
-         * @return true - can write
-         */
-        public boolean writeOnce(Channel channel) {
-            Channel prevVal = lastChannel.get();
-            return !channel.equals(prevVal)
-                            && lastChannel.compareAndSet(prevVal, channel);
-        }
-
-    }
+    private static final AttributeKey<Boolean> WRITE_ONCE = AttributeKey.<Boolean>valueOf("writeOnce");
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private final ConcurrentMap<UUID, XHRClientEntry> sessionId2ActiveChannelId = new ConcurrentHashMap<UUID, XHRClientEntry>();
     private final Encoder encoder;
 
     public SocketIOEncoder(Encoder encoder) {
         this.encoder = encoder;
     }
 
-    private XHRClientEntry getXHRClientEntry(UUID sessionId) {
-        XHRClientEntry clientEntry = sessionId2ActiveChannelId.get(sessionId);
-        if (clientEntry == null) {
-            clientEntry = new XHRClientEntry();
-            XHRClientEntry old = sessionId2ActiveChannelId.putIfAbsent(sessionId, clientEntry);
-            if (old != null) {
-                clientEntry = old;
-            }
-        }
-        return clientEntry;
-    }
-
-    private void write(HttpMessage xhrMessage, Packet packet,
-            ChannelHandlerContext ctx, ByteBuf out) throws IOException {
-        XHRClientEntry clientEntry = getXHRClientEntry(xhrMessage.getSessionId());
-        if (packet != null) {
-            clientEntry.addPacket(packet);
-        }
-
+    private void write(XHRSendPacketsMessage msg, ChannelHandlerContext ctx, ByteBuf out) throws IOException {
         Channel channel = ctx.channel();
-        if (!channel.isActive() || clientEntry.getPackets().isEmpty()
-                    || !clientEntry.writeOnce(channel)) {
+        Attribute<Boolean> attr = channel.attr(WRITE_ONCE);
+
+        if (!channel.isActive()
+                || msg.getPacketQueue().isEmpty()
+                    || !attr.compareAndSet(null, true)) {
             out.release();
             return;
         }
 
-        encoder.encodePackets(clientEntry.getPackets(), out, ctx.alloc());
-        sendMessage(xhrMessage, channel, out);
+        encoder.encodePackets(msg.getPacketQueue(), out, ctx.alloc());
+        sendMessage(msg, channel, out);
     }
 
     private void sendMessage(HttpMessage msg, Channel channel, ByteBuf out) {
@@ -177,12 +129,8 @@ public class SocketIOEncoder extends ChannelOutboundHandlerAdapter implements Di
             handle((AuthorizeMessage) msg, ctx.channel(), out);
         }
 
-        if (msg instanceof XHRNewChannelMessage) {
-            write((XHRNewChannelMessage) msg, null, ctx, out);
-        }
-        if (msg instanceof XHRPacketMessage) {
-            XHRPacketMessage m = (XHRPacketMessage) msg;
-            write(m, m.getPacket(), ctx, out);
+        if (msg instanceof XHRSendPacketsMessage) {
+            write((XHRSendPacketsMessage) msg, ctx, out);
         }
         if (msg instanceof XHROutMessage) {
             sendMessage((XHROutMessage) msg, ctx.channel(), out);
@@ -226,11 +174,6 @@ public class SocketIOEncoder extends ChannelOutboundHandlerAdapter implements Di
         encoder.encodePacket(websocketErrorMessage.getPacket(), out);
         TextWebSocketFrame frame = new TextWebSocketFrame(out);
         channel.writeAndFlush(frame);
-    }
-
-    @Override
-    public void onDisconnect(MainBaseClient client) {
-        sessionId2ActiveChannelId.remove(client.getSessionId());
     }
 
 }

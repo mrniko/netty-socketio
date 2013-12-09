@@ -17,8 +17,6 @@ package com.corundumstudio.socketio.transport;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
-import io.netty.util.concurrent.Future;
-import io.netty.util.concurrent.GenericFutureListener;
 
 import java.util.Queue;
 import java.util.UUID;
@@ -28,8 +26,7 @@ import com.corundumstudio.socketio.DisconnectableHub;
 import com.corundumstudio.socketio.StoreFactory;
 import com.corundumstudio.socketio.Transport;
 import com.corundumstudio.socketio.ack.AckManager;
-import com.corundumstudio.socketio.messages.XHRNewChannelMessage;
-import com.corundumstudio.socketio.messages.XHRPacketMessage;
+import com.corundumstudio.socketio.messages.XHRSendPacketsMessage;
 import com.corundumstudio.socketio.parser.Packet;
 
 public class XHRPollingClient extends MainBaseClient {
@@ -44,8 +41,7 @@ public class XHRPollingClient extends MainBaseClient {
     public void bindChannel(Channel channel, String origin) {
         this.origin = origin;
         setChannel(channel);
-        sendPackets();
-        channel.write(new XHRNewChannelMessage(origin, getSessionId()));
+        channel.write(new XHRSendPacketsMessage(getSessionId(), origin, packetQueue));
     }
 
     public String getOrigin() {
@@ -53,36 +49,8 @@ public class XHRPollingClient extends MainBaseClient {
     }
 
     public ChannelFuture send(final Packet packet) {
-        final Channel currChannel = getChannel();
-        ChannelFuture res = currChannel.write(new XHRPacketMessage(getSessionId(), origin, packet));
-        res.addListener(new GenericFutureListener<Future<Void>>() {
-            @Override
-            public void operationComplete(Future<Void> future) throws Exception {
-                if (future.isSuccess()) {
-                    return;
-                }
-
-                // channel could be closed because new channel was bound
-                // so we need to resend packet
-                if (!getChannel().equals(currChannel)) {
-                    send(packet);
-                    sendPackets();
-                } else {
-                    packetQueue.add(packet);
-                }
-            }
-        });
-
-        return res;
+        packetQueue.add(packet);
+        return getChannel().write(new XHRSendPacketsMessage(getSessionId(), origin, packetQueue));
     }
 
-    private void sendPackets() {
-        while (true) {
-            Packet p = packetQueue.poll();
-            if (p == null) {
-                break;
-            }
-            send(p);
-        }
-    }
 }
