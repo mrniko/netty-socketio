@@ -6,6 +6,7 @@ Checkout [Demo project](https://github.com/mrniko/netty-socketio-demo)
 
 Licensed under the Apache License 2.0.
 
+
 Features
 ================================
 * Supports 0.7+ version of [Socket.IO-client](https://github.com/LearnBoost/socket.io-client) up to latest - 0.9.11
@@ -19,6 +20,13 @@ Features
 * Lock-free implementation
 * Declarative handler configuration via annotations
 
+
+Performance
+================================
+
+CentOS, 1 CPU, 4GB RAM runned on VM (based on customer report, tested in 2012): 
+
+CPU 10%, Memory 15% - 6000 xhr-long polling sessions, 15000 websockets sessions, 4000 messages per sec
 
 Recent Releases
 ================================
@@ -61,7 +69,7 @@ Include the following to your dependency list:
     <dependency>
      <groupId>com.corundumstudio.socketio</groupId>
      <artifactId>netty-socketio</artifactId>
-     <version>1.5.2</version>
+     <version>1.5.4</version>
     </dependency>
 
 
