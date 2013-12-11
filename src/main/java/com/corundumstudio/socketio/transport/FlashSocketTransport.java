@@ -19,12 +19,12 @@ import io.netty.channel.ChannelPipeline;
 import io.netty.channel.ChannelHandler.Sharable;
 
 import com.corundumstudio.socketio.DisconnectableHub;
-import com.corundumstudio.socketio.HeartbeatHandler;
 import com.corundumstudio.socketio.SocketIOChannelInitializer;
 import com.corundumstudio.socketio.StoreFactory;
 import com.corundumstudio.socketio.Transport;
 import com.corundumstudio.socketio.ack.AckManager;
 import com.corundumstudio.socketio.handler.AuthorizeHandler;
+import com.corundumstudio.socketio.handler.HeartbeatHandler;
 
 @Sharable
 public class FlashSocketTransport extends WebSocketTransport {

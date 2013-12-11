@@ -17,20 +17,25 @@ package com.corundumstudio.socketio.store;
 
 import java.util.UUID;
 
-import com.corundumstudio.socketio.ClientStore;
-import com.corundumstudio.socketio.Disconnectable;
+import com.corundumstudio.socketio.Store;
 import com.corundumstudio.socketio.StoreFactory;
+import com.corundumstudio.socketio.parser.JsonSupport;
 import com.corundumstudio.socketio.transport.MainBaseClient;
 
-public class MemoryStoreFactory implements StoreFactory, Disconnectable {
+public class MemoryStoreFactory implements StoreFactory {
 
     @Override
-    public ClientStore create(UUID sessionId) {
+    public Store create(UUID sessionId) {
         return new MemoryStore();
     }
 
     @Override
     public void onDisconnect(MainBaseClient client) {
+        // do nothing
+    }
+
+    @Override
+    public void setJsonSupport(JsonSupport jsonSupport) {
         // do nothing
     }
 

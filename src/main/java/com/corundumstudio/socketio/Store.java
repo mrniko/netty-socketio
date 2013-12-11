@@ -13,24 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.corundumstudio.socketio.messages;
+package com.corundumstudio.socketio;
 
-import java.util.Queue;
-import java.util.UUID;
 
-import com.corundumstudio.socketio.parser.Packet;
+public interface Store {
 
-public class XHRSendPacketsMessage extends HttpMessage {
+    void set(String key, String val);
 
-    private final Queue<Packet> packetQueue;
+    String get(String key);
 
-    public XHRSendPacketsMessage(UUID sessionId, String origin, Queue<Packet> packetQueue) {
-        super(origin, sessionId);
-        this.packetQueue = packetQueue;
-    }
+    boolean has(String key);
 
-    public Queue<Packet> getPacketQueue() {
-        return packetQueue;
-    }
+    void del(String key);
 
 }

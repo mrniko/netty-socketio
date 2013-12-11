@@ -36,6 +36,8 @@ public interface JsonSupport {
 
     String writeValueAsString(Object value) throws IOException;
 
+    <T> T readValue(String src, Class<T> valueType) throws IOException;
+
     void addEventMapping(String eventName, Class<?> eventClass);
 
     void addJsonClass(Class<?> clazz);

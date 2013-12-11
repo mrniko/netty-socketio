@@ -25,7 +25,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import com.corundumstudio.socketio.ClientStore;
+import com.corundumstudio.socketio.Store;
 import com.corundumstudio.socketio.DisconnectableHub;
 import com.corundumstudio.socketio.SocketIOClient;
 import com.corundumstudio.socketio.StoreFactory;
@@ -46,7 +46,7 @@ import com.corundumstudio.socketio.parser.PacketType;
 public abstract class MainBaseClient {
 
     private final ConcurrentMap<Namespace, SocketIOClient> namespaceClients = new ConcurrentHashMap<Namespace, SocketIOClient>();
-    private final ClientStore store;
+    private final Store store;
 
     private final DisconnectableHub disconnectable;
     private final AckManager ackManager;
@@ -125,7 +125,7 @@ public abstract class MainBaseClient {
         this.channel = channel;
     }
 
-    public ClientStore getStore() {
+    public Store getStore() {
         return store;
     }
 

@@ -98,6 +98,11 @@ class JsonSupportWrapper implements JsonSupport {
         delegate.removeEventMapping(eventName);
     }
 
+    @Override
+    public <T> T readValue(String src, Class<T> valueType) throws IOException {
+        return delegate.readValue(src, valueType);
+    }
+
 
 
 }

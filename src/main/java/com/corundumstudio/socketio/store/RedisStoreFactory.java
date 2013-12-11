@@ -19,31 +19,42 @@ import java.util.UUID;
 
 import redis.clients.jedis.Jedis;
 
-import com.corundumstudio.socketio.ClientStore;
-import com.corundumstudio.socketio.Disconnectable;
+import com.corundumstudio.socketio.Store;
 import com.corundumstudio.socketio.StoreFactory;
+import com.corundumstudio.socketio.parser.JsonSupport;
 import com.corundumstudio.socketio.transport.MainBaseClient;
 
-public class RedisStoreFactory implements StoreFactory, Disconnectable {
+public class RedisStoreFactory implements StoreFactory {
 
-    private final Jedis jedis;
+    private final Jedis redisClient;
+    private final Jedis redisPub;
+    private final Jedis redisSub;
+    private final Long nodeId = (long) (Math.random() * 1000000);
 
-    public RedisStoreFactory(String host) {
-        this.jedis = new Jedis(host);
+    private JsonSupport jsonSupport;
+
+    public RedisStoreFactory(Jedis redisClient, Jedis redisPub, Jedis redisSub) {
+        this.redisClient = redisClient;
+        this.redisPub = redisPub;
+        this.redisSub = redisSub;
     }
 
-    public RedisStoreFactory(Jedis jedis) {
-        this.jedis = jedis;
+    public void setJsonSupport(JsonSupport jsonSupport) {
+        this.jsonSupport = jsonSupport;
     }
 
     @Override
-    public ClientStore create(UUID sessionId) {
-        return new RedisStore(sessionId, jedis);
+    public Store create(UUID sessionId) {
+        RedisStore store = new RedisStore(sessionId, nodeId, jsonSupport);
+        store.setClient(redisClient);
+        store.setPub(redisPub);
+        store.setSub(redisSub);
+        return store;
     }
 
     @Override
     public void onDisconnect(MainBaseClient client) {
-        jedis.del(client.getSessionId().toString());
+        redisClient.del(client.getSessionId().toString());
     }
 
 }

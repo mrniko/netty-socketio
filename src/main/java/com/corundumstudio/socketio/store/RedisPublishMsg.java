@@ -13,24 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.corundumstudio.socketio.messages;
+package com.corundumstudio.socketio.store;
 
-import java.util.Queue;
-import java.util.UUID;
+import java.util.List;
 
-import com.corundumstudio.socketio.parser.Packet;
+public class RedisPublishMsg {
 
-public class XHRSendPacketsMessage extends HttpMessage {
+    private Long nodeId;
 
-    private final Queue<Packet> packetQueue;
+    private List<Object> args;
 
-    public XHRSendPacketsMessage(UUID sessionId, String origin, Queue<Packet> packetQueue) {
-        super(origin, sessionId);
-        this.packetQueue = packetQueue;
+    public RedisPublishMsg(Long nodeId, List<Object> args) {
+        super();
+        this.nodeId = nodeId;
+        this.args = args;
     }
 
-    public Queue<Packet> getPacketQueue() {
-        return packetQueue;
+    public List<Object> getArgs() {
+        return args;
+    }
+
+    public Long getNodeId() {
+        return nodeId;
     }
 
 }

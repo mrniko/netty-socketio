@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.corundumstudio.socketio;
+package com.corundumstudio.socketio.handler;
 
 import static io.netty.handler.codec.http.HttpHeaders.Names.ACCESS_CONTROL_ALLOW_CREDENTIALS;
 import static io.netty.handler.codec.http.HttpHeaders.Names.ACCESS_CONTROL_ALLOW_ORIGIN;
@@ -54,10 +54,9 @@ import com.corundumstudio.socketio.messages.XHRErrorMessage;
 import com.corundumstudio.socketio.messages.XHROutMessage;
 import com.corundumstudio.socketio.messages.XHRSendPacketsMessage;
 import com.corundumstudio.socketio.parser.Encoder;
-import com.corundumstudio.socketio.transport.MainBaseClient;
 
 @Sharable
-public class SocketIOEncoder extends ChannelOutboundHandlerAdapter {
+public class EncoderHandler extends ChannelOutboundHandlerAdapter {
 
     private static final AttributeKey<Boolean> WRITE_ONCE = AttributeKey.<Boolean>valueOf("writeOnce");
 
@@ -65,7 +64,7 @@ public class SocketIOEncoder extends ChannelOutboundHandlerAdapter {
 
     private final Encoder encoder;
 
-    public SocketIOEncoder(Encoder encoder) {
+    public EncoderHandler(Encoder encoder) {
         this.encoder = encoder;
     }
 

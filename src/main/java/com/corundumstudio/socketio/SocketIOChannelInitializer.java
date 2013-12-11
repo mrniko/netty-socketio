@@ -37,6 +37,8 @@ import org.slf4j.LoggerFactory;
 
 import com.corundumstudio.socketio.ack.AckManager;
 import com.corundumstudio.socketio.handler.AuthorizeHandler;
+import com.corundumstudio.socketio.handler.EncoderHandler;
+import com.corundumstudio.socketio.handler.HeartbeatHandler;
 import com.corundumstudio.socketio.handler.PacketHandler;
 import com.corundumstudio.socketio.handler.ResourceHandler;
 import com.corundumstudio.socketio.handler.WrongUrlHandler;
@@ -81,7 +83,7 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
     private FlashSocketTransport flashSocketTransport;
     private final FlashPolicyHandler flashPolicyHandler = new FlashPolicyHandler();
     private ResourceHandler resourceHandler;
-    private SocketIOEncoder socketIOEncoder;
+    private EncoderHandler encoderHandler;
     private WrongUrlHandler wrongUrlHandler;
 
     private CancelableScheduler scheduler;
@@ -118,12 +120,15 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
         packetHandler = new PacketHandler(packetListener, decoder, namespacesHub);
         authorizeHandler = new AuthorizeHandler(connectPath, scheduler, configuration, namespacesHub);
 
+        StoreFactory factory = configuration.getClientStoreFactory();
+        factory.setJsonSupport(jsonSupport);
+
         xhrPollingTransport = new XHRPollingTransport(connectPath, ackManager, this, scheduler, authorizeHandler, configuration);
-        webSocketTransport = new WebSocketTransport(connectPath, isSsl, ackManager, this, authorizeHandler, heartbeatHandler, configuration.getClientStoreFactory());
-        flashSocketTransport = new FlashSocketTransport(connectPath, isSsl, ackManager, this, authorizeHandler, heartbeatHandler, configuration.getClientStoreFactory());
+        webSocketTransport = new WebSocketTransport(connectPath, isSsl, ackManager, this, authorizeHandler, heartbeatHandler, factory);
+        flashSocketTransport = new FlashSocketTransport(connectPath, isSsl, ackManager, this, authorizeHandler, heartbeatHandler, factory);
 
         resourceHandler = new ResourceHandler(configuration.getContext());
-        socketIOEncoder = new SocketIOEncoder(encoder);
+        encoderHandler = new EncoderHandler(encoder);
         wrongUrlHandler = new WrongUrlHandler();
     }
 
@@ -164,7 +169,7 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
         pipeline.addLast(WEB_SOCKET_TRANSPORT, webSocketTransport);
         pipeline.addLast(FLASH_SOCKET_TRANSPORT, flashSocketTransport);
 
-        pipeline.addLast(SOCKETIO_ENCODER, socketIOEncoder);
+        pipeline.addLast(SOCKETIO_ENCODER, encoderHandler);
 
         pipeline.addLast(WRONG_URL_HANDLER, wrongUrlHandler);
     }
@@ -193,6 +198,7 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
         webSocketTransport.onDisconnect(client);
         flashSocketTransport.onDisconnect(client);
         authorizeHandler.onDisconnect(client);
+        configuration.getClientStoreFactory().onDisconnect(client);
         log.debug("Client with sessionId: {} disconnected", client.getSessionId());
     }
 

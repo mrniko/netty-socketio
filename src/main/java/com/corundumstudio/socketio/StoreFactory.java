@@ -17,8 +17,12 @@ package com.corundumstudio.socketio;
 
 import java.util.UUID;
 
-public interface StoreFactory {
+import com.corundumstudio.socketio.parser.JsonSupport;
 
-    ClientStore create(UUID sessionId);
+public interface StoreFactory extends Disconnectable {
+
+    Store create(UUID sessionId);
+
+    void setJsonSupport(JsonSupport jsonSupport);
 
 }

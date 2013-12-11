@@ -13,16 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.corundumstudio.socketio;
+package com.corundumstudio.socketio.store;
 
-public interface ClientStore {
 
-    void set(String key, String val);
+public interface MessageListener {
 
-    String get(String key);
-
-    boolean has(String key);
-
-    void del(String key);
+    void onMessage(Object ... args);
 
 }

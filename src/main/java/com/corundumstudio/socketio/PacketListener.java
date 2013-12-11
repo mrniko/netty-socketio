@@ -18,6 +18,7 @@ package com.corundumstudio.socketio;
 import java.util.Collections;
 
 import com.corundumstudio.socketio.ack.AckManager;
+import com.corundumstudio.socketio.handler.HeartbeatHandler;
 import com.corundumstudio.socketio.namespace.Namespace;
 import com.corundumstudio.socketio.namespace.NamespacesHub;
 import com.corundumstudio.socketio.parser.Packet;
@@ -44,9 +45,9 @@ public class PacketListener {
 
         switch (packet.getType()) {
         case CONNECT: {
-        	Namespace namespace = namespacesHub.get(packet.getEndpoint());
-        	namespace.onConnect(client);
-        	// send connect handshake back to client
+            Namespace namespace = namespacesHub.get(packet.getEndpoint());
+            namespace.onConnect(client);
+            // send connect handshake back to client
             client.send(packet);
             break;
         }

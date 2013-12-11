@@ -34,6 +34,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -257,5 +258,11 @@ public class JacksonJsonSupport implements JsonSupport {
     public String writeValueAsString(Object value) throws IOException {
         return objectMapper.writeValueAsString(value);
     }
+
+    @Override
+    public <T> T readValue(String src, Class<T> valueType) throws IOException {
+        return objectMapper.readValue(src, valueType);
+    }
+
 
 }
