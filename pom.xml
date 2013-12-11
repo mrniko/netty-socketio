@@ -4,7 +4,7 @@
  <groupId>com.corundumstudio.socketio</groupId>
  <artifactId>netty-socketio</artifactId>
  <version>1.5.5-SNAPSHOT</version>
- <packaging>jar</packaging>
+ <packaging>bundle</packaging>
  <name>NettySocketIO</name>
  <description>Socket.IO server implemented on Java</description>
  <inceptionYear>2012</inceptionYear>
@@ -95,9 +95,46 @@
 
  <dependencies>
   <dependency>
+  	<groupId>io.netty</groupId>
+  	<artifactId>netty-buffer</artifactId>
+  	<version>4.0.12.Final</version>
+  	<type>bundle</type>
+  </dependency>
+  <dependency>
+  	<groupId>io.netty</groupId>
+  	<artifactId>netty-common</artifactId>
+  	<version>4.0.12.Final</version>
+  	<type>bundle</type>
+  </dependency>
+  <dependency>
+  	<groupId>io.netty</groupId>
+  	<artifactId>netty-transport</artifactId>
+  	<version>4.0.12.Final</version>
+  	<type>bundle</type>
+  </dependency>
+  <dependency>
+  	<groupId>io.netty</groupId>
+  	<artifactId>netty-handler</artifactId>
+  	<version>4.0.12.Final</version>
+  	<type>bundle</type>
+  </dependency>
+  <dependency>
+  	<groupId>io.netty</groupId>
+  	<artifactId>netty-codec-http</artifactId>
+  	<version>4.0.12.Final</version>
+  	<type>bundle</type>
+  </dependency>
+  <dependency>
+  	<groupId>io.netty</groupId>
+  	<artifactId>netty-codec</artifactId>
+  	<version>4.0.12.Final</version>
+  	<type>bundle</type>
+  </dependency>
+  
+  <dependency>
       <groupId>com.googlecode.jmockit</groupId>
       <artifactId>jmockit</artifactId>
-      <version>1.4</version>
+      <version>1.5</version>
       <scope>test</scope>
   </dependency>
   <dependency>
@@ -106,11 +143,7 @@
       <version>4.11</version>
       <scope>test</scope>
   </dependency>
-  <dependency>
-      <groupId>io.netty</groupId>
-      <artifactId>netty-all</artifactId>
-      <version>4.0.13.Final</version>
-  </dependency>
+
   <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
@@ -126,12 +159,12 @@
   	<artifactId>jackson-databind</artifactId>
   	<version>2.2.3</version>
   </dependency>
-  <dependency>
-      <groupId>redis.clients</groupId>
-      <artifactId>jedis</artifactId>
-      <version>2.2.1</version>
-      <scope>compile</scope>
-  </dependency>
+    <dependency>
+    	<groupId>org.apache.servicemix.bundles</groupId>
+    	<artifactId>org.apache.servicemix.bundles.jedis</artifactId>
+    	<version>2.2.1_1</version>
+    	<type>bundle</type>
+    </dependency>
  </dependencies>
 
 
@@ -228,39 +261,63 @@
             </configuration>
         </plugin>
 
-       
-       <plugin>
-            <groupId>com.mycila</groupId>
-            <artifactId>license-maven-plugin</artifactId>
-            <version>2.5</version>
-            <configuration>
-                <basedir>${basedir}</basedir>
-                <header>${basedir}/header.txt</header>
-                <quiet>false</quiet>
-                <failIfMissing>true</failIfMissing>
-                <aggregate>false</aggregate>
-                <includes>
-                    <include>src/**</include>
-                </includes>
-                <excludes>
-                    <exclude>target/**</exclude>
-                </excludes>
-                <useDefaultExcludes>true</useDefaultExcludes>
-                <mapping>
-                    <java>JAVADOC_STYLE</java>
-                </mapping>
-                <strictCheck>true</strictCheck>
-                <useDefaultMapping>true</useDefaultMapping>
-                <encoding>UTF-8</encoding>
-            </configuration>
-            <executions>
-                <execution>
-                    <goals>
-                        <goal>check</goal>
-                    </goals>
-                </execution>
-            </executions>
+        <plugin>
+           <groupId>org.apache.felix</groupId>
+           <artifactId>maven-bundle-plugin</artifactId>
+           <version>2.3.7</version>
+           <extensions>true</extensions>
+           <configuration>
+               <instructions>
+                   <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
+                   <Embed-Dependency>netty-socketio;scope=compile</Embed-Dependency>
+                   <Export-Package>
+                    com.corundumstudio.socketio;version="${project.version}",
+                    com.corundumstudio.socketio.ack;version="${project.version}",
+                    com.corundumstudio.socketio.annotation;version="${project.version}",
+                    com.corundumstudio.socketio.handler;version="${project.version}",
+                    com.corundumstudio.socketio.listener;version="${project.version}",
+                    com.corundumstudio.socketio.messages;version="${project.version}",
+                    com.corundumstudio.socketio.misc;version="${project.version}",
+                    com.corundumstudio.socketio.namespace;version="${project.version}",
+                    com.corundumstudio.socketio.parser;version="${project.version}",
+                    com.corundumstudio.socketio.scheduler;version="${project.version}",                       
+                   </Export-Package>
+               </instructions>
+           </configuration>
         </plugin>
+
+        <plugin>
+             <groupId>com.mycila</groupId>
+             <artifactId>license-maven-plugin</artifactId>
+             <version>2.5</version>
+             <configuration>
+                 <basedir>${basedir}</basedir>
+                 <header>${basedir}/header.txt</header>
+                 <quiet>false</quiet>
+                 <failIfMissing>true</failIfMissing>
+                 <aggregate>false</aggregate>
+                 <includes>
+                     <include>src/**</include>
+                 </includes>
+                 <excludes>
+                     <exclude>target/**</exclude>
+                 </excludes>
+                 <useDefaultExcludes>true</useDefaultExcludes>
+                 <mapping>
+                     <java>JAVADOC_STYLE</java>
+                 </mapping>
+                 <strictCheck>true</strictCheck>
+                 <useDefaultMapping>true</useDefaultMapping>
+                 <encoding>UTF-8</encoding>
+             </configuration>
+             <executions>
+                 <execution>
+                     <goals>
+                         <goal>check</goal>
+                     </goals>
+                 </execution>
+             </executions>
+         </plugin>
   </plugins>
  </build>
 
