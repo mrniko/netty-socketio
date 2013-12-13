@@ -54,11 +54,10 @@ import com.corundumstudio.socketio.messages.XHRErrorMessage;
 import com.corundumstudio.socketio.messages.XHROutMessage;
 import com.corundumstudio.socketio.messages.XHRSendPacketsMessage;
 import com.corundumstudio.socketio.parser.Encoder;
+import com.corundumstudio.socketio.transport.XHRPollingClient;
 
 @Sharable
 public class EncoderHandler extends ChannelOutboundHandlerAdapter {
-
-    private static final AttributeKey<Boolean> WRITE_ONCE = AttributeKey.<Boolean>valueOf("writeOnce");
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -70,7 +69,7 @@ public class EncoderHandler extends ChannelOutboundHandlerAdapter {
 
     private void write(XHRSendPacketsMessage msg, ChannelHandlerContext ctx, ByteBuf out) throws IOException {
         Channel channel = ctx.channel();
-        Attribute<Boolean> attr = channel.attr(WRITE_ONCE);
+        Attribute<Boolean> attr = channel.attr(XHRPollingClient.WRITE_ONCE);
 
         if (!channel.isActive()
                 || msg.getPacketQueue().isEmpty()

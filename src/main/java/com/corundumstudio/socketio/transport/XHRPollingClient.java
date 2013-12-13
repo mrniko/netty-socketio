@@ -17,6 +17,7 @@ package com.corundumstudio.socketio.transport;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
+import io.netty.util.AttributeKey;
 
 import java.util.Queue;
 import java.util.UUID;
@@ -30,6 +31,8 @@ import com.corundumstudio.socketio.messages.XHRSendPacketsMessage;
 import com.corundumstudio.socketio.parser.Packet;
 
 public class XHRPollingClient extends MainBaseClient {
+
+    public static final AttributeKey<Boolean> WRITE_ONCE = AttributeKey.<Boolean>valueOf("writeOnce");
 
     private final Queue<Packet> packetQueue = new ConcurrentLinkedQueue<Packet>();
     private String origin;
@@ -48,9 +51,12 @@ public class XHRPollingClient extends MainBaseClient {
         return origin;
     }
 
-    public ChannelFuture send(final Packet packet) {
+    public ChannelFuture send(Packet packet) {
         packetQueue.add(packet);
-        return getChannel().write(new XHRSendPacketsMessage(getSessionId(), origin, packetQueue));
+        if (getChannel().attr(WRITE_ONCE).get() == null) {
+            return getChannel().write(new XHRSendPacketsMessage(getSessionId(), origin, packetQueue));
+        }
+        return getChannel().newSucceededFuture();
     }
 
 }
