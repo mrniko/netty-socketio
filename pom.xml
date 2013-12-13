@@ -97,37 +97,37 @@
   <dependency>
   	<groupId>io.netty</groupId>
   	<artifactId>netty-buffer</artifactId>
-  	<version>4.0.12.Final</version>
+  	<version>4.0.13.Final</version>
   	<type>bundle</type>
   </dependency>
   <dependency>
   	<groupId>io.netty</groupId>
   	<artifactId>netty-common</artifactId>
-  	<version>4.0.12.Final</version>
+  	<version>4.0.13.Final</version>
   	<type>bundle</type>
   </dependency>
   <dependency>
   	<groupId>io.netty</groupId>
   	<artifactId>netty-transport</artifactId>
-  	<version>4.0.12.Final</version>
+  	<version>4.0.13.Final</version>
   	<type>bundle</type>
   </dependency>
   <dependency>
   	<groupId>io.netty</groupId>
   	<artifactId>netty-handler</artifactId>
-  	<version>4.0.12.Final</version>
+  	<version>4.0.13.Final</version>
   	<type>bundle</type>
   </dependency>
   <dependency>
   	<groupId>io.netty</groupId>
   	<artifactId>netty-codec-http</artifactId>
-  	<version>4.0.12.Final</version>
+  	<version>4.0.13.Final</version>
   	<type>bundle</type>
   </dependency>
   <dependency>
   	<groupId>io.netty</groupId>
   	<artifactId>netty-codec</artifactId>
-  	<version>4.0.12.Final</version>
+  	<version>4.0.13.Final</version>
   	<type>bundle</type>
   </dependency>
   
