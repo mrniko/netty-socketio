@@ -55,10 +55,16 @@ public class Encoder {
             Packet packet = packets.poll();
             encodePacket(packet, buffer);
         } else {
+            int counter = 0;
             while (true) {
                 Packet packet = packets.poll();
                 if (packet == null) {
                     break;
+                }
+                counter++;
+                // to prevent infinity out message
+                if (counter == 100) {
+                    return;
                 }
 
                 ByteBuf packetBuffer = allocateBuffer(allocator);
