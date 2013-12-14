@@ -13,19 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.corundumstudio.socketio.parser;
+package com.corundumstudio.socketio.store.pubsub;
 
-public class JsonObject {
 
-    private final Object object;
+public interface PubSubListener<T> {
 
-    public JsonObject(Object object) {
-        super();
-        this.object = object;
-    }
-
-    public Object getObject() {
-        return object;
-    }
+    void onMessage(T data);
 
 }

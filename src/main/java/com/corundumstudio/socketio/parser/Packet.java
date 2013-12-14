@@ -30,7 +30,7 @@ public class Packet {
 
     public static final Packet NULL_INSTANCE = new Packet(null);
 
-    private final PacketType type;
+    private PacketType type;
     private List<?> args = Collections.emptyList();
     private String qs;
     private Object ack;
@@ -42,6 +42,9 @@ public class Packet {
 
     private ErrorReason reason;
     private ErrorAdvice advice;
+
+    protected Packet() {
+    }
 
     public Packet(PacketType type) {
         super();
@@ -146,7 +149,7 @@ public class Packet {
         return ACK_DATA.equals(getAck()) && getType().equals(PacketType.EVENT);
     }
 
-    public boolean isAck() {
+    public boolean isAckRequested() {
         return getId() != null && (isEventAck() || isJsonAck());
     }
 

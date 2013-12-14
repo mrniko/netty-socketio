@@ -49,6 +49,10 @@ import com.corundumstudio.socketio.parser.Decoder;
 import com.corundumstudio.socketio.parser.Encoder;
 import com.corundumstudio.socketio.parser.JsonSupport;
 import com.corundumstudio.socketio.scheduler.CancelableScheduler;
+import com.corundumstudio.socketio.store.pubsub.DispatchMessage;
+import com.corundumstudio.socketio.store.pubsub.JoinLeaveMessage;
+import com.corundumstudio.socketio.store.pubsub.PubSubListener;
+import com.corundumstudio.socketio.store.pubsub.PubSubStore;
 import com.corundumstudio.socketio.transport.FlashPolicyHandler;
 import com.corundumstudio.socketio.transport.FlashSocketTransport;
 import com.corundumstudio.socketio.transport.MainBaseClient;
@@ -93,7 +97,7 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
     private SSLContext sslContext;
     private Configuration configuration;
 
-    public void start(Configuration configuration, NamespacesHub namespacesHub) {
+    public void start(Configuration configuration, final NamespacesHub namespacesHub) {
         this.configuration = configuration;
         scheduler = new CancelableScheduler(configuration.getHeartbeatThreadPoolSize());
 
@@ -120,8 +124,8 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
         packetHandler = new PacketHandler(packetListener, decoder, namespacesHub);
         authorizeHandler = new AuthorizeHandler(connectPath, scheduler, configuration, namespacesHub);
 
-        StoreFactory factory = configuration.getClientStoreFactory();
-        factory.setJsonSupport(jsonSupport);
+        StoreFactory factory = configuration.getStoreFactory();
+        factory.init(namespacesHub, jsonSupport);
 
         xhrPollingTransport = new XHRPollingTransport(connectPath, ackManager, this, scheduler, authorizeHandler, configuration);
         webSocketTransport = new WebSocketTransport(connectPath, isSsl, ackManager, this, authorizeHandler, heartbeatHandler, factory);
@@ -198,7 +202,7 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
         webSocketTransport.onDisconnect(client);
         flashSocketTransport.onDisconnect(client);
         authorizeHandler.onDisconnect(client);
-        configuration.getClientStoreFactory().onDisconnect(client);
+        configuration.getStoreFactory().onDisconnect(client);
         log.debug("Client with sessionId: {} disconnected", client.getSessionId());
     }
 

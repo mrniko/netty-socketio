@@ -37,7 +37,6 @@ import io.netty.handler.codec.http.LastHttpContent;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketFrame;
 import io.netty.util.Attribute;
-import io.netty.util.AttributeKey;
 import io.netty.util.CharsetUtil;
 
 import java.io.IOException;

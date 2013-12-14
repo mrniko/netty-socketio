@@ -34,6 +34,10 @@ import com.corundumstudio.socketio.listener.DisconnectListener;
 import com.corundumstudio.socketio.namespace.Namespace;
 import com.corundumstudio.socketio.namespace.NamespacesHub;
 
+/**
+ * Fully thread-safe.
+ *
+ */
 public class SocketIOServer implements ClientListeners {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -52,7 +56,7 @@ public class SocketIOServer implements ClientListeners {
     public SocketIOServer(Configuration configuration) {
         this.configuration = configuration;
         this.configCopy = new Configuration(configuration);
-        namespacesHub = new NamespacesHub(this.configCopy.getJsonSupport());
+        namespacesHub = new NamespacesHub(configCopy.getJsonSupport(), configCopy.getStoreFactory());
         mainNamespace = addNamespace(Namespace.DEFAULT_NAME);
     }
 
@@ -75,18 +79,18 @@ public class SocketIOServer implements ClientListeners {
 
     /**
      * Get broadcast operations for clients within
-     * room by <code>roomKey</code>
+     * room by <code>room</code> name
      *
-     * @param roomKey - any object with correct hashcode & equals implementation
+     * @param room
      * @return
      */
-    public <T> BroadcastOperations getRoomOperations(T roomKey) {
-        Iterable<SocketIOClient> clients = namespacesHub.getRoomClients(roomKey);
-        return new BroadcastOperations(clients);
+    public BroadcastOperations getRoomOperations(String room) {
+        Iterable<SocketIOClient> clients = namespacesHub.getRoomClients(room);
+        return new BroadcastOperations(clients, configCopy.getStoreFactory());
     }
 
     public BroadcastOperations getBroadcastOperations(Iterable<SocketIOClient> clients) {
-        return new BroadcastOperations(clients);
+        return new BroadcastOperations(clients, configCopy.getStoreFactory());
     }
 
     /**

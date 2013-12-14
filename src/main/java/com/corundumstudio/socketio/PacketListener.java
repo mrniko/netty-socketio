@@ -22,6 +22,7 @@ import com.corundumstudio.socketio.handler.HeartbeatHandler;
 import com.corundumstudio.socketio.namespace.Namespace;
 import com.corundumstudio.socketio.namespace.NamespacesHub;
 import com.corundumstudio.socketio.parser.Packet;
+import com.corundumstudio.socketio.store.pubsub.PubSubStore;
 import com.corundumstudio.socketio.transport.NamespaceClient;
 
 public class PacketListener {
@@ -39,7 +40,7 @@ public class PacketListener {
     public void onPacket(Packet packet, NamespaceClient client) {
         final AckRequest ackRequest = new AckRequest(packet, client);
 
-        if (packet.isAck()) {
+        if (packet.isAckRequested()) {
             ackManager.initAckIndex(client.getSessionId(), packet.getId());
         }
 
@@ -47,7 +48,7 @@ public class PacketListener {
         case CONNECT: {
             Namespace namespace = namespacesHub.get(packet.getEndpoint());
             namespace.onConnect(client);
-            // send connect handshake back to client
+            // send connect handshake packet back to client
             client.send(packet);
             break;
         }
@@ -85,6 +86,9 @@ public class PacketListener {
 
         case DISCONNECT:
             client.onDisconnect();
+            break;
+
+        default:
             break;
         }
 

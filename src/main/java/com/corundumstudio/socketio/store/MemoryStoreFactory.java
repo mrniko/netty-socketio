@@ -18,11 +18,13 @@ package com.corundumstudio.socketio.store;
 import java.util.UUID;
 
 import com.corundumstudio.socketio.Store;
-import com.corundumstudio.socketio.StoreFactory;
-import com.corundumstudio.socketio.parser.JsonSupport;
-import com.corundumstudio.socketio.transport.MainBaseClient;
+import com.corundumstudio.socketio.store.pubsub.BaseStoreFactory;
+import com.corundumstudio.socketio.store.pubsub.PubSubMemoryStore;
+import com.corundumstudio.socketio.store.pubsub.PubSubStore;
 
-public class MemoryStoreFactory implements StoreFactory {
+public class MemoryStoreFactory extends BaseStoreFactory {
+
+    private final PubSubMemoryStore pubSubMemoryStore = new PubSubMemoryStore();
 
     @Override
     public Store create(UUID sessionId) {
@@ -30,13 +32,8 @@ public class MemoryStoreFactory implements StoreFactory {
     }
 
     @Override
-    public void onDisconnect(MainBaseClient client) {
-        // do nothing
-    }
-
-    @Override
-    public void setJsonSupport(JsonSupport jsonSupport) {
-        // do nothing
+    public PubSubStore getPubSubStore() {
+        return pubSubMemoryStore;
     }
 
 }

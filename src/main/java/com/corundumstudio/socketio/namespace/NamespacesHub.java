@@ -21,6 +21,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import com.corundumstudio.socketio.SocketIOClient;
+import com.corundumstudio.socketio.StoreFactory;
 import com.corundumstudio.socketio.misc.CompositeIterable;
 import com.corundumstudio.socketio.parser.JsonSupport;
 
@@ -28,15 +29,17 @@ public class NamespacesHub {
 
     private final ConcurrentMap<String, Namespace> namespaces = new ConcurrentHashMap<String, Namespace>();
     private final JsonSupport jsonSupport;
+    private final StoreFactory storeFactory;
 
-    public NamespacesHub(JsonSupport jsonSupport) {
+    public NamespacesHub(JsonSupport jsonSupport, StoreFactory storeFactory) {
         this.jsonSupport = jsonSupport;
+        this.storeFactory = storeFactory;
     }
 
     public Namespace create(String name) {
         Namespace namespace = namespaces.get(name);
         if (namespace == null) {
-            namespace = new Namespace(name, jsonSupport);
+            namespace = new Namespace(name, jsonSupport, storeFactory);
             Namespace oldNamespace = namespaces.putIfAbsent(name, namespace);
             if (oldNamespace != null) {
                 namespace = oldNamespace;
@@ -45,10 +48,10 @@ public class NamespacesHub {
         return namespace;
     }
 
-    public <T> Iterable<SocketIOClient> getRoomClients(T roomKey) {
+    public Iterable<SocketIOClient> getRoomClients(String room) {
         List<Iterable<SocketIOClient>> allClients = new ArrayList<Iterable<SocketIOClient>>();
         for (Namespace namespace : namespaces.values()) {
-            Iterable<SocketIOClient> clients = namespace.getRoomClients(roomKey);
+            Iterable<SocketIOClient> clients = namespace.getRoomClients(room);
             allClients.add(clients);
         }
         return new CompositeIterable<SocketIOClient>(allClients);

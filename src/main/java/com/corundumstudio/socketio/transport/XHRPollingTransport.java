@@ -188,7 +188,7 @@ public class XHRPollingTransport extends BaseTransport {
     }
 
     private XHRPollingClient createClient(String origin, Channel channel, UUID sessionId) {
-        XHRPollingClient client = new XHRPollingClient(ackManager, disconnectable, sessionId, Transport.XHRPOLLING, configuration.getClientStoreFactory());
+        XHRPollingClient client = new XHRPollingClient(ackManager, disconnectable, sessionId, Transport.XHRPOLLING, configuration.getStoreFactory());
 
         sessionId2Client.put(sessionId, client);
         client.bindChannel(channel, origin);

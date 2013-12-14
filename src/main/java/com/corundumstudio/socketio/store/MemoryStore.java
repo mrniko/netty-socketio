@@ -18,7 +18,9 @@ package com.corundumstudio.socketio.store;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class MemoryStore implements PubSubStore {
+import com.corundumstudio.socketio.Store;
+
+public class MemoryStore implements Store {
 
     private final Map<String, String> store = new ConcurrentHashMap<String, String>();
 
@@ -40,18 +42,6 @@ public class MemoryStore implements PubSubStore {
     @Override
     public void del(String key) {
         store.remove(key);
-    }
-
-    @Override
-    public void publish(String name, Object... args) {
-    }
-
-    @Override
-    public void unsubscribe(String name) {
-    }
-
-    @Override
-    public void subscribe(String name, MessageListener listener) {
     }
 
 }

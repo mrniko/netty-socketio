@@ -15,6 +15,7 @@
  */
 package com.corundumstudio.socketio.parser;
 
+// TODO use SocketIOException
 public class DecoderException extends RuntimeException {
 
     private static final long serialVersionUID = -312474299994609579L;

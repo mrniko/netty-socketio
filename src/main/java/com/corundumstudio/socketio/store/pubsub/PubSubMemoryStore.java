@@ -13,16 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.corundumstudio.socketio.store;
+package com.corundumstudio.socketio.store.pubsub;
 
-import com.corundumstudio.socketio.Store;
+public class PubSubMemoryStore implements PubSubStore {
 
-public interface PubSubStore extends Store {
+    @Override
+    public void publish(String name, PubSubMessage msg) {
+    }
 
-    void publish(String name, Object ... args);
+    @Override
+    public void subscribe(String name, PubSubListener listener, Class clazz) {
+    }
 
-    void subscribe(String name, MessageListener listener);
-
-    void unsubscribe(String name);
+    @Override
+    public void unsubscribe(String name) {
+    }
 
 }

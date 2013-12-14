@@ -53,7 +53,7 @@ public class Configuration {
 
     private boolean preferDirectBuffer = true;
 
-    private StoreFactory clientStoreFactory = new MemoryStoreFactory();
+    private StoreFactory storeFactory = new MemoryStoreFactory();
 
     private JsonSupport jsonSupport = new JacksonJsonSupport(this);
 
@@ -92,7 +92,7 @@ public class Configuration {
         setPackagePrefix(conf.getPackagePrefix());
 
         setPreferDirectBuffer(conf.isPreferDirectBuffer());
-        setClientStoreFactory(conf.getClientStoreFactory());
+        setStoreFactory(conf.getStoreFactory());
     }
 
     private String join(Transport[] transports) {
@@ -346,19 +346,19 @@ public class Configuration {
     }
 
     /**
-     * Client data store aka session store.
+     * Data store - used to session data and implements pubsub.
      * Default is {@code MemoryStoreFactory}
      *
-     * @param clientStoreFactory - implements StoreFactory
+     * @param storeFactory - implements StoreFactory
      *
      * @see com.corundumstudio.socketio.store.MemoryStoreFactory
      * @see com.corundumstudio.socketio.store.RedisStoreFactory
      */
-    public void setClientStoreFactory(StoreFactory clientStoreFactory) {
-        this.clientStoreFactory = clientStoreFactory;
+    public void setStoreFactory(StoreFactory clientStoreFactory) {
+        this.storeFactory = clientStoreFactory;
     }
-    public StoreFactory getClientStoreFactory() {
-        return clientStoreFactory;
+    public StoreFactory getStoreFactory() {
+        return storeFactory;
     }
 
 

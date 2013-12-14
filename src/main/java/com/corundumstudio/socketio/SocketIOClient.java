@@ -22,7 +22,7 @@ import com.corundumstudio.socketio.parser.Packet;
 
 
 /**
- * Thread-safe SocketIO client.
+ * Fully thread-safe.
  *
  */
 public interface SocketIOClient extends ClientOperations, Store {
@@ -98,15 +98,15 @@ public interface SocketIOClient extends ClientOperations, Store {
     /**
      * Join client to room
      *
-     * @param roomKey - any object with correct hashcode & equals implementation
+     * @param room
      */
-    <T> void joinRoom(T roomKey);
+    void joinRoom(String room);
 
     /**
      * Join client to room
      *
-     * @param roomKey - any object with correct hashcode & equals implementation
+     * @param room
      */
-    <T> void leaveRoom(T roomKey);
+    void leaveRoom(String room);
 
 }

@@ -15,9 +15,13 @@
  */
 package com.corundumstudio.socketio.namespace;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Queue;
-import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentMap;
@@ -26,12 +30,16 @@ import com.corundumstudio.socketio.AckRequest;
 import com.corundumstudio.socketio.BroadcastOperations;
 import com.corundumstudio.socketio.SocketIOClient;
 import com.corundumstudio.socketio.SocketIONamespace;
+import com.corundumstudio.socketio.StoreFactory;
 import com.corundumstudio.socketio.annotation.ScannerEngine;
 import com.corundumstudio.socketio.listener.ConnectListener;
 import com.corundumstudio.socketio.listener.DataListener;
 import com.corundumstudio.socketio.listener.DisconnectListener;
-import com.corundumstudio.socketio.misc.ConcurrentHashSet;
 import com.corundumstudio.socketio.parser.JsonSupport;
+import com.corundumstudio.socketio.parser.Packet;
+import com.corundumstudio.socketio.store.pubsub.DispatchMessage;
+import com.corundumstudio.socketio.store.pubsub.JoinLeaveMessage;
+import com.corundumstudio.socketio.store.pubsub.PubSubStore;
 import com.corundumstudio.socketio.transport.NamespaceClient;
 
 /**
@@ -44,7 +52,7 @@ public class Namespace implements SocketIONamespace {
 
     public static final String DEFAULT_NAME = "";
 
-    private final Set<SocketIOClient> allClients = new ConcurrentHashSet<SocketIOClient>();
+    private final Map<UUID, SocketIOClient> allClients = new ConcurrentHashMap<UUID, SocketIOClient>();
     private final ConcurrentMap<String, EventEntry<?>> eventListeners =
                                                             new ConcurrentHashMap<String, EventEntry<?>>();
     private final ConcurrentMap<Class<?>, Queue<DataListener<?>>> jsonObjectListeners =
@@ -53,19 +61,22 @@ public class Namespace implements SocketIONamespace {
     private final Queue<ConnectListener> connectListeners = new ConcurrentLinkedQueue<ConnectListener>();
     private final Queue<DisconnectListener> disconnectListeners = new ConcurrentLinkedQueue<DisconnectListener>();
 
-    private final ConcurrentMap<Object, Queue<SocketIOClient>> roomClients = new ConcurrentHashMap<Object, Queue<SocketIOClient>>();
+    // TODO user Set<UUID>
+    private final ConcurrentMap<String, Queue<UUID>> roomClients = new ConcurrentHashMap<String, Queue<UUID>>();
 
     private final String name;
     private final JsonSupport jsonSupport;
+    private final StoreFactory storeFactory;
 
-    public Namespace(String name, JsonSupport jsonSupport) {
+    public Namespace(String name, JsonSupport jsonSupport, StoreFactory storeFactory) {
         super();
         this.name = name;
         this.jsonSupport = jsonSupport;
+        this.storeFactory = storeFactory;
     }
 
     public void addClient(SocketIOClient client) {
-        allClients.add(client);
+        allClients.put(client.getSessionId(), client);
     }
 
     public String getName() {
@@ -140,6 +151,9 @@ public class Namespace implements SocketIONamespace {
             listener.onDisconnect(client);
         }
         allClients.remove(client);
+
+        leave(getName(), client.getSessionId());
+        storeFactory.getPubSubStore().publish(PubSubStore.LEAVE, new JoinLeaveMessage(client.getSessionId(), getName()));
     }
 
     @Override
@@ -151,6 +165,9 @@ public class Namespace implements SocketIONamespace {
         for (ConnectListener listener : connectListeners) {
             listener.onConnect(client);
         }
+
+        join(getName(), client.getSessionId());
+        storeFactory.getPubSubStore().publish(PubSubStore.JOIN, new JoinLeaveMessage(client.getSessionId(), getName()));
     }
 
     @Override
@@ -164,9 +181,8 @@ public class Namespace implements SocketIONamespace {
 
     @Override
     public BroadcastOperations getBroadcastOperations() {
-        return new BroadcastOperations(allClients);
+        return new BroadcastOperations(allClients.values(), storeFactory);
     }
-
 
     @Override
     public int hashCode() {
@@ -205,48 +221,97 @@ public class Namespace implements SocketIONamespace {
         engine.scan(this, listeners, listenersClass);
     }
 
-    public void joinRoom(Object roomKey, SocketIOClient namespaceClient) {
-        Queue<SocketIOClient> clients = roomClients.get(roomKey);
+    public void joinRoom(String room, UUID sessionId) {
+        room += getName() + "/" + room;
+
+        join(room, sessionId);
+        storeFactory.getPubSubStore().publish(PubSubStore.JOIN, new JoinLeaveMessage(sessionId, room));
+    }
+
+    public void doDispatch(String room, Packet packet) {
+        if (room != null && !room.isEmpty()) {
+            room += getName() + "/" + room;
+        }
+        storeFactory.getPubSubStore().publish(PubSubStore.DISPATCH, new DispatchMessage(room, packet));
+    }
+
+    public void dispatch(String room, Packet packet) {
+        Iterable<SocketIOClient> clients = getRoomClients(room);
+
+        for (SocketIOClient socketIOClient : clients) {
+            socketIOClient.send(packet);
+        }
+    }
+
+    public void join(String room, UUID sessionId) {
+        Queue<UUID> clients = roomClients.get(room);
         if (clients == null) {
-            clients = new ConcurrentLinkedQueue<SocketIOClient>();
-            Queue<SocketIOClient> oldClients = roomClients.putIfAbsent(roomKey, clients);
+            clients = new ConcurrentLinkedQueue<UUID>();
+            Queue<UUID> oldClients = roomClients.putIfAbsent(room, clients);
             if (oldClients != null) {
                 clients = oldClients;
             }
         }
-        clients.add(namespaceClient);
-        if (clients != roomClients.get(roomKey)) {
+        clients.add(sessionId);
+        // object may be changed due to other concurrent call
+        if (clients != roomClients.get(room)) {
             // re-join if queue has been replaced
-            joinRoom(roomKey, namespaceClient);
+            joinRoom(room, sessionId);
         }
     }
 
-    public void leaveRoom(Object roomKey, SocketIOClient namespaceClient) {
-        Queue<SocketIOClient> clients = roomClients.get(roomKey);
+    public void leaveRoom(String room, UUID sessionId) {
+        room += getName() + "/" + room;
+
+        leave(room, sessionId);
+        storeFactory.getPubSubStore().publish(PubSubStore.LEAVE, new JoinLeaveMessage(sessionId, room));
+    }
+
+    public void leave(String room, UUID sessionId) {
+        Queue<UUID> clients = roomClients.get(room);
         if (clients == null) {
             return;
         }
-        clients.remove(namespaceClient);
+        clients.remove(sessionId);
         if (clients.isEmpty()) {
-            roomClients.remove(roomKey);
+            clients = roomClients.remove(room);
             // join which was added after queue deletion
-            for (SocketIOClient socketIOClient : clients) {
-                joinRoom(roomKey, socketIOClient);
+            for (UUID clientId : clients) {
+                joinRoom(room, clientId);
             }
         }
     }
 
-    public Iterable<SocketIOClient> getRoomClients(Object roomKey) {
-        Queue<SocketIOClient> clients = roomClients.get(roomKey);
-        if (clients == null) {
+    // TODO optimize
+    public List<String> getRooms(SocketIOClient client) {
+        List<String> result = new ArrayList<String>();
+        for (Entry<String, Queue<UUID>> entry : roomClients.entrySet()) {
+            if (entry.getValue().contains(client.getSessionId())) {
+                result.add(entry.getKey());
+            }
+        }
+        return result;
+    }
+
+    public Iterable<SocketIOClient> getRoomClients(String room) {
+        Queue<UUID> sessionIds = roomClients.get(room);
+
+        if (sessionIds == null) {
             return Collections.emptyList();
         }
-        return clients;
+
+        List<SocketIOClient> result = new ArrayList<SocketIOClient>();
+        for (SocketIOClient client : allClients.values()) {
+            if (sessionIds.contains(client.getSessionId())) {
+                result.add(client);
+            }
+        }
+        return result;
     }
-    
+
     // Utility function to check if there are anymore clients in namespace
     public boolean isEmpty(){
-    	return allClients.isEmpty();
+        return allClients.isEmpty();
     }
 
 }

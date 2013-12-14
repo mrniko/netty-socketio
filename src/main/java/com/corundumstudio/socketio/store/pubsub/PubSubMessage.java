@@ -13,28 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.corundumstudio.socketio.store;
+package com.corundumstudio.socketio.store.pubsub;
 
-import java.util.List;
-
-public class RedisPublishMsg {
+public class PubSubMessage {
 
     private Long nodeId;
 
-    private List<Object> args;
-
-    public RedisPublishMsg(Long nodeId, List<Object> args) {
-        super();
-        this.nodeId = nodeId;
-        this.args = args;
-    }
-
-    public List<Object> getArgs() {
-        return args;
-    }
-
     public Long getNodeId() {
         return nodeId;
+    }
+
+    public void setNodeId(Long nodeId) {
+        this.nodeId = nodeId;
     }
 
 }

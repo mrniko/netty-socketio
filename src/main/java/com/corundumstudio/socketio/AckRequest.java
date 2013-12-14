@@ -54,7 +54,7 @@ public class AckRequest {
      * @return true if ack requested by client
      */
     public boolean isAckRequested() {
-        return originalPacket.isAck();
+        return originalPacket.isAckRequested();
     }
 
     /**

@@ -13,19 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.corundumstudio.socketio.parser;
+package com.corundumstudio.socketio.store.pubsub;
 
-public class JsonObject {
+import com.corundumstudio.socketio.parser.Packet;
 
-    private final Object object;
+public class DispatchMessage extends PubSubMessage {
 
-    public JsonObject(Object object) {
-        super();
-        this.object = object;
+    private String room;
+    private Packet packet;
+
+    public DispatchMessage() {
     }
 
-    public Object getObject() {
-        return object;
+    public DispatchMessage(String room, Packet packet) {
+        this.room = room;
+        this.packet = packet;
+    }
+
+    public Packet getPacket() {
+        return packet;
+    }
+
+    public String getRoom() {
+        return room;
     }
 
 }

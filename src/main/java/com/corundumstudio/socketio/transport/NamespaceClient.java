@@ -170,13 +170,13 @@ public class NamespaceClient implements SocketIOClient {
     }
 
     @Override
-    public <T> void joinRoom(T roomKey) {
-        namespace.joinRoom(roomKey, this);
+    public void joinRoom(String room) {
+        namespace.joinRoom(room, getSessionId());
     }
 
     @Override
-    public <T> void leaveRoom(T roomKey) {
-        namespace.leaveRoom(roomKey, this);
+    public void leaveRoom(String room) {
+        namespace.leaveRoom(room, getSessionId());
     }
 
     @Override

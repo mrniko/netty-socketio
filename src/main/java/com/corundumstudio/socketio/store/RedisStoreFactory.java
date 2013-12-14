@@ -20,18 +20,25 @@ import java.util.UUID;
 import redis.clients.jedis.Jedis;
 
 import com.corundumstudio.socketio.Store;
-import com.corundumstudio.socketio.StoreFactory;
+import com.corundumstudio.socketio.namespace.NamespacesHub;
 import com.corundumstudio.socketio.parser.JsonSupport;
+import com.corundumstudio.socketio.store.pubsub.BaseStoreFactory;
+import com.corundumstudio.socketio.store.pubsub.PubSubRedisStore;
+import com.corundumstudio.socketio.store.pubsub.PubSubStore;
 import com.corundumstudio.socketio.transport.MainBaseClient;
 
-public class RedisStoreFactory implements StoreFactory {
+public class RedisStoreFactory extends BaseStoreFactory {
 
-    private final Jedis redisClient;
-    private final Jedis redisPub;
-    private final Jedis redisSub;
     private final Long nodeId = (long) (Math.random() * 1000000);
 
-    private JsonSupport jsonSupport;
+    private Jedis redisClient = new Jedis("127.0.0.1", 6379);
+    private Jedis redisPub = new Jedis("127.0.0.1", 6379);
+    private Jedis redisSub = new Jedis("127.0.0.1", 6379);
+
+    private PubSubRedisStore pubSubRedisStore;
+
+    public RedisStoreFactory() {
+    }
 
     public RedisStoreFactory(Jedis redisClient, Jedis redisPub, Jedis redisSub) {
         this.redisClient = redisClient;
@@ -39,17 +46,27 @@ public class RedisStoreFactory implements StoreFactory {
         this.redisSub = redisSub;
     }
 
-    public void setJsonSupport(JsonSupport jsonSupport) {
-        this.jsonSupport = jsonSupport;
+    @Override
+    public void init(NamespacesHub namespacesHub, JsonSupport jsonSupport) {
+        pubSubRedisStore = new PubSubRedisStore(redisPub, redisSub, nodeId, jsonSupport);
+
+        redisClient.connect();
+        redisPub.connect();
+        redisSub.connect();
+
+        super.init(namespacesHub, jsonSupport);
     }
+
 
     @Override
     public Store create(UUID sessionId) {
-        RedisStore store = new RedisStore(sessionId, nodeId, jsonSupport);
+        RedisStore store = new RedisStore(sessionId);
         store.setClient(redisClient);
-        store.setPub(redisPub);
-        store.setSub(redisSub);
         return store;
+    }
+
+    public PubSubStore getPubSubStore() {
+        return pubSubRedisStore;
     }
 
     @Override

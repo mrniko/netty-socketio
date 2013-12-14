@@ -13,11 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.corundumstudio.socketio.store;
+package com.corundumstudio.socketio.store.pubsub;
 
+import java.util.UUID;
 
-public interface MessageListener {
+public class JoinLeaveMessage extends PubSubMessage {
 
-    void onMessage(Object ... args);
+    private UUID sessionId;
+    private String room;
+
+    public JoinLeaveMessage() {
+    }
+
+    public JoinLeaveMessage(UUID id, String room) {
+        super();
+        this.sessionId = id;
+        this.room = room;
+    }
+
+    public UUID getSessionId() {
+        return sessionId;
+    }
+
+    public String getRoom() {
+        return room;
+    }
 
 }
