@@ -19,7 +19,6 @@ import java.util.UUID;
 
 import com.corundumstudio.socketio.Store;
 import com.corundumstudio.socketio.store.pubsub.BaseStoreFactory;
-import com.corundumstudio.socketio.store.pubsub.PubSubMemoryStore;
 import com.corundumstudio.socketio.store.pubsub.PubSubStore;
 
 public class MemoryStoreFactory extends BaseStoreFactory {

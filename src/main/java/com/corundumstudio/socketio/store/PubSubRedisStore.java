@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.corundumstudio.socketio.store.pubsub;
+package com.corundumstudio.socketio.store;
 
 import java.io.IOException;
 import java.util.Queue;
@@ -33,6 +33,9 @@ import redis.clients.jedis.JedisPubSub;
 
 import com.corundumstudio.socketio.handler.SocketIOException;
 import com.corundumstudio.socketio.parser.JsonSupport;
+import com.corundumstudio.socketio.store.pubsub.PubSubListener;
+import com.corundumstudio.socketio.store.pubsub.PubSubMessage;
+import com.corundumstudio.socketio.store.pubsub.PubSubStore;
 
 public class PubSubRedisStore implements PubSubStore {
 

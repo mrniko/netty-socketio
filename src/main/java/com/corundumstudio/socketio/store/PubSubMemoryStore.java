@@ -13,7 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.corundumstudio.socketio.store.pubsub;
+package com.corundumstudio.socketio.store;
+
+import com.corundumstudio.socketio.store.pubsub.PubSubListener;
+import com.corundumstudio.socketio.store.pubsub.PubSubMessage;
+import com.corundumstudio.socketio.store.pubsub.PubSubStore;
 
 public class PubSubMemoryStore implements PubSubStore {
 

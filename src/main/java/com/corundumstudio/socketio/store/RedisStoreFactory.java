@@ -23,7 +23,6 @@ import com.corundumstudio.socketio.Store;
 import com.corundumstudio.socketio.namespace.NamespacesHub;
 import com.corundumstudio.socketio.parser.JsonSupport;
 import com.corundumstudio.socketio.store.pubsub.BaseStoreFactory;
-import com.corundumstudio.socketio.store.pubsub.PubSubRedisStore;
 import com.corundumstudio.socketio.store.pubsub.PubSubStore;
 import com.corundumstudio.socketio.transport.MainBaseClient;
 
