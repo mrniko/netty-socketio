@@ -74,4 +74,13 @@ public class RedisStoreFactory extends BaseStoreFactory {
         redisClient.del(client.getSessionId().toString());
     }
 
+    @Override
+    public void shutdown() {
+        pubSubRedisStore.shutdown();
+
+        redisClient.disconnect();
+        redisPub.disconnect();
+        redisSub.disconnect();
+    }
+
 }

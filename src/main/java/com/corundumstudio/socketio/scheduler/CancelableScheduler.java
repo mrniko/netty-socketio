@@ -22,7 +22,12 @@ import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class CancelableScheduler {
+
+    private final Logger log = LoggerFactory.getLogger(getClass());
 
     private final Map<SchedulerKey, Future<?>> scheduledFutures = new ConcurrentHashMap<SchedulerKey, Future<?>>();
     private final ScheduledExecutorService executorService;
@@ -58,6 +63,11 @@ public class CancelableScheduler {
 
     public void shutdown() {
         executorService.shutdownNow();
+        try {
+            executorService.awaitTermination(10, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            log.error(e.getMessage(), e);
+        }
     }
 
 }

@@ -29,4 +29,6 @@ public interface StoreFactory extends Disconnectable {
 
     Store create(UUID sessionId);
 
+    void shutdown();
+
 }

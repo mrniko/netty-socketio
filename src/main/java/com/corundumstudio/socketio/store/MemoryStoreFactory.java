@@ -36,4 +36,8 @@ public class MemoryStoreFactory extends BaseStoreFactory {
         return pubSubMemoryStore;
     }
 
+    @Override
+    public void shutdown() {
+    }
+
 }

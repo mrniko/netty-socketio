@@ -23,6 +23,7 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,8 +36,7 @@ import com.corundumstudio.socketio.parser.JsonSupport;
 
 public class PubSubRedisStore implements PubSubStore {
 
-    // TODO destroy
-    private final ExecutorService executorService = Executors.newFixedThreadPool(10);
+    private final ExecutorService executorService = Executors.newFixedThreadPool(5);
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -157,6 +157,16 @@ public class PubSubRedisStore implements PubSubStore {
     public void unsubscribe(String name) {
         mapping.remove(name);
         map.remove(name);
+    }
+
+    @Override
+    public void shutdown() {
+        executorService.shutdownNow();
+        try {
+            executorService.awaitTermination(10, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            log.error(e.getMessage(), e);
+        }
     }
 
 }

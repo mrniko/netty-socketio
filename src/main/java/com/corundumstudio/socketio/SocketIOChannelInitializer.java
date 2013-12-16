@@ -49,10 +49,6 @@ import com.corundumstudio.socketio.parser.Decoder;
 import com.corundumstudio.socketio.parser.Encoder;
 import com.corundumstudio.socketio.parser.JsonSupport;
 import com.corundumstudio.socketio.scheduler.CancelableScheduler;
-import com.corundumstudio.socketio.store.pubsub.DispatchMessage;
-import com.corundumstudio.socketio.store.pubsub.JoinLeaveMessage;
-import com.corundumstudio.socketio.store.pubsub.PubSubListener;
-import com.corundumstudio.socketio.store.pubsub.PubSubStore;
 import com.corundumstudio.socketio.transport.FlashPolicyHandler;
 import com.corundumstudio.socketio.transport.FlashSocketTransport;
 import com.corundumstudio.socketio.transport.MainBaseClient;
@@ -207,6 +203,8 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
     }
 
     public void stop() {
+        StoreFactory factory = configuration.getStoreFactory();
+        factory.shutdown();
         scheduler.shutdown();
     }
 

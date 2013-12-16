@@ -29,4 +29,8 @@ public class PubSubMemoryStore implements PubSubStore {
     public void unsubscribe(String name) {
     }
 
+    @Override
+    public void shutdown() {
+    }
+
 }

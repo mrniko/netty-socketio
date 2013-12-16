@@ -125,8 +125,10 @@ public class SocketIOServer implements ClientListeners {
      * Stop server
      */
     public void stop() {
-        bossGroup.shutdownGracefully();
-        workerGroup.shutdownGracefully();
+        bossGroup.shutdownGracefully().syncUninterruptibly();
+        workerGroup.shutdownGracefully().syncUninterruptibly();
+
+        pipelineFactory.stop();
     }
 
     public SocketIONamespace addNamespace(String name) {
