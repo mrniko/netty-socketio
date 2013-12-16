@@ -15,7 +15,7 @@
  */
 package com.corundumstudio.socketio.store.pubsub;
 
-public class PubSubMessage {
+public abstract class PubSubMessage {
 
     private Long nodeId;
 
