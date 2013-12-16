@@ -16,7 +16,9 @@
 package com.corundumstudio.socketio.transport;
 
 import java.net.SocketAddress;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
 
 import com.corundumstudio.socketio.AckCallback;
@@ -197,6 +199,11 @@ public class NamespaceClient implements SocketIOClient {
     @Override
     public void del(String key) {
         baseClient.getStore().del(key);
+    }
+
+    @Override
+    public List<String> getAllRooms() {
+        return namespace.getRooms(this);
     }
 
 }

@@ -16,6 +16,8 @@
 package com.corundumstudio.socketio;
 
 import java.net.SocketAddress;
+import java.util.Collection;
+import java.util.List;
 import java.util.UUID;
 
 import com.corundumstudio.socketio.parser.Packet;
@@ -108,5 +110,12 @@ public interface SocketIOClient extends ClientOperations, Store {
      * @param room
      */
     void leaveRoom(String room);
+
+    /**
+     * Get all rooms a client is joined in.
+     *
+     * @return
+     */
+    List<String> getAllRooms();
 
 }
