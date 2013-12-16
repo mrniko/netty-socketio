@@ -71,8 +71,6 @@ public abstract class BaseStoreFactory implements StoreFactory {
 
     @Override
     public void onDisconnect(MainBaseClient client) {
-        // TODO Auto-generated method stub
-
     }
 
 }

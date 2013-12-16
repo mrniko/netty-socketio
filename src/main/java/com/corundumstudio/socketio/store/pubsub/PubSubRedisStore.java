@@ -83,9 +83,17 @@ public class PubSubRedisStore implements PubSubStore {
                 log.trace("onMessage: {}", message);
 
                 Class<PubSubMessage> clazz = mapping.get(channel);
+                // could be deleted
+                if (clazz == null) {
+                    return;
+                }
                 PubSubMessage data = jsonSupport.readValue(message, clazz);
                 if (!nodeId.equals(data.getNodeId())) {
                     Queue<PubSubListener> listeners = map.get(channel);
+                    // could be deleted
+                    if (listeners == null) {
+                        return;
+                    }
                     for (PubSubListener listener : listeners) {
                         listener.onMessage(data);
                     }
@@ -147,6 +155,7 @@ public class PubSubRedisStore implements PubSubStore {
 
     @Override
     public void unsubscribe(String name) {
+        mapping.remove(name);
         map.remove(name);
     }
 
