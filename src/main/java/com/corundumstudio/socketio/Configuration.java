@@ -22,6 +22,7 @@ import java.io.InputStream;
 import com.corundumstudio.socketio.parser.JacksonJsonSupport;
 import com.corundumstudio.socketio.parser.JsonSupport;
 import com.corundumstudio.socketio.store.MemoryStoreFactory;
+import com.corundumstudio.socketio.store.StoreFactory;
 
 public class Configuration {
 

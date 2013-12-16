@@ -17,7 +17,6 @@ package com.corundumstudio.socketio.store;
 
 import java.util.UUID;
 
-import com.corundumstudio.socketio.Store;
 import com.corundumstudio.socketio.store.pubsub.BaseStoreFactory;
 import com.corundumstudio.socketio.store.pubsub.PubSubStore;
 

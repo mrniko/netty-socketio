@@ -13,17 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.corundumstudio.socketio;
+package com.corundumstudio.socketio.store;
 
+import java.util.UUID;
 
-public interface Store {
+import com.corundumstudio.socketio.Disconnectable;
+import com.corundumstudio.socketio.namespace.NamespacesHub;
+import com.corundumstudio.socketio.parser.JsonSupport;
+import com.corundumstudio.socketio.store.pubsub.PubSubStore;
 
-    void set(String key, String val);
+public interface StoreFactory extends Disconnectable {
 
-    String get(String key);
+    PubSubStore getPubSubStore();
 
-    boolean has(String key);
+    void init(NamespacesHub namespacesHub, JsonSupport jsonSupport);
 
-    void del(String key);
+    Store create(UUID sessionId);
+
+    void shutdown();
 
 }

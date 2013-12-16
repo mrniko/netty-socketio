@@ -25,15 +25,15 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import com.corundumstudio.socketio.Store;
 import com.corundumstudio.socketio.DisconnectableHub;
 import com.corundumstudio.socketio.SocketIOClient;
-import com.corundumstudio.socketio.StoreFactory;
 import com.corundumstudio.socketio.Transport;
 import com.corundumstudio.socketio.ack.AckManager;
 import com.corundumstudio.socketio.namespace.Namespace;
 import com.corundumstudio.socketio.parser.Packet;
 import com.corundumstudio.socketio.parser.PacketType;
+import com.corundumstudio.socketio.store.Store;
+import com.corundumstudio.socketio.store.StoreFactory;
 
 /**
  * Base class for main client.

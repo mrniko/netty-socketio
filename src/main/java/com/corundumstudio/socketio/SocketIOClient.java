@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.UUID;
 
 import com.corundumstudio.socketio.parser.Packet;
+import com.corundumstudio.socketio.store.Store;
 
 
 /**

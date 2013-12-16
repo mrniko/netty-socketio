@@ -15,9 +15,9 @@
  */
 package com.corundumstudio.socketio.store.pubsub;
 
-import com.corundumstudio.socketio.StoreFactory;
 import com.corundumstudio.socketio.namespace.NamespacesHub;
 import com.corundumstudio.socketio.parser.JsonSupport;
+import com.corundumstudio.socketio.store.StoreFactory;
 import com.corundumstudio.socketio.transport.MainBaseClient;
 
 public abstract class BaseStoreFactory implements StoreFactory {

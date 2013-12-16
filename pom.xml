@@ -98,37 +98,31 @@
   	<groupId>io.netty</groupId>
   	<artifactId>netty-buffer</artifactId>
   	<version>4.0.13.Final</version>
-  	<type>bundle</type>
   </dependency>
   <dependency>
   	<groupId>io.netty</groupId>
   	<artifactId>netty-common</artifactId>
   	<version>4.0.13.Final</version>
-  	<type>bundle</type>
   </dependency>
   <dependency>
   	<groupId>io.netty</groupId>
   	<artifactId>netty-transport</artifactId>
   	<version>4.0.13.Final</version>
-  	<type>bundle</type>
   </dependency>
   <dependency>
   	<groupId>io.netty</groupId>
   	<artifactId>netty-handler</artifactId>
   	<version>4.0.13.Final</version>
-  	<type>bundle</type>
   </dependency>
   <dependency>
   	<groupId>io.netty</groupId>
   	<artifactId>netty-codec-http</artifactId>
   	<version>4.0.13.Final</version>
-  	<type>bundle</type>
   </dependency>
   <dependency>
   	<groupId>io.netty</groupId>
   	<artifactId>netty-codec</artifactId>
   	<version>4.0.13.Final</version>
-  	<type>bundle</type>
   </dependency>
   
   <dependency>
@@ -160,10 +154,10 @@
   	<version>2.2.3</version>
   </dependency>
     <dependency>
-    	<groupId>org.apache.servicemix.bundles</groupId>
-    	<artifactId>org.apache.servicemix.bundles.jedis</artifactId>
-    	<version>2.2.1_1</version>
-    	<type>bundle</type>
+        <groupId>redis.clients</groupId>
+        <artifactId>jedis</artifactId>
+        <version>2.2.1</version>
+        <scope>provided</scope>
     </dependency>
  </dependencies>
 
@@ -272,15 +266,9 @@
                    <Embed-Dependency>netty-socketio;scope=compile</Embed-Dependency>
                    <Export-Package>
                     com.corundumstudio.socketio;version="${project.version}",
-                    com.corundumstudio.socketio.ack;version="${project.version}",
                     com.corundumstudio.socketio.annotation;version="${project.version}",
-                    com.corundumstudio.socketio.handler;version="${project.version}",
                     com.corundumstudio.socketio.listener;version="${project.version}",
-                    com.corundumstudio.socketio.messages;version="${project.version}",
-                    com.corundumstudio.socketio.misc;version="${project.version}",
-                    com.corundumstudio.socketio.namespace;version="${project.version}",
-                    com.corundumstudio.socketio.parser;version="${project.version}",
-                    com.corundumstudio.socketio.scheduler;version="${project.version}",                       
+                    com.corundumstudio.socketio.store;version="${project.version}",                       
                    </Export-Package>
                </instructions>
            </configuration>

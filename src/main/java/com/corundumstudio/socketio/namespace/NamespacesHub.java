@@ -21,9 +21,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import com.corundumstudio.socketio.SocketIOClient;
-import com.corundumstudio.socketio.StoreFactory;
 import com.corundumstudio.socketio.misc.CompositeIterable;
 import com.corundumstudio.socketio.parser.JsonSupport;
+import com.corundumstudio.socketio.store.StoreFactory;
 
 public class NamespacesHub {
 

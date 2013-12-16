@@ -13,16 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.corundumstudio.socketio;
+package com.corundumstudio.socketio.handler;
 
 import java.util.Collections;
 
+import com.corundumstudio.socketio.AckRequest;
 import com.corundumstudio.socketio.ack.AckManager;
-import com.corundumstudio.socketio.handler.HeartbeatHandler;
 import com.corundumstudio.socketio.namespace.Namespace;
 import com.corundumstudio.socketio.namespace.NamespacesHub;
 import com.corundumstudio.socketio.parser.Packet;
-import com.corundumstudio.socketio.store.pubsub.PubSubStore;
 import com.corundumstudio.socketio.transport.NamespaceClient;
 
 public class PacketListener {

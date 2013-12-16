@@ -21,11 +21,11 @@ import io.netty.channel.ChannelFuture;
 import java.util.UUID;
 
 import com.corundumstudio.socketio.DisconnectableHub;
-import com.corundumstudio.socketio.StoreFactory;
 import com.corundumstudio.socketio.Transport;
 import com.corundumstudio.socketio.ack.AckManager;
 import com.corundumstudio.socketio.messages.WebSocketPacketMessage;
 import com.corundumstudio.socketio.parser.Packet;
+import com.corundumstudio.socketio.store.StoreFactory;
 
 public class WebSocketClient extends MainBaseClient {
 

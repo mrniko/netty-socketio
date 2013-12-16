@@ -41,12 +41,12 @@ import org.slf4j.LoggerFactory;
 import com.corundumstudio.socketio.DisconnectableHub;
 import com.corundumstudio.socketio.SocketIOClient;
 import com.corundumstudio.socketio.SocketIOChannelInitializer;
-import com.corundumstudio.socketio.StoreFactory;
 import com.corundumstudio.socketio.Transport;
 import com.corundumstudio.socketio.ack.AckManager;
 import com.corundumstudio.socketio.handler.AuthorizeHandler;
 import com.corundumstudio.socketio.handler.HeartbeatHandler;
 import com.corundumstudio.socketio.messages.PacketsMessage;
+import com.corundumstudio.socketio.store.StoreFactory;
 
 @Sharable
 public class WebSocketTransport extends BaseTransport {

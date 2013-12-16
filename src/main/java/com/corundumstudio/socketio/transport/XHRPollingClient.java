@@ -24,11 +24,11 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import com.corundumstudio.socketio.DisconnectableHub;
-import com.corundumstudio.socketio.StoreFactory;
 import com.corundumstudio.socketio.Transport;
 import com.corundumstudio.socketio.ack.AckManager;
 import com.corundumstudio.socketio.messages.XHRSendPacketsMessage;
 import com.corundumstudio.socketio.parser.Packet;
+import com.corundumstudio.socketio.store.StoreFactory;
 
 public class XHRPollingClient extends MainBaseClient {
 

@@ -19,7 +19,6 @@ import java.util.UUID;
 
 import redis.clients.jedis.Jedis;
 
-import com.corundumstudio.socketio.Store;
 import com.corundumstudio.socketio.namespace.NamespacesHub;
 import com.corundumstudio.socketio.parser.JsonSupport;
 import com.corundumstudio.socketio.store.pubsub.BaseStoreFactory;
@@ -59,9 +58,7 @@ public class RedisStoreFactory extends BaseStoreFactory {
 
     @Override
     public Store create(UUID sessionId) {
-        RedisStore store = new RedisStore(sessionId);
-        store.setClient(redisClient);
-        return store;
+        return new RedisStore(sessionId, redisClient);
     }
 
     public PubSubStore getPubSubStore() {

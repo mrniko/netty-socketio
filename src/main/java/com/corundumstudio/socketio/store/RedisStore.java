@@ -19,19 +19,13 @@ import java.util.UUID;
 
 import redis.clients.jedis.Jedis;
 
-import com.corundumstudio.socketio.Store;
-
 public class RedisStore implements Store {
 
-    private Jedis client;
-
+    private final Jedis client;
     private final String sessionId;
 
-    public RedisStore(UUID sessionId) {
+    public RedisStore(UUID sessionId, Jedis client) {
         this.sessionId = sessionId.toString();
-    }
-
-    public void setClient(Jedis client) {
         this.client = client;
     }
 

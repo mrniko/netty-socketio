@@ -26,7 +26,6 @@ import junit.framework.Assert;
 import mockit.Mocked;
 
 import com.corundumstudio.socketio.Configuration;
-import com.corundumstudio.socketio.PacketListener;
 import com.corundumstudio.socketio.transport.NamespaceClient;
 
 import io.netty.buffer.ByteBuf;

@@ -18,8 +18,6 @@ package com.corundumstudio.socketio.store;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import com.corundumstudio.socketio.Store;
-
 public class MemoryStore implements Store {
 
     private final Map<String, String> store = new ConcurrentHashMap<String, String>();
