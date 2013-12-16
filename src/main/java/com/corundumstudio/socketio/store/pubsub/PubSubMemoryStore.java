@@ -22,7 +22,7 @@ public class PubSubMemoryStore implements PubSubStore {
     }
 
     @Override
-    public void subscribe(String name, PubSubListener listener, Class clazz) {
+    public <T> void subscribe(String name, PubSubListener<T> listener, Class<T> clazz) {
     }
 
     @Override
