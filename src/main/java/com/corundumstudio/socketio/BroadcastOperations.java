@@ -29,6 +29,10 @@ import com.corundumstudio.socketio.store.StoreFactory;
 import com.corundumstudio.socketio.store.pubsub.DispatchMessage;
 import com.corundumstudio.socketio.store.pubsub.PubSubStore;
 
+/**
+ * Fully thread-safe.
+ *
+ */
 public class BroadcastOperations implements ClientOperations {
 
     private final Iterable<SocketIOClient> clients;
