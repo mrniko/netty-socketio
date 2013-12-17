@@ -26,7 +26,7 @@ public class PubSubMemoryStore implements PubSubStore {
     }
 
     @Override
-    public <T> void subscribe(String name, PubSubListener<T> listener, Class<T> clazz) {
+    public <T extends PubSubMessage> void subscribe(String name, PubSubListener<T> listener, Class<T> clazz) {
     }
 
     @Override

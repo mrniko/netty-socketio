@@ -22,6 +22,12 @@ import com.corundumstudio.socketio.transport.MainBaseClient;
 
 public abstract class BaseStoreFactory implements StoreFactory {
 
+    private Long nodeId = (long) (Math.random() * 1000000);
+
+    protected Long getNodeId() {
+        return nodeId;
+    }
+
     public void init(final NamespacesHub namespacesHub, JsonSupport jsonSupport) {
         getPubSubStore().subscribe(PubSubStore.DISPATCH, new PubSubListener<DispatchMessage>() {
             @Override

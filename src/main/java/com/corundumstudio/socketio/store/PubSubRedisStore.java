@@ -127,7 +127,7 @@ public class PubSubRedisStore implements PubSubStore {
     }
 
     @Override
-    public <T> void subscribe(final String name, PubSubListener<T> listener, Class<T> clazz) {
+    public <T extends PubSubMessage> void subscribe(final String name, PubSubListener<T> listener, Class<T> clazz) {
         Queue<PubSubListener> list = map.get(name);
         if (list == null) {
             list = new ConcurrentLinkedQueue<PubSubListener>();
@@ -151,9 +151,6 @@ public class PubSubRedisStore implements PubSubStore {
                 }
             }
         });
-
-        s.acquireUninterruptibly();
-        s.release();
     }
 
     @Override

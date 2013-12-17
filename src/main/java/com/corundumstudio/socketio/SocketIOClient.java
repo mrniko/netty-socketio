@@ -16,7 +16,6 @@
 package com.corundumstudio.socketio;
 
 import java.net.SocketAddress;
-import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 

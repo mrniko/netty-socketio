@@ -19,16 +19,22 @@ import java.util.UUID;
 
 import com.corundumstudio.socketio.store.pubsub.BaseStoreFactory;
 import com.corundumstudio.socketio.store.pubsub.PubSubStore;
+import com.hazelcast.client.HazelcastClient;
 import com.hazelcast.core.HazelcastInstance;
 
 public class HazelcastStoreFactory extends BaseStoreFactory {
 
-    private HazelcastInstance hazelcastClient;
-    private HazelcastInstance hazelcastPub;
-    private HazelcastInstance hazelcastSub;
+    private final HazelcastInstance hazelcastClient;
+    private final HazelcastInstance hazelcastPub;
+    private final HazelcastInstance hazelcastSub;
+
+    public HazelcastStoreFactory() {
+        hazelcastClient = HazelcastClient.newHazelcastClient();
+        hazelcastPub = hazelcastClient;
+        hazelcastSub = hazelcastClient;
+    }
 
     public HazelcastStoreFactory(HazelcastInstance hazelcastClient, HazelcastInstance hazelcastPub, HazelcastInstance hazelcastSub) {
-        super();
         this.hazelcastClient = hazelcastClient;
         this.hazelcastPub = hazelcastPub;
         this.hazelcastSub = hazelcastSub;
@@ -46,7 +52,7 @@ public class HazelcastStoreFactory extends BaseStoreFactory {
 
     @Override
     public PubSubStore getPubSubStore() {
-        return new PubSubHazelcastStore(hazelcastPub, hazelcastSub);
+        return new PubSubHazelcastStore(hazelcastPub, hazelcastSub, getNodeId());
     }
 
 }

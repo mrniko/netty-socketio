@@ -33,27 +33,34 @@ public class PubSubHazelcastStore implements PubSubStore {
 
     private final HazelcastInstance hazelcastPub;
     private final HazelcastInstance hazelcastSub;
+    private final Long nodeId;
 
     private final ConcurrentMap<String, Queue<String>> map =
                                         new ConcurrentHashMap<String, Queue<String>>();
 
-    public PubSubHazelcastStore(HazelcastInstance hazelcastPub, HazelcastInstance hazelcastSub) {
+    public PubSubHazelcastStore(HazelcastInstance hazelcastPub, HazelcastInstance hazelcastSub, Long nodeId) {
         this.hazelcastPub = hazelcastPub;
         this.hazelcastSub = hazelcastSub;
+        this.nodeId = nodeId;
     }
 
     @Override
     public void publish(String name, PubSubMessage msg) {
+        msg.setNodeId(nodeId);
         hazelcastPub.getTopic(name).publish(msg);
     }
 
     @Override
-    public <T> void subscribe(String name, final PubSubListener<T> listener, Class<T> clazz) {
+    public <T extends PubSubMessage> void subscribe(String name, final PubSubListener<T> listener, Class<T> clazz) {
         ITopic<T> topic = hazelcastSub.getTopic(name);
         String regId = topic.addMessageListener(new MessageListener<T>() {
             @Override
             public void onMessage(Message<T> message) {
-                listener.onMessage(message.getMessageObject());
+                PubSubMessage msg = message.getMessageObject();
+                System.out.println("current nodeId: " + nodeId + " msg: " + msg.getNodeId());
+                if (!nodeId.equals(msg.getNodeId())) {
+                    listener.onMessage(message.getMessageObject());
+                }
             }
         });
 

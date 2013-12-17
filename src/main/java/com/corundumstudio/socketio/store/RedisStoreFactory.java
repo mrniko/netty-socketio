@@ -27,11 +27,9 @@ import com.corundumstudio.socketio.transport.MainBaseClient;
 
 public class RedisStoreFactory extends BaseStoreFactory {
 
-    private final Long nodeId = (long) (Math.random() * 1000000);
-
     private Jedis redisClient = new Jedis("127.0.0.1", 6379);
-    private Jedis redisPub = redisClient;
-    private Jedis redisSub = redisClient;
+    private Jedis redisPub = new Jedis("127.0.0.1", 6379);
+    private Jedis redisSub = new Jedis("127.0.0.1", 6379);
 
     private PubSubRedisStore pubSubRedisStore;
 
@@ -46,7 +44,7 @@ public class RedisStoreFactory extends BaseStoreFactory {
 
     @Override
     public void init(NamespacesHub namespacesHub, JsonSupport jsonSupport) {
-        pubSubRedisStore = new PubSubRedisStore(redisPub, redisSub, nodeId, jsonSupport);
+        pubSubRedisStore = new PubSubRedisStore(redisPub, redisSub, getNodeId(), jsonSupport);
 
         redisClient.connect();
         redisPub.connect();

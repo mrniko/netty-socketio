@@ -19,6 +19,8 @@ import com.corundumstudio.socketio.parser.Packet;
 
 public class DispatchMessage extends PubSubMessage {
 
+    private static final long serialVersionUID = 6692047718303934349L;
+
     private String room;
     private Packet packet;
 

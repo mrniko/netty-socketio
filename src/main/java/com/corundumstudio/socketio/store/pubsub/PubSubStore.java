@@ -27,7 +27,7 @@ public interface PubSubStore {
 
     void publish(String name, PubSubMessage msg);
 
-    <T> void subscribe(String name, PubSubListener<T> listener, Class<T> clazz);
+    <T extends PubSubMessage> void subscribe(String name, PubSubListener<T> listener, Class<T> clazz);
 
     void unsubscribe(String name);
 
