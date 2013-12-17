@@ -31,7 +31,7 @@ public class RedisStoreFactory extends BaseStoreFactory {
     private Jedis redisPub = new Jedis("127.0.0.1", 6379);
     private Jedis redisSub = new Jedis("127.0.0.1", 6379);
 
-    private PubSubRedisStore pubSubRedisStore;
+    private RedisPubSubStore pubSubRedisStore;
 
     public RedisStoreFactory() {
     }
@@ -44,7 +44,7 @@ public class RedisStoreFactory extends BaseStoreFactory {
 
     @Override
     public void init(NamespacesHub namespacesHub, JsonSupport jsonSupport) {
-        pubSubRedisStore = new PubSubRedisStore(redisPub, redisSub, getNodeId(), jsonSupport);
+        pubSubRedisStore = new RedisPubSubStore(redisPub, redisSub, getNodeId(), jsonSupport);
 
         redisClient.connect();
         redisPub.connect();

@@ -37,7 +37,7 @@ import com.corundumstudio.socketio.store.pubsub.PubSubListener;
 import com.corundumstudio.socketio.store.pubsub.PubSubMessage;
 import com.corundumstudio.socketio.store.pubsub.PubSubStore;
 
-public class PubSubRedisStore implements PubSubStore {
+public class RedisPubSubStore implements PubSubStore {
 
     private final ExecutorService executorService = Executors.newFixedThreadPool(5);
 
@@ -108,7 +108,7 @@ public class PubSubRedisStore implements PubSubStore {
         }
     };
 
-    public PubSubRedisStore(Jedis pub, Jedis sub, Long nodeId, JsonSupport jsonSupport) {
+    public RedisPubSubStore(Jedis pub, Jedis sub, Long nodeId, JsonSupport jsonSupport) {
         this.nodeId = nodeId;
         this.jsonSupport = jsonSupport;
         this.pub = pub;

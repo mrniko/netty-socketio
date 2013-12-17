@@ -19,7 +19,7 @@ import com.corundumstudio.socketio.store.pubsub.PubSubListener;
 import com.corundumstudio.socketio.store.pubsub.PubSubMessage;
 import com.corundumstudio.socketio.store.pubsub.PubSubStore;
 
-public class PubSubMemoryStore implements PubSubStore {
+public class MemoryPubSubStore implements PubSubStore {
 
     @Override
     public void publish(String name, PubSubMessage msg) {

@@ -29,7 +29,7 @@ import com.hazelcast.core.Message;
 import com.hazelcast.core.MessageListener;
 
 
-public class PubSubHazelcastStore implements PubSubStore {
+public class HazelcastPubSubStore implements PubSubStore {
 
     private final HazelcastInstance hazelcastPub;
     private final HazelcastInstance hazelcastSub;
@@ -38,7 +38,7 @@ public class PubSubHazelcastStore implements PubSubStore {
     private final ConcurrentMap<String, Queue<String>> map =
                                         new ConcurrentHashMap<String, Queue<String>>();
 
-    public PubSubHazelcastStore(HazelcastInstance hazelcastPub, HazelcastInstance hazelcastSub, Long nodeId) {
+    public HazelcastPubSubStore(HazelcastInstance hazelcastPub, HazelcastInstance hazelcastSub, Long nodeId) {
         this.hazelcastPub = hazelcastPub;
         this.hazelcastSub = hazelcastSub;
         this.nodeId = nodeId;

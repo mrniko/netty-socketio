@@ -60,7 +60,7 @@ public class HazelcastStoreFactory extends BaseStoreFactory {
 
     @Override
     public PubSubStore getPubSubStore() {
-        return new PubSubHazelcastStore(hazelcastPub, hazelcastSub, getNodeId());
+        return new HazelcastPubSubStore(hazelcastPub, hazelcastSub, getNodeId());
     }
 
 }
