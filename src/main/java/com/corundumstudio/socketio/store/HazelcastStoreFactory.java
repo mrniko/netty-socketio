@@ -22,6 +22,10 @@ import com.corundumstudio.socketio.store.pubsub.PubSubStore;
 import com.hazelcast.client.HazelcastClient;
 import com.hazelcast.core.HazelcastInstance;
 
+/**
+ * WARN: It's necessary to add netty-socketio.jar in hazelcast server classpath.
+ *
+ */
 public class HazelcastStoreFactory extends BaseStoreFactory {
 
     private final HazelcastInstance hazelcastClient;
@@ -29,9 +33,13 @@ public class HazelcastStoreFactory extends BaseStoreFactory {
     private final HazelcastInstance hazelcastSub;
 
     public HazelcastStoreFactory() {
-        hazelcastClient = HazelcastClient.newHazelcastClient();
-        hazelcastPub = hazelcastClient;
-        hazelcastSub = hazelcastClient;
+        this(HazelcastClient.newHazelcastClient());
+    }
+
+    public HazelcastStoreFactory(HazelcastInstance instance) {
+        hazelcastClient = instance;
+        hazelcastPub = instance;
+        hazelcastSub = instance;
     }
 
     public HazelcastStoreFactory(HazelcastInstance hazelcastClient, HazelcastInstance hazelcastPub, HazelcastInstance hazelcastSub) {
