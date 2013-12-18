@@ -147,7 +147,9 @@ public class RedisPubSubStore implements PubSubStore {
                 try {
                     sub.subscribe(jedisPubSub, name);
                 } catch (Exception e) {
-                    log.error("error", e);
+                    if (!executorService.isShutdown()) {
+                        log.error(e.getMessage(), e);
+                    }
                 }
             }
         });
