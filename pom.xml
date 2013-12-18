@@ -269,7 +269,9 @@
            <configuration>
                <instructions>
                    <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
-                   <Embed-Dependency>netty-socketio;scope=compile</Embed-Dependency>
+                   <Import-Package>
+                    com.hazelcast.*;resolution:=optional,redis.clients.jedis.*;resolution:=optional,*
+                   </Import-Package>
                    <Export-Package>
                     com.corundumstudio.socketio;version="${project.version}",
                     com.corundumstudio.socketio.annotation;version="${project.version}",
