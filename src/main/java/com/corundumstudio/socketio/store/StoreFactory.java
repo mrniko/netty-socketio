@@ -22,6 +22,11 @@ import com.corundumstudio.socketio.namespace.NamespacesHub;
 import com.corundumstudio.socketio.parser.JsonSupport;
 import com.corundumstudio.socketio.store.pubsub.PubSubStore;
 
+/**
+ *
+ * Creates a client Store and PubSubStore
+ *
+ */
 public interface StoreFactory extends Disconnectable {
 
     PubSubStore getPubSubStore();

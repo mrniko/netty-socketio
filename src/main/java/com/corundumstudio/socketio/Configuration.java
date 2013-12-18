@@ -347,13 +347,14 @@ public class Configuration {
     }
 
     /**
-     * Data store - used to session data and implements pubsub.
+     * Data store - used to store session data and implements distributed pubsub.
      * Default is {@code MemoryStoreFactory}
      *
      * @param storeFactory - implements StoreFactory
      *
      * @see com.corundumstudio.socketio.store.MemoryStoreFactory
      * @see com.corundumstudio.socketio.store.RedisStoreFactory
+     * @see com.corundumstudio.socketio.store.HazelcastStoreFactory
      */
     public void setStoreFactory(StoreFactory clientStoreFactory) {
         this.storeFactory = clientStoreFactory;
