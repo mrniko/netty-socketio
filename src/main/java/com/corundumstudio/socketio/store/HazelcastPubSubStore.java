@@ -57,7 +57,6 @@ public class HazelcastPubSubStore implements PubSubStore {
             @Override
             public void onMessage(Message<T> message) {
                 PubSubMessage msg = message.getMessageObject();
-                System.out.println("current nodeId: " + nodeId + " msg: " + msg.getNodeId());
                 if (!nodeId.equals(msg.getNodeId())) {
                     listener.onMessage(message.getMessageObject());
                 }
