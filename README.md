@@ -17,6 +17,9 @@ Features
 * Supports ack (acknowledgment of received data)
 * Supports SSL
 * Supports Rooms
+* Supports client store (Memory, Redis, Hazelcast)
+* Supports distributed broadcast across netty-socketio nodes (Redis, Hazelcast)
+* Supports OSGi
 * Lock-free implementation
 * Declarative handler configuration via annotations
 
@@ -31,6 +34,17 @@ CPU 10%, Memory 15% - 6000 xhr-long polling sessions, 15000 websockets sessions,
 Recent Releases
 ================================
 ####Please Note: trunk is current development branch.
+
+####19-Dec-2013 - version 1.6.0 released (JDK 1.6+ compatible, Netty 4.0.13)
+Fixed - XHR-pooling transport regression  
+Fixed - Websocket transport regression  
+Fixed - Namespace NPE in PacketHandler  
+Fixed - Executors shutdown during server stop added  
+Feature - Client store (Memory, Redis, Hazelcast) support  
+Feature - Distributed broadcast across netty-socketio nodes (Redis, Hazelcast) support  
+Feature - OSGi support (thanks to rdevera)  
+Improvement - XHR-pooling optimization  
+Improvement - SocketIOClient.getAllRooms method added
 
 ####07-Dec-2013 - version 1.5.4 released (JDK 1.6+ compatible, Netty 4.0.13)
 Fixed - flash policy "request leak" after page reload (thanks to ntrp)  
