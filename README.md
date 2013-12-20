@@ -13,10 +13,9 @@ Features
 * Supports xhr-polling transport
 * Supports flashsocket transport
 * Supports websocket transport: HyBi 00 (which is the same as Hixie 76), HyBi 8-10 and HyBi 13-17 (17 is the same as IETF 6455).
-* Supports namespaces
+* Supports namespaces and rooms
 * Supports ack (acknowledgment of received data)
 * Supports SSL
-* Supports Rooms
 * Supports client store (Memory, Redis, Hazelcast)
 * Supports distributed broadcast across netty-socketio nodes (Redis, Hazelcast)
 * Supports OSGi
