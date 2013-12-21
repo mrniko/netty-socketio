@@ -37,10 +37,10 @@ Recent Releases
 ####19-Dec-2013 - version 1.6.0 released (JDK 1.6+ compatible, Netty 4.0.13)
 Fixed - XHR-pooling transport regression  
 Fixed - Websocket transport regression  
-Fixed - Namespace NPE in PacketHandler  
-Fixed - Executors shutdown during server stop added  
-Feature - Client store (Memory, Redis, Hazelcast) support  
-Feature - Distributed broadcast across netty-socketio nodes (Redis, Hazelcast) support  
+Fixed - namespace NPE in PacketHandler  
+Fixed - shutdown executors during server stop added  
+Feature - client store (Memory, Redis, Hazelcast) support  
+Feature - distributed broadcast across netty-socketio nodes (Redis, Hazelcast) support  
 Feature - OSGi support (thanks to rdevera)  
 Improvement - XHR-pooling optimization  
 Improvement - SocketIOClient.getAllRooms method added
