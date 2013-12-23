@@ -19,7 +19,7 @@ Features
 * Supports client store (Memory, Redis, Hazelcast)
 * Supports distributed broadcast across netty-socketio nodes (Redis, Hazelcast)
 * Supports OSGi
-* Lock-free implementation
+* Lock-free and thread-safe implementation
 * Declarative handler configuration via annotations
 
 
