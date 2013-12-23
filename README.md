@@ -28,7 +28,9 @@ Performance
 
 CentOS, 1 CPU, 4GB RAM runned on VM (based on customer report, tested in 2012): 
 
-CPU 10%, Memory 15% - 6000 xhr-long polling sessions, 15000 websockets sessions, 4000 messages per sec
+CPU 10%, Memory 15%
+6000 xhr-long polling sessions or 15000 websockets sessions
+4000 messages per second
 
 Recent Releases
 ================================
