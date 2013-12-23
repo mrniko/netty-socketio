@@ -169,6 +169,8 @@ public class WebSocketTransport extends BaseTransport {
         authorizeHandler.connect(client);
 
         heartbeatHandler.onHeartbeat(client);
+
+        channel.pipeline().remove(SocketIOChannelInitializer.XHR_POLLING_TRANSPORT);
         removeHandler(channel.pipeline());
     }
 
