@@ -30,6 +30,8 @@ import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.QueryStringDecoder;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -41,6 +43,7 @@ import org.slf4j.LoggerFactory;
 
 import com.corundumstudio.socketio.Configuration;
 import com.corundumstudio.socketio.Disconnectable;
+import com.corundumstudio.socketio.HandshakeData;
 import com.corundumstudio.socketio.SocketIOClient;
 import com.corundumstudio.socketio.messages.AuthorizeMessage;
 import com.corundumstudio.socketio.misc.ConcurrentHashSet;
@@ -90,7 +93,7 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
             }
             if (queryDecoder.path().equals(connectPath)) {
                 String origin = req.headers().get(HttpHeaders.Names.ORIGIN);
-                authorize(channel, origin, queryDecoder.parameters());
+                authorize(channel, origin, queryDecoder.parameters(), req);
                 req.release();
                 return;
             }
@@ -98,9 +101,9 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
         ctx.fireChannelRead(msg);
     }
 
-    private void authorize(Channel channel, String origin, Map<String, List<String>> params)
+    private void authorize(Channel channel, String origin, Map<String, List<String>> params, FullHttpRequest req)
             throws IOException {
-        final UUID sessionId = UUID.randomUUID();
+        UUID sessionId = UUID.randomUUID();
         authorizedSessionIds.add(sessionId);
 
         scheduleDisconnect(channel, sessionId);
@@ -110,16 +113,35 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
             heartbeatTimeoutVal = "";
         }
 
-        String msg = sessionId + ":" + heartbeatTimeoutVal + ":" + configuration.getCloseTimeout() + ":" + configuration.getTransports();
-
-        List<String> jsonpParams = params.get("jsonp");
-        String jsonpParam = null;
-        if (jsonpParams != null) {
-            jsonpParam = jsonpParams.get(0);
+        Map<String, List<String>> headers = new HashMap<String, List<String>>();
+        for (String name : req.headers().names()) {
+            List<String> values = req.headers().getAll(name);
+            headers.put(name, values);
         }
 
-        channel.write(new AuthorizeMessage(msg, jsonpParam, origin, sessionId));
-        log.debug("New sessionId: {} authorized", sessionId);
+        HandshakeData data = new HandshakeData(headers, params,
+                                                (InetSocketAddress)channel.remoteAddress(),
+                                                    req.getUri(), origin != null && !origin.equalsIgnoreCase("null"));
+
+        boolean result = configuration.getAuthorizationListener().isAuthorized(data);
+        if (result) {
+            String msg = sessionId + ":" + heartbeatTimeoutVal + ":" + configuration.getCloseTimeout() + ":" + configuration.getTransports();
+
+            List<String> jsonpParams = params.get("jsonp");
+            String jsonpParam = null;
+            if (jsonpParams != null) {
+                jsonpParam = jsonpParams.get(0);
+            }
+
+            channel.write(new AuthorizeMessage(msg, jsonpParam, origin, sessionId));
+            log.debug("Handshake authorized for sessionId: {}", sessionId);
+        } else {
+            HttpResponse res = new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.FORBIDDEN);
+            ChannelFuture f = channel.write(res);
+            f.addListener(ChannelFutureListener.CLOSE);
+
+            log.debug("Handshake unauthorized");
+        }
     }
 
     private void scheduleDisconnect(Channel channel, final UUID sessionId) {

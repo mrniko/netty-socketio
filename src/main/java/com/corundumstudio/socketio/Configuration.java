@@ -19,6 +19,7 @@ import io.netty.handler.codec.TooLongFrameException;
 
 import java.io.InputStream;
 
+import com.corundumstudio.socketio.handler.SuccessAuthorizationListener;
 import com.corundumstudio.socketio.parser.JacksonJsonSupport;
 import com.corundumstudio.socketio.parser.JsonSupport;
 import com.corundumstudio.socketio.store.MemoryStoreFactory;
@@ -58,6 +59,8 @@ public class Configuration {
 
     private JsonSupport jsonSupport = new JacksonJsonSupport(this);
 
+    private AuthorizationListener authorizationListener = new SuccessAuthorizationListener();
+
     public Configuration() {
     }
 
@@ -94,6 +97,7 @@ public class Configuration {
 
         setPreferDirectBuffer(conf.isPreferDirectBuffer());
         setStoreFactory(conf.getStoreFactory());
+        setAuthorizationListener(conf.getAuthorizationListener());
     }
 
     private String join(Transport[] transports) {
@@ -361,6 +365,22 @@ public class Configuration {
     }
     public StoreFactory getStoreFactory() {
         return storeFactory;
+    }
+
+    /**
+     * Authorization listener invoked on every handshake.
+     * Accepts or denies a client by {@code AuthorizationListener.isAuthorized} method.
+     * <b>Accepts</b> all clients by default.
+     *
+     * @param authorizationListener - authorization listener itself
+     *
+     * @see com.corundumstudio.socketio.AuthorizationListener
+     */
+    public void setAuthorizationListener(AuthorizationListener authorizationListener) {
+        this.authorizationListener = authorizationListener;
+    }
+    public AuthorizationListener getAuthorizationListener() {
+        return authorizationListener;
     }
 
 
