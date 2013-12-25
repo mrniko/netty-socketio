@@ -113,7 +113,7 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
             heartbeatTimeoutVal = "";
         }
 
-        Map<String, List<String>> headers = new HashMap<String, List<String>>();
+        Map<String, List<String>> headers = new HashMap<String, List<String>>(req.headers().names().size());
         for (String name : req.headers().names()) {
             List<String> values = req.headers().getAll(name);
             headers.put(name, values);
