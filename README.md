@@ -9,15 +9,17 @@ Licensed under the Apache License 2.0.
 
 Features
 ================================
-* Supports 0.7+ version of [Socket.IO-client](https://github.com/LearnBoost/socket.io-client) up to latest - 0.9.11
+* Supports 0.7+ version of [Socket.IO-client](https://github.com/LearnBoost/socket.io-client) up to latest
 * Supports xhr-polling transport
 * Supports flashsocket transport
 * Supports websocket transport: HyBi 00 (which is the same as Hixie 76), HyBi 8-10 and HyBi 13-17 (17 is the same as IETF 6455).
-* Supports namespaces
+* Supports namespaces and rooms
 * Supports ack (acknowledgment of received data)
 * Supports SSL
-* Supports Rooms
-* Lock-free implementation
+* Supports client store (Memory, Redis, Hazelcast)
+* Supports distributed broadcast across netty-socketio nodes (Redis, Hazelcast)
+* Supports OSGi
+* Lock-free and thread-safe implementation
 * Declarative handler configuration via annotations
 
 
@@ -26,11 +28,24 @@ Performance
 
 CentOS, 1 CPU, 4GB RAM runned on VM (based on customer report, tested in 2012): 
 
-CPU 10%, Memory 15% - 6000 xhr-long polling sessions, 15000 websockets sessions, 4000 messages per sec
+CPU 10%, Memory 15%  
+6000 xhr-long polling sessions or 15000 websockets sessions  
+4000 messages per second  
 
 Recent Releases
 ================================
 ####Please Note: trunk is current development branch.
+
+####19-Dec-2013 - version 1.6.0 released (JDK 1.6+ compatible, Netty 4.0.13)
+Fixed - XHR-pooling transport regression  
+Fixed - Websocket transport regression  
+Fixed - namespace NPE in PacketHandler  
+Fixed - shutdown executors during server stop added  
+Feature - client store (Memory, Redis, Hazelcast) support  
+Feature - distributed broadcast across netty-socketio nodes (Redis, Hazelcast) support  
+Feature - OSGi support (thanks to rdevera)  
+Improvement - XHR-pooling optimization  
+Improvement - SocketIOClient.getAllRooms method added
 
 ####07-Dec-2013 - version 1.5.4 released (JDK 1.6+ compatible, Netty 4.0.13)
 Fixed - flash policy "request leak" after page reload (thanks to ntrp)  
