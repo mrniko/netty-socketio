@@ -9,18 +9,18 @@ Licensed under the Apache License 2.0.
 
 Features
 ================================
-* Supports 0.7+ version of [Socket.IO-client](https://github.com/LearnBoost/socket.io-client) up to latest
-* Supports xhr-polling transport
-* Supports flashsocket transport
-* Supports websocket transport: HyBi 00 (which is the same as Hixie 76), HyBi 8-10 and HyBi 13-17 (17 is the same as IETF 6455).
-* Supports namespaces and rooms
-* Supports ack (acknowledgment of received data)
-* Supports SSL
-* Supports client store (Memory, [Redis](http://redis.io/), [Hazelcast](http://www.hazelcast.com/))
-* Supports distributed broadcast across netty-socketio nodes ([Redis](http://redis.io/), [Hazelcast](http://www.hazelcast.com/))
-* Supports OSGi
-* Lock-free and thread-safe implementation
-* Declarative handler configuration via annotations
+* Supports 0.7+ version of [Socket.IO-client](https://github.com/LearnBoost/socket.io-client) up to latest  
+* Supports xhr-polling transport  
+* Supports flashsocket transport  
+* Supports websocket transport: HyBi 00 (which is the same as Hixie 76), HyBi 8-10 and HyBi 13-17 (17 is the same as IETF 6455).  
+* Supports namespaces and rooms  
+* Supports ack (acknowledgment of received data)  
+* Supports SSL  
+* Supports client store (Memory, [Redis](http://redis.io/), [Hazelcast](http://www.hazelcast.com/))  
+* Supports distributed broadcast across netty-socketio nodes ([Redis](http://redis.io/), [Hazelcast](http://www.hazelcast.com/))  
+* Supports OSGi  
+* Lock-free and thread-safe implementation  
+* Declarative handler configuration via annotations  
 
 
 Performance
