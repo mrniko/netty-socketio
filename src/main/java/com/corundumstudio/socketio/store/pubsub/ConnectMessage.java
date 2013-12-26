@@ -15,29 +15,24 @@
  */
 package com.corundumstudio.socketio.store.pubsub;
 
+import java.util.UUID;
 
-public interface PubSubStore {
+public class ConnectMessage extends PubSubMessage {
 
-    // TODO refactor to enum
-    String DISCONNECT = "disconnect";
+    private static final long serialVersionUID = 3108918714495865101L;
 
-    String CONNECT = "connect";
+    private UUID sessionId;
 
-    String HANDSHAKE = "handshake";
+    public ConnectMessage() {
+    }
 
-    String JOIN = "join";
+    public ConnectMessage(UUID sessionId) {
+        super();
+        this.sessionId = sessionId;
+    }
 
-    String LEAVE = "leave";
-
-    String DISPATCH = "dispatch";
-
-
-    void publish(String name, PubSubMessage msg);
-
-    <T extends PubSubMessage> void subscribe(String name, PubSubListener<T> listener, Class<T> clazz);
-
-    void unsubscribe(String name);
-
-    void shutdown();
+    public UUID getSessionId() {
+        return sessionId;
+    }
 
 }

@@ -54,6 +54,9 @@ import com.corundumstudio.socketio.parser.PacketType;
 import com.corundumstudio.socketio.scheduler.CancelableScheduler;
 import com.corundumstudio.socketio.scheduler.SchedulerKey;
 import com.corundumstudio.socketio.scheduler.SchedulerKey.Type;
+import com.corundumstudio.socketio.store.pubsub.ConnectMessage;
+import com.corundumstudio.socketio.store.pubsub.HandshakeMessage;
+import com.corundumstudio.socketio.store.pubsub.PubSubStore;
 import com.corundumstudio.socketio.transport.MainBaseClient;
 
 @Sharable
@@ -103,16 +106,6 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
 
     private void authorize(Channel channel, String origin, Map<String, List<String>> params, FullHttpRequest req)
             throws IOException {
-        UUID sessionId = UUID.randomUUID();
-        authorizedSessionIds.add(sessionId);
-
-        scheduleDisconnect(channel, sessionId);
-
-        String heartbeatTimeoutVal = String.valueOf(configuration.getHeartbeatTimeout());
-        if (!configuration.isHeartbeatsEnabled()) {
-            heartbeatTimeoutVal = "";
-        }
-
         Map<String, List<String>> headers = new HashMap<String, List<String>>(req.headers().names().size());
         for (String name : req.headers().names()) {
             List<String> values = req.headers().getAll(name);
@@ -125,15 +118,22 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
 
         boolean result = configuration.getAuthorizationListener().isAuthorized(data);
         if (result) {
-            String msg = sessionId + ":" + heartbeatTimeoutVal + ":" + configuration.getCloseTimeout() + ":" + configuration.getTransports();
+            UUID sessionId = UUID.randomUUID();
+
+            scheduleDisconnect(channel, sessionId);
+
+            String msg = createHandshake(sessionId);
 
             List<String> jsonpParams = params.get("jsonp");
             String jsonpParam = null;
             if (jsonpParams != null) {
                 jsonpParam = jsonpParams.get(0);
             }
-
             channel.write(new AuthorizeMessage(msg, jsonpParam, origin, sessionId));
+
+            handshake(sessionId);
+            HandshakeMessage message = new HandshakeMessage(sessionId);
+            configuration.getStoreFactory().getPubSubStore().publish(PubSubStore.HANDSHAKE, message);
             log.debug("Handshake authorized for sessionId: {}", sessionId);
         } else {
             HttpResponse res = new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.FORBIDDEN);
@@ -142,6 +142,15 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
 
             log.debug("Handshake unauthorized");
         }
+    }
+
+    private String createHandshake(UUID sessionId) {
+        String heartbeatTimeoutVal = String.valueOf(configuration.getHeartbeatTimeout());
+        if (!configuration.isHeartbeatsEnabled()) {
+            heartbeatTimeoutVal = "";
+        }
+        String msg = sessionId + ":" + heartbeatTimeoutVal + ":" + configuration.getCloseTimeout() + ":" + configuration.getTransports();
+        return msg;
     }
 
     private void scheduleDisconnect(Channel channel, final UUID sessionId) {
@@ -164,9 +173,23 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
         return authorizedSessionIds.contains(sessionId);
     }
 
-    public void connect(MainBaseClient client) {
-        SchedulerKey key = new SchedulerKey(Type.AUTHORIZE, client.getSessionId());
+    public void handshake(UUID sessionId) {
+        authorizedSessionIds.add(sessionId);
+    }
+
+    public void connect(UUID sessionId) {
+        SchedulerKey key = new SchedulerKey(Type.AUTHORIZE, sessionId);
         disconnectScheduler.cancel(key);
+    }
+
+    public void disconnect(UUID sessionId) {
+        authorizedSessionIds.remove(sessionId);
+    }
+
+    public void connect(MainBaseClient client) {
+        connect(client.getSessionId());
+        configuration.getStoreFactory().getPubSubStore().publish(PubSubStore.CONNECT, new ConnectMessage(client.getSessionId()));
+
         client.send(new Packet(PacketType.CONNECT));
 
         Namespace ns = namespacesHub.get(Namespace.DEFAULT_NAME);
@@ -176,7 +199,7 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
 
     @Override
     public void onDisconnect(MainBaseClient client) {
-        authorizedSessionIds.remove(client.getSessionId());
+        disconnect(client.getSessionId());
     }
 
 }

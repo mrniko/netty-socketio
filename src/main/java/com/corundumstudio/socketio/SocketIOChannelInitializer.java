@@ -51,6 +51,8 @@ import com.corundumstudio.socketio.parser.Encoder;
 import com.corundumstudio.socketio.parser.JsonSupport;
 import com.corundumstudio.socketio.scheduler.CancelableScheduler;
 import com.corundumstudio.socketio.store.StoreFactory;
+import com.corundumstudio.socketio.store.pubsub.DisconnectMessage;
+import com.corundumstudio.socketio.store.pubsub.PubSubStore;
 import com.corundumstudio.socketio.transport.FlashPolicyHandler;
 import com.corundumstudio.socketio.transport.FlashSocketTransport;
 import com.corundumstudio.socketio.transport.MainBaseClient;
@@ -123,7 +125,7 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
         authorizeHandler = new AuthorizeHandler(connectPath, scheduler, configuration, namespacesHub);
 
         StoreFactory factory = configuration.getStoreFactory();
-        factory.init(namespacesHub, jsonSupport);
+        factory.init(namespacesHub, authorizeHandler, jsonSupport);
 
         xhrPollingTransport = new XHRPollingTransport(connectPath, ackManager, this, scheduler, authorizeHandler, configuration);
         webSocketTransport = new WebSocketTransport(connectPath, isSsl, ackManager, this, authorizeHandler, heartbeatHandler, factory);
@@ -201,6 +203,9 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
         flashSocketTransport.onDisconnect(client);
         authorizeHandler.onDisconnect(client);
         configuration.getStoreFactory().onDisconnect(client);
+
+        configuration.getStoreFactory().getPubSubStore().publish(PubSubStore.DISCONNECT, new DisconnectMessage(client.getSessionId()));
+
         log.debug("Client with sessionId: {} disconnected", client.getSessionId());
     }
 

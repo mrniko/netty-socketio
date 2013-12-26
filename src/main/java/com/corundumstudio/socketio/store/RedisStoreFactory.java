@@ -19,6 +19,7 @@ import java.util.UUID;
 
 import redis.clients.jedis.Jedis;
 
+import com.corundumstudio.socketio.handler.AuthorizeHandler;
 import com.corundumstudio.socketio.namespace.NamespacesHub;
 import com.corundumstudio.socketio.parser.JsonSupport;
 import com.corundumstudio.socketio.store.pubsub.BaseStoreFactory;
@@ -43,14 +44,14 @@ public class RedisStoreFactory extends BaseStoreFactory {
     }
 
     @Override
-    public void init(NamespacesHub namespacesHub, JsonSupport jsonSupport) {
+    public void init(NamespacesHub namespacesHub, AuthorizeHandler authorizeHandler, JsonSupport jsonSupport) {
         pubSubRedisStore = new RedisPubSubStore(redisPub, redisSub, getNodeId(), jsonSupport);
 
         redisClient.connect();
         redisPub.connect();
         redisSub.connect();
 
-        super.init(namespacesHub, jsonSupport);
+        super.init(namespacesHub, authorizeHandler, jsonSupport);
     }
 
 

@@ -15,12 +15,15 @@
  */
 package com.corundumstudio.socketio;
 
+import java.io.Serializable;
 import java.net.InetSocketAddress;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-public final class HandshakeData {
+public final class HandshakeData implements Serializable {
+
+    private static final long serialVersionUID = 1196350300161819978L;
 
     private final Map<String, List<String>> headers;
     private final InetSocketAddress address;

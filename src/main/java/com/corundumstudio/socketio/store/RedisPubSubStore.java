@@ -39,7 +39,7 @@ import com.corundumstudio.socketio.store.pubsub.PubSubStore;
 
 public class RedisPubSubStore implements PubSubStore {
 
-    private final ExecutorService executorService = Executors.newFixedThreadPool(5);
+    private final ExecutorService executorService = Executors.newFixedThreadPool(6);
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
