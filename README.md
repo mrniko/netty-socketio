@@ -16,8 +16,8 @@ Features
 * Supports namespaces and rooms
 * Supports ack (acknowledgment of received data)
 * Supports SSL
-* Supports client store (Memory, Redis, Hazelcast)
-* Supports distributed broadcast across netty-socketio nodes (Redis, Hazelcast)
+* Supports client store (Memory, [Redis](http://redis.io/), [Hazelcast](http://www.hazelcast.com/))
+* Supports distributed broadcast across netty-socketio nodes ([Redis](http://redis.io/), [Hazelcast](http://www.hazelcast.com/))
 * Supports OSGi
 * Lock-free and thread-safe implementation
 * Declarative handler configuration via annotations
@@ -40,9 +40,9 @@ Recent Releases
 Fixed - XHR-pooling transport regression  
 Fixed - Websocket transport regression  
 Fixed - namespace NPE in PacketHandler  
-Fixed - shutdown executors during server stop added  
-Feature - client store (Memory, Redis, Hazelcast) support  
-Feature - distributed broadcast across netty-socketio nodes (Redis, Hazelcast) support  
+Fixed - executors shutdown during server stop
+Feature - client store (Memory, [Redis](http://redis.io/), [Hazelcast](http://www.hazelcast.com/)) support  
+Feature - distributed broadcast across netty-socketio nodes ([Redis](http://redis.io/), [Hazelcast](http://www.hazelcast.com/)) support  
 Feature - OSGi support (thanks to rdevera)  
 Improvement - XHR-pooling optimization  
 Improvement - SocketIOClient.getAllRooms method added
