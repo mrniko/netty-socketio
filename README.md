@@ -40,7 +40,7 @@ Recent Releases
 Fixed - XHR-pooling transport regression  
 Fixed - Websocket transport regression  
 Fixed - namespace NPE in PacketHandler  
-Fixed - executors shutdown during server stop
+Fixed - executors shutdown during server stop  
 Feature - client store (Memory, [Redis](http://redis.io/), [Hazelcast](http://www.hazelcast.com/)) support  
 Feature - distributed broadcast across netty-socketio nodes ([Redis](http://redis.io/), [Hazelcast](http://www.hazelcast.com/)) support  
 Feature - OSGi support (thanks to rdevera)  
