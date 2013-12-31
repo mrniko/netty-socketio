@@ -9,18 +9,18 @@ Licensed under the Apache License 2.0.
 
 Features
 ================================
-* Supports 0.7+ version of [Socket.IO-client](https://github.com/LearnBoost/socket.io-client) up to latest
-* Supports xhr-polling transport
-* Supports flashsocket transport
-* Supports websocket transport: HyBi 00 (which is the same as Hixie 76), HyBi 8-10 and HyBi 13-17 (17 is the same as IETF 6455).
-* Supports namespaces and rooms
-* Supports ack (acknowledgment of received data)
-* Supports SSL
-* Supports client store (Memory, [Redis](http://redis.io/), [Hazelcast](http://www.hazelcast.com/))
-* Supports distributed broadcast across netty-socketio nodes ([Redis](http://redis.io/), [Hazelcast](http://www.hazelcast.com/))
-* Supports OSGi
-* Lock-free and thread-safe implementation
-* Declarative handler configuration via annotations
+* Supports 0.7+ version of [Socket.IO-client](https://github.com/LearnBoost/socket.io-client) up to latest  
+* Supports xhr-polling transport  
+* Supports flashsocket transport  
+* Supports websocket transport: HyBi 00 (which is the same as Hixie 76), HyBi 8-10 and HyBi 13-17 (17 is the same as IETF 6455).  
+* Supports namespaces and rooms  
+* Supports ack (acknowledgment of received data)  
+* Supports SSL  
+* Supports client store (Memory, [Redis](http://redis.io/), [Hazelcast](http://www.hazelcast.com/))  
+* Supports distributed broadcast across netty-socketio nodes ([Redis](http://redis.io/), [Hazelcast](http://www.hazelcast.com/))  
+* Supports OSGi  
+* Lock-free and thread-safe implementation  
+* Declarative handler configuration via annotations  
 
 
 Performance
@@ -36,11 +36,15 @@ Recent Releases
 ================================
 ####Please Note: trunk is current development branch.
 
+####??-Jan-2014 - version 1.6.1 released (JDK 1.6+ compatible, Netty 4.0.14)
+Feature - distributed authorization support for websocket transport  
+Feature - authroziation support  
+
 ####19-Dec-2013 - version 1.6.0 released (JDK 1.6+ compatible, Netty 4.0.13)
 Fixed - XHR-pooling transport regression  
 Fixed - Websocket transport regression  
 Fixed - namespace NPE in PacketHandler  
-Fixed - executors shutdown during server stop
+Fixed - executors shutdown during server stop  
 Feature - client store (Memory, [Redis](http://redis.io/), [Hazelcast](http://www.hazelcast.com/)) support  
 Feature - distributed broadcast across netty-socketio nodes ([Redis](http://redis.io/), [Hazelcast](http://www.hazelcast.com/)) support  
 Feature - OSGi support (thanks to rdevera)  
