@@ -109,4 +109,9 @@ public abstract class BaseStoreFactory implements StoreFactory {
         return namespaceName;
     }
 
+    @Override
+    public String toString() {
+        return getClass().getSimpleName() + " (distributed session store, distributed publish/subscribe)";
+    }
+
 }

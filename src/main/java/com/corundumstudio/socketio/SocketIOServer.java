@@ -113,6 +113,7 @@ public class SocketIOServer implements ClientListeners {
         }
 
         b.bind(addr).syncUninterruptibly();
+        log.info("Session store / pubsub factory used: {}", configCopy.getStoreFactory());
         log.info("SocketIO server started at port: {}", configCopy.getPort());
     }
 

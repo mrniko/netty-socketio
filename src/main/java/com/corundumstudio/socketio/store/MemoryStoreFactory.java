@@ -38,4 +38,9 @@ public class MemoryStoreFactory extends BaseStoreFactory {
     public void shutdown() {
     }
 
+    @Override
+    public String toString() {
+        return getClass().getSimpleName() + " (local session store only)";
+    }
+
 }
