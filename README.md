@@ -36,6 +36,10 @@ Recent Releases
 ================================
 ####Please Note: trunk is current development branch.
 
+####??-Jan-2014 - version 1.6.1 released (JDK 1.6+ compatible, Netty 4.0.14)
+Feature - distributed authorization support for websocket transport  
+Feature - authroziation support  
+
 ####19-Dec-2013 - version 1.6.0 released (JDK 1.6+ compatible, Netty 4.0.13)
 Fixed - XHR-pooling transport regression  
 Fixed - Websocket transport regression  
