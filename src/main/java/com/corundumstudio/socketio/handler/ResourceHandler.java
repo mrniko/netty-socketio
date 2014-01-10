@@ -106,7 +106,8 @@ public class ResourceHandler extends ChannelInboundHandlerAdapter {
                 // create ok response
                 HttpResponse res = new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.OK);
                 // set Content-Length header
-                setContentLength(res, fileUrl.getContentLengthLong());
+                long fileSize = getHeaderFieldLong(fileUrl, "content-length");
+                setContentLength(res, fileSize);
                 // set Content-Type header
                 setContentTypeHeader(res, fileUrl);
                 // set Date, Expires, Cache-Control and Last-Modified headers
@@ -123,6 +124,11 @@ public class ResourceHandler extends ChannelInboundHandlerAdapter {
             }
         }
         ctx.fireChannelRead(msg);
+    }
+
+    public long getHeaderFieldLong(URLConnection fileUrl, String name) {
+        String value = fileUrl.getHeaderField(name);
+        return Long.parseLong(value);
     }
 
     /*
