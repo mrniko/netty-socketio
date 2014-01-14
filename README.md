@@ -36,7 +36,7 @@ Recent Releases
 ================================
 ####Please Note: trunk is current development branch.
 
-####??-Jan-2014 - version 1.6.1 released (JDK 1.6+ compatible, Netty 4.0.14)
+####14-Jan-2014 - version 1.6.1 released (JDK 1.6+ compatible, Netty 4.0.14)
 Fixed - JDK 1.6+ compatibility  
 Feature - authroziation support  
 
@@ -88,7 +88,7 @@ Include the following to your dependency list:
     <dependency>
      <groupId>com.corundumstudio.socketio</groupId>
      <artifactId>netty-socketio</artifactId>
-     <version>1.6.0</version>
+     <version>1.6.1</version>
     </dependency>
 
 
