@@ -24,6 +24,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import com.corundumstudio.socketio.DisconnectableHub;
+import com.corundumstudio.socketio.HandshakeData;
 import com.corundumstudio.socketio.Transport;
 import com.corundumstudio.socketio.ack.AckManager;
 import com.corundumstudio.socketio.messages.XHRSendPacketsMessage;
@@ -37,8 +38,9 @@ public class XHRPollingClient extends MainBaseClient {
     private final Queue<Packet> packetQueue = new ConcurrentLinkedQueue<Packet>();
     private String origin;
 
-    public XHRPollingClient(AckManager ackManager, DisconnectableHub disconnectable, UUID sessionId, Transport transport, StoreFactory storeFactory) {
-        super(sessionId, ackManager, disconnectable, transport, storeFactory);
+    public XHRPollingClient(AckManager ackManager, DisconnectableHub disconnectable,
+            UUID sessionId, Transport transport, StoreFactory storeFactory, HandshakeData handshakeData) {
+        super(sessionId, ackManager, disconnectable, transport, storeFactory, handshakeData);
     }
 
     public void bindChannel(Channel channel, String origin) {

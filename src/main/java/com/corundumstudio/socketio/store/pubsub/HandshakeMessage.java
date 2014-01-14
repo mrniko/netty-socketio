@@ -17,22 +17,30 @@ package com.corundumstudio.socketio.store.pubsub;
 
 import java.util.UUID;
 
+import com.corundumstudio.socketio.HandshakeData;
+
 public class HandshakeMessage extends PubSubMessage {
 
     private static final long serialVersionUID = 5767127795325210150L;
 
     private UUID sessionId;
+    private HandshakeData data;
 
     public HandshakeMessage() {
     }
 
-    public HandshakeMessage(UUID sessionId) {
+    public HandshakeMessage(UUID sessionId, HandshakeData data) {
         super();
         this.sessionId = sessionId;
+        this.data = data;
     }
 
     public UUID getSessionId() {
         return sessionId;
+    }
+
+    public HandshakeData getData() {
+        return data;
     }
 
 }

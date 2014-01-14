@@ -34,8 +34,8 @@ import java.net.InetSocketAddress;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
@@ -46,7 +46,6 @@ import com.corundumstudio.socketio.Disconnectable;
 import com.corundumstudio.socketio.HandshakeData;
 import com.corundumstudio.socketio.SocketIOClient;
 import com.corundumstudio.socketio.messages.AuthorizeMessage;
-import com.corundumstudio.socketio.misc.ConcurrentHashSet;
 import com.corundumstudio.socketio.namespace.Namespace;
 import com.corundumstudio.socketio.namespace.NamespacesHub;
 import com.corundumstudio.socketio.parser.Packet;
@@ -65,7 +64,7 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     private final CancelableScheduler disconnectScheduler;
-    private final Set<UUID> authorizedSessionIds = new ConcurrentHashSet<UUID>();
+    private final Map<UUID, HandshakeData> authorizedSessionIds = new ConcurrentHashMap<UUID, HandshakeData>();
 
     private final String connectPath;
     private final Configuration configuration;
@@ -131,8 +130,8 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
             }
             channel.write(new AuthorizeMessage(msg, jsonpParam, origin, sessionId));
 
-            handshake(sessionId);
-            HandshakeMessage message = new HandshakeMessage(sessionId);
+            handshake(sessionId, data);
+            HandshakeMessage message = new HandshakeMessage(sessionId, data);
             configuration.getStoreFactory().getPubSubStore().publish(PubSubStore.HANDSHAKE, message);
             log.debug("Handshake authorized for sessionId: {}", sessionId);
         } else {
@@ -169,12 +168,12 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
         });
     }
 
-    public boolean isSessionAuthorized(UUID sessionId) {
-        return authorizedSessionIds.contains(sessionId);
+    public HandshakeData getHandshakeData(UUID sessionId) {
+        return authorizedSessionIds.get(sessionId);
     }
 
-    public void handshake(UUID sessionId) {
-        authorizedSessionIds.add(sessionId);
+    public void handshake(UUID sessionId, HandshakeData data) {
+        authorizedSessionIds.put(sessionId, data);
     }
 
     public void connect(UUID sessionId) {

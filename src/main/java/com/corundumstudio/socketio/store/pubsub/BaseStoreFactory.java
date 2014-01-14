@@ -54,7 +54,7 @@ public abstract class BaseStoreFactory implements StoreFactory {
         getPubSubStore().subscribe(PubSubStore.HANDSHAKE, new PubSubListener<HandshakeMessage>() {
             @Override
             public void onMessage(HandshakeMessage msg) {
-                authorizeHandler.handshake(msg.getSessionId());
+                authorizeHandler.handshake(msg.getSessionId(), msg.getData());
                 log.debug("{} sessionId: {}", PubSubStore.HANDSHAKE, msg.getSessionId());
             }
         }, HandshakeMessage.class);

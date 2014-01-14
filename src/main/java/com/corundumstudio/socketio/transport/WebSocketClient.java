@@ -21,6 +21,7 @@ import io.netty.channel.ChannelFuture;
 import java.util.UUID;
 
 import com.corundumstudio.socketio.DisconnectableHub;
+import com.corundumstudio.socketio.HandshakeData;
 import com.corundumstudio.socketio.Transport;
 import com.corundumstudio.socketio.ack.AckManager;
 import com.corundumstudio.socketio.messages.WebSocketPacketMessage;
@@ -31,8 +32,8 @@ public class WebSocketClient extends MainBaseClient {
 
     public WebSocketClient(Channel channel, AckManager ackManager,
                             DisconnectableHub disconnectable, UUID sessionId,
-                             Transport transport, StoreFactory storeFactory) {
-        super(sessionId, ackManager, disconnectable, transport, storeFactory);
+                             Transport transport, StoreFactory storeFactory, HandshakeData handshakeData) {
+        super(sessionId, ackManager, disconnectable, transport, storeFactory, handshakeData);
         setChannel(channel);
     }
 

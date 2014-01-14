@@ -39,6 +39,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.corundumstudio.socketio.DisconnectableHub;
+import com.corundumstudio.socketio.HandshakeData;
 import com.corundumstudio.socketio.SocketIOClient;
 import com.corundumstudio.socketio.SocketIOChannelInitializer;
 import com.corundumstudio.socketio.Transport;
@@ -155,14 +156,15 @@ public class WebSocketTransport extends BaseTransport {
     }
 
     private void connectClient(Channel channel, UUID sessionId) {
-        if (!authorizeHandler.isSessionAuthorized(sessionId)) {
+        HandshakeData data = authorizeHandler.getHandshakeData(sessionId);
+        if (data == null) {
             log.warn("Unauthorized client with sessionId: {}, from ip: {}. Channel closed!",
                         sessionId, channel.remoteAddress());
             channel.close();
             return;
         }
 
-        WebSocketClient client = new WebSocketClient(channel, ackManager, disconnectableHub, sessionId, getTransport(), storeFactory);
+        WebSocketClient client = new WebSocketClient(channel, ackManager, disconnectableHub, sessionId, getTransport(), storeFactory, data);
 
         channelId2Client.put(channel, client);
         sessionId2Client.put(sessionId, client);

@@ -26,6 +26,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import com.corundumstudio.socketio.DisconnectableHub;
+import com.corundumstudio.socketio.HandshakeData;
 import com.corundumstudio.socketio.SocketIOClient;
 import com.corundumstudio.socketio.Transport;
 import com.corundumstudio.socketio.ack.AckManager;
@@ -53,14 +54,16 @@ public abstract class MainBaseClient {
     private final UUID sessionId;
     private final Transport transport;
     private Channel channel;
+    private final HandshakeData handshakeData;
 
     public MainBaseClient(UUID sessionId, AckManager ackManager, DisconnectableHub disconnectable,
-            Transport transport, StoreFactory storeFactory) {
+            Transport transport, StoreFactory storeFactory, HandshakeData handshakeData) {
         this.sessionId = sessionId;
         this.ackManager = ackManager;
         this.disconnectable = disconnectable;
         this.transport = transport;
         this.store = storeFactory.create(sessionId);
+        this.handshakeData = handshakeData;
     }
 
     public Transport getTransport() {
@@ -96,6 +99,10 @@ public abstract class MainBaseClient {
         for (SocketIOClient client : getAllChildClients()) {
             ((NamespaceClient) client).onDisconnect();
         }
+    }
+
+    public HandshakeData getHandshakeData() {
+        return handshakeData;
     }
 
     public AckManager getAckManager() {

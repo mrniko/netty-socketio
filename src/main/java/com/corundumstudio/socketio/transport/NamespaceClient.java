@@ -16,12 +16,12 @@
 package com.corundumstudio.socketio.transport;
 
 import java.net.SocketAddress;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
 import com.corundumstudio.socketio.AckCallback;
+import com.corundumstudio.socketio.HandshakeData;
 import com.corundumstudio.socketio.SocketIOClient;
 import com.corundumstudio.socketio.Transport;
 import com.corundumstudio.socketio.namespace.Namespace;
@@ -204,6 +204,11 @@ public class NamespaceClient implements SocketIOClient {
     @Override
     public List<String> getAllRooms() {
         return namespace.getRooms(this);
+    }
+
+    @Override
+    public HandshakeData getHandshakeData() {
+        return baseClient.getHandshakeData();
     }
 
 }

@@ -21,16 +21,19 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-public final class HandshakeData implements Serializable {
+public class HandshakeData implements Serializable {
 
     private static final long serialVersionUID = 1196350300161819978L;
 
-    private final Map<String, List<String>> headers;
-    private final InetSocketAddress address;
-    private final Date time = new Date();
-    private final String url;
-    private final Map<String, List<String>> urlParams;
-    private final boolean xdomain;
+    private Map<String, List<String>> headers;
+    private InetSocketAddress address;
+    private Date time = new Date();
+    private String url;
+    private Map<String, List<String>> urlParams;
+    private boolean xdomain;
+
+    public HandshakeData() {
+    }
 
     public HandshakeData(Map<String, List<String>> headers, Map<String, List<String>> urlParams, InetSocketAddress address, String url, boolean xdomain) {
         super();
@@ -49,6 +52,14 @@ public final class HandshakeData implements Serializable {
         return headers;
     }
 
+    public String getSingleHeader(String name) {
+        List<String> values = headers.get(name);
+        if (values != null && values.size() == 1) {
+            return values.iterator().next();
+        }
+        return null;
+    }
+
     public Date getTime() {
         return time;
     }
@@ -63,6 +74,14 @@ public final class HandshakeData implements Serializable {
 
     public Map<String, List<String>> getUrlParams() {
         return urlParams;
+    }
+
+    public String getSingleUrlParam(String name) {
+        List<String> values = urlParams.get(name);
+        if (values != null && values.size() == 1) {
+            return values.iterator().next();
+        }
+        return null;
     }
 
 }

@@ -30,6 +30,13 @@ import com.corundumstudio.socketio.store.Store;
 public interface SocketIOClient extends ClientOperations, Store {
 
     /**
+     * Handshake data used during client connection
+     *
+     * @return HandshakeData
+     */
+    HandshakeData getHandshakeData();
+
+    /**
      * Current client transport protocol
      *
      * @return transport protocol

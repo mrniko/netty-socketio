@@ -38,6 +38,7 @@ import org.slf4j.LoggerFactory;
 
 import com.corundumstudio.socketio.Configuration;
 import com.corundumstudio.socketio.DisconnectableHub;
+import com.corundumstudio.socketio.HandshakeData;
 import com.corundumstudio.socketio.SocketIOClient;
 import com.corundumstudio.socketio.Transport;
 import com.corundumstudio.socketio.ack.AckManager;
@@ -171,14 +172,15 @@ public class XHRPollingTransport extends BaseTransport {
     }
 
     private void onGet(UUID sessionId, ChannelHandlerContext ctx, String origin) {
-        if (!authorizeHandler.isSessionAuthorized(sessionId)) {
+        HandshakeData data = authorizeHandler.getHandshakeData(sessionId);
+        if (data == null) {
             sendError(ctx, origin, sessionId);
             return;
         }
 
         XHRPollingClient client = (XHRPollingClient) sessionId2Client.get(sessionId);
         if (client == null) {
-            client = createClient(origin, ctx.channel(), sessionId);
+            client = createClient(origin, ctx.channel(), sessionId, data);
         }
 
         client.bindChannel(ctx.channel(), origin);
@@ -187,8 +189,8 @@ public class XHRPollingTransport extends BaseTransport {
         scheduleNoop(sessionId);
     }
 
-    private XHRPollingClient createClient(String origin, Channel channel, UUID sessionId) {
-        XHRPollingClient client = new XHRPollingClient(ackManager, disconnectable, sessionId, Transport.XHRPOLLING, configuration.getStoreFactory());
+    private XHRPollingClient createClient(String origin, Channel channel, UUID sessionId, HandshakeData data) {
+        XHRPollingClient client = new XHRPollingClient(ackManager, disconnectable, sessionId, Transport.XHRPOLLING, configuration.getStoreFactory(), data);
 
         sessionId2Client.put(sessionId, client);
         client.bindChannel(channel, origin);
