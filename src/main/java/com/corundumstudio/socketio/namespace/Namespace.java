@@ -26,6 +26,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentMap;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.corundumstudio.socketio.AckRequest;
 import com.corundumstudio.socketio.BroadcastOperations;
 import com.corundumstudio.socketio.SocketIOClient;
@@ -49,6 +52,8 @@ import com.corundumstudio.socketio.transport.NamespaceClient;
  * @see com.corundumstudio.socketio.transport.NamespaceClient
  */
 public class Namespace implements SocketIONamespace {
+
+    private final Logger log = LoggerFactory.getLogger(getClass());
 
     public static final String DEFAULT_NAME = "";
 
@@ -148,7 +153,11 @@ public class Namespace implements SocketIONamespace {
 
     public void onDisconnect(SocketIOClient client) {
         for (DisconnectListener listener : disconnectListeners) {
-            listener.onDisconnect(client);
+            try {
+                listener.onDisconnect(client);
+            } catch (Exception e) {
+                log.error("Can't execute onDisconnect listener", e);
+            }
         }
         allClients.remove(client);
 
@@ -163,7 +172,11 @@ public class Namespace implements SocketIONamespace {
 
     public void onConnect(SocketIOClient client) {
         for (ConnectListener listener : connectListeners) {
-            listener.onConnect(client);
+            try {
+                listener.onConnect(client);
+            } catch (Exception e) {
+                log.error("Can't execute onConnect listener", e);
+            }
         }
 
         join(getName(), client.getSessionId());
