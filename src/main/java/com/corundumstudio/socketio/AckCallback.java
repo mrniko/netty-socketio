@@ -30,6 +30,8 @@ package com.corundumstudio.socketio;
  * {@link #onTimeout} was executed.
  *
  * @param <T> - any serializable type
+ *
+ * @see com.corundumstudio.socketio.VoidAckCallback
  */
 public abstract class AckCallback<T> {
 

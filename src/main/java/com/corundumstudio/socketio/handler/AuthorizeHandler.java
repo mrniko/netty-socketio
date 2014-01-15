@@ -115,7 +115,13 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
                                                 (InetSocketAddress)channel.remoteAddress(),
                                                     req.getUri(), origin != null && !origin.equalsIgnoreCase("null"));
 
-        boolean result = configuration.getAuthorizationListener().isAuthorized(data);
+        boolean result = false;
+        try {
+            result = configuration.getAuthorizationListener().isAuthorized(data);
+        } catch (Exception e) {
+            log.error("Authorization error", e);
+        }
+
         if (result) {
             UUID sessionId = UUID.randomUUID();
 
