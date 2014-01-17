@@ -128,7 +128,7 @@ public class AckManager implements Disconnectable {
         long index = ackEntry.addAckCallback(callback);
 
         if (log.isDebugEnabled()) {
-            log.debug("AckCallback registered with id: {}", index);
+            log.debug("AckCallback registered with id: {} for client: {}", index, sessionId);
         }
 
         scheduleTimeout(index, sessionId, callback);
