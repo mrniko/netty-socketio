@@ -15,7 +15,9 @@
  */
 package com.corundumstudio.socketio.store;
 
+import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 import com.corundumstudio.socketio.store.pubsub.BaseStoreFactory;
 import com.corundumstudio.socketio.store.pubsub.PubSubStore;
@@ -25,12 +27,12 @@ public class MemoryStoreFactory extends BaseStoreFactory {
     private final MemoryPubSubStore pubSubMemoryStore = new MemoryPubSubStore();
 
     @Override
-    public Store create(UUID sessionId) {
+    public Store createStore(UUID sessionId) {
         return new MemoryStore();
     }
 
     @Override
-    public PubSubStore getPubSubStore() {
+    public PubSubStore pubSubStore() {
         return pubSubMemoryStore;
     }
 
@@ -41,6 +43,11 @@ public class MemoryStoreFactory extends BaseStoreFactory {
     @Override
     public String toString() {
         return getClass().getSimpleName() + " (local session store only)";
+    }
+
+    @Override
+    public <K, V> Map<K, V> createMap(String name) {
+        return new ConcurrentHashMap<K, V>();
     }
 
 }

@@ -15,38 +15,37 @@
  */
 package com.corundumstudio.socketio.store;
 
+import java.util.Map;
 import java.util.UUID;
 
-import redis.clients.jedis.Jedis;
+import org.redisson.Redisson;
 
-public class RedisStore implements Store {
+public class RedissonStore implements Store {
 
-    private final Jedis client;
-    private final String sessionId;
+    private final Map<String, String> map;
 
-    public RedisStore(UUID sessionId, Jedis client) {
-        this.sessionId = sessionId.toString();
-        this.client = client;
+    public RedissonStore(UUID sessionId, Redisson redisson) {
+        this.map = redisson.getMap(sessionId.toString());
     }
 
     @Override
     public void set(String key, String value) {
-        client.hset(sessionId, key, value);
+        map.put(key, value);
     }
 
     @Override
     public String get(String key) {
-        return client.hget(sessionId, key);
+        return map.get(key);
     }
 
     @Override
     public boolean has(String key) {
-        return client.hexists(sessionId, key);
+        return map.containsKey(key);
     }
 
     @Override
     public void del(String key) {
-        client.hdel(sessionId, key);
+        map.remove(key);
     }
 
 }

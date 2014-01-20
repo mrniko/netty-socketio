@@ -52,7 +52,7 @@ public class BroadcastOperations implements ClientOperations {
 
     private void dispatch(Packet packet) {
         for (String room : namespaceRooms) {
-            storeFactory.getPubSubStore().publish(PubSubStore.DISPATCH, new DispatchMessage(room, packet));
+            storeFactory.pubSubStore().publish(PubSubStore.DISPATCH, new DispatchMessage(room, packet));
         }
     }
 

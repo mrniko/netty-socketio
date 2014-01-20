@@ -35,7 +35,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
@@ -54,7 +53,6 @@ import com.corundumstudio.socketio.scheduler.CancelableScheduler;
 import com.corundumstudio.socketio.scheduler.SchedulerKey;
 import com.corundumstudio.socketio.scheduler.SchedulerKey.Type;
 import com.corundumstudio.socketio.store.pubsub.ConnectMessage;
-import com.corundumstudio.socketio.store.pubsub.HandshakeMessage;
 import com.corundumstudio.socketio.store.pubsub.PubSubStore;
 import com.corundumstudio.socketio.transport.MainBaseClient;
 
@@ -64,7 +62,7 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     private final CancelableScheduler disconnectScheduler;
-    private final Map<UUID, HandshakeData> authorizedSessionIds = new ConcurrentHashMap<UUID, HandshakeData>();
+    private final Map<UUID, HandshakeData> authorizedSessionIds;
 
     private final String connectPath;
     private final Configuration configuration;
@@ -76,6 +74,8 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
         this.configuration = configuration;
         this.disconnectScheduler = scheduler;
         this.namespacesHub = namespacesHub;
+
+        this.authorizedSessionIds = configuration.getStoreFactory().createMap("authorizedSessionIds");
     }
 
     @Override
@@ -136,9 +136,7 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
             }
             channel.write(new AuthorizeMessage(msg, jsonpParam, origin, sessionId));
 
-            handshake(sessionId, data);
-            HandshakeMessage message = new HandshakeMessage(sessionId, data);
-            configuration.getStoreFactory().getPubSubStore().publish(PubSubStore.HANDSHAKE, message);
+            authorizedSessionIds.put(sessionId, data);
             log.debug("Handshake authorized for sessionId: {}", sessionId);
         } else {
             HttpResponse res = new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.FORBIDDEN);
@@ -178,22 +176,14 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
         return authorizedSessionIds.get(sessionId);
     }
 
-    public void handshake(UUID sessionId, HandshakeData data) {
-        authorizedSessionIds.put(sessionId, data);
-    }
-
     public void connect(UUID sessionId) {
         SchedulerKey key = new SchedulerKey(Type.AUTHORIZE, sessionId);
         disconnectScheduler.cancel(key);
     }
 
-    public void disconnect(UUID sessionId) {
-        authorizedSessionIds.remove(sessionId);
-    }
-
     public void connect(MainBaseClient client) {
         connect(client.getSessionId());
-        configuration.getStoreFactory().getPubSubStore().publish(PubSubStore.CONNECT, new ConnectMessage(client.getSessionId()));
+        configuration.getStoreFactory().pubSubStore().publish(PubSubStore.CONNECT, new ConnectMessage(client.getSessionId()));
 
         client.send(new Packet(PacketType.CONNECT));
 
@@ -204,7 +194,7 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
 
     @Override
     public void onDisconnect(MainBaseClient client) {
-        disconnect(client.getSessionId());
+        authorizedSessionIds.remove(client.getSessionId());
     }
 
 }

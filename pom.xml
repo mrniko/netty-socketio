@@ -154,9 +154,9 @@
   	<version>2.3.1</version>
   </dependency>
     <dependency>
-        <groupId>redis.clients</groupId>
-        <artifactId>jedis</artifactId>
-        <version>2.2.1</version>
+        <groupId>org.redisson</groupId>
+        <artifactId>redisson</artifactId>
+        <version>1.0.1</version>
         <scope>provided</scope>
     </dependency>
     <dependency>
@@ -270,7 +270,7 @@
                <instructions>
                    <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
                    <Import-Package>
-                    com.hazelcast.*;resolution:=optional,redis.clients.jedis.*;resolution:=optional,*
+                    com.hazelcast.*;resolution:=optional,org.redisson.*;resolution:=optional,*
                    </Import-Package>
                    <Export-Package>
                     com.corundumstudio.socketio;version="${project.version}",

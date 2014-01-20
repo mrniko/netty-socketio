@@ -357,7 +357,7 @@ public class Configuration {
      * @param storeFactory - implements StoreFactory
      *
      * @see com.corundumstudio.socketio.store.MemoryStoreFactory
-     * @see com.corundumstudio.socketio.store.RedisStoreFactory
+     * @see com.corundumstudio.socketio.store.RedissonStoreFactory
      * @see com.corundumstudio.socketio.store.HazelcastStoreFactory
      */
     public void setStoreFactory(StoreFactory clientStoreFactory) {

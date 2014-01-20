@@ -62,7 +62,7 @@ public abstract class MainBaseClient {
         this.ackManager = ackManager;
         this.disconnectable = disconnectable;
         this.transport = transport;
-        this.store = storeFactory.create(sessionId);
+        this.store = storeFactory.createStore(sessionId);
         this.handshakeData = handshakeData;
     }
 
