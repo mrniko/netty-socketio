@@ -16,8 +16,8 @@ Features
 * Supports namespaces and rooms  
 * Supports ack (acknowledgment of received data)  
 * Supports SSL  
-* Supports client store (Memory, [Redis](http://redis.io/), [Hazelcast](http://www.hazelcast.com/))  
-* Supports distributed broadcast across netty-socketio nodes ([Redis](http://redis.io/), [Hazelcast](http://www.hazelcast.com/))  
+* Supports client store (Memory, [Redisson](https://github.com/mrniko/redisson), [Hazelcast](http://www.hazelcast.com/))  
+* Supports distributed broadcast across netty-socketio nodes ([Redisson](https://github.com/mrniko/redisson), [Hazelcast](http://www.hazelcast.com/))  
 * Supports OSGi  
 * Lock-free and thread-safe implementation  
 * Declarative handler configuration via annotations  
@@ -36,9 +36,14 @@ Recent Releases
 ================================
 ####Please Note: trunk is current development branch.
 
+####??-Jan-2014 - version 1.6.2 released (JDK 1.6+ compatible, Netty 4.0.14)
+Fixed - exception in onConnect/onDisconnect/isAuthorized methods leads to server hang  
+Improvement - SocketIOClient.getHandshakeData method added  
+Improvement - Jedis replaced with [Redisson](https://github.com/mrniko/redisson)  
+
 ####14-Jan-2014 - version 1.6.1 released (JDK 1.6+ compatible, Netty 4.0.14)
 Fixed - JDK 1.6+ compatibility  
-Feature - authroziation support  
+Feature - authorization support  
 
 ####19-Dec-2013 - version 1.6.0 released (JDK 1.6+ compatible, Netty 4.0.13)
 Fixed - XHR-pooling transport regression  
