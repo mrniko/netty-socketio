@@ -68,14 +68,17 @@ public class Encoder {
                 }
 
                 ByteBuf packetBuffer = allocateBuffer(allocator);
-                int len = encodePacket(packet, packetBuffer);
-                byte[] lenBytes = toChars(len);
+                try {
+                    int len = encodePacket(packet, packetBuffer);
+                    byte[] lenBytes = toChars(len);
 
-                buffer.writeBytes(Packet.DELIMITER_BYTES);
-                buffer.writeBytes(lenBytes);
-                buffer.writeBytes(Packet.DELIMITER_BYTES);
-                buffer.writeBytes(packetBuffer);
-                packetBuffer.release();
+                    buffer.writeBytes(Packet.DELIMITER_BYTES);
+                    buffer.writeBytes(lenBytes);
+                    buffer.writeBytes(Packet.DELIMITER_BYTES);
+                    buffer.writeBytes(packetBuffer);
+                } finally {
+                    packetBuffer.release();
+                }
             }
         }
     }
