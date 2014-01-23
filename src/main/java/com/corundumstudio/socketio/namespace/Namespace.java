@@ -40,7 +40,6 @@ import com.corundumstudio.socketio.listener.DisconnectListener;
 import com.corundumstudio.socketio.parser.JsonSupport;
 import com.corundumstudio.socketio.parser.Packet;
 import com.corundumstudio.socketio.store.StoreFactory;
-import com.corundumstudio.socketio.store.pubsub.DispatchMessage;
 import com.corundumstudio.socketio.store.pubsub.JoinLeaveMessage;
 import com.corundumstudio.socketio.store.pubsub.PubSubStore;
 import com.corundumstudio.socketio.transport.NamespaceClient;
@@ -162,7 +161,7 @@ public class Namespace implements SocketIONamespace {
         allClients.remove(client);
 
         leave(getName(), client.getSessionId());
-        storeFactory.pubSubStore().publish(PubSubStore.LEAVE, new JoinLeaveMessage(client.getSessionId(), getName()));
+        storeFactory.pubSubStore().publish(PubSubStore.LEAVE, new JoinLeaveMessage(client.getSessionId(), getName(), getName()));
     }
 
     @Override
@@ -180,7 +179,7 @@ public class Namespace implements SocketIONamespace {
         }
 
         join(getName(), client.getSessionId());
-        storeFactory.pubSubStore().publish(PubSubStore.JOIN, new JoinLeaveMessage(client.getSessionId(), getName()));
+        storeFactory.pubSubStore().publish(PubSubStore.JOIN, new JoinLeaveMessage(client.getSessionId(), getName(), getName()));
     }
 
     @Override
@@ -235,17 +234,8 @@ public class Namespace implements SocketIONamespace {
     }
 
     public void joinRoom(String room, UUID sessionId) {
-        room += getName() + "/" + room;
-
         join(room, sessionId);
-        storeFactory.pubSubStore().publish(PubSubStore.JOIN, new JoinLeaveMessage(sessionId, room));
-    }
-
-    public void doDispatch(String room, Packet packet) {
-        if (room != null && !room.isEmpty()) {
-            room += getName() + "/" + room;
-        }
-        storeFactory.pubSubStore().publish(PubSubStore.DISPATCH, new DispatchMessage(room, packet));
+        storeFactory.pubSubStore().publish(PubSubStore.JOIN, new JoinLeaveMessage(sessionId, room, getName()));
     }
 
     public void dispatch(String room, Packet packet) {
@@ -274,10 +264,8 @@ public class Namespace implements SocketIONamespace {
     }
 
     public void leaveRoom(String room, UUID sessionId) {
-        room += getName() + "/" + room;
-
         leave(room, sessionId);
-        storeFactory.pubSubStore().publish(PubSubStore.LEAVE, new JoinLeaveMessage(sessionId, room));
+        storeFactory.pubSubStore().publish(PubSubStore.LEAVE, new JoinLeaveMessage(sessionId, room, getName()));
     }
 
     public void leave(String room, UUID sessionId) {

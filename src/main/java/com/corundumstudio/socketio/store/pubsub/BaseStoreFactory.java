@@ -55,8 +55,7 @@ public abstract class BaseStoreFactory implements StoreFactory {
             public void onMessage(DispatchMessage msg) {
                 String name = msg.getRoom();
 
-                String namespaceName = extractNamespaceName(name);
-                namespacesHub.get(namespaceName).dispatch(name, msg.getPacket());
+                namespacesHub.get(msg.getNamespace()).dispatch(name, msg.getPacket());
                 log.debug("{} packet: {}", PubSubStore.DISPATCH, msg.getPacket());
             }
         }, DispatchMessage.class);
@@ -66,8 +65,7 @@ public abstract class BaseStoreFactory implements StoreFactory {
             public void onMessage(JoinLeaveMessage msg) {
                 String name = msg.getRoom();
 
-                String namespaceName = extractNamespaceName(name);
-                namespacesHub.get(namespaceName).join(name, msg.getSessionId());
+                namespacesHub.get(msg.getNamespace()).join(name, msg.getSessionId());
                 log.debug("{} sessionId: {}", PubSubStore.JOIN, msg.getSessionId());
             }
         }, JoinLeaveMessage.class);
@@ -77,8 +75,7 @@ public abstract class BaseStoreFactory implements StoreFactory {
             public void onMessage(JoinLeaveMessage msg) {
                 String name = msg.getRoom();
 
-                String namespaceName = extractNamespaceName(name);
-                namespacesHub.get(namespaceName).leave(name, msg.getSessionId());
+                namespacesHub.get(msg.getNamespace()).leave(name, msg.getSessionId());
                 log.debug("{} sessionId: {}", PubSubStore.LEAVE, msg.getSessionId());
             }
         }, JoinLeaveMessage.class);
@@ -89,15 +86,6 @@ public abstract class BaseStoreFactory implements StoreFactory {
 
     @Override
     public void onDisconnect(MainBaseClient client) {
-    }
-
-    private String extractNamespaceName(String name) {
-        String[] parts = name.split("/");
-        String namespaceName = name;
-        if (parts.length > 1) {
-            namespaceName = parts[0];
-        }
-        return namespaceName;
     }
 
     @Override

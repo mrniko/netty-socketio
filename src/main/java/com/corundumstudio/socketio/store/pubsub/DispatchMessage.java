@@ -22,14 +22,20 @@ public class DispatchMessage extends PubSubMessage {
     private static final long serialVersionUID = 6692047718303934349L;
 
     private String room;
+    private String namespace;
     private Packet packet;
 
     public DispatchMessage() {
     }
 
-    public DispatchMessage(String room, Packet packet) {
+    public DispatchMessage(String room, Packet packet, String namespace) {
         this.room = room;
         this.packet = packet;
+        this.namespace = namespace;
+    }
+
+    public String getNamespace() {
+        return namespace;
     }
 
     public Packet getPacket() {

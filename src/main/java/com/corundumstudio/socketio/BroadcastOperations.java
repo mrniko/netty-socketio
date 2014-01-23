@@ -15,11 +15,13 @@
  */
 package com.corundumstudio.socketio;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import com.corundumstudio.socketio.misc.IterableCollection;
 import com.corundumstudio.socketio.namespace.Namespace;
@@ -36,7 +38,7 @@ import com.corundumstudio.socketio.store.pubsub.PubSubStore;
 public class BroadcastOperations implements ClientOperations {
 
     private final Iterable<SocketIOClient> clients;
-    private final Set<String> namespaceRooms = new HashSet<String>();
+    private final Map<String, List<String>> namespaceRooms = new HashMap<String, List<String>>();
     private final StoreFactory storeFactory;
 
     public BroadcastOperations(Iterable<SocketIOClient> clients, StoreFactory storeFactory) {
@@ -45,14 +47,22 @@ public class BroadcastOperations implements ClientOperations {
         for (SocketIOClient socketIOClient : clients) {
             Namespace namespace = (Namespace)socketIOClient.getNamespace();
             List<String> rooms = namespace.getRooms(socketIOClient);
-            namespaceRooms.addAll(rooms);
+
+            List<String> roomsList = namespaceRooms.get(namespace.getName());
+            if (roomsList == null) {
+                roomsList = new ArrayList<String>();
+                namespaceRooms.put(namespace.getName(), roomsList);
+            }
+            roomsList.addAll(rooms);
         }
         this.storeFactory = storeFactory;
     }
 
     private void dispatch(Packet packet) {
-        for (String room : namespaceRooms) {
-            storeFactory.pubSubStore().publish(PubSubStore.DISPATCH, new DispatchMessage(room, packet));
+        for (Entry<String, List<String>> entry : namespaceRooms.entrySet()) {
+            for (String room : entry.getValue()) {
+                storeFactory.pubSubStore().publish(PubSubStore.DISPATCH, new DispatchMessage(room, packet, entry.getKey()));
+            }
         }
     }
 

@@ -22,15 +22,21 @@ public class JoinLeaveMessage extends PubSubMessage {
     private static final long serialVersionUID = -944515928988033174L;
 
     private UUID sessionId;
+    private String namespace;
     private String room;
 
     public JoinLeaveMessage() {
     }
 
-    public JoinLeaveMessage(UUID id, String room) {
+    public JoinLeaveMessage(UUID id, String room, String namespace) {
         super();
         this.sessionId = id;
         this.room = room;
+        this.namespace = namespace;
+    }
+
+    public String getNamespace() {
+        return namespace;
     }
 
     public UUID getSessionId() {
