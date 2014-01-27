@@ -188,7 +188,7 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
         client.send(new Packet(PacketType.CONNECT));
 
         Namespace ns = namespacesHub.get(Namespace.DEFAULT_NAME);
-        SocketIOClient nsClient = client.getChildClient(ns);
+        SocketIOClient nsClient = client.addChildClient(ns);
         namespacesHub.get(ns.getName()).onConnect(nsClient);
     }
 

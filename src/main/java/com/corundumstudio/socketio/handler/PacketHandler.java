@@ -29,6 +29,7 @@ import com.corundumstudio.socketio.namespace.Namespace;
 import com.corundumstudio.socketio.namespace.NamespacesHub;
 import com.corundumstudio.socketio.parser.Decoder;
 import com.corundumstudio.socketio.parser.Packet;
+import com.corundumstudio.socketio.parser.PacketType;
 import com.corundumstudio.socketio.transport.MainBaseClient;
 import com.corundumstudio.socketio.transport.NamespaceClient;
 
@@ -62,11 +63,19 @@ public class PacketHandler extends SimpleChannelInboundHandler<PacketsMessage> {
                 Packet packet = decoder.decodePackets(content, client.getSessionId());
                 Namespace ns = namespacesHub.get(packet.getEndpoint());
                 if (ns == null) {
-                    log.warn("Can't find namespace for endpoint: {} probably it was removed.", packet.getEndpoint());
+                    log.debug("Can't find namespace for endpoint: {}, sessionId: {} probably it was removed.", packet.getEndpoint(), client.getSessionId());
                     return;
                 }
 
+                if (packet.getType() == PacketType.CONNECT) {
+                    client.addChildClient(ns);
+                }
+
                 NamespaceClient nClient = (NamespaceClient) client.getChildClient(ns);
+                if (nClient == null) {
+                    log.debug("Can't find namespace client in namespace: {}, sessionId: {} probably it was disconnected.", ns.getName(), client.getSessionId());
+                    return;
+                }
                 packetListener.onPacket(packet, nClient);
             } catch (Exception ex) {
                 String c = content.toString(CharsetUtil.UTF_8);

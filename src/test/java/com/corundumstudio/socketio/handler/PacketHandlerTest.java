@@ -19,20 +19,23 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Queue;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import junit.framework.Assert;
 import mockit.Mocked;
 
 import com.corundumstudio.socketio.Configuration;
+import com.corundumstudio.socketio.store.MemoryStoreFactory;
 import com.corundumstudio.socketio.transport.NamespaceClient;
+import com.corundumstudio.socketio.transport.XHRPollingClient;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.buffer.UnpooledByteBufAllocator;
 import io.netty.channel.Channel;
 
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -57,15 +60,16 @@ public class PacketHandlerTest {
     private NamespacesHub namespacesHub = new NamespacesHub(map, null);
     @Mocked
     private Channel channel;
-    @Mocked
-    private MainBaseClient client;
+    private MainBaseClient client = new XHRPollingClient(null, null, UUID.randomUUID(), null, new MemoryStoreFactory(), null);
     private final AtomicInteger invocations = new AtomicInteger();
 
     @Before
     public void before() {
         if (namespacesHub.get(Namespace.DEFAULT_NAME) == null) {
-            namespacesHub.create(Namespace.DEFAULT_NAME);
+            Namespace ns = namespacesHub.create(Namespace.DEFAULT_NAME);
+            client.addChildClient(ns);
         }
+
         invocations.set(0);
     }
 

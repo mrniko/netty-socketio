@@ -80,14 +80,12 @@ public abstract class MainBaseClient {
     }
 
     public SocketIOClient getChildClient(Namespace namespace) {
-        SocketIOClient client = namespaceClients.get(namespace);
-        if (client == null) {
-            client = new NamespaceClient(this, namespace);
-            SocketIOClient oldClient = namespaceClients.putIfAbsent(namespace, client);
-            if (oldClient != null) {
-                client = oldClient;
-            }
-        }
+        return namespaceClients.get(namespace);
+    }
+
+    public SocketIOClient addChildClient(Namespace namespace) {
+        SocketIOClient client = new NamespaceClient(this, namespace);
+        namespaceClients.put(namespace, client);
         return client;
     }
 
