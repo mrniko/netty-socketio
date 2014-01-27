@@ -158,7 +158,7 @@ public class Namespace implements SocketIONamespace {
                 log.error("Can't execute onDisconnect listener", e);
             }
         }
-        allClients.remove(client);
+        allClients.remove(client.getSessionId());
 
         leave(getName(), client.getSessionId());
         storeFactory.pubSubStore().publish(PubSubStore.LEAVE, new JoinLeaveMessage(client.getSessionId(), getName(), getName()));
