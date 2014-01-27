@@ -28,13 +28,14 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.corundumstudio.socketio.AckCallback;
 import com.corundumstudio.socketio.Configuration;
+import com.corundumstudio.socketio.MultiTypeAckCallback;
 import com.corundumstudio.socketio.misc.ConcurrentHashSet;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -103,15 +104,24 @@ public class JacksonJsonSupport implements JsonSupport {
         @Override
         public AckArgs deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException,
                 JsonProcessingException {
-            List args = new ArrayList();
+            List<Object> args = new ArrayList<Object>();
             AckArgs result = new AckArgs(args);
 
             ObjectMapper mapper = (ObjectMapper) jp.getCodec();
             JsonNode root = mapper.readTree(jp);
-            Class<?> clazz = currentAckClass.get();
+            AckCallback<?> callback = currentAckClass.get();
             Iterator<JsonNode> iter = root.iterator();
+            int i = 0;
             while (iter.hasNext()) {
                 Object val;
+
+                Class<?> clazz = callback.getResultClass();
+                if (callback instanceof MultiTypeAckCallback) {
+                    MultiTypeAckCallback multiTypeAckCallback = (MultiTypeAckCallback) callback;
+                    clazz = multiTypeAckCallback.getResultClasses()[i];
+                    break;
+                }
+
                 JsonNode arg = iter.next();
                 if (arg.isTextual() || arg.isBoolean()) {
                     clazz = Object.class;
@@ -137,6 +147,7 @@ public class JacksonJsonSupport implements JsonSupport {
                 }
                 val = mapper.treeToValue(arg, clazz);
                 args.add(val);
+                i++;
             }
             return result;
         }
@@ -183,7 +194,7 @@ public class JacksonJsonSupport implements JsonSupport {
 
     }
 
-    private final ThreadLocal<Class<?>> currentAckClass = new ThreadLocal<Class<?>>();
+    private final ThreadLocal<AckCallback<?>> currentAckClass = new ThreadLocal<AckCallback<?>>();
     private final Configuration configuration;
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final EventDeserializer eventDeserializer = new EventDeserializer();
@@ -243,8 +254,8 @@ public class JacksonJsonSupport implements JsonSupport {
     }
 
     @Override
-    public AckArgs readAckArgs(ByteBufInputStream src, Class<?> argType) throws IOException {
-        currentAckClass.set(argType);
+    public AckArgs readAckArgs(ByteBufInputStream src, AckCallback<?> callback) throws IOException {
+        currentAckClass.set(callback);
         return objectMapper.readValue(src, AckArgs.class);
     }
 

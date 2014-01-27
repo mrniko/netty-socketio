@@ -193,7 +193,7 @@ public class Encoder {
             break;
 
         case EVENT:
-            List<?> args = packet.getArgs();
+            List<Object> args = packet.getArgs();
             if (args.isEmpty()) {
                 args = null;
             }

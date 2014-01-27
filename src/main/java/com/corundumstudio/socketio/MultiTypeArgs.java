@@ -13,21 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.corundumstudio.socketio.parser;
+package com.corundumstudio.socketio;
 
 import java.util.List;
 
-public class AckArgs {
+public class MultiTypeArgs {
 
-    private List<Object> args;
+    private final List<Object> args;
 
-    public AckArgs(List<Object> args) {
+    public MultiTypeArgs(List<Object> args) {
         super();
         this.args = args;
     }
 
     public List<Object> getArgs() {
         return args;
+    }
+
+    public <T> T get(int index) {
+        return (T) args.get(0);
     }
 
 }

@@ -27,6 +27,8 @@ import org.slf4j.LoggerFactory;
 
 import com.corundumstudio.socketio.AckCallback;
 import com.corundumstudio.socketio.Disconnectable;
+import com.corundumstudio.socketio.MultiTypeAckCallback;
+import com.corundumstudio.socketio.MultiTypeArgs;
 import com.corundumstudio.socketio.SocketIOClient;
 import com.corundumstudio.socketio.parser.Packet;
 import com.corundumstudio.socketio.scheduler.CancelableScheduler;
@@ -98,10 +100,19 @@ public class AckManager implements Disconnectable {
         scheduler.cancel(key);
 
         AckCallback callback = removeCallback(client.getSessionId(), packet.getAckId());
-        if (callback != null) {
+        if (callback == null) {
+            return;
+        }
+        if (callback instanceof MultiTypeAckCallback) {
+            callback.onSuccess(new MultiTypeArgs(packet.getArgs()));
+        } else {
             Object param = null;
             if (!packet.getArgs().isEmpty()) {
                 param = packet.getArgs().get(0);
+            }
+            if (packet.getArgs().size() > 1) {
+                log.error("Wrong ack args amount. Should be only one argument, but current amount is: {}. Ack id: {}, sessionId: {}",
+                        packet.getArgs().size(), packet.getAckId(), client.getSessionId());
             }
             callback.onSuccess(param);
         }

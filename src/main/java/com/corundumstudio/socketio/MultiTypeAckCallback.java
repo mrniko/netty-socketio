@@ -13,21 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.corundumstudio.socketio.parser;
+package com.corundumstudio.socketio;
 
-import java.util.List;
+/**
+ * Multi type ack callback used in case of multiple ack arguments
+ *
+ */
+public abstract class MultiTypeAckCallback extends AckCallback<MultiTypeArgs> {
 
-public class AckArgs {
+    private Class<?>[] resultClasses;
 
-    private List<Object> args;
-
-    public AckArgs(List<Object> args) {
-        super();
-        this.args = args;
+    public MultiTypeAckCallback(Class<?> ... resultClasses) {
+        super(MultiTypeArgs.class);
+        this.resultClasses = resultClasses;
     }
 
-    public List<Object> getArgs() {
-        return args;
+    public Class<?>[] getResultClasses() {
+        return resultClasses;
     }
 
 }

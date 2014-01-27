@@ -20,18 +20,18 @@ import java.util.List;
 class Event {
 
     private String name;
-    private List<?> args;
+    private List<Object> args;
 
     public Event() {
     }
 
-    public Event(String name, List<?> args) {
+    public Event(String name, List<Object> args) {
         super();
         this.name = name;
         this.args = args;
     }
 
-    public List<?> getArgs() {
+    public List<Object> getArgs() {
         return args;
     }
 

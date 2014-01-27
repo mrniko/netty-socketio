@@ -20,6 +20,8 @@ import io.netty.buffer.ByteBufOutputStream;
 
 import java.io.IOException;
 
+import com.corundumstudio.socketio.AckCallback;
+
 /**
  * JSON infrastructure interface.
  * Allows to implement custom realizations
@@ -28,7 +30,7 @@ import java.io.IOException;
  */
 public interface JsonSupport {
 
-    AckArgs readAckArgs(ByteBufInputStream src, Class<?> argType) throws IOException;
+    AckArgs readAckArgs(ByteBufInputStream src, AckCallback<?> callback) throws IOException;
 
     <T> T readValue(ByteBufInputStream src, Class<T> valueType) throws IOException;
 

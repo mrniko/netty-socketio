@@ -32,6 +32,8 @@ package com.corundumstudio.socketio;
  * @param <T> - any serializable type
  *
  * @see com.corundumstudio.socketio.VoidAckCallback
+ * @see com.corundumstudio.socketio.MultiTypeAckCallback
+ *
  */
 public abstract class AckCallback<T> {
 

@@ -36,16 +36,16 @@ class JsonSupportWrapper implements JsonSupport {
         this.delegate = delegate;
     }
 
-    public AckArgs readAckArgs(ByteBufInputStream src, Class<?> argType) throws IOException {
+    public AckArgs readAckArgs(ByteBufInputStream src, AckCallback<?> callback) throws IOException {
         try {
-            return delegate.readAckArgs(src, argType);
+            return delegate.readAckArgs(src, callback);
         } catch (IOException e) {
             src.reset();
-            log.error("Can't read ack args: " + src.readLine() + " for type: " + argType, e);
+            log.error("Can't read ack args: " + src.readLine() + " for type: " + callback.getResultClass(), e);
             return null;
         } catch (RuntimeException e) {
             src.reset();
-            log.error("Can't read ack args: " + src.readLine() + " for type: " + argType, e);
+            log.error("Can't read ack args: " + src.readLine() + " for type: " + callback.getResultClass(), e);
             return null;
         }
     }

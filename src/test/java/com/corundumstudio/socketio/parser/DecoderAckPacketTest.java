@@ -44,7 +44,7 @@ public class DecoderAckPacketTest extends DecoderBaseTest {
         Packet packet = decoder.decodePacket("6:::12+[\"woot\",\"wa\"]", null);
         Assert.assertEquals(PacketType.ACK, packet.getType());
         Assert.assertEquals(12, (long)packet.getAckId());
-        Assert.assertEquals(Arrays.asList("woot", "wa"), packet.getArgs());
+        Assert.assertEquals(Arrays.<Object>asList("woot", "wa"), packet.getArgs());
     }
 
     private void initExpectations() {

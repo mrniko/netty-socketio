@@ -209,7 +209,7 @@ public class Decoder {
 
                 ByteBufInputStream in = new ByteBufInputStream(buffer);
                 AckCallback<?> callback = ackManager.getCallback(uuid, packet.getAckId());
-                AckArgs args = jsonSupport.readAckArgs(in, callback.getResultClass());
+                AckArgs args = jsonSupport.readAckArgs(in, callback);
                 packet.setArgs(args.getArgs());
             }
             break;

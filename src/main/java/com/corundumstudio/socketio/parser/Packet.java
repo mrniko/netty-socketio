@@ -33,7 +33,7 @@ public class Packet implements Serializable {
     public static final Packet NULL_INSTANCE = new Packet(null);
 
     private PacketType type;
-    private List<?> args = Collections.emptyList();
+    private List<Object> args = Collections.emptyList();
     private String qs;
     private Object ack;
     private Long ackId;
@@ -103,11 +103,11 @@ public class Packet implements Serializable {
         this.name = name;
     }
 
-    public List<?> getArgs() {
+    public List<Object> getArgs() {
         return args;
     }
 
-    public void setArgs(List<?> args) {
+    public void setArgs(List<Object> args) {
         this.args = args;
     }
 
