@@ -16,7 +16,7 @@
 package com.corundumstudio.socketio.transport;
 
 import java.net.SocketAddress;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -59,18 +59,18 @@ public class NamespaceClient implements SocketIOClient {
     }
 
     @Override
-    public void sendEvent(String name, Object data) {
+    public void sendEvent(String name, Object ... data) {
         Packet packet = new Packet(PacketType.EVENT);
         packet.setName(name);
-        packet.setArgs(Collections.singletonList(data));
+        packet.setArgs(Arrays.asList(data));
         send(packet);
     }
 
     @Override
-    public void sendEvent(String name, Object data, AckCallback<?> ackCallback) {
+    public void sendEvent(String name, AckCallback<?> ackCallback, Object ... data) {
         Packet packet = new Packet(PacketType.EVENT);
         packet.setName(name);
-        packet.setArgs(Collections.singletonList(data));
+        packet.setArgs(Arrays.asList(data));
         send(packet, ackCallback);
     }
 

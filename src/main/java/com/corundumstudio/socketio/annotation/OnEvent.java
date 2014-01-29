@@ -40,4 +40,9 @@ public @interface OnEvent {
      */
     String value();
 
+    /**
+     * An array of the classes for multi type event.
+     */
+    Class<?>[] classes() default {};
+
 }

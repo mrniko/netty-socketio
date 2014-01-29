@@ -40,7 +40,7 @@ public interface JsonSupport {
 
     <T> T readValue(String src, Class<T> valueType) throws IOException;
 
-    void addEventMapping(String eventName, Class<?> eventClass);
+    void addEventMapping(String eventName, Class<?> ... eventClass);
 
     void addJsonClass(Class<?> clazz);
 

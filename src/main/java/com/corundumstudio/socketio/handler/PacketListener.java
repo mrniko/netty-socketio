@@ -16,6 +16,7 @@
 package com.corundumstudio.socketio.handler;
 
 import java.util.Collections;
+import java.util.List;
 
 import com.corundumstudio.socketio.AckRequest;
 import com.corundumstudio.socketio.ack.AckManager;
@@ -57,13 +58,12 @@ public class PacketListener {
             break;
 
         case EVENT: {
-            Object data = null;
-            if (packet.getArgs() != null
-                    && !packet.getArgs().isEmpty()) {
-                data = packet.getArgs().get(0);
-            }
             Namespace namespace = namespacesHub.get(packet.getEndpoint());
-            namespace.onEvent(client, packet.getName(), data, ackRequest);
+            List<Object> args = Collections.emptyList();
+            if (packet.getArgs() != null) {
+                args = packet.getArgs();
+            }
+            namespace.onEvent(client, packet.getName(), args, ackRequest);
             break;
         }
 

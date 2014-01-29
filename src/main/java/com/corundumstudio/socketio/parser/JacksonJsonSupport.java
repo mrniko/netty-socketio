@@ -19,14 +19,17 @@ import io.netty.buffer.ByteBufInputStream;
 import io.netty.buffer.ByteBufOutputStream;
 
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.corundumstudio.socketio.AckCallback;
 import com.corundumstudio.socketio.Configuration;
@@ -50,6 +53,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 public class JacksonJsonSupport implements JsonSupport {
 
     private class JsonObjectDeserializer extends StdDeserializer<JsonObject> {
+
+        private static final long serialVersionUID = 8025939196914136933L;
 
         final Set<Class<?>> classes = new ConcurrentHashSet<Class<?>>();
 
@@ -97,6 +102,8 @@ public class JacksonJsonSupport implements JsonSupport {
 
     private class AckArgsDeserializer extends StdDeserializer<AckArgs> {
 
+        private static final long serialVersionUID = 7810461017389946707L;
+
         protected AckArgsDeserializer() {
             super(AckArgs.class);
         }
@@ -128,23 +135,23 @@ public class JacksonJsonSupport implements JsonSupport {
                 }
 
                 // TODO refactor it!
-                if (arg.isNumber()) {
-                    if (clazz.equals(Long.class)) {
-                        val = arg.longValue();
-                    }
-                    if (clazz.equals(BigDecimal.class)) {
-                        val = arg.bigIntegerValue();
-                    }
-                    if (clazz.equals(Double.class)) {
-                        val = arg.doubleValue();
-                    }
-                    if (clazz.equals(Integer.class)) {
-                        val = arg.intValue();
-                    }
-                    if (clazz.equals(Float.class)) {
-                        val = (float)arg.doubleValue();
-                    }
-                }
+//                if (arg.isNumber()) {
+//                    if (clazz.equals(Long.class)) {
+//                        val = arg.longValue();
+//                    }
+//                    if (clazz.equals(BigDecimal.class)) {
+//                        val = arg.bigIntegerValue();
+//                    }
+//                    if (clazz.equals(Double.class)) {
+//                        val = arg.doubleValue();
+//                    }
+//                    if (clazz.equals(Integer.class)) {
+//                        val = arg.intValue();
+//                    }
+//                    if (clazz.equals(Float.class)) {
+//                        val = (float)arg.doubleValue();
+//                    }
+//                }
                 val = mapper.treeToValue(arg, clazz);
                 args.add(val);
                 i++;
@@ -156,7 +163,9 @@ public class JacksonJsonSupport implements JsonSupport {
 
     private class EventDeserializer extends StdDeserializer<Event> {
 
-        final Map<String, Class<?>> eventMapping = new ConcurrentHashMap<String, Class<?>>();
+        private static final long serialVersionUID = 8178797221017768689L;
+
+        final Map<String, List<Class<?>>> eventMapping = new ConcurrentHashMap<String, List<Class<?>>>();
 
         protected EventDeserializer() {
             super(Event.class);
@@ -172,21 +181,23 @@ public class JacksonJsonSupport implements JsonSupport {
                 return new Event(eventName, Collections.emptyList());
             }
 
-            List eventArgs = new ArrayList();
+            List<Object> eventArgs = new ArrayList<Object>();
             Event event = new Event(eventName, eventArgs);
             JsonNode args = root.get("args");
             if (args != null) {
                 Iterator<JsonNode> iterator = args.elements();
-                if (iterator.hasNext()) {
+                List<Class<?>> eventClasses = eventMapping.get(eventName);
+                int i = 0;
+                while (iterator.hasNext()) {
                     JsonNode node = iterator.next();
-                    Class<?> eventClass = eventMapping.get(eventName);
+                    if (i > eventClasses.size() - 1) {
+                        log.debug("Event {} has more args than declared in handler: {}", eventName, args);
+                        break;
+                    }
+                    Class<?> eventClass = eventClasses.get(i);
                     Object arg = mapper.treeToValue(node, eventClass);
                     eventArgs.add(arg);
-                    while (iterator.hasNext()) {
-                        node = iterator.next();
-                        arg = mapper.treeToValue(node, Object.class);
-                        eventArgs.add(arg);
-                    }
+                    i++;
                 }
             }
             return event;
@@ -200,6 +211,8 @@ public class JacksonJsonSupport implements JsonSupport {
     private final EventDeserializer eventDeserializer = new EventDeserializer();
     private final JsonObjectDeserializer jsonObjectDeserializer = new JsonObjectDeserializer();
     private final AckArgsDeserializer ackArgsDeserializer = new AckArgsDeserializer();
+
+    private final Logger log = LoggerFactory.getLogger(getClass());
 
     public JacksonJsonSupport(Configuration configuration) {
         this(configuration, null);
@@ -234,8 +247,8 @@ public class JacksonJsonSupport implements JsonSupport {
     }
 
     @Override
-    public void addEventMapping(String eventName, Class<?> eventClass) {
-        eventDeserializer.eventMapping.put(eventName, eventClass);
+    public void addEventMapping(String eventName, Class<?> ... eventClass) {
+        eventDeserializer.eventMapping.put(eventName, Arrays.asList(eventClass));
     }
 
     @Override

@@ -13,27 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.corundumstudio.socketio.namespace;
+package com.corundumstudio.socketio.listener;
 
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import com.corundumstudio.socketio.MultiTypeArgs;
 
-import com.corundumstudio.socketio.listener.DataListener;
-
-public class EventEntry<T> {
-
-    private final Queue<DataListener<T>> listeners = new ConcurrentLinkedQueue<DataListener<T>>();;
-
-    public EventEntry() {
-        super();
-    }
-
-    public void addListener(DataListener<T> listener) {
-        listeners.add(listener);
-    }
-
-    public Queue<DataListener<T>> getListeners() {
-        return listeners;
-    }
+/**
+ * Multi type args event listener
+ *
+ */
+public interface MultiTypeEventListener extends DataListener<MultiTypeArgs> {
 
 }

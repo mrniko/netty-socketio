@@ -31,12 +31,14 @@ import org.slf4j.LoggerFactory;
 
 import com.corundumstudio.socketio.AckRequest;
 import com.corundumstudio.socketio.BroadcastOperations;
+import com.corundumstudio.socketio.MultiTypeArgs;
 import com.corundumstudio.socketio.SocketIOClient;
 import com.corundumstudio.socketio.SocketIONamespace;
 import com.corundumstudio.socketio.annotation.ScannerEngine;
 import com.corundumstudio.socketio.listener.ConnectListener;
 import com.corundumstudio.socketio.listener.DataListener;
 import com.corundumstudio.socketio.listener.DisconnectListener;
+import com.corundumstudio.socketio.listener.MultiTypeEventListener;
 import com.corundumstudio.socketio.parser.JsonSupport;
 import com.corundumstudio.socketio.parser.Packet;
 import com.corundumstudio.socketio.store.StoreFactory;
@@ -88,11 +90,26 @@ public class Namespace implements SocketIONamespace {
     }
 
     @Override
+    public void addMultiTypeEventListener(String eventName, MultiTypeEventListener listener,
+            Class<?>... eventClass) {
+        EventEntry entry = eventListeners.get(eventName);
+        if (entry == null) {
+            entry = new EventEntry();
+            EventEntry<?> oldEntry = eventListeners.putIfAbsent(eventName, entry);
+            if (oldEntry != null) {
+                entry = oldEntry;
+            }
+        }
+        entry.addListener(listener);
+        jsonSupport.addEventMapping(eventName, eventClass);
+    }
+
+    @Override
     @SuppressWarnings({"unchecked", "rawtypes"})
     public <T> void addEventListener(String eventName, Class<T> eventClass, DataListener<T> listener) {
         EventEntry entry = eventListeners.get(eventName);
         if (entry == null) {
-            entry = new EventEntry<T>(eventClass);
+            entry = new EventEntry<T>();
             EventEntry<?> oldEntry = eventListeners.putIfAbsent(eventName, entry);
             if (oldEntry != null) {
                 entry = oldEntry;
@@ -117,13 +134,22 @@ public class Namespace implements SocketIONamespace {
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
-    public void onEvent(NamespaceClient client, String eventName, Object data, AckRequest ackRequest) {
+    public void onEvent(NamespaceClient client, String eventName, List<Object> args, AckRequest ackRequest) {
         EventEntry entry = eventListeners.get(eventName);
         if (entry == null) {
             return;
         }
         Queue<DataListener> listeners = entry.getListeners();
         for (DataListener dataListener : listeners) {
+            Object data = null;
+
+            if (dataListener instanceof MultiTypeEventListener) {
+                data = new MultiTypeArgs(args);
+            } else {
+                if (!args.isEmpty()) {
+                    data = args.get(0);
+                }
+            }
             dataListener.onData(client, data, ackRequest);
         }
     }

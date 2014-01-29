@@ -16,6 +16,7 @@
 package com.corundumstudio.socketio;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -121,10 +122,10 @@ public class BroadcastOperations implements ClientOperations {
     }
 
     @Override
-    public void sendEvent(String name, Object data) {
+    public void sendEvent(String name, Object... data) {
         Packet packet = new Packet(PacketType.EVENT);
         packet.setName(name);
-        packet.setArgs(Collections.singletonList(data));
+        packet.setArgs(Arrays.asList(data));
         send(packet);
     }
 

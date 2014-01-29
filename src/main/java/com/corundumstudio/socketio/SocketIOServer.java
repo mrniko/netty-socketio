@@ -31,6 +31,7 @@ import com.corundumstudio.socketio.listener.ClientListeners;
 import com.corundumstudio.socketio.listener.ConnectListener;
 import com.corundumstudio.socketio.listener.DataListener;
 import com.corundumstudio.socketio.listener.DisconnectListener;
+import com.corundumstudio.socketio.listener.MultiTypeEventListener;
 import com.corundumstudio.socketio.namespace.Namespace;
 import com.corundumstudio.socketio.namespace.NamespacesHub;
 
@@ -149,6 +150,11 @@ public class SocketIOServer implements ClientListeners {
      */
     public Configuration getConfiguration() {
         return configuration;
+    }
+
+    @Override
+    public void addMultiTypeEventListener(String eventName, MultiTypeEventListener listener, Class<?>... eventClass) {
+        mainNamespace.addMultiTypeEventListener(eventName, listener, eventClass);
     }
 
     @Override

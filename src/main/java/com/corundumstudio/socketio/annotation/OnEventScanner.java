@@ -19,9 +19,11 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 
 import com.corundumstudio.socketio.AckRequest;
+import com.corundumstudio.socketio.MultiTypeArgs;
 import com.corundumstudio.socketio.SocketIOClient;
 import com.corundumstudio.socketio.handler.SocketIOException;
 import com.corundumstudio.socketio.listener.DataListener;
+import com.corundumstudio.socketio.listener.MultiTypeEventListener;
 import com.corundumstudio.socketio.namespace.Namespace;
 
 public class OnEventScanner implements AnnotationScanner {
@@ -41,30 +43,58 @@ public class OnEventScanner implements AnnotationScanner {
         final int socketIOClientIndex = paramIndex(method, SocketIOClient.class);
         final int ackRequestIndex = paramIndex(method, AckRequest.class);
         final int dataIndex = dataIndex(method);
+
         Class objectType = Void.class;
         if (dataIndex != -1) {
             objectType = method.getParameterTypes()[dataIndex];
         }
-        namespace.addEventListener(annotation.value(), objectType, new DataListener<Object>() {
-            @Override
-            public void onData(SocketIOClient client, Object data, AckRequest ackSender) {
-                try {
-                    Object[] args = new Object[method.getParameterTypes().length];
-                    if (socketIOClientIndex != -1) {
-                        args[socketIOClientIndex] = client;
-                    }
-                    if (ackRequestIndex != -1) {
-                        args[ackRequestIndex] = ackSender;
-                    }
-                    if (dataIndex != -1) {
-                        args[dataIndex] = data;
-                    }
-                    method.invoke(object, args);
-                } catch (Exception e) {
-                    throw new SocketIOException(e);
-                }
+        if (MultiTypeArgs.class.isAssignableFrom(objectType)) {
+            if (annotation.classes().length == 0) {
+                throw new IllegalArgumentException("OnEvent \"classes\" parameter is required when MultiTypeArgs declared as method argument");
             }
-        });
+
+            namespace.addMultiTypeEventListener(annotation.value(), new MultiTypeEventListener() {
+                @Override
+                public void onData(SocketIOClient client, MultiTypeArgs data, AckRequest ackSender) {
+                    try {
+                        Object[] args = new Object[method.getParameterTypes().length];
+                        if (socketIOClientIndex != -1) {
+                            args[socketIOClientIndex] = client;
+                        }
+                        if (ackRequestIndex != -1) {
+                            args[ackRequestIndex] = ackSender;
+                        }
+                        if (dataIndex != -1) {
+                            args[dataIndex] = data;
+                        }
+                        method.invoke(object, args);
+                    } catch (Exception e) {
+                        throw new SocketIOException(e);
+                    }
+                }
+            }, annotation.classes());
+        } else {
+            namespace.addEventListener(annotation.value(), objectType, new DataListener<Object>() {
+                @Override
+                public void onData(SocketIOClient client, Object data, AckRequest ackSender) {
+                    try {
+                        Object[] args = new Object[method.getParameterTypes().length];
+                        if (socketIOClientIndex != -1) {
+                            args[socketIOClientIndex] = client;
+                        }
+                        if (ackRequestIndex != -1) {
+                            args[ackRequestIndex] = ackSender;
+                        }
+                        if (dataIndex != -1) {
+                            args[dataIndex] = data;
+                        }
+                        method.invoke(object, args);
+                    } catch (Exception e) {
+                        throw new SocketIOException(e);
+                    }
+                }
+            });
+        }
     }
 
     private int dataIndex(Method method) {
