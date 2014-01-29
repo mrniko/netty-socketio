@@ -37,7 +37,7 @@ Recent Releases
 ####Please Note: trunk is current development branch.
 
 ####??-Jan-2014 - version 1.6.2 released (JDK 1.6+ compatible, Netty 4.0.14)
-Fixed - namespace client wrong disconnect handling
+Fixed - wrong namespace client disconnect handling  
 Fixed - exception in onConnect/onDisconnect/isAuthorized methods leads to server hang  
 Improvement - SocketIOClient.getHandshakeData method added  
 Improvement - Jedis replaced with [Redisson](https://github.com/mrniko/redisson)  
