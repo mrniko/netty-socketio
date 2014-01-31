@@ -126,7 +126,6 @@ public class JacksonJsonSupport implements JsonSupport {
                 if (callback instanceof MultiTypeAckCallback) {
                     MultiTypeAckCallback multiTypeAckCallback = (MultiTypeAckCallback) callback;
                     clazz = multiTypeAckCallback.getResultClasses()[i];
-                    break;
                 }
 
                 JsonNode arg = iter.next();
