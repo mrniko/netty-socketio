@@ -39,7 +39,7 @@ Recent Releases
 ####??-Jan-2014 - version 1.6.2 released (JDK 1.6+ compatible, Netty 4.0.14)
 Fixed - wrong namespace client disconnect handling  
 Fixed - exception in onConnect/onDisconnect/isAuthorized methods leads to server hang  
-__Api change__ - SocketIOClient.sendEvent methods  
+__Breaking api change__ - SocketIOClient.sendEvent methods signature changed  
 Improvement - multi type events support via _MultiTypeEventListener_ and _OnEvent_ annotation  
 Improvement - multi type events ack support via _MultiTypeAckCallback_  
 Improvement - SocketIOClient.getHandshakeData method added  
