@@ -37,8 +37,8 @@ public class OnEventScanner implements AnnotationScanner {
 
     @Override
     @SuppressWarnings("unchecked")
-    public void addListener(Namespace namespace, final Object object, final Class clazz, final Method method) {
-        OnEvent annotation = method.getAnnotation(OnEvent.class);
+    public void addListener(Namespace namespace, final Object object, final Method method, Annotation annot) {
+        OnEvent annotation = (OnEvent) annot;
         if (annotation.value() == null || annotation.value().trim().length() == 0) {
             throw new IllegalArgumentException("OnEvent \"value\" parameter is required");
         }

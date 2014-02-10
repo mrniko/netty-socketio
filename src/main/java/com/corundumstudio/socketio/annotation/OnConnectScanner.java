@@ -29,7 +29,7 @@ public class OnConnectScanner implements AnnotationScanner  {
         return OnConnect.class;
     }
 
-    public void addListener(Namespace namespace, final Object object, final Class clazz, final Method method) {
+    public void addListener(Namespace namespace, final Object object, final Method method, Annotation annotation) {
         namespace.addConnectListener(new ConnectListener() {
             @Override
             public void onConnect(SocketIOClient client) {

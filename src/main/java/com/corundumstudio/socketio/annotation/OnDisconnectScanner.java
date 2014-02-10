@@ -18,9 +18,6 @@ package com.corundumstudio.socketio.annotation;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.corundumstudio.socketio.SocketIOClient;
 import com.corundumstudio.socketio.handler.SocketIOException;
 import com.corundumstudio.socketio.listener.DisconnectListener;
@@ -28,15 +25,13 @@ import com.corundumstudio.socketio.namespace.Namespace;
 
 public class OnDisconnectScanner implements AnnotationScanner {
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
-
     @Override
     public Class<? extends Annotation> getScanAnnotation() {
         return OnDisconnect.class;
     }
 
     @Override
-    public void addListener(Namespace namespace, final Object object, final Class clazz, final Method method) {
+    public void addListener(Namespace namespace, final Object object, final Method method, Annotation annotation) {
         namespace.addDisconnectListener(new DisconnectListener() {
             @Override
             public void onDisconnect(SocketIOClient client) {

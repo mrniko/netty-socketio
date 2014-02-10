@@ -58,6 +58,7 @@ public class Namespace implements SocketIONamespace {
 
     public static final String DEFAULT_NAME = "";
 
+    private final ScannerEngine engine = new ScannerEngine();
     private final Map<UUID, SocketIOClient> allClients = new ConcurrentHashMap<UUID, SocketIOClient>();
     private final ConcurrentMap<String, EventEntry<?>> eventListeners =
                                                             new ConcurrentHashMap<String, EventEntry<?>>();
@@ -249,13 +250,11 @@ public class Namespace implements SocketIONamespace {
 
     @Override
     public void addListeners(Object listeners) {
-        ScannerEngine engine = new ScannerEngine();
-        engine.scan(this, listeners, listeners.getClass());
+        addListeners(listeners, listeners.getClass());
     }
 
     @Override
     public void addListeners(Object listeners, Class listenersClass) {
-        ScannerEngine engine = new ScannerEngine();
         engine.scan(this, listeners, listenersClass);
     }
 

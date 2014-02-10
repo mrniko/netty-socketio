@@ -32,7 +32,7 @@ public class OnMessageScanner implements AnnotationScanner {
     }
 
     @Override
-    public void addListener(Namespace namespace, final Object object, final Class clazz, final Method method) {
+    public void addListener(Namespace namespace, final Object object, final Method method, Annotation annot) {
         final int socketIOClientIndex = paramIndex(method, SocketIOClient.class);
         final int ackRequestIndex = paramIndex(method, AckRequest.class);
         final int dataIndex = paramIndex(method, String.class);
