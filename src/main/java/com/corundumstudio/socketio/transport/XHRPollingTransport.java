@@ -109,7 +109,7 @@ public class XHRPollingTransport extends BaseTransport {
             if (queryDecoder.parameters().containsKey("disconnect")) {
                 MainBaseClient client = sessionId2Client.get(sessionId);
                 client.onChannelDisconnect();
-                ctx.channel().write(new XHROutMessage(origin, sessionId));
+                ctx.channel().writeAndFlush(new XHROutMessage(origin, sessionId));
             } else if (HttpMethod.POST.equals(req.getMethod())) {
                 onPost(sessionId, ctx, origin, req.content());
             } else if (HttpMethod.GET.equals(req.getMethod())) {
@@ -205,7 +205,7 @@ public class XHRPollingTransport extends BaseTransport {
         Packet packet = new Packet(PacketType.ERROR);
         packet.setReason(ErrorReason.CLIENT_NOT_HANDSHAKEN);
         packet.setAdvice(ErrorAdvice.RECONNECT);
-        ctx.channel().write(new XHRErrorMessage(packet, origin, sessionId));
+        ctx.channel().writeAndFlush(new XHRErrorMessage(packet, origin, sessionId));
     }
 
     @Override

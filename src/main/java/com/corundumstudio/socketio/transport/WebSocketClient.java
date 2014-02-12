@@ -38,7 +38,7 @@ public class WebSocketClient extends MainBaseClient {
     }
 
     public ChannelFuture send(Packet packet) {
-        return getChannel().write(new WebSocketPacketMessage(getSessionId(), packet));
+        return getChannel().writeAndFlush(new WebSocketPacketMessage(getSessionId(), packet));
     }
 
 }

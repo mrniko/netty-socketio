@@ -44,7 +44,7 @@ public class WrongUrlHandler extends ChannelInboundHandlerAdapter {
             QueryStringDecoder queryDecoder = new QueryStringDecoder(req.getUri());
 
             HttpResponse res = new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.BAD_REQUEST);
-            ChannelFuture f = channel.write(res);
+            ChannelFuture f = channel.writeAndFlush(res);
             f.addListener(ChannelFutureListener.CLOSE);
             req.release();
             log.warn("Blocked wrong socket.io-context request! url: {}, ip: {}", queryDecoder.path(), channel.remoteAddress());

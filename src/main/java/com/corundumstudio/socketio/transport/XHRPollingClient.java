@@ -46,7 +46,7 @@ public class XHRPollingClient extends MainBaseClient {
     public void bindChannel(Channel channel, String origin) {
         this.origin = origin;
         setChannel(channel);
-        channel.write(new XHRSendPacketsMessage(getSessionId(), origin, packetQueue));
+        channel.writeAndFlush(new XHRSendPacketsMessage(getSessionId(), origin, packetQueue));
     }
 
     public String getOrigin() {
@@ -56,7 +56,7 @@ public class XHRPollingClient extends MainBaseClient {
     public ChannelFuture send(Packet packet) {
         packetQueue.add(packet);
         if (getChannel().attr(WRITE_ONCE).get() == null) {
-            return getChannel().write(new XHRSendPacketsMessage(getSessionId(), origin, packetQueue));
+            return getChannel().writeAndFlush(new XHRSendPacketsMessage(getSessionId(), origin, packetQueue));
         }
         return getChannel().newSucceededFuture();
     }
