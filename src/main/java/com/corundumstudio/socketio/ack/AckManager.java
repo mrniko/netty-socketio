@@ -147,7 +147,7 @@ public class AckManager implements Disconnectable {
         return index;
     }
 
-    private void scheduleTimeout(final long index, final UUID sessionId, final AckCallback callback) {
+    private void scheduleTimeout(final long index, final UUID sessionId, AckCallback callback) {
         if (callback.getTimeout() == -1) {
             return;
         }
@@ -155,8 +155,10 @@ public class AckManager implements Disconnectable {
         scheduler.schedule(key, new Runnable() {
             @Override
             public void run() {
-                removeCallback(sessionId, index);
-                callback.onTimeout();
+                AckCallback cb = removeCallback(sessionId, index);
+                if (cb != null) {
+                    cb.onTimeout();
+                }
             }
         }, callback.getTimeout(), TimeUnit.SECONDS);
     }
