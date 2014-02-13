@@ -19,6 +19,7 @@ import java.net.SocketAddress;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.corundumstudio.socketio.AckCallback;
 import com.corundumstudio.socketio.HandshakeData;
@@ -30,6 +31,7 @@ import com.corundumstudio.socketio.parser.PacketType;
 
 public class NamespaceClient implements SocketIOClient {
 
+    private final AtomicBoolean disconnected = new AtomicBoolean();
     private final MainBaseClient baseClient;
     private final Namespace namespace;
 
@@ -95,8 +97,15 @@ public class NamespaceClient implements SocketIOClient {
         send(packet);
     }
 
+    private boolean isConnected() {
+        return !disconnected.get() && baseClient.isConnected();
+    }
+
     @Override
     public void send(Packet packet, AckCallback<?> ackCallback) {
+        if (!isConnected()) {
+            return;
+        }
         long index = baseClient.getAckManager().registerAck(getSessionId(), ackCallback);
         packet.setId(index);
         if (!ackCallback.getResultClass().equals(Void.class)) {
@@ -107,6 +116,9 @@ public class NamespaceClient implements SocketIOClient {
 
     @Override
     public void send(Packet packet) {
+        if (!isConnected()) {
+            return;
+        }
         packet.setEndpoint(namespace.getName());
         baseClient.send(packet);
     }
@@ -119,8 +131,10 @@ public class NamespaceClient implements SocketIOClient {
     }
 
     public void onDisconnect() {
-        namespace.onDisconnect(this);
+        disconnected.set(true);
+
         baseClient.removeChildClient(this);
+        namespace.onDisconnect(this);
     }
 
     @Override

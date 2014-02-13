@@ -178,6 +178,11 @@ public class Namespace implements SocketIONamespace {
     }
 
     public void onDisconnect(SocketIOClient client) {
+        allClients.remove(client.getSessionId());
+
+        leave(getName(), client.getSessionId());
+        storeFactory.pubSubStore().publish(PubSubStore.LEAVE, new JoinLeaveMessage(client.getSessionId(), getName(), getName()));
+
         for (DisconnectListener listener : disconnectListeners) {
             try {
                 listener.onDisconnect(client);
@@ -185,10 +190,6 @@ public class Namespace implements SocketIONamespace {
                 log.error("Can't execute onDisconnect listener", e);
             }
         }
-        allClients.remove(client.getSessionId());
-
-        leave(getName(), client.getSessionId());
-        storeFactory.pubSubStore().publish(PubSubStore.LEAVE, new JoinLeaveMessage(client.getSessionId(), getName(), getName()));
     }
 
     @Override

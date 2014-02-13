@@ -24,6 +24,7 @@ import java.util.Collection;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.corundumstudio.socketio.DisconnectableHub;
 import com.corundumstudio.socketio.HandshakeData;
@@ -49,7 +50,8 @@ public abstract class MainBaseClient {
     private final ConcurrentMap<Namespace, SocketIOClient> namespaceClients = new ConcurrentHashMap<Namespace, SocketIOClient>();
     private final Store store;
 
-    private final DisconnectableHub disconnectable;
+    private final AtomicBoolean disconnected = new AtomicBoolean();
+    private final DisconnectableHub disconnectableHub;
     private final AckManager ackManager;
     private final UUID sessionId;
     private final Transport transport;
@@ -60,7 +62,7 @@ public abstract class MainBaseClient {
             Transport transport, StoreFactory storeFactory, HandshakeData handshakeData) {
         this.sessionId = sessionId;
         this.ackManager = ackManager;
-        this.disconnectable = disconnectable;
+        this.disconnectableHub = disconnectable;
         this.transport = transport;
         this.store = storeFactory.createStore(sessionId);
         this.handshakeData = handshakeData;
@@ -75,7 +77,7 @@ public abstract class MainBaseClient {
     public void removeChildClient(SocketIOClient client) {
         namespaceClients.remove((Namespace) client.getNamespace());
         if (namespaceClients.isEmpty()) {
-            disconnectable.onDisconnect(this);
+            disconnectableHub.onDisconnect(this);
         }
     }
 
@@ -93,7 +95,12 @@ public abstract class MainBaseClient {
         return namespaceClients.values();
     }
 
+    public boolean isConnected() {
+        return !disconnected.get();
+    }
+
     public void onChannelDisconnect() {
+        disconnected.set(true);
         for (SocketIOClient client : getAllChildClients()) {
             ((NamespaceClient) client).onDisconnect();
         }
