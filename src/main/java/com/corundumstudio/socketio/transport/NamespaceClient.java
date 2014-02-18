@@ -104,6 +104,7 @@ public class NamespaceClient implements SocketIOClient {
     @Override
     public void send(Packet packet, AckCallback<?> ackCallback) {
         if (!isConnected()) {
+            ackCallback.onTimeout();
             return;
         }
         long index = baseClient.getAckManager().registerAck(getSessionId(), ackCallback);

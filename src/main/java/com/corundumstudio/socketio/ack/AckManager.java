@@ -172,6 +172,10 @@ public class AckManager implements Disconnectable {
 
         Set<Long> indexes = e.getAckIndexes();
         for (Long index : indexes) {
+            AckCallback<?> callback = e.getAckCallback(index);
+            if (callback != null) {
+                callback.onTimeout();
+            }
             SchedulerKey key = new AckSchedulerKey(Type.ACK_TIMEOUT, client.getSessionId(), index);
             scheduler.cancel(key);
         }
