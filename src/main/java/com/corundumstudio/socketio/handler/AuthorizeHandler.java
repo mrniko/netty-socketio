@@ -139,7 +139,7 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
             authorizedSessionIds.put(sessionId, data);
             log.debug("Handshake authorized for sessionId: {}", sessionId);
         } else {
-            HttpResponse res = new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.FORBIDDEN);
+            HttpResponse res = new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.UNAUTHORIZED);
             ChannelFuture f = channel.writeAndFlush(res);
             f.addListener(ChannelFutureListener.CLOSE);
 
