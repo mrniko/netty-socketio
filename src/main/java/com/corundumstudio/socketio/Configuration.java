@@ -20,12 +20,16 @@ import io.netty.handler.codec.TooLongFrameException;
 import java.io.InputStream;
 
 import com.corundumstudio.socketio.handler.SuccessAuthorizationListener;
+import com.corundumstudio.socketio.listener.DefaultExceptionListener;
+import com.corundumstudio.socketio.listener.ExceptionListener;
 import com.corundumstudio.socketio.parser.JacksonJsonSupport;
 import com.corundumstudio.socketio.parser.JsonSupport;
 import com.corundumstudio.socketio.store.MemoryStoreFactory;
 import com.corundumstudio.socketio.store.StoreFactory;
 
 public class Configuration {
+
+    private ExceptionListener exceptionListener = new DefaultExceptionListener();
 
     private String jsonTypeFieldName = "@class";
     private String context = "/socket.io";
@@ -383,5 +387,19 @@ public class Configuration {
         return authorizationListener;
     }
 
+    /**
+     * Exception listener invoked on any exception in
+     * SocketIO listener
+     *
+     * @param exceptionListener
+     *
+     * @see com.corundumstudio.socketio.listener.ExceptionListener
+     */
+    public void setExceptionListener(ExceptionListener exceptionListener) {
+        this.exceptionListener = exceptionListener;
+    }
+    public ExceptionListener getExceptionListener() {
+        return exceptionListener;
+    }
 
 }

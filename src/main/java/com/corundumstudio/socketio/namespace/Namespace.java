@@ -26,9 +26,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentMap;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.corundumstudio.socketio.AckRequest;
 import com.corundumstudio.socketio.BroadcastOperations;
 import com.corundumstudio.socketio.MultiTypeArgs;
@@ -38,6 +35,7 @@ import com.corundumstudio.socketio.annotation.ScannerEngine;
 import com.corundumstudio.socketio.listener.ConnectListener;
 import com.corundumstudio.socketio.listener.DataListener;
 import com.corundumstudio.socketio.listener.DisconnectListener;
+import com.corundumstudio.socketio.listener.ExceptionListener;
 import com.corundumstudio.socketio.listener.MultiTypeEventListener;
 import com.corundumstudio.socketio.parser.JsonSupport;
 import com.corundumstudio.socketio.parser.Packet;
@@ -53,8 +51,6 @@ import com.corundumstudio.socketio.transport.NamespaceClient;
  * @see com.corundumstudio.socketio.transport.NamespaceClient
  */
 public class Namespace implements SocketIONamespace {
-
-    private final Logger log = LoggerFactory.getLogger(getClass());
 
     public static final String DEFAULT_NAME = "";
 
@@ -74,12 +70,14 @@ public class Namespace implements SocketIONamespace {
     private final String name;
     private final JsonSupport jsonSupport;
     private final StoreFactory storeFactory;
+    private final ExceptionListener exceptionListener;
 
-    public Namespace(String name, JsonSupport jsonSupport, StoreFactory storeFactory) {
+    public Namespace(String name, JsonSupport jsonSupport, StoreFactory storeFactory, ExceptionListener exceptionListener) {
         super();
         this.name = name;
         this.jsonSupport = jsonSupport;
         this.storeFactory = storeFactory;
+        this.exceptionListener = exceptionListener;
     }
 
     public void addClient(SocketIOClient client) {
@@ -140,25 +138,46 @@ public class Namespace implements SocketIONamespace {
         if (entry == null) {
             return;
         }
-        Queue<DataListener> listeners = entry.getListeners();
-        for (DataListener dataListener : listeners) {
-            Object data = null;
 
-            if (dataListener instanceof MultiTypeEventListener) {
-                data = new MultiTypeArgs(args);
-            } else {
-                if (!args.isEmpty()) {
-                    data = args.get(0);
-                }
+        try {
+            Queue<DataListener> listeners = entry.getListeners();
+            for (DataListener dataListener : listeners) {
+                Object data = getEventData(args, dataListener);
+                dataListener.onData(client, data, ackRequest);
             }
-            dataListener.onData(client, data, ackRequest);
+        } catch (Exception e) {
+            exceptionListener.onEventException(e, client);
+            return;
         }
+        // send ack response if it not executed
+        // during {@link DataListener#onData} invocation
+        ackRequest.sendAckData(Collections.emptyList());
+    }
+
+    private Object getEventData(List<Object> args, DataListener dataListener) {
+        if (dataListener instanceof MultiTypeEventListener) {
+            return new MultiTypeArgs(args);
+        } else {
+            if (!args.isEmpty()) {
+                return args.get(0);
+            }
+        }
+        return null;
     }
 
     public void onMessage(NamespaceClient client, String data, AckRequest ackRequest) {
-        for (DataListener<String> listener : messageListeners) {
-            listener.onData(client, data, ackRequest);
+        try {
+            for (DataListener<String> listener : messageListeners) {
+                listener.onData(client, data, ackRequest);
+            }
+        } catch (Exception e) {
+            exceptionListener.onMessageException(e, client);
+            return;
         }
+
+        // send ack response if it not executed
+        // during {@link DataListener#onData} invocation
+        ackRequest.sendAckData(Collections.emptyList());
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
@@ -167,9 +186,19 @@ public class Namespace implements SocketIONamespace {
         if (queue == null) {
             return;
         }
-        for (DataListener dataListener : queue) {
-            dataListener.onData(client, data, ackRequest);
+
+        try {
+            for (DataListener dataListener : queue) {
+                dataListener.onData(client, data, ackRequest);
+            }
+        } catch (Exception e) {
+            exceptionListener.onJsonException(e, client);
+            return;
         }
+
+        // send ack response if it not executed
+        // during {@link DataListener#onData} invocation
+        ackRequest.sendAckData(Collections.emptyList());
     }
 
     @Override
@@ -183,12 +212,12 @@ public class Namespace implements SocketIONamespace {
         leave(getName(), client.getSessionId());
         storeFactory.pubSubStore().publish(PubSubStore.LEAVE, new JoinLeaveMessage(client.getSessionId(), getName(), getName()));
 
-        for (DisconnectListener listener : disconnectListeners) {
-            try {
+        try {
+            for (DisconnectListener listener : disconnectListeners) {
                 listener.onDisconnect(client);
-            } catch (Exception e) {
-                log.error("Can't execute onDisconnect listener", e);
             }
+        } catch (Exception e) {
+            exceptionListener.onDisconnectException(e, client);
         }
     }
 
@@ -198,16 +227,16 @@ public class Namespace implements SocketIONamespace {
     }
 
     public void onConnect(SocketIOClient client) {
-        for (ConnectListener listener : connectListeners) {
-            try {
-                listener.onConnect(client);
-            } catch (Exception e) {
-                log.error("Can't execute onConnect listener", e);
-            }
-        }
-
         join(getName(), client.getSessionId());
         storeFactory.pubSubStore().publish(PubSubStore.JOIN, new JoinLeaveMessage(client.getSessionId(), getName(), getName()));
+
+        try {
+            for (ConnectListener listener : connectListeners) {
+                listener.onConnect(client);
+            }
+        } catch (Exception e) {
+            exceptionListener.onConnectException(e, client);
+        }
     }
 
     @Override

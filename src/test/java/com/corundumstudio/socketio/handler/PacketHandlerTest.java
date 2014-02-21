@@ -57,7 +57,7 @@ public class PacketHandlerTest {
     private JsonSupport map = new JacksonJsonSupport(new Configuration());
     private Decoder decoder = new Decoder(map, new AckManager(null));
     private Encoder encoder = new Encoder(new Configuration(), map);
-    private NamespacesHub namespacesHub = new NamespacesHub(map, null);
+    private NamespacesHub namespacesHub = new NamespacesHub(map, null, null);
     @Mocked
     private Channel channel;
     private MainBaseClient client = new XHRPollingClient(null, null, UUID.randomUUID(), null, new MemoryStoreFactory(), null);

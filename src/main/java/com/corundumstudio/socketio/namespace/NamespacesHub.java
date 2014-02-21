@@ -21,6 +21,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import com.corundumstudio.socketio.SocketIOClient;
+import com.corundumstudio.socketio.listener.ExceptionListener;
 import com.corundumstudio.socketio.misc.CompositeIterable;
 import com.corundumstudio.socketio.parser.JsonSupport;
 import com.corundumstudio.socketio.store.StoreFactory;
@@ -30,16 +31,18 @@ public class NamespacesHub {
     private final ConcurrentMap<String, Namespace> namespaces = new ConcurrentHashMap<String, Namespace>();
     private final JsonSupport jsonSupport;
     private final StoreFactory storeFactory;
+    private final ExceptionListener exceptionListener;
 
-    public NamespacesHub(JsonSupport jsonSupport, StoreFactory storeFactory) {
+    public NamespacesHub(JsonSupport jsonSupport, StoreFactory storeFactory, ExceptionListener exceptionListener) {
         this.jsonSupport = jsonSupport;
         this.storeFactory = storeFactory;
+        this.exceptionListener = exceptionListener;
     }
 
     public Namespace create(String name) {
         Namespace namespace = namespaces.get(name);
         if (namespace == null) {
-            namespace = new Namespace(name, jsonSupport, storeFactory);
+            namespace = new Namespace(name, jsonSupport, storeFactory, exceptionListener);
             Namespace oldNamespace = namespaces.putIfAbsent(name, namespace);
             if (oldNamespace != null) {
                 namespace = oldNamespace;

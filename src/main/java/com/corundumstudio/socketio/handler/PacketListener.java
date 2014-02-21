@@ -90,10 +90,6 @@ public class PacketListener {
         default:
             break;
         }
-
-        // send ack response if it not executed
-        // during {@link DataListener#onData} invocation
-        ackRequest.sendAckData(Collections.emptyList());
     }
 
 }

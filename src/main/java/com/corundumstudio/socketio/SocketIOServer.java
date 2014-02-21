@@ -31,6 +31,7 @@ import com.corundumstudio.socketio.listener.ClientListeners;
 import com.corundumstudio.socketio.listener.ConnectListener;
 import com.corundumstudio.socketio.listener.DataListener;
 import com.corundumstudio.socketio.listener.DisconnectListener;
+import com.corundumstudio.socketio.listener.ExceptionListener;
 import com.corundumstudio.socketio.listener.MultiTypeEventListener;
 import com.corundumstudio.socketio.namespace.Namespace;
 import com.corundumstudio.socketio.namespace.NamespacesHub;
@@ -57,7 +58,7 @@ public class SocketIOServer implements ClientListeners {
     public SocketIOServer(Configuration configuration) {
         this.configuration = configuration;
         this.configCopy = new Configuration(configuration);
-        namespacesHub = new NamespacesHub(configCopy.getJsonSupport(), configCopy.getStoreFactory());
+        namespacesHub = new NamespacesHub(configCopy.getJsonSupport(), configCopy.getStoreFactory(), configCopy.getExceptionListener());
         mainNamespace = addNamespace(Namespace.DEFAULT_NAME);
     }
 
