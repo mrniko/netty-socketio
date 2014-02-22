@@ -143,16 +143,23 @@ public class Packet implements Serializable {
         this.advice = advice;
     }
 
+    private boolean isMessageAck() {
+        return ACK_DATA.equals(getAck())
+                && getType().equals(PacketType.MESSAGE);
+    }
+
     private boolean isJsonAck() {
-        return (Boolean.TRUE.equals(getAck()) || ACK_DATA.equals(getAck())) && getType().equals(PacketType.JSON);
+        return (Boolean.TRUE.equals(getAck()) || ACK_DATA.equals(getAck()))
+                    && getType().equals(PacketType.JSON);
     }
 
     private boolean isEventAck() {
-        return ACK_DATA.equals(getAck()) && getType().equals(PacketType.EVENT);
+        return ACK_DATA.equals(getAck())
+                    && getType().equals(PacketType.EVENT);
     }
 
     public boolean isAckRequested() {
-        return getId() != null && (isEventAck() || isJsonAck());
+        return getId() != null && (isEventAck() || isJsonAck() || isMessageAck());
     }
 
     @Override
