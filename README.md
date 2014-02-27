@@ -40,6 +40,7 @@ Recent Releases
 Fixed - AckCallback handling during client disconnect  
 Fixed - unauthorized handshake HTTP code changed to 401  
 Feature - annotated Spring beans support via _SpringAnnotationScanner_  
+Feature - common exception listener  
 
 ####08-Feb-2014 - version 1.6.2 released (JDK 1.6+ compatible, Netty 4.0.15)
 Fixed - wrong namespace client disconnect handling  
