@@ -43,7 +43,6 @@ public class Configuration {
 
     private int pollingDuration = 20;
 
-    private int heartbeatThreadPoolSize = Runtime.getRuntime().availableProcessors() * 2;
     private int heartbeatTimeout = 60;
     private int heartbeatInterval = 25;
     private int closeTimeout = 60;
@@ -80,7 +79,6 @@ public class Configuration {
         setCloseTimeout(conf.getCloseTimeout());
 
         setHeartbeatInterval(conf.getHeartbeatInterval());
-        setHeartbeatThreadPoolSize(conf.getHeartbeatThreadPoolSize());
         setHeartbeatTimeout(conf.getHeartbeatTimeout());
 
         setHostname(conf.getHostname());
@@ -200,19 +198,6 @@ public class Configuration {
     }
     public boolean isHeartbeatsEnabled() {
         return heartbeatTimeout > 0;
-    }
-
-    /**
-     * Heartbeat thread pool size
-     *
-     * @param value
-     *            - threads amount
-     */
-    public void setHeartbeatThreadPoolSize(int heartbeatThreadPoolSize) {
-        this.heartbeatThreadPoolSize = heartbeatThreadPoolSize;
-    }
-    public int getHeartbeatThreadPoolSize() {
-        return heartbeatThreadPoolSize;
     }
 
     /**

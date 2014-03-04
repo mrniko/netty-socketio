@@ -31,7 +31,7 @@ public class HashedWheelScheduler implements CancelableScheduler {
     private volatile ChannelHandlerContext ctx;
 
     @Override
-    public void update(ChannelHandlerContext ctx) throws Exception {
+    public void update(ChannelHandlerContext ctx) {
         this.ctx = ctx;
     }
 
