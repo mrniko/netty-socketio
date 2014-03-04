@@ -60,7 +60,7 @@ public class HeartbeatHandler implements Disconnectable {
     private void scheduleClientHeartbeatCheck(final MainBaseClient client, SchedulerKey key) {
         // cancel previous heartbeat check
         scheduler.cancel(key);
-        scheduler.schedule(key, new Runnable() {
+        scheduler.scheduleCallback(key, new Runnable() {
             public void run() {
                 client.disconnect();
                 log.debug("Client with sessionId: {} disconnected due to heartbeat timeout", client.getSessionId());

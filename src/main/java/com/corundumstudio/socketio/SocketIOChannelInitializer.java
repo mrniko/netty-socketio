@@ -16,6 +16,7 @@
 package com.corundumstudio.socketio;
 
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.handler.codec.http.HttpObjectAggregator;
@@ -50,6 +51,7 @@ import com.corundumstudio.socketio.parser.Decoder;
 import com.corundumstudio.socketio.parser.Encoder;
 import com.corundumstudio.socketio.parser.JsonSupport;
 import com.corundumstudio.socketio.scheduler.CancelableScheduler;
+import com.corundumstudio.socketio.scheduler.HashedWheelScheduler;
 import com.corundumstudio.socketio.store.StoreFactory;
 import com.corundumstudio.socketio.store.pubsub.DisconnectMessage;
 import com.corundumstudio.socketio.store.pubsub.PubSubStore;
@@ -90,16 +92,20 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
     private EncoderHandler encoderHandler;
     private WrongUrlHandler wrongUrlHandler;
 
-    private CancelableScheduler scheduler;
+    private CancelableScheduler scheduler = new HashedWheelScheduler();
 
     private PacketHandler packetHandler;
     private HeartbeatHandler heartbeatHandler;
     private SSLContext sslContext;
     private Configuration configuration;
 
-    public void start(Configuration configuration, final NamespacesHub namespacesHub) {
+    @Override
+    public void handlerAdded(ChannelHandlerContext ctx) {
+        scheduler.update(ctx);
+    }
+
+    public void start(Configuration configuration, NamespacesHub namespacesHub) {
         this.configuration = configuration;
-        scheduler = new CancelableScheduler(configuration.getHeartbeatThreadPoolSize());
 
         ackManager = new AckManager(scheduler);
 

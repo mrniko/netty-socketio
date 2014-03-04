@@ -143,7 +143,7 @@ public class XHRPollingTransport extends BaseTransport {
         future.addListener(new ChannelFutureListener() {
             @Override
             public void operationComplete(ChannelFuture future) throws Exception {
-                scheduler.schedule(key, new Runnable() {
+                scheduler.scheduleCallback(key, new Runnable() {
                     @Override
                     public void run() {
                         XHRPollingClient client = sessionId2Client.get(sessionId);

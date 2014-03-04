@@ -15,59 +15,22 @@
  */
 package com.corundumstudio.socketio.scheduler;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.ScheduledExecutorService;
+import io.netty.channel.ChannelHandlerContext;
+
 import java.util.concurrent.TimeUnit;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+public interface CancelableScheduler {
 
-public class CancelableScheduler {
+    void update(ChannelHandlerContext ctx);
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
+    void cancel(SchedulerKey key);
 
-    private final Map<SchedulerKey, Future<?>> scheduledFutures = new ConcurrentHashMap<SchedulerKey, Future<?>>();
-    private final ScheduledExecutorService executorService;
+    void scheduleCallback(SchedulerKey key, Runnable runnable, long delay, TimeUnit unit);
 
-    public CancelableScheduler(int threadPoolSize) {
-        executorService = Executors.newScheduledThreadPool(threadPoolSize);
-    }
+    void schedule(Runnable runnable, long delay, TimeUnit unit);
 
-    public void cancel(SchedulerKey key) {
-        Future<?> future = scheduledFutures.remove(key);
-        if (future != null) {
-            future.cancel(false);
-        }
-    }
+    void schedule(SchedulerKey key, Runnable runnable, long delay, TimeUnit unit);
 
-    public void schedule(Runnable runnable, long delay, TimeUnit unit) {
-        executorService.schedule(runnable, delay, unit);
-    }
-
-    public void schedule(final SchedulerKey key, final Runnable runnable, long delay, TimeUnit unit) {
-        Future<?> future = executorService.schedule(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    runnable.run();
-                } finally {
-                    scheduledFutures.remove(key);
-                }
-            }
-        }, delay, unit);
-        scheduledFutures.put(key, future);
-    }
-
-    public void shutdown() {
-        executorService.shutdownNow();
-        try {
-            executorService.awaitTermination(10, TimeUnit.SECONDS);
-        } catch (InterruptedException e) {
-            log.error(e.getMessage(), e);
-        }
-    }
+    void shutdown();
 
 }
