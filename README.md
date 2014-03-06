@@ -32,6 +32,11 @@ CPU 10%, Memory 15%
 6000 xhr-long polling sessions or 15000 websockets sessions  
 4000 messages per second  
 
+Projects using netty-socketio
+================================
+ARSnova: [arsnova.eu](https://arsnova.eu)  
+Zipwhip: [zipwhip.com](https://zipwhip.com/)
+
 Recent Releases
 ================================
 ####Please Note: trunk is current development branch.
