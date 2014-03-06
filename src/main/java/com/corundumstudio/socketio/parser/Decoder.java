@@ -236,9 +236,12 @@ public class Decoder {
 
     public Packet decodePacket(String string, UUID uuid) throws IOException {
         ByteBuf buf = Unpooled.copiedBuffer(string, CharsetUtil.UTF_8);
-        Packet packet = decodePacket(buf, uuid);
-        buf.release();
-        return packet;
+        try {
+            Packet packet = decodePacket(buf, uuid);
+            return packet;
+        } finally {
+            buf.release();
+        }
     }
 
     public Packet decodePackets(ByteBuf buffer, UUID uuid) throws IOException {
