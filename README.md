@@ -19,6 +19,7 @@ Features
 * Supports client store (Memory, [Redisson](https://github.com/mrniko/redisson), [Hazelcast](http://www.hazelcast.com/))  
 * Supports distributed broadcast across netty-socketio nodes ([Redisson](https://github.com/mrniko/redisson), [Hazelcast](http://www.hazelcast.com/))  
 * Supports OSGi  
+* Supports Spring  
 * Lock-free and thread-safe implementation  
 * Declarative handler configuration via annotations  
 
