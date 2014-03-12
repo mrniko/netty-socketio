@@ -16,6 +16,7 @@
 package com.corundumstudio.socketio.annotation;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
@@ -70,6 +71,8 @@ public class OnEventScanner implements AnnotationScanner {
                             i++;
                         }
                         method.invoke(object, args);
+                    } catch (InvocationTargetException e) {
+                        throw new SocketIOException(e.getCause());
                     } catch (Exception e) {
                         throw new SocketIOException(e);
                     }
@@ -97,6 +100,8 @@ public class OnEventScanner implements AnnotationScanner {
                             args[dataIndex] = data;
                         }
                         method.invoke(object, args);
+                    } catch (InvocationTargetException e) {
+                        throw new SocketIOException(e.getCause());
                     } catch (Exception e) {
                         throw new SocketIOException(e);
                     }

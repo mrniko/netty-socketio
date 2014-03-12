@@ -16,6 +16,7 @@
 package com.corundumstudio.socketio.annotation;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 import com.corundumstudio.socketio.AckRequest;
@@ -53,6 +54,8 @@ public class OnJsonObjectScanner implements AnnotationScanner {
                         args[dataIndex] = data;
                     }
                     method.invoke(object, args);
+                } catch (InvocationTargetException e) {
+                    throw new SocketIOException(e.getCause());
                 } catch (Exception e) {
                     throw new SocketIOException(e);
                 }

@@ -100,6 +100,7 @@ public class Configuration {
         setPreferDirectBuffer(conf.isPreferDirectBuffer());
         setStoreFactory(conf.getStoreFactory());
         setAuthorizationListener(conf.getAuthorizationListener());
+        setExceptionListener(conf.getExceptionListener());
     }
 
     private String join(Transport[] transports) {

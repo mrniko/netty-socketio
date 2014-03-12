@@ -16,6 +16,7 @@
 package com.corundumstudio.socketio.annotation;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 import com.corundumstudio.socketio.SocketIOClient;
@@ -35,6 +36,8 @@ public class OnConnectScanner implements AnnotationScanner  {
             public void onConnect(SocketIOClient client) {
                 try {
                     method.invoke(object, client);
+                } catch (InvocationTargetException e) {
+                    throw new SocketIOException(e.getCause());
                 } catch (Exception e) {
                     throw new SocketIOException(e);
                 }
