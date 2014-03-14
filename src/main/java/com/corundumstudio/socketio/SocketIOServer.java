@@ -104,6 +104,9 @@ public class SocketIOServer implements ClientListeners {
             .option(ChannelOption.SO_KEEPALIVE, true)
             .channel(NioServerSocketChannel.class)
             .childHandler(pipelineFactory);
+        
+        b.childOption(ChannelOption.SO_RCVBUF, configCopy.getSocketOptionRcvBuf());
+        b.childOption(ChannelOption.SO_SNDBUF, configCopy.getSocketOptionSndBuf());
 
         InetSocketAddress addr = new InetSocketAddress(configCopy.getPort());
         if (configCopy.getHostname() != null) {
