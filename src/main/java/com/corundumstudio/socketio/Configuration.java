@@ -35,6 +35,9 @@ public class Configuration {
     private String context = "/socket.io";
 
     private String transports = join(new Transport[] {Transport.WEBSOCKET, Transport.FLASHSOCKET, Transport.XHRPOLLING});
+    
+    private int socketOptionRcvBuf = 1024 * 800;// second value as defalt,see /proc/sys/net/ipv4/tcp_rmem
+    private int socketOptionSndBuf = 1024 * 100;// second value as defalt,see /proc/sys/net/ipv4/tcp_wmem 
 
     private int bossThreads = 0; // 0 = current_processors_amount * 2
     private int workerThreads = 0; // 0 = current_processors_amount * 2
@@ -101,6 +104,9 @@ public class Configuration {
         setStoreFactory(conf.getStoreFactory());
         setAuthorizationListener(conf.getAuthorizationListener());
         setExceptionListener(conf.getExceptionListener());
+        
+        setSocketOptionRcvBuf(conf.getSocketOptionRcvBuf());
+        setSocketOptionSndBuf(conf.getSocketOptionSndBuf());
     }
 
     private String join(Transport[] transports) {
@@ -386,6 +392,34 @@ public class Configuration {
     }
     public ExceptionListener getExceptionListener() {
         return exceptionListener;
+    }
+
+    /**
+     * @return the socketOptionRcvBuf
+     */
+    public int getSocketOptionRcvBuf() {
+        return socketOptionRcvBuf;
+    }
+
+    /**
+     * @param socketOptionRcvBuf the socketOptionRcvBuf to set
+     */
+    public void setSocketOptionRcvBuf(int socketOptionRcvBuf) {
+        this.socketOptionRcvBuf = socketOptionRcvBuf;
+    }
+
+    /**
+     * @return the socketOptionSndBuf
+     */
+    public int getSocketOptionSndBuf() {
+        return socketOptionSndBuf;
+    }
+
+    /**
+     * @param socketOptionSndBuf the socketOptionSndBuf to set
+     */
+    public void setSocketOptionSndBuf(int socketOptionSndBuf) {
+        this.socketOptionSndBuf = socketOptionSndBuf;
     }
 
 }
