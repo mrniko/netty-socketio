@@ -58,6 +58,8 @@ public class Configuration {
 
     private boolean preferDirectBuffer = true;
 
+    private SocketConfig socketConfig = new SocketConfig();
+
     private StoreFactory storeFactory = new MemoryStoreFactory();
 
     private JsonSupport jsonSupport = new JacksonJsonSupport(this);
@@ -101,6 +103,7 @@ public class Configuration {
         setStoreFactory(conf.getStoreFactory());
         setAuthorizationListener(conf.getAuthorizationListener());
         setExceptionListener(conf.getExceptionListener());
+        setSocketConfig(conf.getSocketConfig());
     }
 
     private String join(Transport[] transports) {
@@ -386,6 +389,13 @@ public class Configuration {
     }
     public ExceptionListener getExceptionListener() {
         return exceptionListener;
+    }
+
+    public SocketConfig getSocketConfig() {
+        return socketConfig;
+    }
+    public void setSocketConfig(SocketConfig socketConfig) {
+        this.socketConfig = socketConfig;
     }
 
 }

@@ -18,10 +18,13 @@ package com.corundumstudio.socketio;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
+import io.netty.channel.FixedRecvByteBufAllocator;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 
 import java.net.InetSocketAddress;
+import java.net.Socket;
+import java.net.SocketException;
 import java.util.Collection;
 
 import org.slf4j.Logger;
@@ -100,10 +103,9 @@ public class SocketIOServer implements ClientListeners {
         pipelineFactory.start(configCopy, namespacesHub);
         ServerBootstrap b = new ServerBootstrap();
         b.group(bossGroup, workerGroup)
-            .option(ChannelOption.TCP_NODELAY, true)
-            .option(ChannelOption.SO_KEEPALIVE, true)
             .channel(NioServerSocketChannel.class)
             .childHandler(pipelineFactory);
+        applyConnectionOptions(b);
 
         InetSocketAddress addr = new InetSocketAddress(configCopy.getPort());
         if (configCopy.getHostname() != null) {
@@ -111,8 +113,26 @@ public class SocketIOServer implements ClientListeners {
         }
 
         b.bind(addr).syncUninterruptibly();
+
         log.info("Session store / pubsub factory used: {}", configCopy.getStoreFactory());
         log.info("SocketIO server started at port: {}", configCopy.getPort());
+    }
+
+    protected void applyConnectionOptions(ServerBootstrap bootstrap) {
+        SocketConfig config = configCopy.getSocketConfig();
+        bootstrap.childOption(ChannelOption.TCP_NODELAY, config.isTcpNoDelay());
+        if (config.getTcpSendBufferSize() != -1) {
+            bootstrap.childOption(ChannelOption.SO_SNDBUF, config.getTcpSendBufferSize());
+        }
+        if (config.getTcpReceiveBufferSize() != -1) {
+            bootstrap.childOption(ChannelOption.SO_RCVBUF, config.getTcpReceiveBufferSize());
+            bootstrap.childOption(ChannelOption.RCVBUF_ALLOCATOR, new FixedRecvByteBufAllocator(config.getTcpReceiveBufferSize()));
+        }
+        bootstrap.childOption(ChannelOption.SO_KEEPALIVE, config.isTcpKeepAlive());
+
+        bootstrap.option(ChannelOption.SO_LINGER, config.getSoLinger());
+        bootstrap.option(ChannelOption.SO_REUSEADDR, config.isReuseAddress());
+        bootstrap.option(ChannelOption.SO_BACKLOG, config.getAcceptBackLog());
     }
 
     protected void initGroups() {
