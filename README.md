@@ -44,7 +44,7 @@ Recent Releases
 
 ####??-Mar-2014 - version 1.6.4
 Fixed - message release problem  
-Fixed - problem with exception listener override in configuration  
+Fixed - problem with exception listener redefinition in configuration  
 __Breaking api change__ - DataListener.onData now throws Exception  
 Improvement - data parameter added to exception listener  
 Improvement - ability to setup socket configuration  
