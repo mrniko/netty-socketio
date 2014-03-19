@@ -144,11 +144,6 @@ public class EncoderHandler extends ChannelOutboundHandlerAdapter {
         if (msg instanceof WebsocketErrorMessage) {
             handle((WebsocketErrorMessage) msg, ctx.channel(), out);
         }
-
-        if (out.refCnt() > 0) {
-            log.warn("Buf for message: {} has not been deallocated, refCnt: {}! Forcing release it!", msg, out.refCnt());
-            out.release();
-        }
     }
 
     private void handle(AuthorizeMessage authMsg, Channel channel, ByteBuf out) throws IOException {
