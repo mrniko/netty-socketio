@@ -42,6 +42,12 @@ Recent Releases
 ================================
 ####Please Note: trunk is current development branch.
 
+####??-Mar-2014 - version 1.6.4
+Fixed - message release problem  
+Fixed - problem with exception listener override in configuration  
+Improvement - data parameter added to exception listener  
+Improvement - ability to setup socket configuration  
+
 ####06-Mar-2014 - version 1.6.3 released (JDK 1.6+ compatible, Netty 4.0.17)
 Fixed - AckCallback handling during client disconnect  
 Fixed - unauthorized handshake HTTP code changed to 401  
