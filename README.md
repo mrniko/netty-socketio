@@ -9,7 +9,7 @@ Licensed under the Apache License 2.0.
 
 Features
 ================================
-* Supports 0.7+ version of [Socket.IO-client](https://github.com/LearnBoost/socket.io-client) up to latest  
+* Supports 0.7+ version of [Socket.IO-client](https://github.com/LearnBoost/socket.io-client) up to 0.9.16  
 * Supports xhr-polling transport  
 * Supports flashsocket transport  
 * Supports websocket transport: HyBi 00 (which is the same as Hixie 76), HyBi 8-10 and HyBi 13-17 (17 is the same as IETF 6455).  
