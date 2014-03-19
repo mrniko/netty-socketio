@@ -23,8 +23,6 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 
 import java.net.InetSocketAddress;
-import java.net.Socket;
-import java.net.SocketException;
 import java.util.Collection;
 
 import org.slf4j.Logger;
@@ -34,7 +32,6 @@ import com.corundumstudio.socketio.listener.ClientListeners;
 import com.corundumstudio.socketio.listener.ConnectListener;
 import com.corundumstudio.socketio.listener.DataListener;
 import com.corundumstudio.socketio.listener.DisconnectListener;
-import com.corundumstudio.socketio.listener.ExceptionListener;
 import com.corundumstudio.socketio.listener.MultiTypeEventListener;
 import com.corundumstudio.socketio.namespace.Namespace;
 import com.corundumstudio.socketio.namespace.NamespacesHub;
@@ -148,6 +145,7 @@ public class SocketIOServer implements ClientListeners {
         workerGroup.shutdownGracefully().syncUninterruptibly();
 
         pipelineFactory.stop();
+        log.info("SocketIO server stopped");
     }
 
     public SocketIONamespace addNamespace(String name) {

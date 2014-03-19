@@ -15,6 +15,11 @@
  */
 package com.corundumstudio.socketio;
 
+/**
+ * TCP socket configuration contains configuration for main server channel
+ * and client channels
+ *
+ */
 public class SocketConfig {
 
     private boolean tcpNoDelay = true;
