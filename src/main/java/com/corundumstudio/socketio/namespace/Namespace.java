@@ -146,7 +146,7 @@ public class Namespace implements SocketIONamespace {
                 dataListener.onData(client, data, ackRequest);
             }
         } catch (Exception e) {
-            exceptionListener.onEventException(e, client);
+            exceptionListener.onEventException(e, args, client);
             return;
         }
         // send ack response if it not executed
@@ -171,7 +171,7 @@ public class Namespace implements SocketIONamespace {
                 listener.onData(client, data, ackRequest);
             }
         } catch (Exception e) {
-            exceptionListener.onMessageException(e, client);
+            exceptionListener.onMessageException(e, data, client);
             return;
         }
 
@@ -192,7 +192,7 @@ public class Namespace implements SocketIONamespace {
                 dataListener.onData(client, data, ackRequest);
             }
         } catch (Exception e) {
-            exceptionListener.onJsonException(e, client);
+            exceptionListener.onJsonException(e, data, client);
             return;
         }
 

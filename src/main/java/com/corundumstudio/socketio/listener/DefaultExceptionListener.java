@@ -15,6 +15,8 @@
  */
 package com.corundumstudio.socketio.listener;
 
+import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,7 +27,7 @@ public class DefaultExceptionListener extends ExceptionListenerAdapter {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     @Override
-    public void onEventException(Exception e, SocketIOClient client) {
+    public void onEventException(Exception e, List<Object> args, SocketIOClient client) {
         log.error(e.getMessage(), e);
     }
 
@@ -40,12 +42,12 @@ public class DefaultExceptionListener extends ExceptionListenerAdapter {
     }
 
     @Override
-    public void onMessageException(Exception e, SocketIOClient client) {
+    public void onMessageException(Exception e, String data, SocketIOClient client) {
         log.error(e.getMessage(), e);
     }
 
     @Override
-    public void onJsonException(Exception e, SocketIOClient client) {
+    public void onJsonException(Exception e, Object data, SocketIOClient client) {
         log.error(e.getMessage(), e);
     }
 

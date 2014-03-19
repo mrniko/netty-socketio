@@ -15,12 +15,19 @@
  */
 package com.corundumstudio.socketio.listener;
 
+import java.util.List;
+
 import com.corundumstudio.socketio.SocketIOClient;
 
+/**
+ * Base callback exceptions listener
+ *
+ *
+ */
 public class ExceptionListenerAdapter implements ExceptionListener {
 
     @Override
-    public void onEventException(Exception e, SocketIOClient client) {
+    public void onEventException(Exception e, List<Object> data, SocketIOClient client) {
     }
 
     @Override
@@ -32,11 +39,11 @@ public class ExceptionListenerAdapter implements ExceptionListener {
     }
 
     @Override
-    public void onMessageException(Exception e, SocketIOClient client) {
+    public void onMessageException(Exception e, String data, SocketIOClient client) {
     }
 
     @Override
-    public void onJsonException(Exception e, SocketIOClient client) {
+    public void onJsonException(Exception e, Object data, SocketIOClient client) {
     }
 
 }

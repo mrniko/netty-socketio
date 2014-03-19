@@ -15,18 +15,20 @@
  */
 package com.corundumstudio.socketio.listener;
 
+import java.util.List;
+
 import com.corundumstudio.socketio.SocketIOClient;
 
 public interface ExceptionListener {
 
-    void onEventException(Exception e, SocketIOClient client);
+    void onEventException(Exception e, List<Object> args, SocketIOClient client);
 
     void onDisconnectException(Exception e, SocketIOClient client);
 
     void onConnectException(Exception e, SocketIOClient client);
 
-    void onMessageException(Exception e, SocketIOClient client);
+    void onMessageException(Exception e, String data, SocketIOClient client);
 
-    void onJsonException(Exception e, SocketIOClient client);
+    void onJsonException(Exception e, Object data, SocketIOClient client);
 
 }
