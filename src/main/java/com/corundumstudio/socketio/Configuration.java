@@ -66,6 +66,8 @@ public class Configuration {
 
     private AuthorizationListener authorizationListener = new SuccessAuthorizationListener();
 
+    private boolean autoAck = true;
+
     public Configuration() {
     }
 
@@ -104,6 +106,7 @@ public class Configuration {
         setAuthorizationListener(conf.getAuthorizationListener());
         setExceptionListener(conf.getExceptionListener());
         setSocketConfig(conf.getSocketConfig());
+        setAutoAck(conf.isAutoAck());
     }
 
     private String join(Transport[] transports) {
@@ -396,6 +399,13 @@ public class Configuration {
     }
     public void setSocketConfig(SocketConfig socketConfig) {
         this.socketConfig = socketConfig;
+    }
+
+    public boolean isAutoAck() {
+        return autoAck;
+    }
+    public void setAutoAck(boolean autoAck) {
+        this.autoAck = autoAck;
     }
 
 }

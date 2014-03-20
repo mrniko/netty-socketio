@@ -28,6 +28,7 @@ import java.util.concurrent.ConcurrentMap;
 
 import com.corundumstudio.socketio.AckRequest;
 import com.corundumstudio.socketio.BroadcastOperations;
+import com.corundumstudio.socketio.Configuration;
 import com.corundumstudio.socketio.MultiTypeArgs;
 import com.corundumstudio.socketio.SocketIOClient;
 import com.corundumstudio.socketio.SocketIONamespace;
@@ -68,16 +69,18 @@ public class Namespace implements SocketIONamespace {
     private final ConcurrentMap<String, Queue<UUID>> roomClients = new ConcurrentHashMap<String, Queue<UUID>>();
 
     private final String name;
+    private final boolean autoAck;
     private final JsonSupport jsonSupport;
     private final StoreFactory storeFactory;
     private final ExceptionListener exceptionListener;
 
-    public Namespace(String name, JsonSupport jsonSupport, StoreFactory storeFactory, ExceptionListener exceptionListener) {
+    public Namespace(String name, Configuration configuration) {
         super();
         this.name = name;
-        this.jsonSupport = jsonSupport;
-        this.storeFactory = storeFactory;
-        this.exceptionListener = exceptionListener;
+        this.jsonSupport = configuration.getJsonSupport();
+        this.storeFactory = configuration.getStoreFactory();
+        this.exceptionListener = configuration.getExceptionListener();
+        this.autoAck = configuration.isAutoAck();
     }
 
     public void addClient(SocketIOClient client) {
@@ -147,11 +150,17 @@ public class Namespace implements SocketIONamespace {
             }
         } catch (Exception e) {
             exceptionListener.onEventException(e, args, client);
-            return;
         }
-        // send ack response if it not executed
-        // during {@link DataListener#onData} invocation
-        ackRequest.sendAckData(Collections.emptyList());
+
+        sendAck(ackRequest);
+    }
+
+    private void sendAck(AckRequest ackRequest) {
+        if (autoAck) {
+            // send ack response if it not executed
+            // during {@link DataListener#onData} invocation
+            ackRequest.sendAckData(Collections.emptyList());
+        }
     }
 
     private Object getEventData(List<Object> args, DataListener dataListener) {
@@ -172,12 +181,9 @@ public class Namespace implements SocketIONamespace {
             }
         } catch (Exception e) {
             exceptionListener.onMessageException(e, data, client);
-            return;
         }
 
-        // send ack response if it not executed
-        // during {@link DataListener#onData} invocation
-        ackRequest.sendAckData(Collections.emptyList());
+        sendAck(ackRequest);
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
@@ -193,12 +199,9 @@ public class Namespace implements SocketIONamespace {
             }
         } catch (Exception e) {
             exceptionListener.onJsonException(e, data, client);
-            return;
         }
 
-        // send ack response if it not executed
-        // during {@link DataListener#onData} invocation
-        ackRequest.sendAckData(Collections.emptyList());
+        sendAck(ackRequest);
     }
 
     @Override
