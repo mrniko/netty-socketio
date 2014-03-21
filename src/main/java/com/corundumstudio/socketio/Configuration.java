@@ -397,15 +397,26 @@ public class Configuration {
     public SocketConfig getSocketConfig() {
         return socketConfig;
     }
+    /**
+     * TCP socket configuration
+     *
+     * @param socketConfig
+     */
     public void setSocketConfig(SocketConfig socketConfig) {
         this.socketConfig = socketConfig;
     }
 
-    public boolean isAutoAck() {
-        return autoAck;
-    }
+    /**
+     * Send ack-response automatically on each ack-request
+     * Default is {@code true}
+     *
+     * @param autoAck
+     */
     public void setAutoAck(boolean autoAck) {
         this.autoAck = autoAck;
+    }
+    public boolean isAutoAck() {
+        return autoAck;
     }
 
 }
