@@ -44,10 +44,11 @@ Recent Releases
 
 ####??-Mar-2014 - version 1.6.4
 Fixed - message release problem  
-Fixed - problem with exception listener redefinition in configuration  
+Fixed - problem with exception listener configuration redefinition  
 __Breaking api change__ - DataListener.onData now throws Exception  
 Improvement - data parameter added to exception listener  
 Improvement - ability to setup socket configuration  
+Improvement - Configuration.autoAck parameter added  
 
 ####06-Mar-2014 - version 1.6.3 released (JDK 1.6+ compatible, Netty 4.0.17)
 Fixed - AckCallback handling during client disconnect  
