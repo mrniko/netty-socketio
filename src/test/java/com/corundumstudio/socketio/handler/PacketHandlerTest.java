@@ -54,10 +54,11 @@ import com.corundumstudio.socketio.transport.MainBaseClient;
 
 public class PacketHandlerTest {
 
-    private JsonSupport map = new JacksonJsonSupport(new Configuration());
+    private Configuration cfg = new Configuration();
+    private JsonSupport map = new JacksonJsonSupport(cfg);
     private Decoder decoder = new Decoder(map, new AckManager(null));
-    private Encoder encoder = new Encoder(new Configuration(), map);
-    private NamespacesHub namespacesHub = new NamespacesHub(null);
+    private Encoder encoder = new Encoder(cfg, map);
+    private NamespacesHub namespacesHub = new NamespacesHub(cfg);
     @Mocked
     private Channel channel;
     private MainBaseClient client = new XHRPollingClient(null, null, UUID.randomUUID(), null, new MemoryStoreFactory(), null);
