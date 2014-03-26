@@ -42,7 +42,7 @@ Recent Releases
 ================================
 ####Please Note: trunk is current development branch.
 
-####??-Mar-2014 - version 1.6.4
+####25-Mar-2014 - version 1.6.4 released (JDK 1.6+ compatible, Netty 4.0.17)
 Fixed - message release problem  
 Fixed - problem with exception listener configuration redefinition  
 __Breaking api change__ - DataListener.onData now throws Exception  
