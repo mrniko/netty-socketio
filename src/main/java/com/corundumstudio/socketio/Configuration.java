@@ -53,8 +53,13 @@ public class Configuration {
     private String hostname;
     private int port = -1;
 
+    private String keyStoreFormat = "JKS";
     private InputStream keyStore;
     private String keyStorePassword;
+
+    private String trustStoreFormat = "JKS";
+    private InputStream trustStore;
+    private String trustStorePassword;
 
     private boolean preferDirectBuffer = true;
 
@@ -96,6 +101,10 @@ public class Configuration {
 
         setKeyStorePassword(conf.getKeyStorePassword());
         setKeyStore(conf.getKeyStore());
+        setKeyStoreFormat(conf.getKeyStoreFormat());
+        setTrustStore(conf.getTrustStore());
+        setTrustStoreFormat(conf.getTrustStoreFormat());
+        setTrustStorePassword(conf.getTrustStorePassword());
 
         setTransports(conf.getTransports());
         setMaxHttpContentLength(conf.getMaxHttpContentLength());
@@ -280,6 +289,18 @@ public class Configuration {
     }
 
     /**
+     * Key store format
+     *
+     * @param keyStoreFormat
+     */
+    public void setKeyStoreFormat(String keyStoreFormat) {
+        this.keyStoreFormat = keyStoreFormat;
+    }
+    public String getKeyStoreFormat() {
+        return keyStoreFormat;
+    }
+
+    /**
      * Set maximum http content length limit
      *
      * @param maxContentLength
@@ -417,6 +438,30 @@ public class Configuration {
     }
     public boolean isAutoAck() {
         return autoAck;
+    }
+
+    public String getTrustStoreFormat() {
+        return trustStoreFormat;
+    }
+
+    public void setTrustStoreFormat(String trustStoreFormat) {
+        this.trustStoreFormat = trustStoreFormat;
+    }
+
+    public InputStream getTrustStore() {
+        return trustStore;
+    }
+
+    public void setTrustStore(InputStream trustStore) {
+        this.trustStore = trustStore;
+    }
+
+    public String getTrustStorePassword() {
+        return trustStorePassword;
+    }
+
+    public void setTrustStorePassword(String trustStorePassword) {
+        this.trustStorePassword = trustStorePassword;
     }
 
 }

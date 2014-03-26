@@ -24,14 +24,14 @@ import io.netty.handler.codec.http.HttpRequestDecoder;
 import io.netty.handler.codec.http.HttpResponseEncoder;
 import io.netty.handler.ssl.SslHandler;
 
-import java.io.InputStream;
 import java.security.KeyStore;
-import java.security.Security;
 import java.util.Collection;
 
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.TrustManagerFactory;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -121,7 +121,7 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
         boolean isSsl = configuration.getKeyStore() != null;
         if (isSsl) {
             try {
-                sslContext = createSSLContext(configuration.getKeyStore(), configuration.getKeyStorePassword());
+                sslContext = createSSLContext(configuration);
             } catch (Exception e) {
                 throw new IllegalStateException(e);
             }
@@ -184,20 +184,24 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
         pipeline.addLast(WRONG_URL_HANDLER, wrongUrlHandler);
     }
 
-    private SSLContext createSSLContext(InputStream keyStoreFile, String keyStoreFilePassword) throws Exception {
-        String algorithm = Security.getProperty("ssl.KeyManagerFactory.algorithm");
-        if (algorithm == null) {
-            algorithm = "SunX509";
+    private SSLContext createSSLContext(Configuration configuration) throws Exception {
+        TrustManager[] managers = null;
+        if (configuration.getTrustStore() != null) {
+            KeyStore ts = KeyStore.getInstance(configuration.getTrustStoreFormat());
+            ts.load(configuration.getTrustStore(), configuration.getTrustStorePassword().toCharArray());
+            TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+            tmf.init(ts);
+            managers = tmf.getTrustManagers();
         }
 
-        KeyStore ks = KeyStore.getInstance("JKS");
-        ks.load(keyStoreFile, keyStoreFilePassword.toCharArray());
+        KeyStore ks = KeyStore.getInstance(configuration.getKeyStoreFormat());
+        ks.load(configuration.getKeyStore(), configuration.getKeyStorePassword().toCharArray());
 
-        KeyManagerFactory kmf = KeyManagerFactory.getInstance(algorithm);
-        kmf.init(ks, keyStoreFilePassword.toCharArray());
+        KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+        kmf.init(ks, configuration.getKeyStorePassword().toCharArray());
 
         SSLContext serverContext = SSLContext.getInstance("TLS");
-        serverContext.init(kmf.getKeyManagers(), null, null);
+        serverContext.init(kmf.getKeyManagers(), managers, null);
         return serverContext;
     }
 
