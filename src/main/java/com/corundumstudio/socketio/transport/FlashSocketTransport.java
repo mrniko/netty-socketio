@@ -33,8 +33,9 @@ public class FlashSocketTransport extends WebSocketTransport {
 
     public FlashSocketTransport(String connectPath, boolean isSsl, AckManager ackManager,
             DisconnectableHub disconnectable, AuthorizeHandler authorizeHandler,
-            HeartbeatHandler heartbeatHandler, StoreFactory storeFactory) {
-        super(connectPath, isSsl, ackManager, disconnectable, authorizeHandler, heartbeatHandler, storeFactory);
+            HeartbeatHandler heartbeatHandler, StoreFactory storeFactory, int maxFramePayloadLength) {
+        super(connectPath, isSsl, ackManager, disconnectable,
+                authorizeHandler, heartbeatHandler, storeFactory, maxFramePayloadLength);
         path = connectPath + NAME;
     }
 

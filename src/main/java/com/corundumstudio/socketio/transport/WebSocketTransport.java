@@ -64,13 +64,15 @@ public class WebSocketTransport extends BaseTransport {
     private final AuthorizeHandler authorizeHandler;
     private final DisconnectableHub disconnectableHub;
     private final StoreFactory storeFactory;
+    private final int maxFramePayloadLength;
 
     private final boolean isSsl;
     protected String path;
 
 
+
     public WebSocketTransport(String connectPath, boolean isSsl, AckManager ackManager, DisconnectableHub disconnectable,
-            AuthorizeHandler authorizeHandler, HeartbeatHandler heartbeatHandler, StoreFactory storeFactory) {
+            AuthorizeHandler authorizeHandler, HeartbeatHandler heartbeatHandler, StoreFactory storeFactory, int maxFramePayloadLength) {
         this.path = connectPath + NAME;
         this.isSsl = isSsl;
         this.authorizeHandler = authorizeHandler;
@@ -78,6 +80,7 @@ public class WebSocketTransport extends BaseTransport {
         this.disconnectableHub = disconnectable;
         this.heartbeatHandler = heartbeatHandler;
         this.storeFactory = storeFactory;
+        this.maxFramePayloadLength = maxFramePayloadLength;
     }
 
     @Override
@@ -139,8 +142,8 @@ public class WebSocketTransport extends BaseTransport {
 
         final UUID sessionId = UUID.fromString(parts[4]);
 
-        WebSocketServerHandshakerFactory factory = new WebSocketServerHandshakerFactory(
-                getWebSocketLocation(req), null, false);
+        WebSocketServerHandshakerFactory factory =
+                new WebSocketServerHandshakerFactory(getWebSocketLocation(req), null, false, maxFramePayloadLength);
         WebSocketServerHandshaker handshaker = factory.newHandshaker(req);
         if (handshaker != null) {
             ChannelFuture f = handshaker.handshake(channel, req);
@@ -151,7 +154,7 @@ public class WebSocketTransport extends BaseTransport {
                 }
             });
         } else {
-            WebSocketServerHandshakerFactory.sendUnsupportedWebSocketVersionResponse(ctx.channel());
+            WebSocketServerHandshakerFactory.sendUnsupportedVersionResponse(ctx.channel());
         }
     }
 

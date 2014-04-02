@@ -15,8 +15,6 @@
  */
 package com.corundumstudio.socketio;
 
-import io.netty.handler.codec.TooLongFrameException;
-
 import java.io.InputStream;
 
 import com.corundumstudio.socketio.handler.SuccessAuthorizationListener;
@@ -48,6 +46,7 @@ public class Configuration {
     private int closeTimeout = 60;
 
     private int maxHttpContentLength = 64 * 1024;
+    private int maxFramePayloadLength = 64 * 1024;
 
     private String packagePrefix;
     private String hostname;
@@ -116,6 +115,7 @@ public class Configuration {
         setExceptionListener(conf.getExceptionListener());
         setSocketConfig(conf.getSocketConfig());
         setAutoAck(conf.isAutoAck());
+        setMaxFramePayloadLength(conf.getMaxFramePayloadLength());
     }
 
     private String join(Transport[] transports) {
@@ -305,8 +305,6 @@ public class Configuration {
      *
      * @param maxContentLength
      *        the maximum length of the aggregated http content.
-     *        If the length of the aggregated content exceeds this value,
-     *        a {@link TooLongFrameException} will be raised.
      */
     public void setMaxHttpContentLength(int value) {
         this.maxHttpContentLength = value;
@@ -443,7 +441,6 @@ public class Configuration {
     public String getTrustStoreFormat() {
         return trustStoreFormat;
     }
-
     public void setTrustStoreFormat(String trustStoreFormat) {
         this.trustStoreFormat = trustStoreFormat;
     }
@@ -451,7 +448,6 @@ public class Configuration {
     public InputStream getTrustStore() {
         return trustStore;
     }
-
     public void setTrustStore(InputStream trustStore) {
         this.trustStore = trustStore;
     }
@@ -459,9 +455,20 @@ public class Configuration {
     public String getTrustStorePassword() {
         return trustStorePassword;
     }
-
     public void setTrustStorePassword(String trustStorePassword) {
         this.trustStorePassword = trustStorePassword;
+    }
+
+    /**
+     * Set maximum websocket frame content length limit
+     *
+     * @param maxContentLength
+     */
+    public void setMaxFramePayloadLength(int maxFramePayloadLength) {
+        this.maxFramePayloadLength = maxFramePayloadLength;
+    }
+    public int getMaxFramePayloadLength() {
+        return maxFramePayloadLength;
     }
 
 }
