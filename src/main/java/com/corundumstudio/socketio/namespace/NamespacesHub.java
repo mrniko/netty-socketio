@@ -16,17 +16,19 @@
 package com.corundumstudio.socketio.namespace;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import com.corundumstudio.socketio.Configuration;
 import com.corundumstudio.socketio.SocketIOClient;
+import com.corundumstudio.socketio.SocketIONamespace;
 import com.corundumstudio.socketio.misc.CompositeIterable;
 
 public class NamespacesHub {
 
-    private final ConcurrentMap<String, Namespace> namespaces = new ConcurrentHashMap<String, Namespace>();
+    private final ConcurrentMap<String, SocketIONamespace> namespaces = new ConcurrentHashMap<String, SocketIONamespace>();
     private final Configuration configuration;
 
     public NamespacesHub(Configuration configuration) {
@@ -34,10 +36,10 @@ public class NamespacesHub {
     }
 
     public Namespace create(String name) {
-        Namespace namespace = namespaces.get(name);
+        Namespace namespace = (Namespace) namespaces.get(name);
         if (namespace == null) {
             namespace = new Namespace(name, configuration);
-            Namespace oldNamespace = namespaces.putIfAbsent(name, namespace);
+            Namespace oldNamespace = (Namespace) namespaces.putIfAbsent(name, namespace);
             if (oldNamespace != null) {
                 namespace = oldNamespace;
             }
@@ -47,20 +49,26 @@ public class NamespacesHub {
 
     public Iterable<SocketIOClient> getRoomClients(String room) {
         List<Iterable<SocketIOClient>> allClients = new ArrayList<Iterable<SocketIOClient>>();
-        for (Namespace namespace : namespaces.values()) {
-            Iterable<SocketIOClient> clients = namespace.getRoomClients(room);
+        for (SocketIONamespace namespace : namespaces.values()) {
+            Iterable<SocketIOClient> clients = ((Namespace)namespace).getRoomClients(room);
             allClients.add(clients);
         }
         return new CompositeIterable<SocketIOClient>(allClients);
     }
 
     public Namespace get(String name) {
-        return namespaces.get(name);
+        return (Namespace) namespaces.get(name);
     }
 
     public void remove(String name) {
-        Namespace namespace = namespaces.remove(name);
-        namespace.getBroadcastOperations().disconnect();
+        SocketIONamespace namespace = namespaces.remove(name);
+        if (namespace != null) {
+            namespace.getBroadcastOperations().disconnect();
+        }
+    }
+
+    public Collection<SocketIONamespace> getAllNamespaces() {
+        return namespaces.values();
     }
 
 }

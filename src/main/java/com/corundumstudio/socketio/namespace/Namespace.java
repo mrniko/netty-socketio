@@ -16,6 +16,7 @@
 package com.corundumstudio.socketio.namespace;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -368,9 +369,12 @@ public class Namespace implements SocketIONamespace {
         return result;
     }
 
-    // Utility function to check if there are anymore clients in namespace
-    public boolean isEmpty(){
-        return allClients.isEmpty();
+    public Collection<SocketIOClient> getAllClients() {
+        return allClients.values();
+    }
+
+    public SocketIOClient getClient(UUID uuid) {
+        return allClients.get(uuid);
     }
 
 }

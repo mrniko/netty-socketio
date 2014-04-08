@@ -27,7 +27,6 @@ import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.QueryStringDecoder;
 
 import java.io.IOException;
-import java.util.Collection;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -39,7 +38,6 @@ import org.slf4j.LoggerFactory;
 import com.corundumstudio.socketio.Configuration;
 import com.corundumstudio.socketio.DisconnectableHub;
 import com.corundumstudio.socketio.HandshakeData;
-import com.corundumstudio.socketio.SocketIOClient;
 import com.corundumstudio.socketio.Transport;
 import com.corundumstudio.socketio.ack.AckManager;
 import com.corundumstudio.socketio.handler.AuthorizeHandler;
@@ -219,11 +217,6 @@ public class XHRPollingTransport extends BaseTransport {
             SchedulerKey closeTimeoutKey = new SchedulerKey(Type.CLOSE_TIMEOUT, sessionId);
             scheduler.cancel(closeTimeoutKey);
         }
-    }
-
-    public Iterable<SocketIOClient> getAllClients() {
-        Collection<XHRPollingClient> clients = sessionId2Client.values();
-        return getAllClients(clients);
     }
 
 }

@@ -25,7 +25,6 @@ import io.netty.handler.codec.http.HttpResponseEncoder;
 import io.netty.handler.ssl.SslHandler;
 
 import java.security.KeyStore;
-import java.util.Collection;
 
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
@@ -44,8 +43,6 @@ import com.corundumstudio.socketio.handler.PacketHandler;
 import com.corundumstudio.socketio.handler.PacketListener;
 import com.corundumstudio.socketio.handler.ResourceHandler;
 import com.corundumstudio.socketio.handler.WrongUrlHandler;
-import com.corundumstudio.socketio.misc.CompositeIterable;
-import com.corundumstudio.socketio.misc.IterableCollection;
 import com.corundumstudio.socketio.namespace.NamespacesHub;
 import com.corundumstudio.socketio.parser.Decoder;
 import com.corundumstudio.socketio.parser.Encoder;
@@ -140,15 +137,6 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
         resourceHandler = new ResourceHandler(configuration.getContext());
         encoderHandler = new EncoderHandler(encoder);
         wrongUrlHandler = new WrongUrlHandler();
-    }
-
-    public Collection<SocketIOClient> getAllClients() {
-        // TODO refactor to transport registry
-        Iterable<SocketIOClient> xhrClients = xhrPollingTransport.getAllClients();
-        Iterable<SocketIOClient> webSocketClients = webSocketTransport.getAllClients();
-        Iterable<SocketIOClient> flashSocketClients = flashSocketTransport.getAllClients();
-        CompositeIterable<SocketIOClient> mainIterable = new CompositeIterable<SocketIOClient>(xhrClients, webSocketClients, flashSocketClients);
-        return new IterableCollection<SocketIOClient>(mainIterable);
     }
 
     @Override

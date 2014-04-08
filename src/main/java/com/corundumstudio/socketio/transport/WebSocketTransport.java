@@ -30,7 +30,6 @@ import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketServerHandshaker;
 import io.netty.handler.codec.http.websocketx.WebSocketServerHandshakerFactory;
 
-import java.util.Collection;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -40,7 +39,6 @@ import org.slf4j.LoggerFactory;
 
 import com.corundumstudio.socketio.DisconnectableHub;
 import com.corundumstudio.socketio.HandshakeData;
-import com.corundumstudio.socketio.SocketIOClient;
 import com.corundumstudio.socketio.SocketIOChannelInitializer;
 import com.corundumstudio.socketio.Transport;
 import com.corundumstudio.socketio.ack.AckManager;
@@ -202,11 +200,6 @@ public class WebSocketTransport extends BaseTransport {
             sessionId2Client.remove(webClient.getSessionId());
             channelId2Client.remove(webClient.getChannel());
         }
-    }
-
-    public Iterable<SocketIOClient> getAllClients() {
-        Collection<WebSocketClient> clients = sessionId2Client.values();
-        return getAllClients(clients);
     }
 
 }
