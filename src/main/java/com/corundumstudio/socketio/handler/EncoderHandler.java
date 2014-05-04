@@ -82,7 +82,7 @@ public class EncoderHandler extends ChannelOutboundHandlerAdapter {
     }
 
     private void sendMessage(HttpMessage msg, Channel channel, ByteBuf out) {
-        HttpResponse res = createHttpResponse(msg.getOrigin(), out);
+        HttpResponse res = createHttpResponse(msg, out);
         channel.write(res);
 
         if (log.isTraceEnabled()) {
@@ -99,13 +99,23 @@ public class EncoderHandler extends ChannelOutboundHandlerAdapter {
         f.addListener(ChannelFutureListener.CLOSE);
     }
 
-    private HttpResponse createHttpResponse(String origin, ByteBuf message) {
+    private HttpResponse createHttpResponse(HttpMessage msg, ByteBuf message) {
         HttpResponse res = new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.OK);
 
-        HttpHeaders.addHeader(res, CONTENT_TYPE, "text/plain; charset=UTF-8");
+        if (msg instanceof AuthorizeMessage) {
+            AuthorizeMessage am = (AuthorizeMessage) msg;
+            if (am.getJsonpParam() != null) {
+                HttpHeaders.addHeader(res, CONTENT_TYPE, "application/javascript");
+            } else {
+                HttpHeaders.addHeader(res, CONTENT_TYPE, "text/plain; charset=UTF-8");
+            }
+        } else {
+            HttpHeaders.addHeader(res, CONTENT_TYPE, "text/plain; charset=UTF-8");
+        }
+
         HttpHeaders.addHeader(res, CONNECTION, KEEP_ALIVE);
-        if (origin != null) {
-            HttpHeaders.addHeader(res, ACCESS_CONTROL_ALLOW_ORIGIN, origin);
+        if (msg.getOrigin() != null) {
+            HttpHeaders.addHeader(res, ACCESS_CONTROL_ALLOW_ORIGIN, msg.getOrigin());
             HttpHeaders.addHeader(res, ACCESS_CONTROL_ALLOW_CREDENTIALS, "true");
         }
         HttpHeaders.setContentLength(res, message.readableBytes());
