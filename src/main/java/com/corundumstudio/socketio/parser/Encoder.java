@@ -69,7 +69,7 @@ public class Encoder {
 
                 ByteBuf packetBuffer = allocateBuffer(allocator);
                 try {
-                    int len = encodePacket(packet, packetBuffer);
+                    int len = encodePacketWithLength(packet, packetBuffer);
                     byte[] lenBytes = toChars(len);
 
                     buffer.writeBytes(Packet.DELIMITER_BYTES);
@@ -157,7 +157,7 @@ public class Encoder {
         return buf;
     }
 
-    public int encodePacket(Packet packet, ByteBuf buffer) throws IOException {
+    public void encodePacket(Packet packet, ByteBuf buffer) throws IOException {
         ByteBufOutputStream out = new ByteBufOutputStream(buffer);
         int start = buffer.writerIndex();
         int type = packet.getType().getValue();
@@ -244,6 +244,11 @@ public class Encoder {
             }
             break;
         }
+    }
+
+    public int encodePacketWithLength(Packet packet, ByteBuf buffer) throws IOException {
+        int start = buffer.writerIndex();
+        encodePacket(packet, buffer);
         return charsScanner.getLength(buffer, start);
     }
 
