@@ -20,8 +20,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Queue;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -66,8 +66,8 @@ public class Namespace implements SocketIONamespace {
     private final Queue<ConnectListener> connectListeners = new ConcurrentLinkedQueue<ConnectListener>();
     private final Queue<DisconnectListener> disconnectListeners = new ConcurrentLinkedQueue<DisconnectListener>();
 
-    // TODO user Set<UUID>
-    private final ConcurrentMap<String, Queue<UUID>> roomClients = new ConcurrentHashMap<String, Queue<UUID>>();
+    private final ConcurrentMap<String, Set<UUID>> roomClients = new ConcurrentHashMap<String, Set<UUID>>();
+    private final ConcurrentMap<UUID, Set<String>> clientRooms = new ConcurrentHashMap<UUID, Set<String>>();
 
     private final String name;
     private final boolean autoAck;
@@ -305,21 +305,26 @@ public class Namespace implements SocketIONamespace {
         }
     }
 
-    public void join(String room, UUID sessionId) {
-        Queue<UUID> clients = roomClients.get(room);
+    private <K, V> void join(ConcurrentMap<K, Set<V>> map, K key, V value) {
+        Set<V> clients = map.get(key);
         if (clients == null) {
-            clients = new ConcurrentLinkedQueue<UUID>();
-            Queue<UUID> oldClients = roomClients.putIfAbsent(room, clients);
+            clients = Collections.newSetFromMap(new ConcurrentHashMap<V, Boolean>());
+            Set<V> oldClients = map.putIfAbsent(key, clients);
             if (oldClients != null) {
                 clients = oldClients;
             }
         }
-        clients.add(sessionId);
+        clients.add(value);
         // object may be changed due to other concurrent call
-        if (clients != roomClients.get(room)) {
+        if (clients != map.get(key)) {
             // re-join if queue has been replaced
-            joinRoom(room, sessionId);
+            join(map, key, value);
         }
+    }
+
+    public void join(String room, UUID sessionId) {
+        join(roomClients, room, sessionId);
+        join(clientRooms, sessionId, room);
     }
 
     public void leaveRoom(String room, UUID sessionId) {
@@ -327,42 +332,42 @@ public class Namespace implements SocketIONamespace {
         storeFactory.pubSubStore().publish(PubSubStore.LEAVE, new JoinLeaveMessage(sessionId, room, getName()));
     }
 
-    public void leave(String room, UUID sessionId) {
-        Queue<UUID> clients = roomClients.get(room);
+    private <K, V> void leave(ConcurrentMap<K, Set<V>> map, K room, V sessionId) {
+        Set<V> clients = map.get(room);
         if (clients == null) {
             return;
         }
         clients.remove(sessionId);
+
         if (clients.isEmpty()) {
-            clients = roomClients.remove(room);
-            // join which was added after queue deletion
-            for (UUID clientId : clients) {
-                joinRoom(room, clientId);
-            }
+            map.remove(room, Collections.emptySet());
         }
     }
 
-    // TODO optimize
-    public List<String> getRooms(SocketIOClient client) {
-        List<String> result = new ArrayList<String>();
-        for (Entry<String, Queue<UUID>> entry : roomClients.entrySet()) {
-            if (entry.getValue().contains(client.getSessionId())) {
-                result.add(entry.getKey());
-            }
+    public void leave(String room, UUID sessionId) {
+        leave(roomClients, room, sessionId);
+        leave(clientRooms, sessionId, room);
+    }
+
+    public Set<String> getRooms(SocketIOClient client) {
+        Set<String> res = clientRooms.get(client.getSessionId());
+        if (res == null) {
+            return Collections.emptySet();
         }
-        return result;
+        return Collections.unmodifiableSet(res);
     }
 
     public Iterable<SocketIOClient> getRoomClients(String room) {
-        Queue<UUID> sessionIds = roomClients.get(room);
+        Set<UUID> sessionIds = roomClients.get(room);
 
         if (sessionIds == null) {
             return Collections.emptyList();
         }
 
         List<SocketIOClient> result = new ArrayList<SocketIOClient>();
-        for (SocketIOClient client : allClients.values()) {
-            if (sessionIds.contains(client.getSessionId())) {
+        for (UUID sessionId : sessionIds) {
+            SocketIOClient client = allClients.get(sessionId);
+            if(client != null) {
                 result.add(client);
             }
         }
@@ -370,7 +375,7 @@ public class Namespace implements SocketIONamespace {
     }
 
     public Collection<SocketIOClient> getAllClients() {
-        return allClients.values();
+        return Collections.unmodifiableCollection(allClients.values());
     }
 
     public SocketIOClient getClient(UUID uuid) {

@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import com.corundumstudio.socketio.misc.IterableCollection;
 import com.corundumstudio.socketio.namespace.Namespace;
@@ -46,7 +47,7 @@ public class BroadcastOperations implements ClientOperations {
         this.clients = clients;
         for (SocketIOClient socketIOClient : clients) {
             Namespace namespace = (Namespace)socketIOClient.getNamespace();
-            List<String> rooms = namespace.getRooms(socketIOClient);
+            Set<String> rooms = namespace.getRooms(socketIOClient);
 
             List<String> roomsList = namespaceRooms.get(namespace.getName());
             if (roomsList == null) {

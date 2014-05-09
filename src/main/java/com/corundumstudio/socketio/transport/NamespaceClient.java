@@ -17,7 +17,7 @@ package com.corundumstudio.socketio.transport;
 
 import java.net.SocketAddress;
 import java.util.Arrays;
-import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -217,7 +217,7 @@ public class NamespaceClient implements SocketIOClient {
     }
 
     @Override
-    public List<String> getAllRooms() {
+    public Set<String> getAllRooms() {
         return namespace.getRooms(this);
     }
 
