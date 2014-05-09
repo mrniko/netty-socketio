@@ -246,7 +246,7 @@ public class Encoder {
         }
     }
 
-    public int encodePacketWithLength(Packet packet, ByteBuf buffer) throws IOException {
+    private int encodePacketWithLength(Packet packet, ByteBuf buffer) throws IOException {
         int start = buffer.writerIndex();
         encodePacket(packet, buffer);
         return charsScanner.getLength(buffer, start);
