@@ -159,7 +159,6 @@ public class Encoder {
 
     public void encodePacket(Packet packet, ByteBuf buffer) throws IOException {
         ByteBufOutputStream out = new ByteBufOutputStream(buffer);
-        int start = buffer.writerIndex();
         int type = packet.getType().getValue();
         buffer.writeByte(toChar(type));
         buffer.writeByte(Packet.SEPARATOR);

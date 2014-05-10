@@ -27,6 +27,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentMap;
 
+import com.corundumstudio.socketio.AckMode;
 import com.corundumstudio.socketio.AckRequest;
 import com.corundumstudio.socketio.BroadcastOperations;
 import com.corundumstudio.socketio.Configuration;
@@ -57,7 +58,6 @@ public class Namespace implements SocketIONamespace {
     public static final String DEFAULT_NAME = "";
 
     private final ScannerEngine engine = new ScannerEngine();
-    private final Map<UUID, SocketIOClient> allClients = new ConcurrentHashMap<UUID, SocketIOClient>();
     private final ConcurrentMap<String, EventEntry<?>> eventListeners =
                                                             new ConcurrentHashMap<String, EventEntry<?>>();
     private final ConcurrentMap<Class<?>, Queue<DataListener<?>>> jsonObjectListeners =
@@ -66,11 +66,12 @@ public class Namespace implements SocketIONamespace {
     private final Queue<ConnectListener> connectListeners = new ConcurrentLinkedQueue<ConnectListener>();
     private final Queue<DisconnectListener> disconnectListeners = new ConcurrentLinkedQueue<DisconnectListener>();
 
+    private final Map<UUID, SocketIOClient> allClients = new ConcurrentHashMap<UUID, SocketIOClient>();
     private final ConcurrentMap<String, Set<UUID>> roomClients = new ConcurrentHashMap<String, Set<UUID>>();
     private final ConcurrentMap<UUID, Set<String>> clientRooms = new ConcurrentHashMap<UUID, Set<String>>();
 
     private final String name;
-    private final boolean autoAck;
+    private final AckMode ackMode;
     private final JsonSupport jsonSupport;
     private final StoreFactory storeFactory;
     private final ExceptionListener exceptionListener;
@@ -81,7 +82,7 @@ public class Namespace implements SocketIONamespace {
         this.jsonSupport = configuration.getJsonSupport();
         this.storeFactory = configuration.getStoreFactory();
         this.exceptionListener = configuration.getExceptionListener();
-        this.autoAck = configuration.isAutoAck();
+        this.ackMode = configuration.getAckMode();
     }
 
     public void addClient(SocketIOClient client) {
@@ -151,13 +152,16 @@ public class Namespace implements SocketIONamespace {
             }
         } catch (Exception e) {
             exceptionListener.onEventException(e, args, client);
+            if (ackMode == AckMode.AUTO_SUCCESS_ONLY) {
+                return;
+            }
         }
 
         sendAck(ackRequest);
     }
 
     private void sendAck(AckRequest ackRequest) {
-        if (autoAck) {
+        if (ackMode == AckMode.AUTO || ackMode == AckMode.AUTO_SUCCESS_ONLY) {
             // send ack response if it not executed
             // during {@link DataListener#onData} invocation
             ackRequest.sendAckData(Collections.emptyList());

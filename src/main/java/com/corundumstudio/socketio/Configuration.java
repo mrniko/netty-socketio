@@ -70,7 +70,7 @@ public class Configuration {
 
     private AuthorizationListener authorizationListener = new SuccessAuthorizationListener();
 
-    private boolean autoAck = true;
+    private AckMode ackMode = AckMode.AUTO_SUCCESS_ONLY;
 
     public Configuration() {
     }
@@ -114,7 +114,7 @@ public class Configuration {
         setAuthorizationListener(conf.getAuthorizationListener());
         setExceptionListener(conf.getExceptionListener());
         setSocketConfig(conf.getSocketConfig());
-        setAutoAck(conf.isAutoAck());
+        setAckMode(conf.getAckMode());
         setMaxFramePayloadLength(conf.getMaxFramePayloadLength());
     }
 
@@ -426,17 +426,20 @@ public class Configuration {
     }
 
     /**
-     * Send ack-response automatically on each ack-request
-     * Default is {@code true}
+     * Auto ack-response mode
+     * Default is {@code AckMode.AUTO_SUCCESS_ONLY}
      *
-     * @param autoAck
+     * @see AckMode
+     *
+     * @param ackMode
      */
-    public void setAutoAck(boolean autoAck) {
-        this.autoAck = autoAck;
+    public void setAckMode(AckMode ackMode) {
+        this.ackMode = ackMode;
     }
-    public boolean isAutoAck() {
-        return autoAck;
+    public AckMode getAckMode() {
+        return ackMode;
     }
+
 
     public String getTrustStoreFormat() {
         return trustStoreFormat;
