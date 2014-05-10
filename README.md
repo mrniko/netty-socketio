@@ -43,9 +43,7 @@ Recent Releases
 ####Please Note: trunk is current development branch.
 
 ####??-May-2014 - version 1.6.5
-Improvement - single packet encoding optimized, used mostly in WebSocket transport.
-
-                encoding time reduced up to 40% (thanks to Viktor Endersz)  
+Improvement - single packet encoding optimized, used mostly in WebSocket transport. Encoding time reduced up to 40% (thanks to Viktor Endersz)  
 Improvement - rooms handling optimized  
 Feature - trustStore setting added  
 Feature - maxFramePayloadLength setting added  
