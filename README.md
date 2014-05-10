@@ -42,6 +42,14 @@ Recent Releases
 ================================
 ####Please Note: trunk is current development branch.
 
+####??-May-2014 - version 1.6.5
+Improvement - single packet encoding optimized, used mostly in WebSocket transport. Encoding time reduced up to 40% (thanks to Viktor Endersz)  
+Improvement - rooms handling optimized  
+Feature - trustStore setting added  
+Feature - maxFramePayloadLength setting added  
+Feature - getAllClients and getClient methods added to SocketIONamespace  
+Fixed - SocketIOServer.getAllClients returns wrong clients amount  
+
 ####25-Mar-2014 - version 1.6.4 released (JDK 1.6+ compatible, Netty 4.0.17)
 Fixed - message release problem  
 Fixed - problem with exception listener configuration redefinition  
