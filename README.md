@@ -46,6 +46,7 @@ Recent Releases
 Improvement - single packet encoding optimized, used mostly in WebSocket transport. Encoding time reduced up to 40% (thanks to Viktor Endersz)  
 Improvement - rooms handling optimized  
 Improvement - ExceptionListener.exceptionCaught method added  
+__Breaking api change__ - Configuration.autoAck replaced with ackMode  
 Feature - trustStore setting added  
 Feature - maxFramePayloadLength setting added  
 Feature - getAllClients and getClient methods added to SocketIONamespace  
