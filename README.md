@@ -45,6 +45,7 @@ Recent Releases
 ####??-May-2014 - version 1.6.5
 Improvement - single packet encoding optimized, used mostly in WebSocket transport. Encoding time reduced up to 40% (thanks to Viktor Endersz)  
 Improvement - rooms handling optimized  
+Improvement - ExceptionListener.exceptionCaught method added  
 Feature - trustStore setting added  
 Feature - maxFramePayloadLength setting added  
 Feature - getAllClients and getClient methods added to SocketIONamespace  
