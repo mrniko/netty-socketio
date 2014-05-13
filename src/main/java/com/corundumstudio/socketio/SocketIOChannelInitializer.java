@@ -124,7 +124,7 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
             }
         }
 
-        packetHandler = new PacketHandler(packetListener, decoder, namespacesHub);
+        packetHandler = new PacketHandler(packetListener, decoder, namespacesHub, configuration.getExceptionListener());
         authorizeHandler = new AuthorizeHandler(connectPath, scheduler, configuration, namespacesHub);
 
         StoreFactory factory = configuration.getStoreFactory();

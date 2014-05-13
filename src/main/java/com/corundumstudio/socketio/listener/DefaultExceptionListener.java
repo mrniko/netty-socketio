@@ -15,6 +15,8 @@
  */
 package com.corundumstudio.socketio.listener;
 
+import io.netty.channel.ChannelHandlerContext;
+
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -49,6 +51,11 @@ public class DefaultExceptionListener extends ExceptionListenerAdapter {
     @Override
     public void onJsonException(Exception e, Object data, SocketIOClient client) {
         log.error(e.getMessage(), e);
+    }
+
+    public boolean exceptionCaught(ChannelHandlerContext ctx, Throwable e) throws Exception {
+        log.error(e.getMessage(), e);
+        return true;
     }
 
 }

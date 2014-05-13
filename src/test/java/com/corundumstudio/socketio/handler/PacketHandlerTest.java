@@ -95,7 +95,7 @@ public class PacketHandlerTest {
         packets.add(packet);
 
         PacketListener listener = createTestListener(packets);
-        PacketHandler handler = new PacketHandler(listener, decoder, namespacesHub);
+        PacketHandler handler = new PacketHandler(listener, decoder, namespacesHub, null);
         testHandler(handler, new ConcurrentLinkedQueue<Packet>(packets));
     }
 
@@ -114,7 +114,7 @@ public class PacketHandlerTest {
         packets.add(packet1);
 
         PacketListener listener = createTestListener(packets);
-        PacketHandler handler = new PacketHandler(listener, decoder, namespacesHub);
+        PacketHandler handler = new PacketHandler(listener, decoder, namespacesHub, null);
         testHandler(handler, new ConcurrentLinkedQueue<Packet>(packets));
     }
 
@@ -133,7 +133,7 @@ public class PacketHandlerTest {
         packets.add(packet1);
 
         PacketListener listener = createTestListener(packets);
-        PacketHandler handler = new PacketHandler(listener, decoder, namespacesHub);
+        PacketHandler handler = new PacketHandler(listener, decoder, namespacesHub, null);
         testHandler(handler, new ConcurrentLinkedQueue<Packet>(packets));
     }
 
@@ -152,7 +152,7 @@ public class PacketHandlerTest {
             public void onPacket(Packet packet, NamespaceClient client) {
             }
         };
-        PacketHandler handler = new PacketHandler(listener, decoder, namespacesHub);
+        PacketHandler handler = new PacketHandler(listener, decoder, namespacesHub, null);
         long start = System.currentTimeMillis();
         ByteBuf buffer = Unpooled.wrappedBuffer("\ufffd10\ufffd3:::Привет\ufffd7\ufffd3:::53d\ufffd3\ufffd0::\ufffd5\ufffd3:::5\ufffd7\ufffd3:::53d\ufffd3\ufffd0::\ufffd5\ufffd3:::5\ufffd7\ufffd3:::53d\ufffd3\ufffd0::\ufffd5\ufffd3:::5\ufffd7\ufffd3:::53d\ufffd3\ufffd0::\ufffd5\ufffd3:::5\ufffd7\ufffd3:::53d\ufffd3\ufffd0::".getBytes());
         for (int i = 0; i < 50000; i++) {

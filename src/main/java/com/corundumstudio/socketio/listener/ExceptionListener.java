@@ -15,6 +15,8 @@
  */
 package com.corundumstudio.socketio.listener;
 
+import io.netty.channel.ChannelHandlerContext;
+
 import java.util.List;
 
 import com.corundumstudio.socketio.SocketIOClient;
@@ -30,5 +32,7 @@ public interface ExceptionListener {
     void onMessageException(Exception e, String data, SocketIOClient client);
 
     void onJsonException(Exception e, Object data, SocketIOClient client);
+
+    boolean exceptionCaught(ChannelHandlerContext ctx, Throwable e) throws Exception;
 
 }

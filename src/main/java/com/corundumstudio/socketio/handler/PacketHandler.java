@@ -24,6 +24,7 @@ import io.netty.util.CharsetUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.corundumstudio.socketio.listener.ExceptionListener;
 import com.corundumstudio.socketio.messages.PacketsMessage;
 import com.corundumstudio.socketio.namespace.Namespace;
 import com.corundumstudio.socketio.namespace.NamespacesHub;
@@ -41,12 +42,14 @@ public class PacketHandler extends SimpleChannelInboundHandler<PacketsMessage> {
     private final PacketListener packetListener;
     private final Decoder decoder;
     private final NamespacesHub namespacesHub;
+    private final ExceptionListener exceptionListener;
 
-    public PacketHandler(PacketListener packetListener, Decoder decoder, NamespacesHub namespacesHub) {
+    public PacketHandler(PacketListener packetListener, Decoder decoder, NamespacesHub namespacesHub, ExceptionListener exceptionListener) {
         super();
         this.packetListener = packetListener;
         this.decoder = decoder;
         this.namespacesHub = namespacesHub;
+        this.exceptionListener = exceptionListener;
     }
 
     @Override
@@ -87,7 +90,9 @@ public class PacketHandler extends SimpleChannelInboundHandler<PacketsMessage> {
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable e) throws Exception {
-        log.error("Exception occurs", e);
+        if (!exceptionListener.exceptionCaught(ctx, e)) {
+            super.exceptionCaught(ctx, e);
+        }
     }
 
 }
