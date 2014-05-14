@@ -42,7 +42,7 @@ Recent Releases
 ================================
 ####Please Note: trunk is current development branch.
 
-####??-May-2014 - version 1.6.5
+####13-May-2014 - version 1.6.5 released (JDK 1.6+ compatible, Netty 4.0.19)
 Improvement - single packet encoding optimized, used mostly in WebSocket transport. Encoding time reduced up to 40% (thanks to Viktor Endersz)  
 Improvement - rooms handling optimized  
 Improvement - ExceptionListener.exceptionCaught method added  
