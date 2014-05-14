@@ -18,6 +18,7 @@ package com.corundumstudio.socketio.parser;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.ByteBufOutputStream;
+import io.netty.util.CharsetUtil;
 
 import java.io.IOException;
 import java.util.List;
@@ -39,7 +40,7 @@ public class Encoder {
     public void encodeJsonP(String param, String msg, ByteBuf out) throws IOException {
         String message = "io.j[" + param + "]("
                 + jsonSupport.writeValueAsString(msg) + ");";
-        out.writeBytes(message.getBytes());
+        out.writeBytes(message.getBytes(CharsetUtil.UTF_8));
     }
 
     public ByteBuf allocateBuffer(ByteBufAllocator allocator) {
@@ -178,7 +179,7 @@ public class Encoder {
         buffer.writeByte(Packet.SEPARATOR);
 
         if (endpoint != null) {
-            buffer.writeBytes(endpoint.getBytes());
+            buffer.writeBytes(endpoint.getBytes(CharsetUtil.UTF_8));
         }
 
         switch (packet.getType()) {
@@ -186,7 +187,7 @@ public class Encoder {
         case MESSAGE:
             if (packet.getData() != null) {
                 buffer.writeByte(Packet.SEPARATOR);
-                byte[] data = packet.getData().toString().getBytes();
+                byte[] data = packet.getData().toString().getBytes(CharsetUtil.UTF_8);
                 buffer.writeBytes(data);
             }
             break;
@@ -209,7 +210,7 @@ public class Encoder {
         case CONNECT:
             if (packet.getQs() != null) {
                 buffer.writeByte(Packet.SEPARATOR);
-                byte[] qsData = packet.getQs().toString().getBytes();
+                byte[] qsData = packet.getQs().toString().getBytes(CharsetUtil.UTF_8);
                 buffer.writeBytes(qsData);
             }
             break;

@@ -161,7 +161,7 @@ public class EncoderHandler extends ChannelOutboundHandlerAdapter {
         if (authMsg.getJsonpParam() != null) {
             encoder.encodeJsonP(authMsg.getJsonpParam(), message, out);
         } else {
-            out.writeBytes(message.getBytes());
+            out.writeBytes(message.getBytes(CharsetUtil.UTF_8));
         }
         sendMessage(authMsg, channel, out);
     }
