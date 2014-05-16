@@ -35,6 +35,7 @@ CPU 10%, Memory 15%
 
 Projects using netty-socketio
 ================================
+Kambi Sports Solutions: [kambi.com](http://kambi.com/)  
 ARSnova: [arsnova.eu](https://arsnova.eu)  
 Zipwhip: [zipwhip.com](https://zipwhip.com/)
 
