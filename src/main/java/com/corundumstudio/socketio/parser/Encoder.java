@@ -18,13 +18,17 @@ package com.corundumstudio.socketio.parser;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.ByteBufOutputStream;
+import io.netty.handler.codec.base64.Base64;
 import io.netty.util.CharsetUtil;
 
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.List;
 import java.util.Queue;
 
 import com.corundumstudio.socketio.Configuration;
+import com.google.common.io.BaseEncoding;
 
 public class Encoder {
 
@@ -54,7 +58,7 @@ public class Encoder {
     public void encodePackets(Queue<Packet> packets, ByteBuf buffer, ByteBufAllocator allocator) throws IOException {
         if (packets.size() == 1) {
             Packet packet = packets.poll();
-            encodePacket(packet, buffer);
+            encodePacket(packet, buffer, allocator);
         } else {
             int counter = 0;
             while (true) {
@@ -70,7 +74,7 @@ public class Encoder {
 
                 ByteBuf packetBuffer = allocateBuffer(allocator);
                 try {
-                    int len = encodePacketWithLength(packet, packetBuffer);
+                    int len = encodePacketWithLength(packet, packetBuffer, allocator);
                     byte[] lenBytes = toChars(len);
 
                     buffer.writeBytes(Packet.DELIMITER_BYTES);
@@ -151,46 +155,32 @@ public class Encoder {
         }
     }
 
-    private byte[] toChars(long i) {
+    public static byte[] toChars(long i) {
         int size = (i < 0) ? stringSize(-i) + 1 : stringSize(i);
         byte[] buf = new byte[size];
         getChars(i, size, buf);
         return buf;
     }
 
-    public void encodePacket(Packet packet, ByteBuf buffer) throws IOException {
-        ByteBufOutputStream out = new ByteBufOutputStream(buffer);
-        int type = packet.getType().getValue();
-        buffer.writeByte(toChar(type));
-        buffer.writeByte(Packet.SEPARATOR);
-
-        Long id = packet.getId();
-        String endpoint = packet.getEndpoint();
-        Object ack = packet.getAck();
-
-        if (Packet.ACK_DATA.equals(ack)) {
-            buffer.writeBytes(toChars(id));
-            buffer.writeByte('+');
-        } else {
-            if (id != null) {
-                buffer.writeBytes(toChars(id));
-            }
+    public static byte[] longToBytes(long number) {
+        // TODO optimize
+        int length = (int)(Math.log10(number)+1);
+        byte[] res = new byte[length];
+        int i = length;
+        while (number > 0) {
+            res[--i] = (byte) (number % 10);
+            number = number / 10;
         }
-        buffer.writeByte(Packet.SEPARATOR);
+        return res;
+    }
 
-        if (endpoint != null) {
-            buffer.writeBytes(endpoint.getBytes(CharsetUtil.UTF_8));
-        }
+    public void encodePacket(Packet packet, ByteBuf buffer, ByteBufAllocator allocator) throws IOException {
+        ByteBuf buf = allocateBuffer(allocator);
+        buf.writeBytes(toChars(packet.getType().getValue()));
+
+        ByteBufOutputStream out = new ByteBufOutputStream(buf);
 
         switch (packet.getType()) {
-
-        case MESSAGE:
-            if (packet.getData() != null) {
-                buffer.writeByte(Packet.SEPARATOR);
-                byte[] data = packet.getData().toString().getBytes(CharsetUtil.UTF_8);
-                buffer.writeBytes(data);
-            }
-            break;
 
         case EVENT:
             List<Object> args = packet.getArgs();
@@ -202,31 +192,19 @@ public class Encoder {
             jsonSupport.writeValue(out, event);
             break;
 
-        case JSON:
-            buffer.writeByte(Packet.SEPARATOR);
+        case CONNECT:
             jsonSupport.writeValue(out, packet.getData());
             break;
 
-        case CONNECT:
-            if (packet.getQs() != null) {
-                buffer.writeByte(Packet.SEPARATOR);
-                byte[] qsData = packet.getQs().toString().getBytes(CharsetUtil.UTF_8);
-                buffer.writeBytes(qsData);
-            }
-            break;
-
         case ACK:
-            if (packet.getAckId() != null || !packet.getArgs().isEmpty()) {
-                buffer.writeByte(Packet.SEPARATOR);
-            }
             if (packet.getAckId() != null) {
                 byte[] ackIdData = toChars(packet.getAckId());
-                buffer.writeBytes(ackIdData);
+                buf.writeBytes(ackIdData);
             }
-            if (!packet.getArgs().isEmpty()) {
-                buffer.writeByte('+');
-                jsonSupport.writeValue(out, packet.getArgs());
-            }
+//            if (!packet.getArgs().isEmpty()) {
+//                buffer.writeByte('+');
+//                jsonSupport.writeValue(out, packet.getArgs());
+//            }
             break;
 
         case ERROR:
@@ -244,11 +222,17 @@ public class Encoder {
             }
             break;
         }
+
+        buffer.writeByte(0);
+        int length = charsScanner.getLength(buf, 0);
+        buffer.writeBytes(longToBytes(length));
+        buffer.writeByte(0xff);
+        buffer.writeBytes(buf);
     }
 
-    private int encodePacketWithLength(Packet packet, ByteBuf buffer) throws IOException {
+    private int encodePacketWithLength(Packet packet, ByteBuf buffer, ByteBufAllocator allocator) throws IOException {
         int start = buffer.writerIndex();
-        encodePacket(packet, buffer);
+        encodePacket(packet, buffer, allocator);
         return charsScanner.getLength(buffer, start);
     }
 

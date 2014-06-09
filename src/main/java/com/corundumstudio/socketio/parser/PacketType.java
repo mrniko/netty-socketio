@@ -17,7 +17,7 @@ package com.corundumstudio.socketio.parser;
 
 public enum PacketType {
 
-    DISCONNECT(0), CONNECT(1), HEARTBEAT(2), MESSAGE(3), JSON(4), EVENT(5), ACK(6), ERROR(7), NOOP(8);
+    CONNECT(0), DISCONNECT(1), EVENT(2), BINARY_EVENT(3), ACK(4), BINARY_ACK(5), ERROR(6);
 
     // cache needed to avoid cloning
     public static final PacketType[] VALUES = values();

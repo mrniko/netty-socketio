@@ -16,6 +16,7 @@
 package com.corundumstudio.socketio.transport;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
@@ -25,8 +26,10 @@ import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.QueryStringDecoder;
+import io.netty.util.CharsetUtil;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -41,8 +44,10 @@ import com.corundumstudio.socketio.HandshakeData;
 import com.corundumstudio.socketio.Transport;
 import com.corundumstudio.socketio.ack.AckManager;
 import com.corundumstudio.socketio.handler.AuthorizeHandler;
+import com.corundumstudio.socketio.handler.HeartbeatHandler;
 import com.corundumstudio.socketio.messages.PacketsMessage;
 import com.corundumstudio.socketio.messages.XHRErrorMessage;
+import com.corundumstudio.socketio.messages.XHROptionsMessage;
 import com.corundumstudio.socketio.messages.XHROutMessage;
 import com.corundumstudio.socketio.parser.ErrorAdvice;
 import com.corundumstudio.socketio.parser.ErrorReason;
@@ -55,7 +60,7 @@ import com.corundumstudio.socketio.scheduler.SchedulerKey.Type;
 @Sharable
 public class XHRPollingTransport extends BaseTransport {
 
-    public static final String NAME = "xhr-polling";
+    public static final String NAME = "polling";
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -66,17 +71,28 @@ public class XHRPollingTransport extends BaseTransport {
     private final AckManager ackManager;
     private final AuthorizeHandler authorizeHandler;
     private final DisconnectableHub disconnectable;
+    private final HeartbeatHandler heartbeatHandler;
     private final Configuration configuration;
     private final String path;
 
     public XHRPollingTransport(String connectPath, AckManager ackManager, DisconnectableHub disconnectable, CancelableScheduler scheduler,
-                                AuthorizeHandler authorizeHandler, Configuration configuration) {
+                                AuthorizeHandler authorizeHandler, Configuration configuration, HeartbeatHandler heartbeatHandler) {
         this.path = connectPath + NAME + "/";
         this.ackManager = ackManager;
         this.authorizeHandler = authorizeHandler;
         this.configuration = configuration;
         this.disconnectable = disconnectable;
         this.scheduler = scheduler;
+        this.heartbeatHandler = heartbeatHandler;
+    }
+
+    public static void main(String[] args) {
+        ByteBuf s = io.netty.handler.codec.base64.Base64.decode(Unpooled.copiedBuffer("AAL/NDA=", CharsetUtil.UTF_8));
+        System.out.println(s.toString(CharsetUtil.UTF_8));
+        ByteBuf s1 = io.netty.handler.codec.base64.Base64.decode(Unpooled.copiedBuffer("AAgG/zB7InNpZCI6IlR1V2ZtUUZSZ2hIOG1MS3NBQUFUIiwidXBncmFkZXMiOltdLCJwaW5nSW50ZXJ2YWwiOjI1MDAwLCJwaW5nVGltZW91dCI6NjAwMDB9", CharsetUtil.UTF_8));
+        System.out.println(s1.toString(CharsetUtil.UTF_8));
+        ByteBuf s2 = io.netty.handler.codec.base64.Base64.decode(Unpooled.copiedBuffer("AAH/Mw==", CharsetUtil.UTF_8));
+        System.out.println(s2.toString(CharsetUtil.UTF_8));
     }
 
     @Override
@@ -85,9 +101,13 @@ public class XHRPollingTransport extends BaseTransport {
             FullHttpRequest req = (FullHttpRequest) msg;
             QueryStringDecoder queryDecoder = new QueryStringDecoder(req.getUri());
 
-            if (queryDecoder.path().startsWith(path)) {
+            List<String> transport = queryDecoder.parameters().get("transport");
+            List<String> sid = queryDecoder.parameters().get("sid");
+
+            if (transport != null && NAME.equals(transport.get(0))
+                    && sid != null && sid.get(0) != null) {
                 try {
-                    handleMessage(req, queryDecoder, ctx);
+                    handleMessage(req, sid.get(0), queryDecoder, ctx);
                 } finally {
                     req.release();
                 }
@@ -97,11 +117,9 @@ public class XHRPollingTransport extends BaseTransport {
         ctx.fireChannelRead(msg);
     }
 
-    private void handleMessage(FullHttpRequest req, QueryStringDecoder queryDecoder, ChannelHandlerContext ctx)
+    private void handleMessage(FullHttpRequest req, String sid, QueryStringDecoder queryDecoder, ChannelHandlerContext ctx)
                                                                                 throws IOException {
-        String[] parts = queryDecoder.path().split("/");
-        if (parts.length > 3) {
-            UUID sessionId = UUID.fromString(parts[4]);
+            UUID sessionId = UUID.fromString(sid);
 
             String origin = req.headers().get(HttpHeaders.Names.ORIGIN);
             if (queryDecoder.parameters().containsKey("disconnect")) {
@@ -112,12 +130,20 @@ public class XHRPollingTransport extends BaseTransport {
                 onPost(sessionId, ctx, origin, req.content());
             } else if (HttpMethod.GET.equals(req.getMethod())) {
                 onGet(sessionId, ctx, origin);
+            } else if (HttpMethod.OPTIONS.equals(req.getMethod())) {
+                onOptions(sessionId, ctx, origin);
             }
-        } else {
-            log.warn("Wrong {} method request path: {}, from ip: {}. Channel closed!",
-                        req.getMethod(), path, ctx.channel().remoteAddress());
+    }
+
+    private void onOptions(UUID sessionId, ChannelHandlerContext ctx, String origin) {
+        XHRPollingClient client = sessionId2Client.get(sessionId);
+        if (client == null) {
+            log.debug("Client with sessionId: {} was already disconnected. Channel closed!", sessionId);
             ctx.channel().close();
+            return;
         }
+
+        ctx.channel().writeAndFlush(new XHROptionsMessage(origin, sessionId));
     }
 
     private void scheduleNoop(final UUID sessionId) {
@@ -128,7 +154,7 @@ public class XHRPollingTransport extends BaseTransport {
             public void run() {
                 XHRPollingClient client = sessionId2Client.get(sessionId);
                 if (client != null) {
-                    client.send(new Packet(PacketType.NOOP));
+                    client.send(new Packet(PacketType.BINARY_EVENT));
                 }
             }
         }, configuration.getPollingDuration(), TimeUnit.SECONDS);
@@ -176,25 +202,25 @@ public class XHRPollingTransport extends BaseTransport {
             return;
         }
 
-        XHRPollingClient client = (XHRPollingClient) sessionId2Client.get(sessionId);
-        if (client == null) {
-            client = createClient(origin, ctx.channel(), sessionId, data);
-        }
-
-        client.bindChannel(ctx.channel(), origin);
+        bindClient(origin, ctx.channel(), sessionId, data);
 
         scheduleDisconnect(ctx.channel(), sessionId);
         scheduleNoop(sessionId);
     }
 
-    private XHRPollingClient createClient(String origin, Channel channel, UUID sessionId, HandshakeData data) {
-        XHRPollingClient client = new XHRPollingClient(ackManager, disconnectable, sessionId, Transport.XHRPOLLING, configuration.getStoreFactory(), data);
+    private XHRPollingClient bindClient(String origin, Channel channel, UUID sessionId, HandshakeData data) {
+        XHRPollingClient client = (XHRPollingClient) sessionId2Client.get(sessionId);
+        if (client == null) {
+            client = new XHRPollingClient(ackManager, disconnectable, sessionId, Transport.XHRPOLLING, configuration.getStoreFactory(), data);
 
-        sessionId2Client.put(sessionId, client);
-        client.bindChannel(channel, origin);
+            sessionId2Client.put(sessionId, client);
+            client.bindChannel(channel, origin);
 
-        authorizeHandler.connect(client);
-        log.debug("Client for sessionId: {} was created", sessionId);
+            authorizeHandler.connect(client);
+            log.debug("Client for sessionId: {} was created", sessionId);
+        } else {
+            client.bindChannel(channel, origin);
+        }
         return client;
     }
 

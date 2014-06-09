@@ -67,22 +67,6 @@ public class PacketListener {
             break;
         }
 
-        case HEARTBEAT:
-            heartbeatHandler.onHeartbeat(client.getBaseClient());
-            break;
-
-        case MESSAGE: {
-            Namespace namespace = namespacesHub.get(packet.getEndpoint());
-            namespace.onMessage(client, packet.getData().toString(), ackRequest);
-            break;
-        }
-
-        case JSON: {
-            Namespace namespace = namespacesHub.get(packet.getEndpoint());
-            namespace.onJsonObject(client, packet.getData(), ackRequest);
-            break;
-        }
-
         case DISCONNECT:
             client.onDisconnect();
             break;

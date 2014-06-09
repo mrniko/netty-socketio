@@ -30,6 +30,7 @@ import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketServerHandshaker;
 import io.netty.handler.codec.http.websocketx.WebSocketServerHandshakerFactory;
 
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -102,7 +103,11 @@ public class WebSocketTransport extends BaseTransport {
             FullHttpRequest req = (FullHttpRequest) msg;
             QueryStringDecoder queryDecoder = new QueryStringDecoder(req.getUri());
             String path = queryDecoder.path();
-            if (path.startsWith(this.path)) {
+            List<String> transport = queryDecoder.parameters().get("transport");
+            List<String> sid = queryDecoder.parameters().get("sid");
+
+            if (transport != null && path.equals(transport.get(0))
+                    && sid != null && sid.get(0) != null) {
                 handshake(ctx, path, req);
                 req.release();
             } else {

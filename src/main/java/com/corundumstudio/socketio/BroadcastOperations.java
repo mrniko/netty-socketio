@@ -73,9 +73,7 @@ public class BroadcastOperations implements ClientOperations {
 
     @Override
     public void sendMessage(String message) {
-        Packet packet = new Packet(PacketType.MESSAGE);
-        packet.setData(message);
-        send(packet);
+        sendEvent("message", message);
     }
 
     public <T> void sendMessage(String message, BroadcastAckCallback<T> ackCallback) {
@@ -87,9 +85,6 @@ public class BroadcastOperations implements ClientOperations {
 
     @Override
     public void sendJsonObject(Object object) {
-        Packet packet = new Packet(PacketType.JSON);
-        packet.setData(object);
-        send(packet);
     }
 
     public <T> void sendJsonObject(Object object, BroadcastAckCallback<T> ackCallback) {
@@ -124,8 +119,10 @@ public class BroadcastOperations implements ClientOperations {
     @Override
     public void sendEvent(String name, Object... data) {
         Packet packet = new Packet(PacketType.EVENT);
-        packet.setName(name);
-        packet.setArgs(Arrays.asList(data));
+        List<Object> list = new ArrayList<Object>();
+        list.add(name);
+        list.addAll(Arrays.asList(data));
+        packet.setArgs(list);
         send(packet);
     }
 

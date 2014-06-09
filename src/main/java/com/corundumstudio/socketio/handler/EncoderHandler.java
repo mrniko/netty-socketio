@@ -16,6 +16,7 @@
 package com.corundumstudio.socketio.handler;
 
 import static io.netty.handler.codec.http.HttpHeaders.Names.ACCESS_CONTROL_ALLOW_CREDENTIALS;
+import static io.netty.handler.codec.http.HttpHeaders.Names.ACCESS_CONTROL_ALLOW_HEADERS;
 import static io.netty.handler.codec.http.HttpHeaders.Names.ACCESS_CONTROL_ALLOW_ORIGIN;
 import static io.netty.handler.codec.http.HttpHeaders.Names.CONNECTION;
 import static io.netty.handler.codec.http.HttpHeaders.Names.CONTENT_TYPE;
@@ -23,7 +24,6 @@ import static io.netty.handler.codec.http.HttpHeaders.Values.KEEP_ALIVE;
 import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
@@ -50,9 +50,12 @@ import com.corundumstudio.socketio.messages.HttpMessage;
 import com.corundumstudio.socketio.messages.WebSocketPacketMessage;
 import com.corundumstudio.socketio.messages.WebsocketErrorMessage;
 import com.corundumstudio.socketio.messages.XHRErrorMessage;
+import com.corundumstudio.socketio.messages.XHROptionsMessage;
 import com.corundumstudio.socketio.messages.XHROutMessage;
 import com.corundumstudio.socketio.messages.XHRSendPacketsMessage;
 import com.corundumstudio.socketio.parser.Encoder;
+import com.corundumstudio.socketio.parser.Packet;
+import com.corundumstudio.socketio.parser.PacketType;
 import com.corundumstudio.socketio.transport.XHRPollingClient;
 
 @Sharable
@@ -95,28 +98,34 @@ public class EncoderHandler extends ChannelOutboundHandlerAdapter {
             out.release();
         }
 
-        ChannelFuture f = channel.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
-        f.addListener(ChannelFutureListener.CLOSE);
+        channel.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT).addListener(ChannelFutureListener.CLOSE);
     }
 
     private HttpResponse createHttpResponse(HttpMessage msg, ByteBuf message) {
         HttpResponse res = new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.OK);
 
-        if (msg instanceof AuthorizeMessage) {
-            AuthorizeMessage am = (AuthorizeMessage) msg;
-            if (am.getJsonpParam() != null) {
-                HttpHeaders.addHeader(res, CONTENT_TYPE, "application/javascript");
-            } else {
-                HttpHeaders.addHeader(res, CONTENT_TYPE, "text/plain; charset=UTF-8");
-            }
-        } else {
-            HttpHeaders.addHeader(res, CONTENT_TYPE, "text/plain; charset=UTF-8");
+        HttpHeaders.addHeader(res, CONTENT_TYPE, "application/octet-stream");
+        HttpHeaders.addHeader(res, "Set-Cookie", "io=" + msg.getSessionId());
+
+        if (msg instanceof XHROptionsMessage) {
+            HttpHeaders.addHeader(res, ACCESS_CONTROL_ALLOW_HEADERS, CONTENT_TYPE);
         }
+
+//        if (msg instanceof AuthorizeMessage) {
+//            AuthorizeMessage am = (AuthorizeMessage) msg;
+//            if (am.getJsonpParam() != null) {
+//                HttpHeaders.addHeader(res, CONTENT_TYPE, "application/javascript");
+//            } else {
+//                HttpHeaders.addHeader(res, CONTENT_TYPE, "text/plain; charset=UTF-8");
+//            }
+//        } else {
+//            HttpHeaders.addHeader(res, CONTENT_TYPE, "text/plain; charset=UTF-8");
+//        }
 
         HttpHeaders.addHeader(res, CONNECTION, KEEP_ALIVE);
         if (msg.getOrigin() != null) {
             HttpHeaders.addHeader(res, ACCESS_CONTROL_ALLOW_ORIGIN, msg.getOrigin());
-            HttpHeaders.addHeader(res, ACCESS_CONTROL_ALLOW_CREDENTIALS, "true");
+            HttpHeaders.addHeader(res, ACCESS_CONTROL_ALLOW_CREDENTIALS, Boolean.TRUE);
         }
         HttpHeaders.setContentLength(res, message.readableBytes());
 
@@ -133,7 +142,7 @@ public class EncoderHandler extends ChannelOutboundHandlerAdapter {
         ByteBuf out = encoder.allocateBuffer(ctx.alloc());
 
         if (msg instanceof AuthorizeMessage) {
-            handle((AuthorizeMessage) msg, ctx.channel(), out);
+            handle((AuthorizeMessage) msg, ctx, out);
         }
 
         if (msg instanceof XHRSendPacketsMessage) {
@@ -144,43 +153,47 @@ public class EncoderHandler extends ChannelOutboundHandlerAdapter {
         }
         if (msg instanceof XHRErrorMessage) {
             XHRErrorMessage xhrErrorMessage = (XHRErrorMessage) msg;
-            encoder.encodePacket(xhrErrorMessage.getPacket(), out);
+            encoder.encodePacket(xhrErrorMessage.getPacket(), out, ctx.alloc());
             sendMessage(xhrErrorMessage, ctx.channel(), out);
         }
 
         if (msg instanceof WebSocketPacketMessage) {
-            handle((WebSocketPacketMessage) msg, ctx.channel(), out);
+            handle((WebSocketPacketMessage) msg, ctx, out);
         }
         if (msg instanceof WebsocketErrorMessage) {
-            handle((WebsocketErrorMessage) msg, ctx.channel(), out);
+            handle((WebsocketErrorMessage) msg, ctx, out);
         }
     }
 
-    private void handle(AuthorizeMessage authMsg, Channel channel, ByteBuf out) throws IOException {
-        String message = authMsg.getMsg();
-        if (authMsg.getJsonpParam() != null) {
-            encoder.encodeJsonP(authMsg.getJsonpParam(), message, out);
-        } else {
-            out.writeBytes(message.getBytes(CharsetUtil.UTF_8));
-        }
-        sendMessage(authMsg, channel, out);
+    private void handle(AuthorizeMessage msg, ChannelHandlerContext ctx, ByteBuf out) throws IOException {
+        Packet packet = new Packet(PacketType.CONNECT);
+        packet.setData(msg.getMsg());
+        encoder.encodePacket(packet, out, ctx.alloc());
+        sendMessage(msg, ctx.channel(), out);
+//        Object message = authMsg.getMsg();
+//        if (authMsg.getJsonpParam() != null) {
+//            encoder.encodeJsonP(authMsg.getJsonpParam(), message, out);
+//        } else {
+//            out.writeBytes(message.getBytes(CharsetUtil.UTF_8));
+//        }
+//        sendMessage(authMsg, ctx.channel(), out);
     }
 
-    private void handle(WebSocketPacketMessage webSocketPacketMessage, Channel channel, ByteBuf out) throws IOException {
-        encoder.encodePacket(webSocketPacketMessage.getPacket(), out);
+    private void handle(WebSocketPacketMessage webSocketPacketMessage, ChannelHandlerContext ctx, ByteBuf out) throws IOException {
+        encoder.encodePacket(webSocketPacketMessage.getPacket(), out, ctx.alloc());
         WebSocketFrame res = new TextWebSocketFrame(out);
         log.trace("Out message: {} sessionId: {}",
                         out.toString(CharsetUtil.UTF_8), webSocketPacketMessage.getSessionId());
-        channel.writeAndFlush(res);
+        ctx.channel().writeAndFlush(res);
         if (!out.isReadable()) {
             out.release();
         }
     }
 
-    private void handle(WebsocketErrorMessage websocketErrorMessage, Channel channel, ByteBuf out) throws IOException {
-        encoder.encodePacket(websocketErrorMessage.getPacket(), out);
+    private void handle(WebsocketErrorMessage websocketErrorMessage, ChannelHandlerContext ctx, ByteBuf out) throws IOException {
+        encoder.encodePacket(websocketErrorMessage.getPacket(), out, ctx.alloc());
         TextWebSocketFrame frame = new TextWebSocketFrame(out);
-        channel.writeAndFlush(frame);
+        ctx.channel().writeAndFlush(frame);
     }
 
 }

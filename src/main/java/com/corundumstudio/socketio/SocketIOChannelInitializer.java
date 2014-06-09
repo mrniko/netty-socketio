@@ -22,6 +22,7 @@ import io.netty.channel.ChannelPipeline;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpRequestDecoder;
 import io.netty.handler.codec.http.HttpResponseEncoder;
+import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.ssl.SslHandler;
 
 import java.security.KeyStore;
@@ -113,7 +114,7 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
         heartbeatHandler = new HeartbeatHandler(configuration, scheduler);
         PacketListener packetListener = new PacketListener(heartbeatHandler, ackManager, namespacesHub);
 
-        String connectPath = configuration.getContext() + "/" + protocol + "/";
+        String connectPath = configuration.getContext() + "/";
 
         boolean isSsl = configuration.getKeyStore() != null;
         if (isSsl) {
@@ -125,12 +126,12 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
         }
 
         packetHandler = new PacketHandler(packetListener, decoder, namespacesHub, configuration.getExceptionListener());
-        authorizeHandler = new AuthorizeHandler(connectPath, scheduler, configuration, namespacesHub);
+        authorizeHandler = new AuthorizeHandler(connectPath, scheduler, configuration, namespacesHub, encoder);
 
         StoreFactory factory = configuration.getStoreFactory();
         factory.init(namespacesHub, authorizeHandler, jsonSupport);
 
-        xhrPollingTransport = new XHRPollingTransport(connectPath, ackManager, this, scheduler, authorizeHandler, configuration);
+        xhrPollingTransport = new XHRPollingTransport(connectPath, ackManager, this, scheduler, authorizeHandler, configuration, heartbeatHandler);
         webSocketTransport = new WebSocketTransport(connectPath, isSsl, ackManager, this, authorizeHandler, heartbeatHandler, factory, configuration.getMaxFramePayloadLength());
         flashSocketTransport = new FlashSocketTransport(connectPath, isSsl, ackManager, this, authorizeHandler, heartbeatHandler, factory, configuration.getMaxFramePayloadLength());
 
@@ -143,6 +144,7 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
     protected void initChannel(Channel ch) throws Exception {
         ChannelPipeline pipeline = ch.pipeline();
         boolean isFlashTransport = configuration.getTransports().contains(FlashSocketTransport.NAME);
+        pipeline.addLast(new LoggingHandler());
         if (isFlashTransport) {
             pipeline.addLast(FLASH_POLICY_HANDLER, flashPolicyHandler);
         }

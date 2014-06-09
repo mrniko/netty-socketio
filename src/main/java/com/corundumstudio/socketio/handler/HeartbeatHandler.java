@@ -51,7 +51,7 @@ public class HeartbeatHandler implements Disconnectable {
         scheduler.cancel(key);
         scheduler.schedule(new Runnable() {
             public void run() {
-                client.send(new Packet(PacketType.HEARTBEAT));
+                client.send(new Packet(PacketType.BINARY_EVENT));
                 scheduleClientHeartbeatCheck(client, key);
             }
         }, configuration.getHeartbeatInterval(), TimeUnit.SECONDS);

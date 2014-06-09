@@ -19,16 +19,16 @@ import java.util.UUID;
 
 public class AuthorizeMessage extends HttpMessage {
 
-    private final String msg;
+    private final Object msg;
     private final String jsonpParam;
 
-    public AuthorizeMessage(String msg, String jsonpParam, String origin, UUID sessionId) {
+    public AuthorizeMessage(Object msg, String jsonpParam, String origin, UUID sessionId) {
         super(origin, sessionId);
         this.msg = msg;
         this.jsonpParam = jsonpParam;
     }
 
-    public String getMsg() {
+    public Object getMsg() {
         return msg;
     }
 

@@ -78,23 +78,18 @@ public class NamespaceClient implements SocketIOClient {
 
     @Override
     public void sendMessage(String message, AckCallback<?> ackCallback) {
-        Packet packet = new Packet(PacketType.MESSAGE);
+        Packet packet = new Packet(PacketType.EVENT);
         packet.setData(message);
         send(packet, ackCallback);
     }
 
     @Override
     public void sendMessage(String message) {
-        Packet packet = new Packet(PacketType.MESSAGE);
-        packet.setData(message);
-        send(packet);
+        sendEvent("message", message);
     }
 
     @Override
     public void sendJsonObject(Object object) {
-        Packet packet = new Packet(PacketType.JSON);
-        packet.setData(object);
-        send(packet);
     }
 
     private boolean isConnected() {
@@ -126,9 +121,6 @@ public class NamespaceClient implements SocketIOClient {
 
     @Override
     public void sendJsonObject(Object object, AckCallback<?> ackCallback) {
-        Packet packet = new Packet(PacketType.JSON);
-        packet.setData(object);
-        send(packet, ackCallback);
     }
 
     public void onDisconnect() {

@@ -139,34 +139,12 @@ public class Decoder {
             break;
         }
 
-        case MESSAGE: {
-            if (buffer.isReadable()) {
-                packet.setData(buffer.toString(CharsetUtil.UTF_8));
-            } else {
-                packet.setData("");
-            }
-            break;
-        }
-
         case EVENT: {
             ByteBufInputStream in = new ByteBufInputStream(buffer);
             Event event = jsonSupport.readValue(in, Event.class);
             packet.setName(event.getName());
             if (event.getArgs() != null) {
                 packet.setArgs(event.getArgs());
-            }
-            break;
-        }
-
-        case JSON: {
-            ByteBufInputStream in = new ByteBufInputStream(buffer);
-            JsonObject obj = jsonSupport.readValue(in, JsonObject.class);
-            if (obj != null) {
-                packet.setData(obj.getObject());
-            } else {
-                in.reset();
-                Object object = jsonSupport.readValue(in, Object.class);
-                packet.setData(object);
             }
             break;
         }
@@ -216,8 +194,6 @@ public class Decoder {
         }
 
         case DISCONNECT:
-        case HEARTBEAT:
-        case NOOP:
             break;
         }
 
