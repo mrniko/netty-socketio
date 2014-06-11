@@ -53,6 +53,10 @@ public class PacketListener {
             break;
         }
 
+        case PING: {
+            break;
+        }
+
         case ACK:
             ackManager.onAck(client, packet);
             break;
@@ -60,8 +64,8 @@ public class PacketListener {
         case EVENT: {
             Namespace namespace = namespacesHub.get(packet.getEndpoint());
             List<Object> args = Collections.emptyList();
-            if (packet.getArgs() != null) {
-                args = packet.getArgs();
+            if (packet.getData() != null) {
+                args = (List<Object>) packet.getData();
             }
             namespace.onEvent(client, packet.getName(), args, ackRequest);
             break;

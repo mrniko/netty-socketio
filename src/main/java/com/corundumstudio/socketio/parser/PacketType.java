@@ -15,16 +15,26 @@
  */
 package com.corundumstudio.socketio.parser;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public enum PacketType {
 
-    CONNECT(0), DISCONNECT(1), EVENT(2), BINARY_EVENT(3), ACK(4), BINARY_ACK(5), ERROR(6);
+    OPEN(0), CLOSE(1), PING(2), PONG(3), MESSAGE(4), UPGRADE(5), NOOP(6),
 
-    // cache needed to avoid cloning
-    public static final PacketType[] VALUES = values();
+    CONNECT(0, true), DISCONNECT(1, true), EVENT(2, true), ACK(3, true), ERROR(4, true), BINARY_EVENT(5, true);
+
+    private static final PacketType[] VALUES = values();
     private final int value;
+    private final boolean inner;
 
     PacketType(int value) {
+        this(value, false);
+    }
+
+    PacketType(int value, boolean inner) {
         this.value = value;
+        this.inner = inner;
     }
 
     public int getValue() {
@@ -32,7 +42,21 @@ public enum PacketType {
     }
 
     public static PacketType valueOf(int value) {
-        return VALUES[value];
+        for (PacketType type : VALUES) {
+            if (type.getValue() == value && !type.inner) {
+                return type;
+            }
+        }
+        throw new IllegalStateException();
+    }
+
+    public static PacketType valueOfInner(int value) {
+        for (PacketType type : VALUES) {
+            if (type.getValue() == value && type.inner) {
+                return type;
+            }
+        }
+        throw new IllegalStateException();
     }
 
 }

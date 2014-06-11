@@ -17,9 +17,12 @@ package com.corundumstudio.socketio.parser;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufInputStream;
+import io.netty.buffer.ByteBufProcessor;
 import io.netty.buffer.Unpooled;
 
 import java.io.IOException;
+import java.lang.reflect.Array;
+import java.util.List;
 import java.util.UUID;
 
 import io.netty.util.CharsetUtil;
@@ -202,12 +205,13 @@ public class Decoder {
     }
 
     private PacketType getType(ByteBuf buffer) {
-        int typeId = buffer.getByte(buffer.readerIndex()) & 0xF;
-        if (typeId >= PacketType.VALUES.length
-                || buffer.getByte(buffer.readerIndex()+1) != Packet.SEPARATOR) {
-            throw new DecoderException("Can't parse " + buffer.toString(CharsetUtil.UTF_8));
-        }
-        return PacketType.valueOf(typeId);
+        return null;
+//        int typeId = buffer.getByte(buffer.readerIndex()) & 0xF;
+//        if (typeId >= PacketType.VALUES.length
+//                || buffer.getByte(buffer.readerIndex()+1) != Packet.SEPARATOR) {
+//            throw new DecoderException("Can't parse " + buffer.toString(CharsetUtil.UTF_8));
+//        }
+//        return PacketType.valueOf(typeId);
     }
 
     public Packet decodePacket(String string, UUID uuid) throws IOException {
@@ -221,20 +225,42 @@ public class Decoder {
     }
 
     public Packet decodePackets(ByteBuf buffer, UUID uuid) throws IOException {
-        if (isCurrentDelimiter(buffer, buffer.readerIndex())) {
-            buffer.readerIndex(buffer.readerIndex() + Packet.DELIMITER_BYTES.length);
+        boolean isString = buffer.getByte(0) == 0x0;
+        int headEndIndex = buffer.forEachByte(new ByteBufProcessor() {
+            @Override
+            public boolean process(byte value) throws Exception {
+                return value != -1;
+            }
+        });
+        int len = (int) parseLong(buffer, headEndIndex);
 
-            Integer len = extractLength(buffer);
+        buffer.readerIndex(buffer.readerIndex() + headEndIndex);
 
-            int startIndex = buffer.readerIndex();
-            ByteBuf frame = buffer.slice(startIndex, len);
-            Packet packet = decodePacket(frame, uuid);
-            buffer.readerIndex(startIndex + len);
-            return packet;
+        int startIndex = buffer.readerIndex();
+        ByteBuf frame = buffer.slice(startIndex+1, len);
+        Packet packet;
+        if (isString) {
+            String msg = frame.toString(CharsetUtil.UTF_8);
+            PacketType type = PacketType.valueOf(Integer.valueOf(String.valueOf(msg.charAt(0))));
+            if (msg.length() == 1) {
+                packet = new Packet(type);
+            } else {
+                // skip type
+                msg = msg.substring(1);
+                PacketType innerType = PacketType.valueOfInner(Integer.valueOf(String.valueOf(msg.charAt(0))));
+                packet = new Packet(innerType);
+                // skip inner type
+                msg = msg.substring(1);
+                List args = jsonSupport.readValue(msg, List.class);
+                String name = (String) args.remove(0);
+                packet.setName(name);
+                packet.setData(args);
+            }
         } else {
-            Packet packet = decodePacket(buffer, uuid);
-            return packet;
+            packet = decodePacket(frame, uuid);
         }
+        buffer.readerIndex(startIndex + len + 1);
+        return packet;
     }
 
     private Integer extractLength(ByteBuf buffer) {

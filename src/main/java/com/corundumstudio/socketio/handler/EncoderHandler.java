@@ -23,6 +23,7 @@ import static io.netty.handler.codec.http.HttpHeaders.Names.CONTENT_TYPE;
 import static io.netty.handler.codec.http.HttpHeaders.Values.KEEP_ALIVE;
 import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler.Sharable;
@@ -81,11 +82,35 @@ public class EncoderHandler extends ChannelOutboundHandlerAdapter {
         }
 
         encoder.encodePackets(msg.getPacketQueue(), out, ctx.alloc());
-        sendMessage(msg, channel, out);
+        sendMessage(msg, channel, out, "application/octet-stream");
     }
 
-    private void sendMessage(HttpMessage msg, Channel channel, ByteBuf out) {
-        HttpResponse res = createHttpResponse(msg, out);
+    private void write(XHROptionsMessage msg, Channel channel, ByteBuf out) {
+        HttpResponse res = new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.OK);
+
+        HttpHeaders.addHeader(res, "Set-Cookie", "io=" + msg.getSessionId());
+        HttpHeaders.addHeader(res, CONNECTION, KEEP_ALIVE);
+        HttpHeaders.addHeader(res, ACCESS_CONTROL_ALLOW_HEADERS, CONTENT_TYPE);
+        if (msg.getOrigin() != null) {
+            HttpHeaders.addHeader(res, ACCESS_CONTROL_ALLOW_ORIGIN, msg.getOrigin());
+            HttpHeaders.addHeader(res, ACCESS_CONTROL_ALLOW_CREDENTIALS, Boolean.TRUE);
+        }
+
+        sendMessage(msg, channel, out, res);
+    }
+
+
+    private void write(XHROutMessage msg, Channel channel, ByteBuf out) {
+        out.writeBytes(Unpooled.copiedBuffer("ok", CharsetUtil.UTF_8));
+        sendMessage(msg, channel, out, "text/html");
+    }
+
+    private void sendMessage(HttpMessage msg, Channel channel, ByteBuf out, String type) {
+        HttpResponse res = createHttpResponse(msg, out, type);
+        sendMessage(msg, channel, out, res);
+    }
+
+    private void sendMessage(HttpMessage msg, Channel channel, ByteBuf out, HttpResponse res) {
         channel.write(res);
 
         if (log.isTraceEnabled()) {
@@ -101,15 +126,12 @@ public class EncoderHandler extends ChannelOutboundHandlerAdapter {
         channel.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT).addListener(ChannelFutureListener.CLOSE);
     }
 
-    private HttpResponse createHttpResponse(HttpMessage msg, ByteBuf message) {
+    private HttpResponse createHttpResponse(HttpMessage msg, ByteBuf message, String type) {
         HttpResponse res = new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.OK);
 
-        HttpHeaders.addHeader(res, CONTENT_TYPE, "application/octet-stream");
+        HttpHeaders.addHeader(res, CONTENT_TYPE, type);
         HttpHeaders.addHeader(res, "Set-Cookie", "io=" + msg.getSessionId());
 
-        if (msg instanceof XHROptionsMessage) {
-            HttpHeaders.addHeader(res, ACCESS_CONTROL_ALLOW_HEADERS, CONTENT_TYPE);
-        }
 
 //        if (msg instanceof AuthorizeMessage) {
 //            AuthorizeMessage am = (AuthorizeMessage) msg;
@@ -148,13 +170,16 @@ public class EncoderHandler extends ChannelOutboundHandlerAdapter {
         if (msg instanceof XHRSendPacketsMessage) {
             write((XHRSendPacketsMessage) msg, ctx, out);
         }
+        if (msg instanceof XHROptionsMessage) {
+            write((XHROptionsMessage) msg, ctx.channel(), out);
+        }
         if (msg instanceof XHROutMessage) {
-            sendMessage((XHROutMessage) msg, ctx.channel(), out);
+            write((XHROutMessage) msg, ctx.channel(), out);
         }
         if (msg instanceof XHRErrorMessage) {
             XHRErrorMessage xhrErrorMessage = (XHRErrorMessage) msg;
             encoder.encodePacket(xhrErrorMessage.getPacket(), out, ctx.alloc());
-            sendMessage(xhrErrorMessage, ctx.channel(), out);
+            sendMessage(xhrErrorMessage, ctx.channel(), out, "application/octet-stream");
         }
 
         if (msg instanceof WebSocketPacketMessage) {
@@ -166,10 +191,11 @@ public class EncoderHandler extends ChannelOutboundHandlerAdapter {
     }
 
     private void handle(AuthorizeMessage msg, ChannelHandlerContext ctx, ByteBuf out) throws IOException {
-        Packet packet = new Packet(PacketType.CONNECT);
+        Packet packet = new Packet(PacketType.OPEN);
         packet.setData(msg.getMsg());
         encoder.encodePacket(packet, out, ctx.alloc());
-        sendMessage(msg, ctx.channel(), out);
+        sendMessage(msg, ctx.channel(), out, "application/octet-stream");
+
 //        Object message = authMsg.getMsg();
 //        if (authMsg.getJsonpParam() != null) {
 //            encoder.encodeJsonP(authMsg.getJsonpParam(), message, out);

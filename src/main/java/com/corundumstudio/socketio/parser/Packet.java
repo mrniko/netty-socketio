@@ -20,6 +20,8 @@ import java.nio.charset.Charset;
 import java.util.Collections;
 import java.util.List;
 
+import com.corundumstudio.socketio.namespace.Namespace;
+
 public class Packet implements Serializable {
 
     private static final long serialVersionUID = 4560159536486711426L;
@@ -30,8 +32,6 @@ public class Packet implements Serializable {
 
     public static final String ACK_DATA = "data";
 
-    public static final Packet NULL_INSTANCE = new Packet(null);
-
     private PacketType type;
     private List<Object> args = Collections.emptyList();
     private String qs;
@@ -39,7 +39,7 @@ public class Packet implements Serializable {
     private Long ackId;
     private String name;
     private Long id;
-    private String endpoint;
+    private String endpoint = Namespace.DEFAULT_NAME;
     private Object data;
 
     private ErrorReason reason;

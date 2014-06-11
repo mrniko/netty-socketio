@@ -192,8 +192,13 @@ public class Encoder {
             jsonSupport.writeValue(out, event);
             break;
 
-        case CONNECT:
+        case OPEN:
             jsonSupport.writeValue(out, packet.getData());
+            break;
+
+        case MESSAGE:
+            byte[] value = toChars((Integer)packet.getData());
+            buf.writeBytes(value);
             break;
 
         case ACK:
