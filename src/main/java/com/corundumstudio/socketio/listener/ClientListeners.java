@@ -21,13 +21,9 @@ public interface ClientListeners {
 
     <T> void addEventListener(String eventName, Class<T> eventClass, DataListener<T> listener);
 
-    <T> void addJsonObjectListener(Class<T> clazz, DataListener<T> listener);
-
     void addDisconnectListener(DisconnectListener listener);
 
     void addConnectListener(ConnectListener listener);
-
-    void addMessageListener(DataListener<String> listener);
 
     void addListeners(Object listeners);
 

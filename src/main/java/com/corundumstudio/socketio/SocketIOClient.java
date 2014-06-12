@@ -61,22 +61,6 @@ public interface SocketIOClient extends ClientOperations, Store {
     void send(Packet packet, AckCallback<?> ackCallback);
 
     /**
-     * Send object with ack callback
-     *
-     * @param object - object to send
-     * @param ackCallback - ack callback
-     */
-    void sendJsonObject(Object object, AckCallback<?> ackCallback);
-
-    /**
-     * Send message with ack callback
-     *
-     * @param message - message to send
-     * @param ackCallback - ack callback
-     */
-    void sendMessage(String message, AckCallback<?> ackCallback);
-
-    /**
      * Client namespace
      *
      * @return - namespace

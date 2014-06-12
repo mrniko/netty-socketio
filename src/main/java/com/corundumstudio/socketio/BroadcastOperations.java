@@ -72,29 +72,6 @@ public class BroadcastOperations implements ClientOperations {
     }
 
     @Override
-    public void sendMessage(String message) {
-        sendEvent("message", message);
-    }
-
-    public <T> void sendMessage(String message, BroadcastAckCallback<T> ackCallback) {
-        for (SocketIOClient client : clients) {
-            client.sendMessage(message, ackCallback.createClientCallback(client));
-        }
-        ackCallback.loopFinished();
-    }
-
-    @Override
-    public void sendJsonObject(Object object) {
-    }
-
-    public <T> void sendJsonObject(Object object, BroadcastAckCallback<T> ackCallback) {
-        for (SocketIOClient client : clients) {
-            client.sendJsonObject(object, ackCallback.createClientCallback(client));
-        }
-        ackCallback.loopFinished();
-    }
-
-    @Override
     public void send(Packet packet) {
         for (SocketIOClient client : clients) {
             client.send(packet);

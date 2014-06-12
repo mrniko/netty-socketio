@@ -60,9 +60,6 @@ public class Namespace implements SocketIONamespace {
     private final ScannerEngine engine = new ScannerEngine();
     private final ConcurrentMap<String, EventEntry<?>> eventListeners =
                                                             new ConcurrentHashMap<String, EventEntry<?>>();
-    private final ConcurrentMap<Class<?>, Queue<DataListener<?>>> jsonObjectListeners =
-                                                            new ConcurrentHashMap<Class<?>, Queue<DataListener<?>>>();
-    private final Queue<DataListener<String>> messageListeners = new ConcurrentLinkedQueue<DataListener<String>>();
     private final Queue<ConnectListener> connectListeners = new ConcurrentLinkedQueue<ConnectListener>();
     private final Queue<DisconnectListener> disconnectListeners = new ConcurrentLinkedQueue<DisconnectListener>();
 
@@ -123,20 +120,6 @@ public class Namespace implements SocketIONamespace {
         jsonSupport.addEventMapping(eventName, eventClass);
     }
 
-    @Override
-    public <T> void addJsonObjectListener(Class<T> clazz, DataListener<T> listener) {
-        Queue<DataListener<?>> queue = jsonObjectListeners.get(clazz);
-        if (queue == null) {
-            queue = new ConcurrentLinkedQueue<DataListener<?>>();
-            Queue<DataListener<?>> oldQueue = jsonObjectListeners.putIfAbsent(clazz, queue);
-            if (oldQueue != null) {
-                queue = oldQueue;
-            }
-        }
-        queue.add(listener);
-        jsonSupport.addJsonClass(clazz);
-    }
-
     @SuppressWarnings({"rawtypes", "unchecked"})
     public void onEvent(NamespaceClient client, String eventName, List<Object> args, AckRequest ackRequest) {
         EventEntry entry = eventListeners.get(eventName);
@@ -179,36 +162,6 @@ public class Namespace implements SocketIONamespace {
         return null;
     }
 
-    public void onMessage(NamespaceClient client, String data, AckRequest ackRequest) {
-        try {
-            for (DataListener<String> listener : messageListeners) {
-                listener.onData(client, data, ackRequest);
-            }
-        } catch (Exception e) {
-            exceptionListener.onMessageException(e, data, client);
-        }
-
-        sendAck(ackRequest);
-    }
-
-    @SuppressWarnings({"rawtypes", "unchecked"})
-    public void onJsonObject(NamespaceClient client, Object data, AckRequest ackRequest) {
-        Queue<DataListener<?>> queue = jsonObjectListeners.get(data.getClass());
-        if (queue == null) {
-            return;
-        }
-
-        try {
-            for (DataListener dataListener : queue) {
-                dataListener.onData(client, data, ackRequest);
-            }
-        } catch (Exception e) {
-            exceptionListener.onJsonException(e, data, client);
-        }
-
-        sendAck(ackRequest);
-    }
-
     @Override
     public void addDisconnectListener(DisconnectListener listener) {
         disconnectListeners.add(listener);
@@ -245,15 +198,6 @@ public class Namespace implements SocketIONamespace {
         } catch (Exception e) {
             exceptionListener.onConnectException(e, client);
         }
-    }
-
-    @Override
-    public void addMessageListener(DataListener<String> listener) {
-        messageListeners.add(listener);
-    }
-
-    public Queue<DataListener<String>> getMessageListeners() {
-        return messageListeners;
     }
 
     @Override

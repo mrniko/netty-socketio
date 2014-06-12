@@ -32,7 +32,7 @@ public class ScannerEngine {
 
     private static final List<? extends AnnotationScanner> annotations =
                     Arrays.asList(new OnConnectScanner(), new OnDisconnectScanner(),
-                            new OnEventScanner(), new OnJsonObjectScanner(), new OnMessageScanner());
+                            new OnEventScanner());
 
     private Method findSimilarMethod(Class<?> objectClazz, Method method) {
         Method[] methods = objectClazz.getDeclaredMethods();

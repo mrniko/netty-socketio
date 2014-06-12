@@ -24,20 +24,6 @@ import com.corundumstudio.socketio.parser.Packet;
 public interface ClientOperations {
 
     /**
-     * Send message
-     *
-     * @param message - message to send
-     */
-    void sendMessage(String message);
-
-    /**
-     * Send object. Object will be encoded to json-format.
-     *
-     * @param object - object to send
-     */
-    void sendJsonObject(Object object);
-
-    /**
      * Send packet
      *
      * @param packet - packet to send

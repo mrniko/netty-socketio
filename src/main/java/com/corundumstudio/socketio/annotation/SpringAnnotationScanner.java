@@ -36,7 +36,7 @@ public class SpringAnnotationScanner implements BeanPostProcessor {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     private final List<Class<? extends Annotation>> annotations =
-                    Arrays.asList(OnConnect.class, OnDisconnect.class, OnEvent.class, OnMessage.class, OnJsonObject.class);
+                    Arrays.asList(OnConnect.class, OnDisconnect.class, OnEvent.class);
 
     private final SocketIOServer socketIOServer;
 

@@ -202,11 +202,6 @@ public class SocketIOServer implements ClientListeners {
     }
 
     @Override
-    public <T> void addJsonObjectListener(Class<T> clazz, DataListener<T> listener) {
-        mainNamespace.addJsonObjectListener(clazz, listener);
-    }
-
-    @Override
     public void addDisconnectListener(DisconnectListener listener) {
         mainNamespace.addDisconnectListener(listener);
     }
@@ -214,11 +209,6 @@ public class SocketIOServer implements ClientListeners {
     @Override
     public void addConnectListener(ConnectListener listener) {
         mainNamespace.addConnectListener(listener);
-    }
-
-    @Override
-    public void addMessageListener(DataListener<String> listener) {
-        mainNamespace.addMessageListener(listener);
     }
 
     @Override
