@@ -15,8 +15,6 @@
  */
 package com.corundumstudio.socketio.parser;
 
-import java.util.HashMap;
-import java.util.Map;
 
 public enum PacketType {
 

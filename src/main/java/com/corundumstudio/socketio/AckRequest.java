@@ -82,7 +82,7 @@ public class AckRequest {
         }
         Packet ackPacket = new Packet(PacketType.ACK);
         ackPacket.setAckId(originalPacket.getId());
-        ackPacket.setArgs(objs);
+        ackPacket.setData(objs);
         client.send(ackPacket);
     }
 

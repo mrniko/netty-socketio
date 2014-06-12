@@ -229,7 +229,7 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
         configuration.getStoreFactory().pubSubStore().publish(PubSubStore.CONNECT, new ConnectMessage(client.getSessionId()));
 
         Packet packet = new Packet(PacketType.MESSAGE);
-        packet.setData(PacketType.CONNECT.getValue());
+        packet.setSubType(PacketType.CONNECT);
         client.send(packet);
 
         Namespace ns = namespacesHub.get(Namespace.DEFAULT_NAME);

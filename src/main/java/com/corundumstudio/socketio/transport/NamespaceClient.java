@@ -62,23 +62,26 @@ public class NamespaceClient implements SocketIOClient {
 
     @Override
     public void sendEvent(String name, Object ... data) {
-        Packet packet = new Packet(PacketType.EVENT);
+        Packet packet = new Packet(PacketType.MESSAGE);
+        packet.setSubType(PacketType.EVENT);
         packet.setName(name);
-        packet.setArgs(Arrays.asList(data));
+        packet.setData(Arrays.asList(data));
         send(packet);
     }
 
     @Override
     public void sendEvent(String name, AckCallback<?> ackCallback, Object ... data) {
-        Packet packet = new Packet(PacketType.EVENT);
+        Packet packet = new Packet(PacketType.MESSAGE);
+        packet.setSubType(PacketType.EVENT);
         packet.setName(name);
-        packet.setArgs(Arrays.asList(data));
+        packet.setData(Arrays.asList(data));
         send(packet, ackCallback);
     }
 
     @Override
     public void sendMessage(String message, AckCallback<?> ackCallback) {
-        Packet packet = new Packet(PacketType.EVENT);
+        Packet packet = new Packet(PacketType.MESSAGE);
+        packet.setSubType(PacketType.EVENT);
         packet.setData(message);
         send(packet, ackCallback);
     }

@@ -118,11 +118,10 @@ public class BroadcastOperations implements ClientOperations {
 
     @Override
     public void sendEvent(String name, Object... data) {
-        Packet packet = new Packet(PacketType.EVENT);
-        List<Object> list = new ArrayList<Object>();
-        list.add(name);
-        list.addAll(Arrays.asList(data));
-        packet.setArgs(list);
+        Packet packet = new Packet(PacketType.MESSAGE);
+        packet.setSubType(PacketType.EVENT);
+        packet.setName(name);
+        packet.setData(Arrays.asList(data));
         send(packet);
     }
 

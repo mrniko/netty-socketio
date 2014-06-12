@@ -65,7 +65,7 @@ public class PacketListener {
             Namespace namespace = namespacesHub.get(packet.getEndpoint());
             List<Object> args = Collections.emptyList();
             if (packet.getData() != null) {
-                args = (List<Object>) packet.getData();
+                args = packet.getData();
             }
             namespace.onEvent(client, packet.getName(), args, ackRequest);
             break;

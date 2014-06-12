@@ -15,6 +15,7 @@
  */
 package com.corundumstudio.socketio.ack;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -104,15 +105,16 @@ public class AckManager implements Disconnectable {
             return;
         }
         if (callback instanceof MultiTypeAckCallback) {
-            callback.onSuccess(new MultiTypeArgs(packet.getArgs()));
+            callback.onSuccess(new MultiTypeArgs(packet.<List<Object>>getData()));
         } else {
             Object param = null;
-            if (!packet.getArgs().isEmpty()) {
-                param = packet.getArgs().get(0);
+            List<Object> args = packet.getData();
+            if (!args.isEmpty()) {
+                param = args.get(0);
             }
-            if (packet.getArgs().size() > 1) {
+            if (args.size() > 1) {
                 log.error("Wrong ack args amount. Should be only one argument, but current amount is: {}. Ack id: {}, sessionId: {}",
-                        packet.getArgs().size(), packet.getAckId(), client.getSessionId());
+                        args.size(), packet.getAckId(), client.getSessionId());
             }
             callback.onSuccess(param);
         }

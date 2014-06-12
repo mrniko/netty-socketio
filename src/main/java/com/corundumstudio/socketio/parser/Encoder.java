@@ -24,6 +24,7 @@ import io.netty.util.CharsetUtil;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
 
@@ -63,6 +64,7 @@ public class Encoder {
             int counter = 0;
             while (true) {
                 Packet packet = packets.poll();
+                System.out.println("multipacket encoding " + packet);
                 if (packet == null) {
                     break;
                 }
@@ -176,29 +178,28 @@ public class Encoder {
 
     public void encodePacket(Packet packet, ByteBuf buffer, ByteBufAllocator allocator) throws IOException {
         ByteBuf buf = allocateBuffer(allocator);
-        buf.writeBytes(toChars(packet.getType().getValue()));
-
-        ByteBufOutputStream out = new ByteBufOutputStream(buf);
+        byte[] type = toChars(packet.getType().getValue());
+        buf.writeBytes(type);
 
         switch (packet.getType()) {
 
-        case EVENT:
-            List<Object> args = packet.getArgs();
-            if (args.isEmpty()) {
-                args = null;
-            }
-            buffer.writeByte(Packet.SEPARATOR);
-            Event event = new Event(packet.getName(), args);
-            jsonSupport.writeValue(out, event);
-            break;
-
-        case OPEN:
+        case OPEN: {
+            ByteBufOutputStream out = new ByteBufOutputStream(buf);
             jsonSupport.writeValue(out, packet.getData());
             break;
+        }
 
         case MESSAGE:
-            byte[] value = toChars((Integer)packet.getData());
-            buf.writeBytes(value);
+            byte[] subType = toChars(packet.getSubType().getValue());
+            buf.writeBytes(subType);
+            if (packet.getSubType() == PacketType.EVENT) {
+                ByteBufOutputStream out = new ByteBufOutputStream(buf);
+                List<Object> values = new ArrayList<Object>();
+                values.add(packet.getName());
+                List<Object> args = packet.getData();
+                values.addAll(args);
+                jsonSupport.writeValue(out, values);
+            }
             break;
 
         case ACK:

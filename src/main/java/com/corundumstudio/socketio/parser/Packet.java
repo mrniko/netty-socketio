@@ -17,8 +17,6 @@ package com.corundumstudio.socketio.parser;
 
 import java.io.Serializable;
 import java.nio.charset.Charset;
-import java.util.Collections;
-import java.util.List;
 
 import com.corundumstudio.socketio.namespace.Namespace;
 
@@ -33,7 +31,7 @@ public class Packet implements Serializable {
     public static final String ACK_DATA = "data";
 
     private PacketType type;
-    private List<Object> args = Collections.emptyList();
+    private PacketType subType;
     private String qs;
     private Object ack;
     private Long ackId;
@@ -53,6 +51,14 @@ public class Packet implements Serializable {
         this.type = type;
     }
 
+    public PacketType getSubType() {
+        return subType;
+    }
+
+    public void setSubType(PacketType subType) {
+        this.subType = subType;
+    }
+
     public PacketType getType() {
         return type;
     }
@@ -68,8 +74,8 @@ public class Packet implements Serializable {
      * <b>message</b> for {@link PacketType.MESSAGE} type
      * </pre>
      */
-    public Object getData() {
-        return data;
+    public <T> T getData() {
+        return (T)data;
     }
 
     public void setEndpoint(String endpoint) {
@@ -101,14 +107,6 @@ public class Packet implements Serializable {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public List<Object> getArgs() {
-        return args;
-    }
-
-    public void setArgs(List<Object> args) {
-        this.args = args;
     }
 
     public String getQs() {
@@ -154,7 +152,7 @@ public class Packet implements Serializable {
 
     @Override
     public String toString() {
-        return "Packet [type=" + type + ", args=" + args + ", id=" + id + "]";
+        return "Packet [type=" + type + ", id=" + id + "]";
     }
 
 }

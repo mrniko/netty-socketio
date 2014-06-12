@@ -147,7 +147,7 @@ public class Decoder {
             Event event = jsonSupport.readValue(in, Event.class);
             packet.setName(event.getName());
             if (event.getArgs() != null) {
-                packet.setArgs(event.getArgs());
+//                packet.setArgs(event.getArgs());
             }
             break;
         }
@@ -191,7 +191,7 @@ public class Decoder {
                 ByteBufInputStream in = new ByteBufInputStream(buffer);
                 AckCallback<?> callback = ackManager.getCallback(uuid, packet.getAckId());
                 AckArgs args = jsonSupport.readAckArgs(in, callback);
-                packet.setArgs(args.getArgs());
+//                packet.setArgs(args.getArgs());
             }
             break;
         }
@@ -251,6 +251,7 @@ public class Decoder {
                 packet = new Packet(innerType);
                 // skip inner type
                 msg = msg.substring(1);
+
                 if (innerType == PacketType.EVENT) {
                     Event event = jsonSupport.readValue(msg, Event.class);
                     packet.setName(event.getName());
