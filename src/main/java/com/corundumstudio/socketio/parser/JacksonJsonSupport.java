@@ -48,6 +48,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public class JacksonJsonSupport implements JsonSupport {
@@ -174,23 +175,24 @@ public class JacksonJsonSupport implements JsonSupport {
         public Event deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException,
                 JsonProcessingException {
             ObjectMapper mapper = (ObjectMapper) jp.getCodec();
-            ObjectNode root = (ObjectNode) mapper.readTree(jp);
-            String eventName = root.get("name").asText();
+            ArrayNode root = (ArrayNode) mapper.readTree(jp);
+            String eventName = root.get(0).asText();
             if (!eventMapping.containsKey(eventName)) {
                 return new Event(eventName, Collections.emptyList());
             }
 
             List<Object> eventArgs = new ArrayList<Object>();
             Event event = new Event(eventName, eventArgs);
-            JsonNode args = root.get("args");
-            if (args != null) {
-                Iterator<JsonNode> iterator = args.elements();
+            if (root.size() > 1) {
+                Iterator<JsonNode> iterator = root.elements();
+                // skip 0 node
+                iterator.next();
                 List<Class<?>> eventClasses = eventMapping.get(eventName);
                 int i = 0;
                 while (iterator.hasNext()) {
                     JsonNode node = iterator.next();
                     if (i > eventClasses.size() - 1) {
-                        log.debug("Event {} has more args than declared in handler: {}", eventName, args);
+                        log.debug("Event {} has more args than declared in handler: {}", eventName, root);
                         break;
                     }
                     Class<?> eventClass = eventClasses.get(i);

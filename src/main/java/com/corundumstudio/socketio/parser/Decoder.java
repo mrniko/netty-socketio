@@ -251,10 +251,11 @@ public class Decoder {
                 packet = new Packet(innerType);
                 // skip inner type
                 msg = msg.substring(1);
-                List args = jsonSupport.readValue(msg, List.class);
-                String name = (String) args.remove(0);
-                packet.setName(name);
-                packet.setData(args);
+                if (innerType == PacketType.EVENT) {
+                    Event event = jsonSupport.readValue(msg, Event.class);
+                    packet.setName(event.getName());
+                    packet.setData(event.getArgs());
+                }
             }
         } else {
             packet = decodePacket(frame, uuid);
