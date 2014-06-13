@@ -57,37 +57,44 @@ public class Encoder {
     }
 
     public void encodePackets(Queue<Packet> packets, ByteBuf buffer, ByteBufAllocator allocator) throws IOException {
-        if (packets.size() == 1) {
+        while (true) {
             Packet packet = packets.poll();
-            encodePacket(packet, buffer, allocator);
-        } else {
-            int counter = 0;
-            while (true) {
-                Packet packet = packets.poll();
-                System.out.println("multipacket encoding " + packet);
-                if (packet == null) {
-                    break;
-                }
-                counter++;
-                // to prevent infinity out message
-                if (counter == 100) {
-                    return;
-                }
-
-                ByteBuf packetBuffer = allocateBuffer(allocator);
-                try {
-                    int len = encodePacketWithLength(packet, packetBuffer, allocator);
-                    byte[] lenBytes = toChars(len);
-
-                    buffer.writeBytes(Packet.DELIMITER_BYTES);
-                    buffer.writeBytes(lenBytes);
-                    buffer.writeBytes(Packet.DELIMITER_BYTES);
-                    buffer.writeBytes(packetBuffer);
-                } finally {
-                    packetBuffer.release();
-                }
+            if (packet == null) {
+                break;
             }
+            encodePacket(packet, buffer, allocator);
         }
+//        if (packets.size() == 1) {
+//            Packet packet = packets.poll();
+//            encodePacket(packet, buffer, allocator);
+//        } else {
+//            int counter = 0;
+//            while (true) {
+//                Packet packet = packets.poll();
+//                System.out.println("multipacket encoding " + packet);
+//                if (packet == null) {
+//                    break;
+//                }
+//                counter++;
+//                // to prevent infinity out message
+//                if (counter == 100) {
+//                    return;
+//                }
+//
+//                ByteBuf packetBuffer = allocateBuffer(allocator);
+//                try {
+//                    int len = encodePacketWithLength(packet, packetBuffer, allocator);
+//                    byte[] lenBytes = toChars(len);
+//
+//                    buffer.writeBytes(Packet.DELIMITER_BYTES);
+//                    buffer.writeBytes(lenBytes);
+//                    buffer.writeBytes(Packet.DELIMITER_BYTES);
+//                    buffer.writeBytes(packetBuffer);
+//                } finally {
+//                    packetBuffer.release();
+//                }
+//            }
+//        }
     }
 
     private byte toChar(int number) {

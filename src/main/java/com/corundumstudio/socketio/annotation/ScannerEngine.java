@@ -31,8 +31,7 @@ public class ScannerEngine {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     private static final List<? extends AnnotationScanner> annotations =
-                    Arrays.asList(new OnConnectScanner(), new OnDisconnectScanner(),
-                            new OnEventScanner());
+                    Arrays.asList(new OnConnectScanner(), new OnDisconnectScanner(), new OnEventScanner());
 
     private Method findSimilarMethod(Class<?> objectClazz, Method method) {
         Method[] methods = objectClazz.getDeclaredMethods();
