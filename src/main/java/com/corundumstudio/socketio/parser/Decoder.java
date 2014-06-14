@@ -116,14 +116,6 @@ public class Decoder {
 
         Packet packet = new Packet(type);
         packet.setEndpoint(endpoint);
-        if (id != null) {
-            packet.setId(id);
-            if (hasData) {
-                packet.setAck(Packet.ACK_DATA);
-            } else {
-                packet.setAck(true);
-            }
-        }
 
         switch (type) {
         case ERROR: {
@@ -225,7 +217,6 @@ public class Decoder {
     }
 
     public Packet decodePackets(ByteBuf buffer, UUID uuid) throws IOException {
-        boolean isString = buffer.getByte(0) == 0x0;
         int headEndIndex = buffer.forEachByte(new ByteBufProcessor() {
             @Override
             public boolean process(byte value) throws Exception {
@@ -239,20 +230,36 @@ public class Decoder {
         int startIndex = buffer.readerIndex();
         ByteBuf frame = buffer.slice(startIndex+1, len);
         Packet packet;
+        boolean isString = buffer.getByte(0) == 0x0;
         if (isString) {
             String msg = frame.toString(CharsetUtil.UTF_8);
             PacketType type = PacketType.valueOf(Integer.valueOf(String.valueOf(msg.charAt(0))));
-            if (msg.length() == 1) {
-                packet = new Packet(type);
-            } else {
-                // skip type
-                msg = msg.substring(1);
+            packet = new Packet(type);
+            // skip type
+            msg = msg.substring(1);
+
+            if (msg.length() >= 1) {
                 PacketType innerType = PacketType.valueOfInner(Integer.valueOf(String.valueOf(msg.charAt(0))));
-                packet = new Packet(innerType);
+                packet.setSubType(innerType);
                 // skip inner type
                 msg = msg.substring(1);
 
-                if (innerType == PacketType.EVENT) {
+                int endIndex = msg.indexOf("[");
+                if (endIndex > 0) {
+                    String ackId = msg.substring(0, endIndex);
+                    packet.setAckId(Long.valueOf(ackId));
+                    // skip ack id
+                    msg = msg.substring(endIndex);
+                }
+
+                if (packet.getSubType() == PacketType.ACK) {
+                    ByteBufInputStream in = new ByteBufInputStream(Unpooled.copiedBuffer(msg, CharsetUtil.UTF_8));
+                    AckCallback<?> callback = ackManager.getCallback(uuid, packet.getAckId());
+                    AckArgs args = jsonSupport.readAckArgs(in, callback);
+                    packet.setData(args.getArgs());
+                }
+
+                if (packet.getSubType() == PacketType.EVENT) {
                     Event event = jsonSupport.readValue(msg, Event.class);
                     packet.setName(event.getName());
                     packet.setData(event.getArgs());

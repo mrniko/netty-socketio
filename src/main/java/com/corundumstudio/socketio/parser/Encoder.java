@@ -18,18 +18,14 @@ package com.corundumstudio.socketio.parser;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.ByteBufOutputStream;
-import io.netty.handler.codec.base64.Base64;
 import io.netty.util.CharsetUtil;
 
 import java.io.IOException;
-import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
 
 import com.corundumstudio.socketio.Configuration;
-import com.google.common.io.BaseEncoding;
 
 public class Encoder {
 
@@ -199,25 +195,23 @@ public class Encoder {
         case MESSAGE:
             byte[] subType = toChars(packet.getSubType().getValue());
             buf.writeBytes(subType);
+            if (packet.getAckId() != null) {
+                byte[] ackId = toChars(packet.getAckId());
+                buf.writeBytes(ackId);
+            }
+
+            List<Object> values = new ArrayList<Object>();
             if (packet.getSubType() == PacketType.EVENT) {
-                ByteBufOutputStream out = new ByteBufOutputStream(buf);
-                List<Object> values = new ArrayList<Object>();
                 values.add(packet.getName());
+            }
+
+            if (packet.getSubType() == PacketType.EVENT
+                    || packet.getSubType() == PacketType.ACK) {
                 List<Object> args = packet.getData();
                 values.addAll(args);
+                ByteBufOutputStream out = new ByteBufOutputStream(buf);
                 jsonSupport.writeValue(out, values);
             }
-            break;
-
-        case ACK:
-            if (packet.getAckId() != null) {
-                byte[] ackIdData = toChars(packet.getAckId());
-                buf.writeBytes(ackIdData);
-            }
-//            if (!packet.getArgs().isEmpty()) {
-//                buffer.writeByte('+');
-//                jsonSupport.writeValue(out, packet.getArgs());
-//            }
             break;
 
         case ERROR:

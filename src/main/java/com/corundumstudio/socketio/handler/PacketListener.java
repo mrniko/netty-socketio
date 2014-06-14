@@ -23,6 +23,7 @@ import com.corundumstudio.socketio.ack.AckManager;
 import com.corundumstudio.socketio.namespace.Namespace;
 import com.corundumstudio.socketio.namespace.NamespacesHub;
 import com.corundumstudio.socketio.parser.Packet;
+import com.corundumstudio.socketio.parser.PacketType;
 import com.corundumstudio.socketio.transport.NamespaceClient;
 
 public class PacketListener {
@@ -41,11 +42,11 @@ public class PacketListener {
         final AckRequest ackRequest = new AckRequest(packet, client);
 
         if (packet.isAckRequested()) {
-            ackManager.initAckIndex(client.getSessionId(), packet.getId());
+            ackManager.initAckIndex(client.getSessionId(), packet.getAckId());
         }
 
         switch (packet.getType()) {
-        case CONNECT: {
+        case OPEN: {
             Namespace namespace = namespacesHub.get(packet.getEndpoint());
             namespace.onConnect(client);
             // send connect handshake packet back to client
@@ -57,21 +58,23 @@ public class PacketListener {
             break;
         }
 
-        case ACK:
-            ackManager.onAck(client, packet);
-            break;
-
-        case EVENT: {
-            Namespace namespace = namespacesHub.get(packet.getEndpoint());
-            List<Object> args = Collections.emptyList();
-            if (packet.getData() != null) {
-                args = packet.getData();
+        case MESSAGE: {
+            if (packet.getSubType() == PacketType.ACK) {
+                ackManager.onAck(client, packet);
             }
-            namespace.onEvent(client, packet.getName(), args, ackRequest);
+
+            if (packet.getSubType() == PacketType.EVENT) {
+                Namespace namespace = namespacesHub.get(packet.getEndpoint());
+                List<Object> args = Collections.emptyList();
+                if (packet.getData() != null) {
+                    args = packet.getData();
+                }
+                namespace.onEvent(client, packet.getName(), args, ackRequest);
+            }
             break;
         }
 
-        case DISCONNECT:
+        case CLOSE:
             client.onDisconnect();
             break;
 

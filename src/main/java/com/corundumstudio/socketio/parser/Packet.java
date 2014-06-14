@@ -33,7 +33,6 @@ public class Packet implements Serializable {
     private PacketType type;
     private PacketType subType;
     private String qs;
-    private Object ack;
     private Long ackId;
     private String name;
     private Long id;
@@ -86,21 +85,6 @@ public class Packet implements Serializable {
         return endpoint;
     }
 
-    public Long getId() {
-        return id;
-    }
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public void setAck(Object ack) {
-        this.ack = ack;
-    }
-
-    public Object getAck() {
-        return ack;
-    }
-
     public String getName() {
         return name;
     }
@@ -141,13 +125,8 @@ public class Packet implements Serializable {
         this.advice = advice;
     }
 
-    private boolean isEventAck() {
-        return ACK_DATA.equals(getAck())
-                    && getType().equals(PacketType.EVENT);
-    }
-
     public boolean isAckRequested() {
-        return getId() != null && isEventAck();
+        return getAckId() != null && getSubType().equals(PacketType.EVENT);
     }
 
     @Override
