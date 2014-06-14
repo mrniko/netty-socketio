@@ -19,21 +19,16 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufInputStream;
 import io.netty.buffer.ByteBufProcessor;
 import io.netty.buffer.Unpooled;
+import io.netty.util.CharsetUtil;
 
 import java.io.IOException;
-import java.lang.reflect.Array;
-import java.util.List;
 import java.util.UUID;
-
-import io.netty.util.CharsetUtil;
 
 import com.corundumstudio.socketio.AckCallback;
 import com.corundumstudio.socketio.ack.AckManager;
 import com.corundumstudio.socketio.namespace.Namespace;
 
 public class Decoder {
-
-    private final UTF8CharsScanner charsScanner = new UTF8CharsScanner();
 
     private final JsonSupport jsonSupport;
     private final AckManager ackManager;
@@ -75,9 +70,9 @@ public class Decoder {
                 messageId = new StringBuilder(4);
             }
             byte msg = buffer.getByte(readerIndex);
-            if (msg == Packet.SEPARATOR) {
-                break;
-            }
+//            if (msg == Packet.SEPARATOR) {
+//                break;
+//            }
             if (msg != (byte)'+') {
                 messageId.append((char)msg);
             } else {
@@ -96,9 +91,9 @@ public class Decoder {
                 endpointBuffer = new StringBuilder();
             }
             byte msg = buffer.getByte(readerIndex);
-            if (msg == Packet.SEPARATOR) {
-                break;
-            }
+//            if (msg == Packet.SEPARATOR) {
+//                break;
+//            }
             endpointBuffer.append((char)msg);
         }
 
@@ -270,48 +265,6 @@ public class Decoder {
         }
         buffer.readerIndex(startIndex + len + 1);
         return packet;
-    }
-
-    private Integer extractLength(ByteBuf buffer) {
-        int len = (int)parseLengthHeader(buffer);
-
-        // scan utf8 symbols if needed
-        if (buffer.capacity() > buffer.readerIndex() + len
-                && !isCurrentDelimiter(buffer, buffer.readerIndex() + len)) {
-            int index = charsScanner.findTailIndex(buffer, buffer.readerIndex(), buffer.capacity(), len);
-            len = index - buffer.readerIndex();
-        }
-        return len;
-    }
-
-    private long parseLengthHeader(ByteBuf buffer) {
-        int delimiterIndex = delimiterIndexOf(buffer, buffer.readerIndex(), buffer.readableBytes());
-        if (delimiterIndex == -1) {
-            throw new DecoderException("Can't find tail delimiter");
-        }
-
-        long len = parseLong(buffer, delimiterIndex);
-        buffer.readerIndex(delimiterIndex + Packet.DELIMITER_BYTES.length);
-        return len;
-    }
-
-    private int delimiterIndexOf(ByteBuf buffer, int startIndex, int length) {
-        ByteBuf buf = buffer.slice(startIndex, length);
-        for (int i = 0; i < buf.readableBytes(); i++) {
-            if (isCurrentDelimiter(buf, i)) {
-                return startIndex + i;
-            }
-        }
-        return -1;
-    }
-
-    private boolean isCurrentDelimiter(ByteBuf buffer, int index) {
-        for (int i = 0; i < Packet.DELIMITER_BYTES.length; i++) {
-            if (buffer.getByte(index + i) != Packet.DELIMITER_BYTES[i]) {
-                return false;
-            }
-        }
-        return true;
     }
 
 }

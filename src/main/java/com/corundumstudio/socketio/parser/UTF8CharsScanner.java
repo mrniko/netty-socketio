@@ -16,7 +16,7 @@
 package com.corundumstudio.socketio.parser;
 
 import io.netty.buffer.ByteBuf;
-
+@Deprecated
 public class UTF8CharsScanner {
 
     /**

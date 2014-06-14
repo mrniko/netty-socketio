@@ -16,17 +16,12 @@
 package com.corundumstudio.socketio.parser;
 
 import java.io.Serializable;
-import java.nio.charset.Charset;
 
 import com.corundumstudio.socketio.namespace.Namespace;
 
 public class Packet implements Serializable {
 
     private static final long serialVersionUID = 4560159536486711426L;
-
-    public static final char DELIMITER = '\ufffd';
-    public static final byte[] DELIMITER_BYTES = new String(new char[] {DELIMITER}).getBytes(Charset.forName("UTF-8"));
-    public static final byte SEPARATOR = ':';
 
     public static final String ACK_DATA = "data";
 

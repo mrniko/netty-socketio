@@ -29,7 +29,6 @@ import com.corundumstudio.socketio.Configuration;
 
 public class Encoder {
 
-    private final UTF8CharsScanner charsScanner = new UTF8CharsScanner();
     private final JsonSupport jsonSupport;
     private final Configuration configuration;
 
@@ -60,37 +59,6 @@ public class Encoder {
             }
             encodePacket(packet, buffer, allocator);
         }
-//        if (packets.size() == 1) {
-//            Packet packet = packets.poll();
-//            encodePacket(packet, buffer, allocator);
-//        } else {
-//            int counter = 0;
-//            while (true) {
-//                Packet packet = packets.poll();
-//                System.out.println("multipacket encoding " + packet);
-//                if (packet == null) {
-//                    break;
-//                }
-//                counter++;
-//                // to prevent infinity out message
-//                if (counter == 100) {
-//                    return;
-//                }
-//
-//                ByteBuf packetBuffer = allocateBuffer(allocator);
-//                try {
-//                    int len = encodePacketWithLength(packet, packetBuffer, allocator);
-//                    byte[] lenBytes = toChars(len);
-//
-//                    buffer.writeBytes(Packet.DELIMITER_BYTES);
-//                    buffer.writeBytes(lenBytes);
-//                    buffer.writeBytes(Packet.DELIMITER_BYTES);
-//                    buffer.writeBytes(packetBuffer);
-//                } finally {
-//                    packetBuffer.release();
-//                }
-//            }
-//        }
     }
 
     private byte toChar(int number) {
@@ -215,32 +183,22 @@ public class Encoder {
             break;
 
         case ERROR:
-            if (packet.getReason() != null || packet.getAdvice() != null) {
-                buffer.writeByte(Packet.SEPARATOR);
-            }
             if (packet.getReason() != null) {
                 int reasonCode = packet.getReason().getValue();
                 buffer.writeByte(toChar(reasonCode));
             }
             if (packet.getAdvice() != null) {
                 int adviceCode = packet.getAdvice().getValue();
-                buffer.writeByte('+');
                 buffer.writeByte(toChar(adviceCode));
             }
             break;
         }
 
         buffer.writeByte(0);
-        int length = charsScanner.getLength(buf, 0);
+        int length = buf.writerIndex();
         buffer.writeBytes(longToBytes(length));
         buffer.writeByte(0xff);
         buffer.writeBytes(buf);
-    }
-
-    private int encodePacketWithLength(Packet packet, ByteBuf buffer, ByteBufAllocator allocator) throws IOException {
-        int start = buffer.writerIndex();
-        encodePacket(packet, buffer, allocator);
-        return charsScanner.getLength(buffer, start);
     }
 
 }
