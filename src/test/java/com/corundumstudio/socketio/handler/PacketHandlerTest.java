@@ -61,7 +61,7 @@ public class PacketHandlerTest {
     private NamespacesHub namespacesHub = new NamespacesHub(cfg);
     @Mocked
     private Channel channel;
-    private MainBaseClient client = new XHRPollingClient(null, null, UUID.randomUUID(), null, new MemoryStoreFactory(), null);
+    private MainBaseClient client = new XHRPollingClient(null, null, UUID.randomUUID(), new MemoryStoreFactory(), null);
     private final AtomicInteger invocations = new AtomicInteger();
 
     @Before
@@ -90,7 +90,7 @@ public class PacketHandlerTest {
     @Test
     public void testOnePacket() throws Exception {
         List<Packet> packets = new ArrayList<Packet>();
-        Packet packet = new Packet(PacketType.JSON);
+        Packet packet = new Packet(null);
         packet.setData(Collections.singletonMap("test1", "test2"));
         packets.add(packet);
 
@@ -105,11 +105,11 @@ public class PacketHandlerTest {
         Packet packet3 = new Packet(PacketType.CONNECT);
         packets.add(packet3);
 
-        Packet packet = new Packet(PacketType.JSON);
+        Packet packet = new Packet(null);
         packet.setData(Collections.singletonMap("test1", "Данные"));
         packets.add(packet);
 
-        Packet packet1 = new Packet(PacketType.JSON);
+        Packet packet1 = new Packet(null);
         packet1.setData(Collections.singletonMap("При\ufffdвет", "wq\ufffdeq"));
         packets.add(packet1);
 
@@ -124,11 +124,11 @@ public class PacketHandlerTest {
         Packet packet3 = new Packet(PacketType.CONNECT);
         packets.add(packet3);
 
-        Packet packet = new Packet(PacketType.JSON);
+        Packet packet = new Packet(null);
         packet.setData(Collections.singletonMap("test1", "test2"));
         packets.add(packet);
 
-        Packet packet1 = new Packet(PacketType.JSON);
+        Packet packet1 = new Packet(null);
         packet1.setData(Collections.singletonMap("fsdfdf", "wqeq"));
         packets.add(packet1);
 

@@ -110,7 +110,7 @@ public class Decoder {
         }
 
         Packet packet = new Packet(type);
-        packet.setEndpoint(endpoint);
+        packet.setNsp(endpoint);
 
         switch (type) {
         case ERROR: {
@@ -135,13 +135,6 @@ public class Decoder {
             packet.setName(event.getName());
             if (event.getArgs() != null) {
 //                packet.setArgs(event.getArgs());
-            }
-            break;
-        }
-
-        case CONNECT: {
-            if (buffer.isReadable()) {
-                packet.setQs(buffer.toString(CharsetUtil.UTF_8));
             }
             break;
         }
@@ -241,23 +234,39 @@ public class Decoder {
 
                 int endIndex = msg.indexOf("[");
                 if (endIndex > 0) {
-                    String ackId = msg.substring(0, endIndex);
-                    packet.setAckId(Long.valueOf(ackId));
-                    // skip ack id
+                    String nspAckId = msg.substring(0, endIndex);
+                    if (nspAckId.contains(",")) {
+                        String[] parts = nspAckId.split(",");
+                        String nsp = parts[0];
+                        packet.setNsp(nsp);
+                        if (parts.length > 1) {
+                            String ackId = parts[1];
+                            packet.setAckId(Long.valueOf(ackId));
+                        }
+                    } else {
+                        packet.setAckId(Long.valueOf(nspAckId));
+                    }
+                    // skip 'nsp,ackId' part
                     msg = msg.substring(endIndex);
                 }
 
-                if (packet.getSubType() == PacketType.ACK) {
-                    ByteBufInputStream in = new ByteBufInputStream(Unpooled.copiedBuffer(msg, CharsetUtil.UTF_8));
-                    AckCallback<?> callback = ackManager.getCallback(uuid, packet.getAckId());
-                    AckArgs args = jsonSupport.readAckArgs(in, callback);
-                    packet.setData(args.getArgs());
-                }
+                if (packet.getType() == PacketType.MESSAGE) {
+                    if (packet.getSubType() == PacketType.CONNECT) {
+                        packet.setNsp(msg);
+                    }
 
-                if (packet.getSubType() == PacketType.EVENT) {
-                    Event event = jsonSupport.readValue(msg, Event.class);
-                    packet.setName(event.getName());
-                    packet.setData(event.getArgs());
+                    if (packet.getSubType() == PacketType.ACK) {
+                        ByteBufInputStream in = new ByteBufInputStream(Unpooled.copiedBuffer(msg, CharsetUtil.UTF_8));
+                        AckCallback<?> callback = ackManager.getCallback(uuid, packet.getAckId());
+                        AckArgs args = jsonSupport.readAckArgs(in, callback);
+                        packet.setData(args.getArgs());
+                    }
+
+                    if (packet.getSubType() == PacketType.EVENT) {
+                        Event event = jsonSupport.readValue(msg, Event.class);
+                        packet.setName(event.getName());
+                        packet.setData(event.getArgs());
+                    }
                 }
             }
         } else {

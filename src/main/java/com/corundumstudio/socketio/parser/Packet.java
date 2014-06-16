@@ -27,11 +27,10 @@ public class Packet implements Serializable {
 
     private PacketType type;
     private PacketType subType;
-    private String qs;
     private Long ackId;
     private String name;
     private Long id;
-    private String endpoint = Namespace.DEFAULT_NAME;
+    private String nsp = Namespace.DEFAULT_NAME;
     private Object data;
 
     private ErrorReason reason;
@@ -72,12 +71,12 @@ public class Packet implements Serializable {
         return (T)data;
     }
 
-    public void setEndpoint(String endpoint) {
-        this.endpoint = endpoint;
+    public void setNsp(String endpoint) {
+        this.nsp = endpoint;
     }
 
-    public String getEndpoint() {
-        return endpoint;
+    public String getNsp() {
+        return nsp;
     }
 
     public String getName() {
@@ -86,14 +85,6 @@ public class Packet implements Serializable {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public String getQs() {
-        return qs;
-    }
-
-    public void setQs(String qs) {
-        this.qs = qs;
     }
 
     public Long getAckId() {

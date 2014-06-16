@@ -64,13 +64,13 @@ public class PacketHandler extends SimpleChannelInboundHandler<PacketsMessage> {
         while (content.isReadable()) {
             try {
                 Packet packet = decoder.decodePackets(content, client.getSessionId());
-                Namespace ns = namespacesHub.get(packet.getEndpoint());
+                Namespace ns = namespacesHub.get(packet.getNsp());
                 if (ns == null) {
-                    log.debug("Can't find namespace for endpoint: {}, sessionId: {} probably it was removed.", packet.getEndpoint(), client.getSessionId());
+                    log.debug("Can't find namespace for endpoint: {}, sessionId: {} probably it was removed.", packet.getNsp(), client.getSessionId());
                     return;
                 }
 
-                if (packet.getType() == PacketType.CONNECT) {
+                if (packet.getSubType() == PacketType.CONNECT) {
                     client.addChildClient(ns);
                 }
 

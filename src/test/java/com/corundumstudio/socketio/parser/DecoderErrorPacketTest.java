@@ -47,7 +47,7 @@ public class DecoderErrorPacketTest extends DecoderBaseTest {
     public void testDecodeWithEndpoint() throws IOException {
         Packet packet = decoder.decodePacket("7::/woot", null);
         Assert.assertEquals(PacketType.ERROR, packet.getType());
-        Assert.assertEquals("/woot", packet.getEndpoint());
+        Assert.assertEquals("/woot", packet.getNsp());
     }
 
 }

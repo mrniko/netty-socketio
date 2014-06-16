@@ -17,6 +17,7 @@ package com.corundumstudio.socketio.transport;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
+import io.netty.channel.DefaultChannelPromise;
 import io.netty.util.AttributeKey;
 
 import java.util.Queue;
@@ -39,8 +40,12 @@ public class XHRPollingClient extends MainBaseClient {
     private String origin;
 
     public XHRPollingClient(AckManager ackManager, DisconnectableHub disconnectable,
-            UUID sessionId, Transport transport, StoreFactory storeFactory, HandshakeData handshakeData) {
-        super(sessionId, ackManager, disconnectable, transport, storeFactory, handshakeData);
+            UUID sessionId, StoreFactory storeFactory, HandshakeData handshakeData) {
+        super(sessionId, ackManager, disconnectable, storeFactory, handshakeData);
+    }
+
+    public Transport getTransport() {
+        return Transport.XHRPOLLING;
     }
 
     public void bindChannel(Channel channel, String origin) {
@@ -53,12 +58,14 @@ public class XHRPollingClient extends MainBaseClient {
         return origin;
     }
 
-    public ChannelFuture send(Packet packet) {
-        packetQueue.add(packet);
-        if (getChannel().attr(WRITE_ONCE).get() == null) {
+    public ChannelFuture send(Packet... packets) {
+        for (Packet packet : packets) {
+            packetQueue.add(packet);
+        }
+        if (getChannel() != null && getChannel().attr(WRITE_ONCE).get() == null) {
             return getChannel().writeAndFlush(new XHRSendPacketsMessage(getSessionId(), origin, packetQueue));
         }
-        return getChannel().newSucceededFuture();
+        return new DefaultChannelPromise(null);
     }
 
 }

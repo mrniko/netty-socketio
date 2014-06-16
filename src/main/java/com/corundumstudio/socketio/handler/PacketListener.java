@@ -46,25 +46,32 @@ public class PacketListener {
         }
 
         switch (packet.getType()) {
-        case OPEN: {
-            Namespace namespace = namespacesHub.get(packet.getEndpoint());
-            namespace.onConnect(client);
-            // send connect handshake packet back to client
-            client.send(packet);
-            break;
-        }
+//        case OPEN: {
+//            Namespace namespace = namespacesHub.get(packet.getNsp());
+//            namespace.onConnect(client);
+//            // send connect handshake packet back to client
+//            client.send(packet);
+//            break;
+//        }
 
-        case PING: {
-            break;
-        }
+//        case PING: {
+//            break;
+//        }
 
         case MESSAGE: {
+            if (packet.getSubType() == PacketType.CONNECT) {
+                Namespace namespace = namespacesHub.get(packet.getNsp());
+                namespace.onConnect(client);
+                // send connect handshake packet back to client
+                client.send(packet);
+            }
+
             if (packet.getSubType() == PacketType.ACK) {
                 ackManager.onAck(client, packet);
             }
 
             if (packet.getSubType() == PacketType.EVENT) {
-                Namespace namespace = namespacesHub.get(packet.getEndpoint());
+                Namespace namespace = namespacesHub.get(packet.getNsp());
                 List<Object> args = Collections.emptyList();
                 if (packet.getData() != null) {
                     args = packet.getData();

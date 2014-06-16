@@ -21,9 +21,10 @@ import io.netty.channel.ChannelFutureListener;
 
 import java.net.SocketAddress;
 import java.util.Collection;
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.corundumstudio.socketio.DisconnectableHub;
@@ -47,32 +48,28 @@ import com.corundumstudio.socketio.store.StoreFactory;
  */
 public abstract class MainBaseClient {
 
-    private final ConcurrentMap<Namespace, SocketIOClient> namespaceClients = new ConcurrentHashMap<Namespace, SocketIOClient>();
+    private final Map<Namespace, SocketIOClient> namespaceClients = new ConcurrentHashMap<Namespace, SocketIOClient>();
     private final Store store;
 
     private final AtomicBoolean disconnected = new AtomicBoolean();
     private final DisconnectableHub disconnectableHub;
     private final AckManager ackManager;
     private final UUID sessionId;
-    private final Transport transport;
     private Channel channel;
     private final HandshakeData handshakeData;
 
     public MainBaseClient(UUID sessionId, AckManager ackManager, DisconnectableHub disconnectable,
-            Transport transport, StoreFactory storeFactory, HandshakeData handshakeData) {
+            StoreFactory storeFactory, HandshakeData handshakeData) {
         this.sessionId = sessionId;
         this.ackManager = ackManager;
         this.disconnectableHub = disconnectable;
-        this.transport = transport;
         this.store = storeFactory.createStore(sessionId);
         this.handshakeData = handshakeData;
     }
 
-    public Transport getTransport() {
-        return transport;
-    }
+    public abstract Transport getTransport();
 
-    public abstract ChannelFuture send(Packet packet);
+    public abstract ChannelFuture send(Packet... packets);
 
     public void removeChildClient(SocketIOClient client) {
         namespaceClients.remove((Namespace) client.getNamespace());
@@ -89,6 +86,10 @@ public abstract class MainBaseClient {
         SocketIOClient client = new NamespaceClient(this, namespace);
         namespaceClients.put(namespace, client);
         return client;
+    }
+
+    public Set<Namespace> getNamespaces() {
+        return namespaceClients.keySet();
     }
 
     public Collection<SocketIOClient> getAllChildClients() {

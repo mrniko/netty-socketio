@@ -71,7 +71,6 @@ public class XHRPollingTransport extends BaseTransport {
     private final AckManager ackManager;
     private final AuthorizeHandler authorizeHandler;
     private final DisconnectableHub disconnectable;
-    private final HeartbeatHandler heartbeatHandler;
     private final Configuration configuration;
     private final String path;
 
@@ -83,16 +82,26 @@ public class XHRPollingTransport extends BaseTransport {
         this.configuration = configuration;
         this.disconnectable = disconnectable;
         this.scheduler = scheduler;
-        this.heartbeatHandler = heartbeatHandler;
     }
 
     public static void main(String[] args) {
-        ByteBuf s = io.netty.handler.codec.base64.Base64.decode(Unpooled.copiedBuffer("AAL/NDA=", CharsetUtil.UTF_8));
+        ByteBuf s5 = io.netty.handler.codec.base64.Base64.decode(Unpooled.copiedBuffer("AAj/NDAvY2hhdDE=", CharsetUtil.UTF_8));
+        System.out.println(s5.toString(CharsetUtil.UTF_8));
+        ByteBuf s4 = io.netty.handler.codec.base64.Base64.decode(Unpooled.copiedBuffer("AAj/NDAvY2hhdDI=", CharsetUtil.UTF_8));
+        System.out.println(s4.toString(CharsetUtil.UTF_8));
+
+        ByteBuf s = io.netty.handler.codec.base64.Base64.decode(Unpooled.copiedBuffer("AAH/Mw==", CharsetUtil.UTF_8));
         System.out.println(s.toString(CharsetUtil.UTF_8));
-        ByteBuf s1 = io.netty.handler.codec.base64.Base64.decode(Unpooled.copiedBuffer("AAgG/zB7InNpZCI6IlR1V2ZtUUZSZ2hIOG1MS3NBQUFUIiwidXBncmFkZXMiOltdLCJwaW5nSW50ZXJ2YWwiOjI1MDAwLCJwaW5nVGltZW91dCI6NjAwMDB9", CharsetUtil.UTF_8));
+        ByteBuf s1 = io.netty.handler.codec.base64.Base64.decode(Unpooled.copiedBuffer("AAL/NDAACP80MC9jaGF0MQ==", CharsetUtil.UTF_8));
         System.out.println(s1.toString(CharsetUtil.UTF_8));
-        ByteBuf s2 = io.netty.handler.codec.base64.Base64.decode(Unpooled.copiedBuffer("AAH/Mw==", CharsetUtil.UTF_8));
+//        System.out.println(ByteBufUtil.hexDump(s1));
+        ByteBuf s2 = io.netty.handler.codec.base64.Base64.decode(Unpooled.copiedBuffer("AAL/NDA=", CharsetUtil.UTF_8));
         System.out.println(s2.toString(CharsetUtil.UTF_8));
+        ByteBuf s3 = io.netty.handler.codec.base64.Base64.decode(Unpooled.copiedBuffer("AAL/NDAAAv80MA==", CharsetUtil.UTF_8));
+        System.out.println(s3.toString(CharsetUtil.UTF_8));
+//        System.out.println(ByteBufUtil.hexDump(s2));
+
+        System.out.println("sadfsdf".split(",").length);
     }
 
     @Override
@@ -136,12 +145,13 @@ public class XHRPollingTransport extends BaseTransport {
     }
 
     private void onOptions(UUID sessionId, ChannelHandlerContext ctx, String origin) {
-        XHRPollingClient client = sessionId2Client.get(sessionId);
-        if (client == null) {
-            log.debug("Client with sessionId: {} was already disconnected. Channel closed!", sessionId);
-            ctx.channel().close();
+        HandshakeData data = authorizeHandler.getHandshakeData(sessionId);
+        if (data == null) {
+            sendError(ctx, origin, sessionId);
             return;
         }
+
+        XHRPollingClient client = getOrCreateClient(sessionId, data);
 
         ctx.channel().writeAndFlush(new XHROptionsMessage(origin, sessionId));
     }
@@ -183,16 +193,19 @@ public class XHRPollingTransport extends BaseTransport {
 
     private void onPost(UUID sessionId, ChannelHandlerContext ctx, String origin, ByteBuf content)
                                                                                 throws IOException {
-        XHRPollingClient client = sessionId2Client.get(sessionId);
-        if (client == null) {
-            log.debug("Client with sessionId: {} was already disconnected. Channel closed!", sessionId);
-            ctx.channel().close();
+        HandshakeData data = authorizeHandler.getHandshakeData(sessionId);
+        if (data == null) {
+            sendError(ctx, origin, sessionId);
             return;
         }
+
+        XHRPollingClient client = getOrCreateClient(sessionId, data);
 
         // release POST response before message processing
         ctx.channel().writeAndFlush(new XHROutMessage(origin, sessionId));
         ctx.pipeline().fireChannelRead(new PacketsMessage(client, content));
+
+//        authorizeHandler.connect(client);
     }
 
     private void onGet(UUID sessionId, ChannelHandlerContext ctx, String origin) {
@@ -202,24 +215,22 @@ public class XHRPollingTransport extends BaseTransport {
             return;
         }
 
-        bindClient(origin, ctx.channel(), sessionId, data);
+        XHRPollingClient client = getOrCreateClient(sessionId, data);
+        client.bindChannel(ctx.channel(), origin);
+        // TODO implement send packets at one response
+        authorizeHandler.connect(client);
 
         scheduleDisconnect(ctx.channel(), sessionId);
         scheduleNoop(sessionId);
     }
 
-    private XHRPollingClient bindClient(String origin, Channel channel, UUID sessionId, HandshakeData data) {
+    private XHRPollingClient getOrCreateClient(UUID sessionId, HandshakeData data) {
         XHRPollingClient client = (XHRPollingClient) sessionId2Client.get(sessionId);
         if (client == null) {
-            client = new XHRPollingClient(ackManager, disconnectable, sessionId, Transport.XHRPOLLING, configuration.getStoreFactory(), data);
-
+            client = new XHRPollingClient(ackManager, disconnectable, sessionId, configuration.getStoreFactory(), data);
             sessionId2Client.put(sessionId, client);
-            client.bindChannel(channel, origin);
 
-            authorizeHandler.connect(client);
             log.debug("Client for sessionId: {} was created", sessionId);
-        } else {
-            client.bindChannel(channel, origin);
         }
         return client;
     }

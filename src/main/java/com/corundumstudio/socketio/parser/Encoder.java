@@ -18,9 +18,11 @@ package com.corundumstudio.socketio.parser;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.ByteBufOutputStream;
+import io.netty.buffer.Unpooled;
 import io.netty.util.CharsetUtil;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
@@ -163,6 +165,18 @@ public class Encoder {
         case MESSAGE:
             byte[] subType = toChars(packet.getSubType().getValue());
             buf.writeBytes(subType);
+
+            if (packet.getSubType() == PacketType.CONNECT) {
+                if (!packet.getNsp().isEmpty()) {
+                    buf.writeBytes(Unpooled.copiedBuffer(packet.getNsp(), CharsetUtil.UTF_8));
+                }
+            } else {
+                if (!packet.getNsp().isEmpty()) {
+                    buf.writeBytes(Unpooled.copiedBuffer(packet.getNsp(), CharsetUtil.UTF_8));
+                    buf.writeBytes(Unpooled.copiedBuffer(",", CharsetUtil.UTF_8));
+                }
+            }
+
             if (packet.getAckId() != null) {
                 byte[] ackId = toChars(packet.getAckId());
                 buf.writeBytes(ackId);

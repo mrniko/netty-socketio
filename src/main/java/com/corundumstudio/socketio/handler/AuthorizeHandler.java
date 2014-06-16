@@ -15,36 +15,23 @@
  */
 package com.corundumstudio.socketio.handler;
 
-import static io.netty.handler.codec.http.HttpHeaders.Names.ACCESS_CONTROL_ALLOW_CREDENTIALS;
-import static io.netty.handler.codec.http.HttpHeaders.Names.ACCESS_CONTROL_ALLOW_ORIGIN;
-import static io.netty.handler.codec.http.HttpHeaders.Names.CONNECTION;
-import static io.netty.handler.codec.http.HttpHeaders.Names.CONTENT_TYPE;
-import static io.netty.handler.codec.http.HttpHeaders.Values.KEEP_ALIVE;
 import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.handler.codec.base64.Base64;
-import io.netty.handler.codec.http.ClientCookieEncoder;
 import io.netty.handler.codec.http.DefaultHttpResponse;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
-import io.netty.handler.codec.http.LastHttpContent;
 import io.netty.handler.codec.http.QueryStringDecoder;
-import io.netty.util.CharsetUtil;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -52,8 +39,6 @@ import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import sun.misc.HexDumpEncoder;
 
 import com.corundumstudio.socketio.Configuration;
 import com.corundumstudio.socketio.Disconnectable;
@@ -224,16 +209,34 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
     }
 
     public void connect(MainBaseClient client) {
-        connect(client.getSessionId());
-        configuration.getStoreFactory().pubSubStore().publish(PubSubStore.CONNECT, new ConnectMessage(client.getSessionId()));
-
-        Packet packet = new Packet(PacketType.MESSAGE);
-        packet.setSubType(PacketType.CONNECT);
-        client.send(packet);
-
         Namespace ns = namespacesHub.get(Namespace.DEFAULT_NAME);
-        SocketIOClient nsClient = client.addChildClient(ns);
-        namespacesHub.get(ns.getName()).onConnect(nsClient);
+
+        if (!client.getNamespaces().contains(ns)) {
+            connect(client.getSessionId());
+
+            SocketIOClient nsClient = client.addChildClient(ns);
+            ns.onConnect(nsClient);
+
+            Packet packet = new Packet(PacketType.MESSAGE);
+            packet.setSubType(PacketType.CONNECT);
+            client.send(packet);
+
+            configuration.getStoreFactory().pubSubStore().publish(PubSubStore.CONNECT, new ConnectMessage(client.getSessionId()));
+        }
+
+//        List<Packet> packets = new ArrayList<Packet>(client.getAllChildClients().size());
+//        for (SocketIOClient с : client.getAllChildClients()) {
+//            Namespace namespace = ((NamespaceClient)с).getNamespace();
+//            if (!client.isConnectSended(namespace)) {
+//                Packet packet = new Packet(PacketType.MESSAGE);
+//                packet.setSubType(PacketType.CONNECT);
+//                packet.setNsp(namespace.getName());
+//                packets.add(packet);
+//            }
+//        }
+//        if (!packets.isEmpty()) {
+//            client.send(packets.toArray(new Packet[packets.size()]));
+//        }
     }
 
     @Override

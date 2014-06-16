@@ -33,12 +33,21 @@ public class WebSocketClient extends MainBaseClient {
     public WebSocketClient(Channel channel, AckManager ackManager,
                             DisconnectableHub disconnectable, UUID sessionId,
                              Transport transport, StoreFactory storeFactory, HandshakeData handshakeData) {
-        super(sessionId, ackManager, disconnectable, transport, storeFactory, handshakeData);
+        super(sessionId, ackManager, disconnectable, storeFactory, handshakeData);
         setChannel(channel);
     }
 
-    public ChannelFuture send(Packet packet) {
-        return getChannel().writeAndFlush(new WebSocketPacketMessage(getSessionId(), packet));
+    public ChannelFuture send(Packet... packets) {
+        for (Packet packet : packets) {
+            getChannel().writeAndFlush(new WebSocketPacketMessage(getSessionId(), packet));
+        }
+        // TODO fix
+        return getChannel().newSucceededFuture();
+    }
+
+    @Override
+    public Transport getTransport() {
+        return Transport.WEBSOCKET;
     }
 
 }

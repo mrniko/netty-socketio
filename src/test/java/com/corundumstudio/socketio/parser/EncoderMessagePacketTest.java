@@ -31,18 +31,18 @@ public class EncoderMessagePacketTest extends EncoderBaseTest {
         Packet packet = new Packet(PacketType.MESSAGE);
         packet.setData("woot");
         ByteBuf result = Unpooled.buffer();
-        encoder.encodePacket(packet, result);
+//        encoder.encodePacket(packet, result);
         Assert.assertEquals("3:::woot", result.toString(CharsetUtil.UTF_8));
     }
 
     @Test
     public void testEncodeWithIdAndEndpoint() throws IOException {
         Packet packet = new Packet(PacketType.MESSAGE);
-        packet.setId(5L);
-        packet.setAck(true);
-        packet.setEndpoint("/tobi");
+//        packet.setId(5L);
+//        packet.setAck(true);
+        packet.setNsp("/tobi");
         ByteBuf result = Unpooled.buffer();
-        encoder.encodePacket(packet, result);
+//        encoder.encodePacket(packet, result);
         Assert.assertEquals("3:5:/tobi", result.toString(CharsetUtil.UTF_8));
     }
 

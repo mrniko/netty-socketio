@@ -32,7 +32,7 @@ public class EncoderAckPacketTest extends EncoderBaseTest {
         Packet packet = new Packet(PacketType.ACK);
         packet.setAckId(140L);
         ByteBuf result = Unpooled.buffer();
-        encoder.encodePacket(packet, result);
+//        encoder.encodePacket(packet, result);
         Assert.assertEquals("6:::140", result.toString(CharsetUtil.UTF_8));
     }
 
@@ -40,9 +40,9 @@ public class EncoderAckPacketTest extends EncoderBaseTest {
     public void testEncodeWithArgs() throws IOException {
         Packet packet = new Packet(PacketType.ACK);
         packet.setAckId(12L);
-        packet.setArgs(Arrays.<Object>asList("woot", "wa"));
+//        packet.setArgs(Arrays.<Object>asList("woot", "wa"));
         ByteBuf result = Unpooled.buffer();
-        encoder.encodePacket(packet, result);
+//        encoder.encodePacket(packet, result);
         Assert.assertEquals("6:::12+[\"woot\",\"wa\"]", result.toString(CharsetUtil.UTF_8));
     }
 

@@ -111,10 +111,12 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
         Encoder encoder = new Encoder(configuration, jsonSupport);
         Decoder decoder = new Decoder(jsonSupport, ackManager);
 
+        String connectPath = configuration.getContext() + "/";
+
         heartbeatHandler = new HeartbeatHandler(configuration, scheduler);
+        authorizeHandler = new AuthorizeHandler(connectPath, scheduler, configuration, namespacesHub, encoder);
         PacketListener packetListener = new PacketListener(heartbeatHandler, ackManager, namespacesHub);
 
-        String connectPath = configuration.getContext() + "/";
 
         boolean isSsl = configuration.getKeyStore() != null;
         if (isSsl) {
@@ -126,7 +128,6 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
         }
 
         packetHandler = new PacketHandler(packetListener, decoder, namespacesHub, configuration.getExceptionListener());
-        authorizeHandler = new AuthorizeHandler(connectPath, scheduler, configuration, namespacesHub, encoder);
 
         StoreFactory factory = configuration.getStoreFactory();
         factory.init(namespacesHub, authorizeHandler, jsonSupport);
@@ -144,7 +145,6 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
     protected void initChannel(Channel ch) throws Exception {
         ChannelPipeline pipeline = ch.pipeline();
         boolean isFlashTransport = configuration.getTransports().contains(FlashSocketTransport.NAME);
-        pipeline.addLast(new LoggingHandler());
         if (isFlashTransport) {
             pipeline.addLast(FLASH_POLICY_HANDLER, flashPolicyHandler);
         }
