@@ -24,18 +24,27 @@ import com.corundumstudio.socketio.namespace.Namespace;
 import com.corundumstudio.socketio.namespace.NamespacesHub;
 import com.corundumstudio.socketio.parser.Packet;
 import com.corundumstudio.socketio.parser.PacketType;
+import com.corundumstudio.socketio.scheduler.CancelableScheduler;
+import com.corundumstudio.socketio.scheduler.SchedulerKey;
 import com.corundumstudio.socketio.transport.NamespaceClient;
+import com.corundumstudio.socketio.transport.XHRPollingClient;
+import com.corundumstudio.socketio.transport.XHRPollingTransport;
 
 public class PacketListener {
 
     private final NamespacesHub namespacesHub;
     private final AckManager ackManager;
     private final HeartbeatHandler heartbeatHandler;
+    private final XHRPollingTransport xhrPollingTransport;
+    private final CancelableScheduler scheduler;
 
-    public PacketListener(HeartbeatHandler heartbeatHandler, AckManager ackManager, NamespacesHub namespacesHub) {
+    public PacketListener(HeartbeatHandler heartbeatHandler, AckManager ackManager, NamespacesHub namespacesHub, XHRPollingTransport xhrPollingTransport,
+            CancelableScheduler scheduler) {
         this.heartbeatHandler = heartbeatHandler;
         this.ackManager = ackManager;
         this.namespacesHub = namespacesHub;
+        this.xhrPollingTransport = xhrPollingTransport;
+        this.scheduler = scheduler;
     }
 
     public void onPacket(Packet packet, NamespaceClient client) {
@@ -46,17 +55,25 @@ public class PacketListener {
         }
 
         switch (packet.getType()) {
-//        case OPEN: {
-//            Namespace namespace = namespacesHub.get(packet.getNsp());
-//            namespace.onConnect(client);
-//            // send connect handshake packet back to client
-//            client.send(packet);
-//            break;
-//        }
+        case PING: {
+            Packet outPacket = new Packet(PacketType.PONG);
+            outPacket.setData(packet.getData());
+            // TODO use future
+            client.send(outPacket);
 
-//        case PING: {
-//            break;
-//        }
+            if ("probe".equals(packet.getData())) {
+                XHRPollingClient oldClient = xhrPollingTransport.getClient(client.getSessionId());
+                oldClient.send(new Packet(PacketType.NOOP));
+            }
+            break;
+        }
+
+        case UPGRADE: {
+            SchedulerKey key = new SchedulerKey(SchedulerKey.Type.UPGRADE_TIMEOUT, client.getSessionId());
+            scheduler.cancel(key);
+            // TODO setPingTimeout
+            break;
+        }
 
         case MESSAGE: {
             if (packet.getSubType() == PacketType.CONNECT) {

@@ -156,6 +156,11 @@ public class Encoder {
 
         switch (packet.getType()) {
 
+        case PONG: {
+            buf.writeBytes(Unpooled.copiedBuffer(packet.getData().toString(), CharsetUtil.UTF_8));
+            break;
+        }
+
         case OPEN: {
             ByteBufOutputStream out = new ByteBufOutputStream(buf);
             jsonSupport.writeValue(out, packet.getData());
@@ -208,10 +213,12 @@ public class Encoder {
             break;
         }
 
-        buffer.writeByte(0);
-        int length = buf.writerIndex();
-        buffer.writeBytes(longToBytes(length));
-        buffer.writeByte(0xff);
+        if (!packet.isBinary()) {
+            buffer.writeByte(0);
+            int length = buf.writerIndex();
+            buffer.writeBytes(longToBytes(length));
+            buffer.writeByte(0xff);
+        }
         buffer.writeBytes(buf);
     }
 

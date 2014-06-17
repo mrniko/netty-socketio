@@ -34,10 +34,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.corundumstudio.socketio.Configuration;
 import com.corundumstudio.socketio.DisconnectableHub;
 import com.corundumstudio.socketio.HandshakeData;
 import com.corundumstudio.socketio.SocketIOChannelInitializer;
@@ -46,6 +48,10 @@ import com.corundumstudio.socketio.ack.AckManager;
 import com.corundumstudio.socketio.handler.AuthorizeHandler;
 import com.corundumstudio.socketio.handler.HeartbeatHandler;
 import com.corundumstudio.socketio.messages.PacketsMessage;
+import com.corundumstudio.socketio.parser.Packet;
+import com.corundumstudio.socketio.parser.PacketType;
+import com.corundumstudio.socketio.scheduler.CancelableScheduler;
+import com.corundumstudio.socketio.scheduler.SchedulerKey;
 import com.corundumstudio.socketio.store.StoreFactory;
 
 @Sharable
@@ -63,7 +69,8 @@ public class WebSocketTransport extends BaseTransport {
     private final AuthorizeHandler authorizeHandler;
     private final DisconnectableHub disconnectableHub;
     private final StoreFactory storeFactory;
-    private final int maxFramePayloadLength;
+    private final CancelableScheduler scheduler;
+    private final Configuration configuration;
 
     private final boolean isSsl;
     protected String path;
@@ -71,15 +78,16 @@ public class WebSocketTransport extends BaseTransport {
 
 
     public WebSocketTransport(String connectPath, boolean isSsl, AckManager ackManager, DisconnectableHub disconnectable,
-            AuthorizeHandler authorizeHandler, HeartbeatHandler heartbeatHandler, StoreFactory storeFactory, int maxFramePayloadLength) {
-        this.path = connectPath + NAME;
+            AuthorizeHandler authorizeHandler, HeartbeatHandler heartbeatHandler, StoreFactory storeFactory, Configuration configuration,
+            CancelableScheduler scheduler) {
         this.isSsl = isSsl;
         this.authorizeHandler = authorizeHandler;
         this.ackManager = ackManager;
         this.disconnectableHub = disconnectable;
         this.heartbeatHandler = heartbeatHandler;
         this.storeFactory = storeFactory;
-        this.maxFramePayloadLength = maxFramePayloadLength;
+        this.configuration = configuration;
+        this.scheduler = scheduler;
     }
 
     @Override
@@ -106,9 +114,9 @@ public class WebSocketTransport extends BaseTransport {
             List<String> transport = queryDecoder.parameters().get("transport");
             List<String> sid = queryDecoder.parameters().get("sid");
 
-            if (transport != null && path.equals(transport.get(0))
+            if (transport != null && NAME.equals(transport.get(0))
                     && sid != null && sid.get(0) != null) {
-                handshake(ctx, path, req);
+                handshake(ctx, sid.get(0), path, req);
                 req.release();
             } else {
                 ctx.fireChannelRead(msg);
@@ -133,20 +141,12 @@ public class WebSocketTransport extends BaseTransport {
         }
     }
 
-    private void handshake(ChannelHandlerContext ctx, String path, FullHttpRequest req) {
+    private void handshake(ChannelHandlerContext ctx, String sid, String path, FullHttpRequest req) {
         final Channel channel = ctx.channel();
-        String[] parts = path.split("/");
-        if (parts.length <= 3) {
-            log.warn("Wrong GET request path: {}, from ip: {}. Channel closed!",
-                        path, channel.remoteAddress());
-            channel.close();
-            return;
-        }
-
-        final UUID sessionId = UUID.fromString(parts[4]);
+        final UUID sessionId = UUID.fromString(sid);
 
         WebSocketServerHandshakerFactory factory =
-                new WebSocketServerHandshakerFactory(getWebSocketLocation(req), null, false, maxFramePayloadLength);
+                new WebSocketServerHandshakerFactory(getWebSocketLocation(req), null, false, configuration.getMaxFramePayloadLength());
         WebSocketServerHandshaker handshaker = factory.newHandshaker(req);
         if (handshaker != null) {
             ChannelFuture f = handshaker.handshake(channel, req);
@@ -161,7 +161,7 @@ public class WebSocketTransport extends BaseTransport {
         }
     }
 
-    private void connectClient(Channel channel, UUID sessionId) {
+    private void connectClient(final Channel channel, final UUID sessionId) {
         HandshakeData data = authorizeHandler.getHandshakeData(sessionId);
         if (data == null) {
             log.warn("Unauthorized client with sessionId: {}, from ip: {}. Channel closed!",
@@ -176,9 +176,17 @@ public class WebSocketTransport extends BaseTransport {
         sessionId2Client.put(sessionId, client);
         authorizeHandler.connect(client);
 
+        SchedulerKey key = new SchedulerKey(SchedulerKey.Type.UPGRADE_TIMEOUT, sessionId);
+        scheduler.schedule(key, new Runnable() {
+            @Override
+            public void run() {
+                XHRPollingTransport transport = channel.pipeline().remove(XHRPollingTransport.class);
+                transport.onDisconnect(sessionId);
+            }
+        }, configuration.getUpgradeTimeout(), TimeUnit.MILLISECONDS);
+
         heartbeatHandler.onHeartbeat(client);
 
-        channel.pipeline().remove(SocketIOChannelInitializer.XHR_POLLING_TRANSPORT);
         removeHandler(channel.pipeline());
     }
 

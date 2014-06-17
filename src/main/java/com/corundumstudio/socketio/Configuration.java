@@ -37,6 +37,8 @@ public class Configuration {
     private int bossThreads = 0; // 0 = current_processors_amount * 2
     private int workerThreads = 0; // 0 = current_processors_amount * 2
 
+    private int upgradeTimeout = 10000;
+
     private boolean allowCustomRequests = false;
 
     private int pollingDuration = 20;
@@ -116,6 +118,7 @@ public class Configuration {
         setSocketConfig(conf.getSocketConfig());
         setAckMode(conf.getAckMode());
         setMaxFramePayloadLength(conf.getMaxFramePayloadLength());
+        setUpgradeTimeout(conf.getUpgradeTimeout());
     }
 
     private String join(Transport[] transports) {
@@ -472,6 +475,13 @@ public class Configuration {
     }
     public int getMaxFramePayloadLength() {
         return maxFramePayloadLength;
+    }
+
+    public int getUpgradeTimeout() {
+        return upgradeTimeout;
+    }
+    public void setUpgradeTimeout(int upgradeTimeout) {
+        this.upgradeTimeout = upgradeTimeout;
     }
 
 }

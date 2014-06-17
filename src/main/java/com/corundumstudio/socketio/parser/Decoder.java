@@ -205,74 +205,88 @@ public class Decoder {
     }
 
     public Packet decodePackets(ByteBuf buffer, UUID uuid) throws IOException {
-        int headEndIndex = buffer.forEachByte(new ByteBufProcessor() {
-            @Override
-            public boolean process(byte value) throws Exception {
-                return value != -1;
-            }
-        });
-        int len = (int) parseLong(buffer, headEndIndex);
-
-        buffer.readerIndex(buffer.readerIndex() + headEndIndex);
-
-        int startIndex = buffer.readerIndex();
-        ByteBuf frame = buffer.slice(startIndex+1, len);
         Packet packet;
+//        int startIndex = buffer.readerIndex();
         boolean isString = buffer.getByte(0) == 0x0;
         if (isString) {
-            String msg = frame.toString(CharsetUtil.UTF_8);
-            PacketType type = PacketType.valueOf(Integer.valueOf(String.valueOf(msg.charAt(0))));
-            packet = new Packet(type);
-            // skip type
+            int headEndIndex = buffer.forEachByte(new ByteBufProcessor() {
+                @Override
+                public boolean process(byte value) throws Exception {
+                    return value != -1;
+                }
+            });
+            int len = (int) parseLong(buffer, headEndIndex);
+
+            buffer.readerIndex(buffer.readerIndex() + headEndIndex);
+
+            ByteBuf frame = buffer.slice(buffer.readerIndex()+1, len);
+            packet = decode(uuid, frame);
+            buffer.readerIndex(buffer.readerIndex() + len + 1);
+        } else {
+//            ByteBuf frame = buffer.slice(buffer.readerIndex()+1, len);
+            String msg = buffer.toString(CharsetUtil.UTF_8);
+            packet = decode(uuid, buffer);
+            buffer.readerIndex(buffer.readerIndex() + msg.length());
+        }
+        return packet;
+    }
+
+    private Packet decode(UUID uuid, ByteBuf frame) throws IOException {
+        Packet packet;
+        String msg = frame.toString(CharsetUtil.UTF_8);
+        PacketType type = PacketType.valueOf(Integer.valueOf(String.valueOf(msg.charAt(0))));
+        packet = new Packet(type);
+        // skip type
+        msg = msg.substring(1);
+
+        if (type == PacketType.PING) {
+            packet.setData(msg);
+            return packet;
+        }
+
+        if (msg.length() >= 1) {
+            PacketType innerType = PacketType.valueOfInner(Integer.valueOf(String.valueOf(msg.charAt(0))));
+            packet.setSubType(innerType);
+            // skip inner type
             msg = msg.substring(1);
 
-            if (msg.length() >= 1) {
-                PacketType innerType = PacketType.valueOfInner(Integer.valueOf(String.valueOf(msg.charAt(0))));
-                packet.setSubType(innerType);
-                // skip inner type
-                msg = msg.substring(1);
-
-                int endIndex = msg.indexOf("[");
-                if (endIndex > 0) {
-                    String nspAckId = msg.substring(0, endIndex);
-                    if (nspAckId.contains(",")) {
-                        String[] parts = nspAckId.split(",");
-                        String nsp = parts[0];
-                        packet.setNsp(nsp);
-                        if (parts.length > 1) {
-                            String ackId = parts[1];
-                            packet.setAckId(Long.valueOf(ackId));
-                        }
-                    } else {
-                        packet.setAckId(Long.valueOf(nspAckId));
+            int endIndex = msg.indexOf("[");
+            if (endIndex > 0) {
+                String nspAckId = msg.substring(0, endIndex);
+                if (nspAckId.contains(",")) {
+                    String[] parts = nspAckId.split(",");
+                    String nsp = parts[0];
+                    packet.setNsp(nsp);
+                    if (parts.length > 1) {
+                        String ackId = parts[1];
+                        packet.setAckId(Long.valueOf(ackId));
                     }
-                    // skip 'nsp,ackId' part
-                    msg = msg.substring(endIndex);
+                } else {
+                    packet.setAckId(Long.valueOf(nspAckId));
+                }
+                // skip 'nsp,ackId' part
+                msg = msg.substring(endIndex);
+            }
+
+            if (packet.getType() == PacketType.MESSAGE) {
+                if (packet.getSubType() == PacketType.CONNECT) {
+                    packet.setNsp(msg);
                 }
 
-                if (packet.getType() == PacketType.MESSAGE) {
-                    if (packet.getSubType() == PacketType.CONNECT) {
-                        packet.setNsp(msg);
-                    }
+                if (packet.getSubType() == PacketType.ACK) {
+                    ByteBufInputStream in = new ByteBufInputStream(Unpooled.copiedBuffer(msg, CharsetUtil.UTF_8));
+                    AckCallback<?> callback = ackManager.getCallback(uuid, packet.getAckId());
+                    AckArgs args = jsonSupport.readAckArgs(in, callback);
+                    packet.setData(args.getArgs());
+                }
 
-                    if (packet.getSubType() == PacketType.ACK) {
-                        ByteBufInputStream in = new ByteBufInputStream(Unpooled.copiedBuffer(msg, CharsetUtil.UTF_8));
-                        AckCallback<?> callback = ackManager.getCallback(uuid, packet.getAckId());
-                        AckArgs args = jsonSupport.readAckArgs(in, callback);
-                        packet.setData(args.getArgs());
-                    }
-
-                    if (packet.getSubType() == PacketType.EVENT) {
-                        Event event = jsonSupport.readValue(msg, Event.class);
-                        packet.setName(event.getName());
-                        packet.setData(event.getArgs());
-                    }
+                if (packet.getSubType() == PacketType.EVENT) {
+                    Event event = jsonSupport.readValue(msg, Event.class);
+                    packet.setName(event.getName());
+                    packet.setData(event.getArgs());
                 }
             }
-        } else {
-            packet = decodePacket(frame, uuid);
         }
-        buffer.readerIndex(startIndex + len + 1);
         return packet;
     }
 

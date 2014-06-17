@@ -151,7 +151,7 @@ public class XHRPollingTransport extends BaseTransport {
             return;
         }
 
-        XHRPollingClient client = getOrCreateClient(sessionId, data);
+        XHRPollingClient client = getClient(sessionId, data);
 
         ctx.channel().writeAndFlush(new XHROptionsMessage(origin, sessionId));
     }
@@ -199,7 +199,7 @@ public class XHRPollingTransport extends BaseTransport {
             return;
         }
 
-        XHRPollingClient client = getOrCreateClient(sessionId, data);
+        XHRPollingClient client = getClient(sessionId, data);
 
         // release POST response before message processing
         ctx.channel().writeAndFlush(new XHROutMessage(origin, sessionId));
@@ -215,7 +215,7 @@ public class XHRPollingTransport extends BaseTransport {
             return;
         }
 
-        XHRPollingClient client = getOrCreateClient(sessionId, data);
+        XHRPollingClient client = getClient(sessionId, data);
         client.bindChannel(ctx.channel(), origin);
         // TODO implement send packets at one response
         authorizeHandler.connect(client);
@@ -224,7 +224,11 @@ public class XHRPollingTransport extends BaseTransport {
         scheduleNoop(sessionId);
     }
 
-    private XHRPollingClient getOrCreateClient(UUID sessionId, HandshakeData data) {
+    public XHRPollingClient getClient(UUID sessionId) {
+        return sessionId2Client.get(sessionId);
+    }
+
+    private XHRPollingClient getClient(UUID sessionId, HandshakeData data) {
         XHRPollingClient client = (XHRPollingClient) sessionId2Client.get(sessionId);
         if (client == null) {
             client = new XHRPollingClient(ackManager, disconnectable, sessionId, configuration.getStoreFactory(), data);
@@ -254,6 +258,11 @@ public class XHRPollingTransport extends BaseTransport {
             SchedulerKey closeTimeoutKey = new SchedulerKey(Type.CLOSE_TIMEOUT, sessionId);
             scheduler.cancel(closeTimeoutKey);
         }
+    }
+
+    public void onDisconnect(UUID sessionId) {
+        XHRPollingClient client = sessionId2Client.get(sessionId);
+        onDisconnect(client);
     }
 
 }

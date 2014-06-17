@@ -23,13 +23,11 @@ public class Packet implements Serializable {
 
     private static final long serialVersionUID = 4560159536486711426L;
 
-    public static final String ACK_DATA = "data";
-
+    private boolean binary;
     private PacketType type;
     private PacketType subType;
     private Long ackId;
     private String name;
-    private Long id;
     private String nsp = Namespace.DEFAULT_NAME;
     private Object data;
 
@@ -42,6 +40,13 @@ public class Packet implements Serializable {
     public Packet(PacketType type) {
         super();
         this.type = type;
+    }
+
+    public boolean isBinary() {
+        return binary;
+    }
+    public void setBinary(boolean binary) {
+        this.binary = binary;
     }
 
     public PacketType getSubType() {
@@ -117,7 +122,7 @@ public class Packet implements Serializable {
 
     @Override
     public String toString() {
-        return "Packet [type=" + type + ", id=" + id + "]";
+        return "Packet [type=" + type + ", ackId=" + ackId + "]";
     }
 
 }

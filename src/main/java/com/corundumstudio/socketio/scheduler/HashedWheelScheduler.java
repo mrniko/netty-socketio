@@ -28,6 +28,7 @@ public class HashedWheelScheduler implements CancelableScheduler {
 
     private final Map<SchedulerKey, Timeout> scheduledFutures = new ConcurrentHashMap<SchedulerKey, Timeout>();
     private final HashedWheelTimer executorService = new HashedWheelTimer();
+
     private volatile ChannelHandlerContext ctx;
 
     @Override
@@ -67,7 +68,10 @@ public class HashedWheelScheduler implements CancelableScheduler {
                 });
             }
         }, delay, unit);
-        scheduledFutures.put(key, timeout);
+
+        if (!timeout.isExpired()) {
+            scheduledFutures.put(key, timeout);
+        }
     }
 
     public void schedule(final SchedulerKey key, final Runnable runnable, long delay, TimeUnit unit) {
@@ -81,7 +85,10 @@ public class HashedWheelScheduler implements CancelableScheduler {
                 }
             }
         }, delay, unit);
-        scheduledFutures.put(key, timeout);
+
+        if (!timeout.isExpired()) {
+            scheduledFutures.put(key, timeout);
+        }
     }
 
     public void shutdown() {

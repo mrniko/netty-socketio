@@ -22,7 +22,6 @@ import io.netty.channel.ChannelPipeline;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpRequestDecoder;
 import io.netty.handler.codec.http.HttpResponseEncoder;
-import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.ssl.SslHandler;
 
 import java.security.KeyStore;
@@ -77,8 +76,6 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private final int protocol = 1;
-
     private AckManager ackManager;
 
     private AuthorizeHandler authorizeHandler;
@@ -114,9 +111,7 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
         String connectPath = configuration.getContext() + "/";
 
         heartbeatHandler = new HeartbeatHandler(configuration, scheduler);
-        authorizeHandler = new AuthorizeHandler(connectPath, scheduler, configuration, namespacesHub, encoder);
-        PacketListener packetListener = new PacketListener(heartbeatHandler, ackManager, namespacesHub);
-
+        authorizeHandler = new AuthorizeHandler(connectPath, scheduler, configuration, namespacesHub);
 
         boolean isSsl = configuration.getKeyStore() != null;
         if (isSsl) {
@@ -126,15 +121,17 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
                 throw new IllegalStateException(e);
             }
         }
-
-        packetHandler = new PacketHandler(packetListener, decoder, namespacesHub, configuration.getExceptionListener());
-
         StoreFactory factory = configuration.getStoreFactory();
         factory.init(namespacesHub, authorizeHandler, jsonSupport);
 
         xhrPollingTransport = new XHRPollingTransport(connectPath, ackManager, this, scheduler, authorizeHandler, configuration, heartbeatHandler);
-        webSocketTransport = new WebSocketTransport(connectPath, isSsl, ackManager, this, authorizeHandler, heartbeatHandler, factory, configuration.getMaxFramePayloadLength());
-        flashSocketTransport = new FlashSocketTransport(connectPath, isSsl, ackManager, this, authorizeHandler, heartbeatHandler, factory, configuration.getMaxFramePayloadLength());
+        webSocketTransport = new WebSocketTransport(connectPath, isSsl, ackManager, this, authorizeHandler, heartbeatHandler, factory, configuration, scheduler);
+        flashSocketTransport = new FlashSocketTransport(connectPath, isSsl, ackManager, this, authorizeHandler, heartbeatHandler, factory, configuration, scheduler);
+
+        PacketListener packetListener = new PacketListener(heartbeatHandler, ackManager, namespacesHub, xhrPollingTransport, scheduler);
+
+
+        packetHandler = new PacketHandler(packetListener, decoder, namespacesHub, configuration.getExceptionListener());
 
         resourceHandler = new ResourceHandler(configuration.getContext());
         encoderHandler = new EncoderHandler(encoder);

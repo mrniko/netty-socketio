@@ -44,6 +44,7 @@ import com.corundumstudio.socketio.Configuration;
 import com.corundumstudio.socketio.Disconnectable;
 import com.corundumstudio.socketio.HandshakeData;
 import com.corundumstudio.socketio.SocketIOClient;
+import com.corundumstudio.socketio.Transport;
 import com.corundumstudio.socketio.messages.AuthorizeMessage;
 import com.corundumstudio.socketio.namespace.Namespace;
 import com.corundumstudio.socketio.namespace.NamespacesHub;
@@ -68,15 +69,13 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
     private final String connectPath;
     private final Configuration configuration;
     private final NamespacesHub namespacesHub;
-    private final Encoder encoder;
 
-    public AuthorizeHandler(String connectPath, CancelableScheduler scheduler, Configuration configuration, NamespacesHub namespacesHub, Encoder encoder) {
+    public AuthorizeHandler(String connectPath, CancelableScheduler scheduler, Configuration configuration, NamespacesHub namespacesHub) {
         super();
         this.connectPath = connectPath;
         this.configuration = configuration;
         this.disconnectScheduler = scheduler;
         this.namespacesHub = namespacesHub;
-        this.encoder = encoder;
 
         this.authorizedSessionIds = configuration.getStoreFactory().createMap("authorizedSessionIds");
     }
@@ -128,6 +127,7 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
         }
 
         if (result) {
+            // TODO try to get sessionId from cookie
             UUID sessionId = UUID.randomUUID();
 
             scheduleDisconnect(channel, sessionId);
@@ -161,17 +161,6 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
 
             log.debug("Handshake unauthorized");
         }
-    }
-
-    public static byte[] longToBytes(long number) {
-        int length = (int)(Math.log10(number)+1);
-        byte[] res = new byte[length];
-        int i = length;
-        while (number > 0) {
-            res[--i] = (byte) (number % 10);
-            number = number / 10;
-        }
-        return res;
     }
 
     private String createHandshake(UUID sessionId) {
@@ -217,9 +206,11 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
             SocketIOClient nsClient = client.addChildClient(ns);
             ns.onConnect(nsClient);
 
-            Packet packet = new Packet(PacketType.MESSAGE);
-            packet.setSubType(PacketType.CONNECT);
-            client.send(packet);
+            if (client.getTransport() == Transport.XHRPOLLING) {
+                Packet packet = new Packet(PacketType.MESSAGE);
+                packet.setSubType(PacketType.CONNECT);
+                client.send(packet);
+            }
 
             configuration.getStoreFactory().pubSubStore().publish(PubSubStore.CONNECT, new ConnectMessage(client.getSessionId()));
         }
