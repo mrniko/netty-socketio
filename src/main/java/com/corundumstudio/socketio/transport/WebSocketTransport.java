@@ -48,8 +48,7 @@ import com.corundumstudio.socketio.ack.AckManager;
 import com.corundumstudio.socketio.handler.AuthorizeHandler;
 import com.corundumstudio.socketio.handler.HeartbeatHandler;
 import com.corundumstudio.socketio.messages.PacketsMessage;
-import com.corundumstudio.socketio.parser.Packet;
-import com.corundumstudio.socketio.parser.PacketType;
+import com.corundumstudio.socketio.namespace.Namespace;
 import com.corundumstudio.socketio.scheduler.CancelableScheduler;
 import com.corundumstudio.socketio.scheduler.SchedulerKey;
 import com.corundumstudio.socketio.store.StoreFactory;
@@ -71,6 +70,7 @@ public class WebSocketTransport extends BaseTransport {
     private final StoreFactory storeFactory;
     private final CancelableScheduler scheduler;
     private final Configuration configuration;
+    private XHRPollingTransport pollingTransport;
 
     private final boolean isSsl;
     protected String path;
@@ -171,10 +171,18 @@ public class WebSocketTransport extends BaseTransport {
         }
 
         WebSocketClient client = new WebSocketClient(channel, ackManager, disconnectableHub, sessionId, getTransport(), storeFactory, data);
+        // TODO refactor, client with sessionId should be independent from transport
+        XHRPollingClient oldClient = pollingTransport.getClient(sessionId);
+        if (oldClient != null) {
+            for (Namespace namespace : oldClient.getNamespaces()) {
+                client.addChildClient(namespace);
+            }
+        } else {
+            authorizeHandler.connect(client);
+        }
 
         channelId2Client.put(channel, client);
         sessionId2Client.put(sessionId, client);
-        authorizeHandler.connect(client);
 
         SchedulerKey key = new SchedulerKey(SchedulerKey.Type.UPGRADE_TIMEOUT, sessionId);
         scheduler.schedule(key, new Runnable() {
