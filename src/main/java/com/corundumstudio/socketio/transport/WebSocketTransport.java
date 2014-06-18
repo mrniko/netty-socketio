@@ -73,11 +73,8 @@ public class WebSocketTransport extends BaseTransport {
     private XHRPollingTransport pollingTransport;
 
     private final boolean isSsl;
-    protected String path;
 
-
-
-    public WebSocketTransport(String connectPath, boolean isSsl, AckManager ackManager, DisconnectableHub disconnectable,
+    public WebSocketTransport(boolean isSsl, AckManager ackManager, DisconnectableHub disconnectable,
             AuthorizeHandler authorizeHandler, HeartbeatHandler heartbeatHandler, StoreFactory storeFactory, Configuration configuration,
             CancelableScheduler scheduler) {
         this.isSsl = isSsl;

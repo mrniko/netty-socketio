@@ -72,11 +72,9 @@ public class XHRPollingTransport extends BaseTransport {
     private final AuthorizeHandler authorizeHandler;
     private final DisconnectableHub disconnectable;
     private final Configuration configuration;
-    private final String path;
 
-    public XHRPollingTransport(String connectPath, AckManager ackManager, DisconnectableHub disconnectable, CancelableScheduler scheduler,
+    public XHRPollingTransport(AckManager ackManager, DisconnectableHub disconnectable, CancelableScheduler scheduler,
                                 AuthorizeHandler authorizeHandler, Configuration configuration, HeartbeatHandler heartbeatHandler) {
-        this.path = connectPath + NAME + "/";
         this.ackManager = ackManager;
         this.authorizeHandler = authorizeHandler;
         this.configuration = configuration;

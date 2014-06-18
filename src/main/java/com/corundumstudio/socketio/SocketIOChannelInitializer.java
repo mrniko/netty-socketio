@@ -53,7 +53,6 @@ import com.corundumstudio.socketio.store.StoreFactory;
 import com.corundumstudio.socketio.store.pubsub.DisconnectMessage;
 import com.corundumstudio.socketio.store.pubsub.PubSubStore;
 import com.corundumstudio.socketio.transport.FlashPolicyHandler;
-import com.corundumstudio.socketio.transport.FlashSocketTransport;
 import com.corundumstudio.socketio.transport.MainBaseClient;
 import com.corundumstudio.socketio.transport.WebSocketTransport;
 import com.corundumstudio.socketio.transport.XHRPollingTransport;
@@ -81,7 +80,6 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
     private AuthorizeHandler authorizeHandler;
     private XHRPollingTransport xhrPollingTransport;
     private WebSocketTransport webSocketTransport;
-    private FlashSocketTransport flashSocketTransport;
     private final FlashPolicyHandler flashPolicyHandler = new FlashPolicyHandler();
     private ResourceHandler resourceHandler;
     private EncoderHandler encoderHandler;
@@ -124,9 +122,8 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
         StoreFactory factory = configuration.getStoreFactory();
         factory.init(namespacesHub, authorizeHandler, jsonSupport);
 
-        xhrPollingTransport = new XHRPollingTransport(connectPath, ackManager, this, scheduler, authorizeHandler, configuration, heartbeatHandler);
-        webSocketTransport = new WebSocketTransport(connectPath, isSsl, ackManager, this, authorizeHandler, heartbeatHandler, factory, configuration, scheduler);
-        flashSocketTransport = new FlashSocketTransport(connectPath, isSsl, ackManager, this, authorizeHandler, heartbeatHandler, factory, configuration, scheduler);
+        xhrPollingTransport = new XHRPollingTransport(ackManager, this, scheduler, authorizeHandler, configuration, heartbeatHandler);
+        webSocketTransport = new WebSocketTransport(isSsl, ackManager, this, authorizeHandler, heartbeatHandler, factory, configuration, scheduler);
 
         PacketListener packetListener = new PacketListener(heartbeatHandler, ackManager, namespacesHub, xhrPollingTransport, scheduler);
 
@@ -141,10 +138,6 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
     @Override
     protected void initChannel(Channel ch) throws Exception {
         ChannelPipeline pipeline = ch.pipeline();
-        boolean isFlashTransport = configuration.getTransports().contains(FlashSocketTransport.NAME);
-        if (isFlashTransport) {
-            pipeline.addLast(FLASH_POLICY_HANDLER, flashPolicyHandler);
-        }
 
         if (sslContext != null) {
             SSLEngine engine = sslContext.createSSLEngine();
@@ -156,15 +149,11 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
         pipeline.addLast(HTTP_AGGREGATOR, new HttpObjectAggregator(configuration.getMaxHttpContentLength()));
         pipeline.addLast(HTTP_ENCODER, new HttpResponseEncoder());
 
-        if (isFlashTransport) {
-            pipeline.addLast(RESOURCE_HANDLER, resourceHandler);
-        }
         pipeline.addLast(PACKET_HANDLER, packetHandler);
 
         pipeline.addLast(AUTHORIZE_HANDLER, authorizeHandler);
         pipeline.addLast(XHR_POLLING_TRANSPORT, xhrPollingTransport);
         pipeline.addLast(WEB_SOCKET_TRANSPORT, webSocketTransport);
-        pipeline.addLast(FLASH_SOCKET_TRANSPORT, flashSocketTransport);
 
         pipeline.addLast(SOCKETIO_ENCODER, encoderHandler);
 
@@ -197,7 +186,6 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
         ackManager.onDisconnect(client);
         xhrPollingTransport.onDisconnect(client);
         webSocketTransport.onDisconnect(client);
-        flashSocketTransport.onDisconnect(client);
         authorizeHandler.onDisconnect(client);
         configuration.getStoreFactory().onDisconnect(client);
 

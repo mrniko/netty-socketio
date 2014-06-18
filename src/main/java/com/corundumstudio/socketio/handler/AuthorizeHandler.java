@@ -134,8 +134,8 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
 
             Map map = new HashMap();
             map.put("sid", sessionId);
-            map.put("upgrades", new String[] {});
-//            map.put("upgrades", new String[] {"websocket"});
+//            map.put("upgrades", new String[] {});
+            map.put("upgrades", new String[] {"websocket"});
             map.put("pingInterval", configuration.getPollingDuration()*1000);
             map.put("pingTimeout", configuration.getCloseTimeout()*1000);
 
@@ -206,11 +206,9 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
             SocketIOClient nsClient = client.addChildClient(ns);
             ns.onConnect(nsClient);
 
-            if (client.getTransport() == Transport.XHRPOLLING) {
-                Packet packet = new Packet(PacketType.MESSAGE);
-                packet.setSubType(PacketType.CONNECT);
-                client.send(packet);
-            }
+            Packet packet = new Packet(PacketType.MESSAGE);
+            packet.setSubType(PacketType.CONNECT);
+            client.send(packet);
 
             configuration.getStoreFactory().pubSubStore().publish(PubSubStore.CONNECT, new ConnectMessage(client.getSessionId()));
         }

@@ -15,14 +15,12 @@
  */
 package com.corundumstudio.socketio;
 
-import com.corundumstudio.socketio.transport.FlashSocketTransport;
 import com.corundumstudio.socketio.transport.WebSocketTransport;
 import com.corundumstudio.socketio.transport.XHRPollingTransport;
 
 public enum Transport {
 
     WEBSOCKET(WebSocketTransport.NAME),
-    FLASHSOCKET(FlashSocketTransport.NAME),
     XHRPOLLING(XHRPollingTransport.NAME);
 
     private final String value;

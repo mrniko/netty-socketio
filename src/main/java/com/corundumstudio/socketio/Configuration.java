@@ -32,7 +32,7 @@ public class Configuration {
     private String jsonTypeFieldName = "@class";
     private String context = "/socket.io";
 
-    private String transports = join(new Transport[] {Transport.WEBSOCKET, Transport.FLASHSOCKET, Transport.XHRPOLLING});
+    private String transports = join(new Transport[] {Transport.WEBSOCKET, Transport.XHRPOLLING});
 
     private int bossThreads = 0; // 0 = current_processors_amount * 2
     private int workerThreads = 0; // 0 = current_processors_amount * 2
