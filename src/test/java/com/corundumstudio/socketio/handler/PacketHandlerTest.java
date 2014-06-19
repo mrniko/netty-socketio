@@ -68,7 +68,7 @@ public class PacketHandlerTest {
     public void before() {
         if (namespacesHub.get(Namespace.DEFAULT_NAME) == null) {
             Namespace ns = namespacesHub.create(Namespace.DEFAULT_NAME);
-            client.addChildClient(ns);
+            client.addNamespaceClient(ns);
         }
 
         invocations.set(0);

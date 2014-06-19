@@ -71,10 +71,10 @@ public class PacketHandler extends SimpleChannelInboundHandler<PacketsMessage> {
                 }
 
                 if (packet.getSubType() == PacketType.CONNECT) {
-                    client.addChildClient(ns);
+                    client.addNamespaceClient(ns);
                 }
 
-                NamespaceClient nClient = (NamespaceClient) client.getChildClient(ns);
+                NamespaceClient nClient = client.getChildClient(ns);
                 if (nClient == null) {
                     log.debug("Can't find namespace client in namespace: {}, sessionId: {} probably it was disconnected.", ns.getName(), client.getSessionId());
                     return;

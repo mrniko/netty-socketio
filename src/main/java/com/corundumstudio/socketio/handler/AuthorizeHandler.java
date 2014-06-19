@@ -205,7 +205,7 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
         if (!client.getNamespaces().contains(ns)) {
             connect(client.getSessionId());
 
-            SocketIOClient nsClient = client.addChildClient(ns);
+            SocketIOClient nsClient = client.addNamespaceClient(ns);
             ns.onConnect(nsClient);
 
             Packet packet = new Packet(PacketType.MESSAGE);

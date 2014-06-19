@@ -37,13 +37,9 @@ public class WebSocketClient extends MainBaseClient {
         setChannel(channel);
     }
 
-    public ChannelFuture send(Packet... packets) {
-        for (Packet packet : packets) {
-            packet.setBinary(true);
-            getChannel().writeAndFlush(new WebSocketPacketMessage(getSessionId(), packet));
-        }
-        // TODO fix
-        return getChannel().newSucceededFuture();
+    public ChannelFuture send(Packet packet) {
+        packet.setBinary(true);
+        return getChannel().writeAndFlush(new WebSocketPacketMessage(getSessionId(), packet));
     }
 
     @Override

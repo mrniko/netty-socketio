@@ -58,10 +58,8 @@ public class XHRPollingClient extends MainBaseClient {
         return origin;
     }
 
-    public ChannelFuture send(Packet... packets) {
-        for (Packet packet : packets) {
-            packetQueue.add(packet);
-        }
+    public ChannelFuture send(Packet packet) {
+        packetQueue.add(packet);
         if (getChannel() != null && getChannel().attr(WRITE_ONCE).get() == null) {
             return getChannel().writeAndFlush(new XHRSendPacketsMessage(getSessionId(), origin, packetQueue));
         }

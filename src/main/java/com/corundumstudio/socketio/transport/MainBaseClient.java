@@ -48,15 +48,15 @@ import com.corundumstudio.socketio.store.StoreFactory;
  */
 public abstract class MainBaseClient {
 
-    private final Map<Namespace, SocketIOClient> namespaceClients = new ConcurrentHashMap<Namespace, SocketIOClient>();
-    private final Store store;
-
+    private final HandshakeData handshakeData;
     private final AtomicBoolean disconnected = new AtomicBoolean();
-    private final DisconnectableHub disconnectableHub;
-    private final AckManager ackManager;
+    private final Map<Namespace, NamespaceClient> namespaceClients = new ConcurrentHashMap<Namespace, NamespaceClient>();
     private final UUID sessionId;
     private Channel channel;
-    private final HandshakeData handshakeData;
+
+    private final Store store;
+    private final DisconnectableHub disconnectableHub;
+    private final AckManager ackManager;
 
     public MainBaseClient(UUID sessionId, AckManager ackManager, DisconnectableHub disconnectable,
             StoreFactory storeFactory, HandshakeData handshakeData) {
@@ -69,21 +69,21 @@ public abstract class MainBaseClient {
 
     public abstract Transport getTransport();
 
-    public abstract ChannelFuture send(Packet... packets);
+    public abstract ChannelFuture send(Packet packets);
 
-    public void removeChildClient(SocketIOClient client) {
-        namespaceClients.remove((Namespace) client.getNamespace());
+    public void removeNamespaceClient(NamespaceClient client) {
+        namespaceClients.remove(client.getNamespace());
         if (namespaceClients.isEmpty()) {
             disconnectableHub.onDisconnect(this);
         }
     }
 
-    public SocketIOClient getChildClient(Namespace namespace) {
+    public NamespaceClient getChildClient(Namespace namespace) {
         return namespaceClients.get(namespace);
     }
 
-    public SocketIOClient addChildClient(Namespace namespace) {
-        SocketIOClient client = new NamespaceClient(this, namespace);
+    public NamespaceClient addNamespaceClient(Namespace namespace) {
+        NamespaceClient client = new NamespaceClient(this, namespace);
         namespaceClients.put(namespace, client);
         return client;
     }
@@ -92,18 +92,14 @@ public abstract class MainBaseClient {
         return namespaceClients.keySet();
     }
 
-    public Collection<SocketIOClient> getAllChildClients() {
-        return namespaceClients.values();
-    }
-
     public boolean isConnected() {
         return !disconnected.get();
     }
 
     public void onChannelDisconnect() {
         disconnected.set(true);
-        for (SocketIOClient client : getAllChildClients()) {
-            ((NamespaceClient) client).onDisconnect();
+        for (NamespaceClient client : namespaceClients.values()) {
+            client.onDisconnect();
         }
     }
 

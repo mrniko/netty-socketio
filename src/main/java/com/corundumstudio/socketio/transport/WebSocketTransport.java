@@ -174,7 +174,7 @@ public class WebSocketTransport extends BaseTransport {
         XHRPollingClient oldClient = pollingTransport.getClient(sessionId);
         if (oldClient != null) {
             for (Namespace namespace : oldClient.getNamespaces()) {
-                client.addChildClient(namespace);
+                client.addNamespaceClient(namespace);
             }
         } else {
             authorizeHandler.connect(client);
