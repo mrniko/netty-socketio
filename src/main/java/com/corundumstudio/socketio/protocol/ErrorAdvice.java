@@ -13,21 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.corundumstudio.socketio.parser;
+package com.corundumstudio.socketio.protocol;
 
-import java.util.List;
+public enum ErrorAdvice {
 
-public class AckArgs {
+    RECONNECT(0);
 
-    private List<Object> args;
+    private int value;
 
-    public AckArgs(List<Object> args) {
-        super();
-        this.args = args;
+    ErrorAdvice(int value) {
+        this.value = value;
     }
 
-    public List<Object> getArgs() {
-        return args;
+    public int getValue() {
+        return value;
+    }
+
+    public static ErrorAdvice valueOf(int value) {
+        return values()[value];
     }
 
 }

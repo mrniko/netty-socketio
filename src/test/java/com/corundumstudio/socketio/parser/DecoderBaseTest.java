@@ -21,6 +21,8 @@ import mockit.Mocked;
 
 import com.corundumstudio.socketio.Configuration;
 import com.corundumstudio.socketio.ack.AckManager;
+import com.corundumstudio.socketio.protocol.Decoder;
+import com.corundumstudio.socketio.protocol.JacksonJsonSupport;
 
 
 public class DecoderBaseTest {

@@ -26,8 +26,8 @@ import java.util.Set;
 
 import com.corundumstudio.socketio.misc.IterableCollection;
 import com.corundumstudio.socketio.namespace.Namespace;
-import com.corundumstudio.socketio.parser.Packet;
-import com.corundumstudio.socketio.parser.PacketType;
+import com.corundumstudio.socketio.protocol.Packet;
+import com.corundumstudio.socketio.protocol.PacketType;
 import com.corundumstudio.socketio.store.StoreFactory;
 import com.corundumstudio.socketio.store.pubsub.DispatchMessage;
 import com.corundumstudio.socketio.store.pubsub.PubSubStore;

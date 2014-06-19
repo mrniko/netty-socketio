@@ -16,12 +16,14 @@
 package com.corundumstudio.socketio;
 
 import java.io.InputStream;
+import java.util.Arrays;
+import java.util.List;
 
 import com.corundumstudio.socketio.handler.SuccessAuthorizationListener;
 import com.corundumstudio.socketio.listener.DefaultExceptionListener;
 import com.corundumstudio.socketio.listener.ExceptionListener;
-import com.corundumstudio.socketio.parser.JacksonJsonSupport;
-import com.corundumstudio.socketio.parser.JsonSupport;
+import com.corundumstudio.socketio.protocol.JacksonJsonSupport;
+import com.corundumstudio.socketio.protocol.JsonSupport;
 import com.corundumstudio.socketio.store.MemoryStoreFactory;
 import com.corundumstudio.socketio.store.StoreFactory;
 
@@ -32,7 +34,7 @@ public class Configuration {
     private String jsonTypeFieldName = "@class";
     private String context = "/socket.io";
 
-    private String transports = join(new Transport[] {Transport.WEBSOCKET, Transport.XHRPOLLING});
+    private List<Transport> transports = Arrays.asList(Transport.WEBSOCKET, Transport.POLLING);
 
     private int bossThreads = 0; // 0 = current_processors_amount * 2
     private int workerThreads = 0; // 0 = current_processors_amount * 2
@@ -107,7 +109,7 @@ public class Configuration {
         setTrustStoreFormat(conf.getTrustStoreFormat());
         setTrustStorePassword(conf.getTrustStorePassword());
 
-        setTransports(conf.getTransports());
+        setTransports(conf.getTransports().toArray(new Transport[conf.getTransports().size()]));
         setMaxHttpContentLength(conf.getMaxHttpContentLength());
         setPackagePrefix(conf.getPackagePrefix());
 
@@ -325,13 +327,9 @@ public class Configuration {
         if (transports.length == 0) {
             throw new IllegalArgumentException("Transports list can't be empty");
         }
-        this.transports = join(transports);
+        this.transports = Arrays.asList(transports);
     }
-    // used in cloning
-    private void setTransports(String transports) {
-        this.transports = transports;
-    }
-    public String getTransports() {
+    public List<Transport> getTransports() {
         return transports;
     }
 

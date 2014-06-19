@@ -23,6 +23,10 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.corundumstudio.socketio.Configuration;
+import com.corundumstudio.socketio.protocol.Decoder;
+import com.corundumstudio.socketio.protocol.JacksonJsonSupport;
+import com.corundumstudio.socketio.protocol.Packet;
+import com.corundumstudio.socketio.protocol.PacketType;
 
 public class DecoderEventPacketTest extends DecoderBaseTest {
 

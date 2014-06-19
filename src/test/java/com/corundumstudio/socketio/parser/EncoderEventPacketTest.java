@@ -26,6 +26,9 @@ import java.util.Collections;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.corundumstudio.socketio.protocol.Packet;
+import com.corundumstudio.socketio.protocol.PacketType;
+
 public class EncoderEventPacketTest extends EncoderBaseTest {
 
     @Test

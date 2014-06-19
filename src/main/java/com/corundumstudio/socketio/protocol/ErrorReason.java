@@ -13,15 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.corundumstudio.socketio.parser;
+package com.corundumstudio.socketio.protocol;
 
-public enum ErrorAdvice {
+public enum ErrorReason {
 
-    RECONNECT(0);
+    TRANSPORT_NOT_SUPPORTED(0), CLIENT_NOT_HANDSHAKEN(1), UNAUTHORIZED(2);
 
     private int value;
 
-    ErrorAdvice(int value) {
+    ErrorReason(int value) {
         this.value = value;
     }
 
@@ -29,7 +29,7 @@ public enum ErrorAdvice {
         return value;
     }
 
-    public static ErrorAdvice valueOf(int value) {
+    public static ErrorReason valueOf(int value) {
         return values()[value];
     }
 

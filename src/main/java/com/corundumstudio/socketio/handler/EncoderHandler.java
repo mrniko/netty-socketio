@@ -54,9 +54,9 @@ import com.corundumstudio.socketio.messages.XHRErrorMessage;
 import com.corundumstudio.socketio.messages.XHROptionsMessage;
 import com.corundumstudio.socketio.messages.XHROutMessage;
 import com.corundumstudio.socketio.messages.XHRSendPacketsMessage;
-import com.corundumstudio.socketio.parser.Encoder;
-import com.corundumstudio.socketio.parser.Packet;
-import com.corundumstudio.socketio.parser.PacketType;
+import com.corundumstudio.socketio.protocol.Encoder;
+import com.corundumstudio.socketio.protocol.Packet;
+import com.corundumstudio.socketio.protocol.PacketType;
 import com.corundumstudio.socketio.transport.XHRPollingClient;
 
 @Sharable

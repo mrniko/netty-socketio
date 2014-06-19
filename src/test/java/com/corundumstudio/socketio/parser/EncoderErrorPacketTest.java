@@ -24,6 +24,11 @@ import java.io.IOException;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.corundumstudio.socketio.protocol.ErrorAdvice;
+import com.corundumstudio.socketio.protocol.ErrorReason;
+import com.corundumstudio.socketio.protocol.Packet;
+import com.corundumstudio.socketio.protocol.PacketType;
+
 public class EncoderErrorPacketTest extends EncoderBaseTest {
 
     @Test

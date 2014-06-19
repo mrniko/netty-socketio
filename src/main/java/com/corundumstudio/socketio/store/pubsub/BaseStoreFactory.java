@@ -20,7 +20,7 @@ import org.slf4j.LoggerFactory;
 
 import com.corundumstudio.socketio.handler.AuthorizeHandler;
 import com.corundumstudio.socketio.namespace.NamespacesHub;
-import com.corundumstudio.socketio.parser.JsonSupport;
+import com.corundumstudio.socketio.protocol.JsonSupport;
 import com.corundumstudio.socketio.store.StoreFactory;
 import com.corundumstudio.socketio.transport.MainBaseClient;
 

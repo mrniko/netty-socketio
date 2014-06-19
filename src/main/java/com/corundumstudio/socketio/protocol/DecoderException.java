@@ -13,19 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.corundumstudio.socketio.parser;
+package com.corundumstudio.socketio.protocol;
 
-public class JsonObject {
+// TODO use SocketIOException
+public class DecoderException extends RuntimeException {
 
-    private final Object object;
+    private static final long serialVersionUID = -312474299994609579L;
 
-    public JsonObject(Object object) {
-        super();
-        this.object = object;
-    }
-
-    public Object getObject() {
-        return object;
+    public DecoderException(String message) {
+        super(message);
     }
 
 }

@@ -20,8 +20,8 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.corundumstudio.socketio.listener.DataListener;
-import com.corundumstudio.socketio.parser.Packet;
-import com.corundumstudio.socketio.parser.PacketType;
+import com.corundumstudio.socketio.protocol.Packet;
+import com.corundumstudio.socketio.protocol.PacketType;
 
 /**
  * Ack request received from Socket.IO client.

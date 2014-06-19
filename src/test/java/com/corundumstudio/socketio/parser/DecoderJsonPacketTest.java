@@ -21,6 +21,8 @@ import java.util.Map;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.corundumstudio.socketio.protocol.Packet;
+
 public class DecoderJsonPacketTest extends DecoderBaseTest {
 
     @Test

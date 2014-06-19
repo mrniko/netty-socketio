@@ -26,8 +26,8 @@ import com.corundumstudio.socketio.HandshakeData;
 import com.corundumstudio.socketio.SocketIOClient;
 import com.corundumstudio.socketio.Transport;
 import com.corundumstudio.socketio.namespace.Namespace;
-import com.corundumstudio.socketio.parser.Packet;
-import com.corundumstudio.socketio.parser.PacketType;
+import com.corundumstudio.socketio.protocol.Packet;
+import com.corundumstudio.socketio.protocol.PacketType;
 
 public class NamespaceClient implements SocketIOClient {
 

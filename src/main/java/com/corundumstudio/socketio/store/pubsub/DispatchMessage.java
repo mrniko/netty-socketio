@@ -15,7 +15,7 @@
  */
 package com.corundumstudio.socketio.store.pubsub;
 
-import com.corundumstudio.socketio.parser.Packet;
+import com.corundumstudio.socketio.protocol.Packet;
 
 public class DispatchMessage extends PubSubMessage {
 

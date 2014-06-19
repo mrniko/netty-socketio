@@ -29,7 +29,7 @@ import com.corundumstudio.socketio.HandshakeData;
 import com.corundumstudio.socketio.Transport;
 import com.corundumstudio.socketio.ack.AckManager;
 import com.corundumstudio.socketio.messages.XHRSendPacketsMessage;
-import com.corundumstudio.socketio.parser.Packet;
+import com.corundumstudio.socketio.protocol.Packet;
 import com.corundumstudio.socketio.store.StoreFactory;
 
 public class XHRPollingClient extends MainBaseClient {
@@ -45,7 +45,7 @@ public class XHRPollingClient extends MainBaseClient {
     }
 
     public Transport getTransport() {
-        return Transport.XHRPOLLING;
+        return Transport.POLLING;
     }
 
     public void bindChannel(Channel channel, String origin) {

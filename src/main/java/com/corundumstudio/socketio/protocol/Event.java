@@ -13,15 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.corundumstudio.socketio.parser;
+package com.corundumstudio.socketio.protocol;
 
-// TODO use SocketIOException
-public class DecoderException extends RuntimeException {
+import java.util.List;
 
-    private static final long serialVersionUID = -312474299994609579L;
+class Event {
 
-    public DecoderException(String message) {
-        super(message);
+    private String name;
+    private List<Object> args;
+
+    public Event() {
+    }
+
+    public Event(String name, List<Object> args) {
+        super();
+        this.name = name;
+        this.args = args;
+    }
+
+    public List<Object> getArgs() {
+        return args;
+    }
+
+    public String getName() {
+        return name;
     }
 
 }

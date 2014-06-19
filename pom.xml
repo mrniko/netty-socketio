@@ -299,8 +299,7 @@
                     com.corundumstudio.socketio;version="${project.version}",
                     com.corundumstudio.socketio.annotation;version="${project.version}",
                     com.corundumstudio.socketio.listener;version="${project.version}",
-                    com.corundumstudio.socketio.parser;version="${project.version}",                       
-                    com.corundumstudio.socketio.parser;version="${project.version}",                       
+                    com.corundumstudio.socketio.protocol;version="${project.version}",                       
                     com.corundumstudio.socketio.store;version="${project.version}",                       
                     com.corundumstudio.socketio.store.pubsub;version="${project.version}",                       
                    </Export-Package>

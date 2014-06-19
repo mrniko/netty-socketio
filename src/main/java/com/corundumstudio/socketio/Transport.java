@@ -21,7 +21,7 @@ import com.corundumstudio.socketio.transport.XHRPollingTransport;
 public enum Transport {
 
     WEBSOCKET(WebSocketTransport.NAME),
-    XHRPOLLING(XHRPollingTransport.NAME);
+    POLLING(XHRPollingTransport.NAME);
 
     private final String value;
 

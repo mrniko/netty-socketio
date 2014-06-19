@@ -15,7 +15,7 @@
  */
 package com.corundumstudio.socketio;
 
-import com.corundumstudio.socketio.parser.Packet;
+import com.corundumstudio.socketio.protocol.Packet;
 
 /**
  * Available client operations

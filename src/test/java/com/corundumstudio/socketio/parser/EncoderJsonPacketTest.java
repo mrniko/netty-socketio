@@ -30,6 +30,8 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.corundumstudio.socketio.protocol.Packet;
+
 public class EncoderJsonPacketTest extends EncoderBaseTest {
 
     @Test

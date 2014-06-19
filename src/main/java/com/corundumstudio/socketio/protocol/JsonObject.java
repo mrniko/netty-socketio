@@ -13,24 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.corundumstudio.socketio.parser;
+package com.corundumstudio.socketio.protocol;
 
-public enum ErrorReason {
+public class JsonObject {
 
-    TRANSPORT_NOT_SUPPORTED(0), CLIENT_NOT_HANDSHAKEN(1), UNAUTHORIZED(2);
+    private final Object object;
 
-    private int value;
-
-    ErrorReason(int value) {
-        this.value = value;
+    public JsonObject(Object object) {
+        super();
+        this.object = object;
     }
 
-    public int getValue() {
-        return value;
-    }
-
-    public static ErrorReason valueOf(int value) {
-        return values()[value];
+    public Object getObject() {
+        return object;
     }
 
 }

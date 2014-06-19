@@ -22,8 +22,8 @@ import org.slf4j.LoggerFactory;
 
 import com.corundumstudio.socketio.Configuration;
 import com.corundumstudio.socketio.Disconnectable;
-import com.corundumstudio.socketio.parser.Packet;
-import com.corundumstudio.socketio.parser.PacketType;
+import com.corundumstudio.socketio.protocol.Packet;
+import com.corundumstudio.socketio.protocol.PacketType;
 import com.corundumstudio.socketio.scheduler.CancelableScheduler;
 import com.corundumstudio.socketio.scheduler.SchedulerKey;
 import com.corundumstudio.socketio.scheduler.SchedulerKey.Type;

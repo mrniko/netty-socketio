@@ -31,7 +31,7 @@ import com.corundumstudio.socketio.Disconnectable;
 import com.corundumstudio.socketio.MultiTypeAckCallback;
 import com.corundumstudio.socketio.MultiTypeArgs;
 import com.corundumstudio.socketio.SocketIOClient;
-import com.corundumstudio.socketio.parser.Packet;
+import com.corundumstudio.socketio.protocol.Packet;
 import com.corundumstudio.socketio.scheduler.CancelableScheduler;
 import com.corundumstudio.socketio.scheduler.SchedulerKey;
 import com.corundumstudio.socketio.scheduler.SchedulerKey.Type;

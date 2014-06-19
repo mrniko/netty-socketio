@@ -48,9 +48,10 @@ import com.corundumstudio.socketio.Transport;
 import com.corundumstudio.socketio.messages.AuthorizeMessage;
 import com.corundumstudio.socketio.namespace.Namespace;
 import com.corundumstudio.socketio.namespace.NamespacesHub;
-import com.corundumstudio.socketio.parser.Encoder;
-import com.corundumstudio.socketio.parser.Packet;
-import com.corundumstudio.socketio.parser.PacketType;
+import com.corundumstudio.socketio.protocol.AuthPacket;
+import com.corundumstudio.socketio.protocol.Encoder;
+import com.corundumstudio.socketio.protocol.Packet;
+import com.corundumstudio.socketio.protocol.PacketType;
 import com.corundumstudio.socketio.scheduler.CancelableScheduler;
 import com.corundumstudio.socketio.scheduler.SchedulerKey;
 import com.corundumstudio.socketio.scheduler.SchedulerKey.Type;
@@ -86,7 +87,6 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
             FullHttpRequest req = (FullHttpRequest) msg;
             Channel channel = ctx.channel();
             QueryStringDecoder queryDecoder = new QueryStringDecoder(req.getUri());
-            List<String> sid = queryDecoder.parameters().get("sid");
 
             if (!configuration.isAllowCustomRequests()
                     && !queryDecoder.path().startsWith(connectPath)) {
@@ -96,6 +96,8 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
                 log.warn("Blocked wrong request! url: {}, ip: {}", queryDecoder.path(), channel.remoteAddress());
                 return;
             }
+
+            List<String> sid = queryDecoder.parameters().get("sid");
             if (queryDecoder.path().equals(connectPath)
                     && sid == null) {
                 String origin = req.headers().get(HttpHeaders.Names.ORIGIN);
@@ -132,14 +134,14 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
 
             scheduleDisconnect(channel, sessionId);
 
-            Map map = new HashMap();
-            map.put("sid", sessionId);
-//            map.put("upgrades", new String[] {});
-            map.put("upgrades", new String[] {"websocket"});
-            map.put("pingInterval", configuration.getPollingDuration()*1000);
-            map.put("pingTimeout", configuration.getCloseTimeout()*1000);
+            String[] transports = {};
+            if (configuration.getTransports().contains(Transport.WEBSOCKET)) {
+                transports = new String[] {"websocket"};
+            }
 
-            channel.writeAndFlush(new AuthorizeMessage(map, null, origin, sessionId));
+            AuthPacket packet = new AuthPacket(sessionId, transports, configuration.getPollingDuration()*1000,
+                                                    configuration.getCloseTimeout()*1000);
+            channel.writeAndFlush(new AuthorizeMessage(packet, null, origin, sessionId));
 
             authorizedSessionIds.put(sessionId, data);
 
@@ -156,8 +158,8 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
             log.debug("Handshake authorized for sessionId: {}", sessionId);
         } else {
             HttpResponse res = new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.UNAUTHORIZED);
-            ChannelFuture f = channel.writeAndFlush(res);
-            f.addListener(ChannelFutureListener.CLOSE);
+            channel.writeAndFlush(res)
+                    .addListener(ChannelFutureListener.CLOSE);
 
             log.debug("Handshake unauthorized");
         }

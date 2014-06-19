@@ -23,8 +23,8 @@ import java.io.IOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.corundumstudio.socketio.parser.AckArgs;
-import com.corundumstudio.socketio.parser.JsonSupport;
+import com.corundumstudio.socketio.protocol.AckArgs;
+import com.corundumstudio.socketio.protocol.JsonSupport;
 
 class JsonSupportWrapper implements JsonSupport {
 

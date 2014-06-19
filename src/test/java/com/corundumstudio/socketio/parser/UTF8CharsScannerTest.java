@@ -21,6 +21,8 @@ import junit.framework.Assert;
 
 import org.junit.Test;
 
+import com.corundumstudio.socketio.protocol.UTF8CharsScanner;
+
 public class UTF8CharsScannerTest {
 
     @Test

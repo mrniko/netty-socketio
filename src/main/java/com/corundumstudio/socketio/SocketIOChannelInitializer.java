@@ -44,9 +44,9 @@ import com.corundumstudio.socketio.handler.PacketListener;
 import com.corundumstudio.socketio.handler.ResourceHandler;
 import com.corundumstudio.socketio.handler.WrongUrlHandler;
 import com.corundumstudio.socketio.namespace.NamespacesHub;
-import com.corundumstudio.socketio.parser.Decoder;
-import com.corundumstudio.socketio.parser.Encoder;
-import com.corundumstudio.socketio.parser.JsonSupport;
+import com.corundumstudio.socketio.protocol.Decoder;
+import com.corundumstudio.socketio.protocol.Encoder;
+import com.corundumstudio.socketio.protocol.JsonSupport;
 import com.corundumstudio.socketio.scheduler.CancelableScheduler;
 import com.corundumstudio.socketio.scheduler.HashedWheelScheduler;
 import com.corundumstudio.socketio.store.StoreFactory;
@@ -123,7 +123,7 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
         factory.init(namespacesHub, authorizeHandler, jsonSupport);
 
         xhrPollingTransport = new XHRPollingTransport(ackManager, this, scheduler, authorizeHandler, configuration, heartbeatHandler);
-        webSocketTransport = new WebSocketTransport(isSsl, ackManager, this, authorizeHandler, heartbeatHandler, factory, configuration, scheduler);
+        webSocketTransport = new WebSocketTransport(isSsl, ackManager, this, authorizeHandler, heartbeatHandler, factory, configuration, scheduler, xhrPollingTransport);
 
         PacketListener packetListener = new PacketListener(heartbeatHandler, ackManager, namespacesHub, xhrPollingTransport, scheduler);
 

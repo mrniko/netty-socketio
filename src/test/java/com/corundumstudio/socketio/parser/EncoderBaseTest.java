@@ -16,6 +16,8 @@
 package com.corundumstudio.socketio.parser;
 
 import com.corundumstudio.socketio.Configuration;
+import com.corundumstudio.socketio.protocol.Encoder;
+import com.corundumstudio.socketio.protocol.JacksonJsonSupport;
 
 public class EncoderBaseTest {
 

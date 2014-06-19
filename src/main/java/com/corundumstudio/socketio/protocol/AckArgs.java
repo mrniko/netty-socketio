@@ -13,30 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.corundumstudio.socketio.parser;
+package com.corundumstudio.socketio.protocol;
 
 import java.util.List;
 
-class Event {
+public class AckArgs {
 
-    private String name;
     private List<Object> args;
 
-    public Event() {
-    }
-
-    public Event(String name, List<Object> args) {
+    public AckArgs(List<Object> args) {
         super();
-        this.name = name;
         this.args = args;
     }
 
     public List<Object> getArgs() {
         return args;
-    }
-
-    public String getName() {
-        return name;
     }
 
 }

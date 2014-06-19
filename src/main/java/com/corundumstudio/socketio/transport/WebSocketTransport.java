@@ -29,6 +29,7 @@ import io.netty.handler.codec.http.websocketx.CloseWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketServerHandshaker;
 import io.netty.handler.codec.http.websocketx.WebSocketServerHandshakerFactory;
+import io.netty.util.ReferenceCountUtil;
 
 import java.util.List;
 import java.util.Map;
@@ -70,13 +71,13 @@ public class WebSocketTransport extends BaseTransport {
     private final StoreFactory storeFactory;
     private final CancelableScheduler scheduler;
     private final Configuration configuration;
-    private XHRPollingTransport pollingTransport;
+    private final XHRPollingTransport pollingTransport;
 
     private final boolean isSsl;
 
     public WebSocketTransport(boolean isSsl, AckManager ackManager, DisconnectableHub disconnectable,
             AuthorizeHandler authorizeHandler, HeartbeatHandler heartbeatHandler, StoreFactory storeFactory, Configuration configuration,
-            CancelableScheduler scheduler) {
+            CancelableScheduler scheduler, XHRPollingTransport pollingTransport) {
         this.isSsl = isSsl;
         this.authorizeHandler = authorizeHandler;
         this.ackManager = ackManager;
@@ -85,13 +86,14 @@ public class WebSocketTransport extends BaseTransport {
         this.storeFactory = storeFactory;
         this.configuration = configuration;
         this.scheduler = scheduler;
+        this.pollingTransport = pollingTransport;
     }
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         if (msg instanceof CloseWebSocketFrame) {
             ctx.channel().close();
-            ((CloseWebSocketFrame)msg).release();
+            ReferenceCountUtil.release(msg);
         } else if (msg instanceof TextWebSocketFrame) {
             TextWebSocketFrame frame = (TextWebSocketFrame) msg;
             WebSocketClient client = channelId2Client.get(ctx.channel());
@@ -191,16 +193,10 @@ public class WebSocketTransport extends BaseTransport {
         }, configuration.getUpgradeTimeout(), TimeUnit.MILLISECONDS);
 
         heartbeatHandler.onHeartbeat(client);
-
-        removeHandler(channel.pipeline());
     }
 
     protected Transport getTransport() {
         return Transport.WEBSOCKET;
-    }
-
-    protected void removeHandler(ChannelPipeline pipeline) {
-        pipeline.remove(SocketIOChannelInitializer.FLASH_SOCKET_TRANSPORT);
     }
 
     private String getWebSocketLocation(HttpRequest req) {

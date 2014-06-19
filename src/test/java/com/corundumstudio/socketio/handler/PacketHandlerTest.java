@@ -44,12 +44,12 @@ import com.corundumstudio.socketio.handler.PacketHandler;
 import com.corundumstudio.socketio.messages.PacketsMessage;
 import com.corundumstudio.socketio.namespace.Namespace;
 import com.corundumstudio.socketio.namespace.NamespacesHub;
-import com.corundumstudio.socketio.parser.Decoder;
-import com.corundumstudio.socketio.parser.Encoder;
-import com.corundumstudio.socketio.parser.JacksonJsonSupport;
-import com.corundumstudio.socketio.parser.JsonSupport;
-import com.corundumstudio.socketio.parser.Packet;
-import com.corundumstudio.socketio.parser.PacketType;
+import com.corundumstudio.socketio.protocol.Decoder;
+import com.corundumstudio.socketio.protocol.Encoder;
+import com.corundumstudio.socketio.protocol.JacksonJsonSupport;
+import com.corundumstudio.socketio.protocol.JsonSupport;
+import com.corundumstudio.socketio.protocol.Packet;
+import com.corundumstudio.socketio.protocol.PacketType;
 import com.corundumstudio.socketio.transport.MainBaseClient;
 
 public class PacketHandlerTest {

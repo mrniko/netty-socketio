@@ -25,7 +25,7 @@ import com.corundumstudio.socketio.HandshakeData;
 import com.corundumstudio.socketio.Transport;
 import com.corundumstudio.socketio.ack.AckManager;
 import com.corundumstudio.socketio.messages.WebSocketPacketMessage;
-import com.corundumstudio.socketio.parser.Packet;
+import com.corundumstudio.socketio.protocol.Packet;
 import com.corundumstudio.socketio.store.StoreFactory;
 
 public class WebSocketClient extends MainBaseClient {

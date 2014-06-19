@@ -18,7 +18,7 @@ package com.corundumstudio.socketio.messages;
 import java.util.Queue;
 import java.util.UUID;
 
-import com.corundumstudio.socketio.parser.Packet;
+import com.corundumstudio.socketio.protocol.Packet;
 
 public class XHRSendPacketsMessage extends HttpMessage {
 

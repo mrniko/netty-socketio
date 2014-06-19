@@ -19,7 +19,7 @@ import java.net.SocketAddress;
 import java.util.Set;
 import java.util.UUID;
 
-import com.corundumstudio.socketio.parser.Packet;
+import com.corundumstudio.socketio.protocol.Packet;
 import com.corundumstudio.socketio.store.Store;
 
 

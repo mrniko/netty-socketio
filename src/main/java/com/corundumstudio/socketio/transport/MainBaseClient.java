@@ -33,8 +33,8 @@ import com.corundumstudio.socketio.SocketIOClient;
 import com.corundumstudio.socketio.Transport;
 import com.corundumstudio.socketio.ack.AckManager;
 import com.corundumstudio.socketio.namespace.Namespace;
-import com.corundumstudio.socketio.parser.Packet;
-import com.corundumstudio.socketio.parser.PacketType;
+import com.corundumstudio.socketio.protocol.Packet;
+import com.corundumstudio.socketio.protocol.PacketType;
 import com.corundumstudio.socketio.store.Store;
 import com.corundumstudio.socketio.store.StoreFactory;
 
