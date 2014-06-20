@@ -107,14 +107,16 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
             if (queryDecoder.path().equals(connectPath)
                     && sid == null) {
                 String origin = req.headers().get(HttpHeaders.Names.ORIGIN);
-                authorize(ctx, channel, origin, queryDecoder.parameters(), req);
-//                req.release();
+                if (!authorize(ctx, channel, origin, queryDecoder.parameters(), req)) {
+                    req.release();
+                    return;
+                }
             }
         }
         ctx.fireChannelRead(msg);
     }
 
-    private void authorize(ChannelHandlerContext ctx, Channel channel, String origin, Map<String, List<String>> params, FullHttpRequest req)
+    private boolean authorize(ChannelHandlerContext ctx, Channel channel, String origin, Map<String, List<String>> params, FullHttpRequest req)
             throws IOException {
         Map<String, List<String>> headers = new HashMap<String, List<String>>(req.headers().names().size());
         for (String name : req.headers().names()) {
@@ -133,8 +135,14 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
             log.error("Authorization error", e);
         }
 
+        if (!result) {
+            HttpResponse res = new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.UNAUTHORIZED);
+            channel.writeAndFlush(res)
+                    .addListener(ChannelFutureListener.CLOSE);
+            log.debug("Handshake unauthorized");
+            return false;
+        }
 
-        if (result) {
             // TODO try to get sessionId from cookie
             UUID sessionId = UUID.randomUUID();
 
@@ -168,13 +176,8 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
 //
 //            authorizedSessionIds.put(sessionId, data);
             log.debug("Handshake authorized for sessionId: {}", sessionId);
-        } else {
-            HttpResponse res = new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.UNAUTHORIZED);
-            channel.writeAndFlush(res)
-                    .addListener(ChannelFutureListener.CLOSE);
 
-            log.debug("Handshake unauthorized");
-        }
+        return true;
     }
 
     private String createHandshake(UUID sessionId) {
