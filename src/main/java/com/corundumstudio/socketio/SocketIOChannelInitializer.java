@@ -37,11 +37,12 @@ import org.slf4j.LoggerFactory;
 
 import com.corundumstudio.socketio.ack.AckManager;
 import com.corundumstudio.socketio.handler.AuthorizeHandler;
+import com.corundumstudio.socketio.handler.ClientHead;
+import com.corundumstudio.socketio.handler.ClientsBox;
 import com.corundumstudio.socketio.handler.EncoderHandler;
 import com.corundumstudio.socketio.handler.HeartbeatHandler;
 import com.corundumstudio.socketio.handler.PacketHandler;
 import com.corundumstudio.socketio.handler.PacketListener;
-import com.corundumstudio.socketio.handler.ResourceHandler;
 import com.corundumstudio.socketio.handler.WrongUrlHandler;
 import com.corundumstudio.socketio.namespace.NamespacesHub;
 import com.corundumstudio.socketio.protocol.Decoder;
@@ -52,8 +53,6 @@ import com.corundumstudio.socketio.scheduler.HashedWheelScheduler;
 import com.corundumstudio.socketio.store.StoreFactory;
 import com.corundumstudio.socketio.store.pubsub.DisconnectMessage;
 import com.corundumstudio.socketio.store.pubsub.PubSubStore;
-import com.corundumstudio.socketio.transport.FlashPolicyHandler;
-import com.corundumstudio.socketio.transport.MainBaseClient;
 import com.corundumstudio.socketio.transport.WebSocketTransport;
 import com.corundumstudio.socketio.transport.XHRPollingTransport;
 
@@ -77,11 +76,10 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
 
     private AckManager ackManager;
 
+    private ClientsBox clientsBox = new ClientsBox();
     private AuthorizeHandler authorizeHandler;
     private XHRPollingTransport xhrPollingTransport;
     private WebSocketTransport webSocketTransport;
-    private final FlashPolicyHandler flashPolicyHandler = new FlashPolicyHandler();
-    private ResourceHandler resourceHandler;
     private EncoderHandler encoderHandler;
     private WrongUrlHandler wrongUrlHandler;
 
@@ -109,7 +107,6 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
         String connectPath = configuration.getContext() + "/";
 
         heartbeatHandler = new HeartbeatHandler(configuration, scheduler);
-        authorizeHandler = new AuthorizeHandler(connectPath, scheduler, configuration, namespacesHub);
 
         boolean isSsl = configuration.getKeyStore() != null;
         if (isSsl) {
@@ -122,15 +119,15 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
         StoreFactory factory = configuration.getStoreFactory();
         factory.init(namespacesHub, authorizeHandler, jsonSupport);
 
-        xhrPollingTransport = new XHRPollingTransport(ackManager, this, scheduler, authorizeHandler, configuration, heartbeatHandler);
-        webSocketTransport = new WebSocketTransport(isSsl, ackManager, this, authorizeHandler, heartbeatHandler, factory, configuration, scheduler, xhrPollingTransport);
+        authorizeHandler = new AuthorizeHandler(connectPath, scheduler, configuration, namespacesHub, factory, this, ackManager, clientsBox);
+        xhrPollingTransport = new XHRPollingTransport(scheduler, authorizeHandler, configuration, clientsBox);
+        webSocketTransport = new WebSocketTransport(isSsl, authorizeHandler, heartbeatHandler, configuration, scheduler, clientsBox);
 
         PacketListener packetListener = new PacketListener(heartbeatHandler, ackManager, namespacesHub, xhrPollingTransport, scheduler);
 
 
         packetHandler = new PacketHandler(packetListener, decoder, namespacesHub, configuration.getExceptionListener());
 
-        resourceHandler = new ResourceHandler(configuration.getContext());
         encoderHandler = new EncoderHandler(encoder);
         wrongUrlHandler = new WrongUrlHandler();
     }
@@ -181,7 +178,7 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
         return serverContext;
     }
 
-    public void onDisconnect(MainBaseClient client) {
+    public void onDisconnect(ClientHead client) {
         heartbeatHandler.onDisconnect(client);
         ackManager.onDisconnect(client);
         xhrPollingTransport.onDisconnect(client);

@@ -17,25 +17,10 @@ package com.corundumstudio.socketio.messages;
 
 import java.util.UUID;
 
-import com.corundumstudio.socketio.protocol.Packet;
+public class XHRPostMessage extends HttpMessage {
 
-public class WebSocketPacketMessage extends BaseMessage {
-
-    private final UUID sessionId;
-    private final Packet packet;
-
-    public WebSocketPacketMessage(UUID sessionId, Packet packet) {
-        super();
-        this.sessionId = sessionId;
-        this.packet = packet;
-    }
-
-    public Packet getPacket() {
-        return packet;
-    }
-
-    public UUID getSessionId() {
-        return sessionId;
+    public XHRPostMessage(String origin, UUID sessionId) {
+        super(origin, sessionId);
     }
 
 }

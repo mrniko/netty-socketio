@@ -38,29 +38,30 @@ import io.netty.handler.codec.http.LastHttpContent;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketFrame;
 import io.netty.util.Attribute;
+import io.netty.util.AttributeKey;
 import io.netty.util.CharsetUtil;
 
 import java.io.IOException;
+import java.util.Queue;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.corundumstudio.socketio.messages.AuthorizeMessage;
+import com.corundumstudio.socketio.Transport;
 import com.corundumstudio.socketio.messages.BaseMessage;
 import com.corundumstudio.socketio.messages.HttpMessage;
-import com.corundumstudio.socketio.messages.WebSocketPacketMessage;
+import com.corundumstudio.socketio.messages.OutPacketMessage;
 import com.corundumstudio.socketio.messages.WebsocketErrorMessage;
 import com.corundumstudio.socketio.messages.XHRErrorMessage;
 import com.corundumstudio.socketio.messages.XHROptionsMessage;
-import com.corundumstudio.socketio.messages.XHROutMessage;
-import com.corundumstudio.socketio.messages.XHRSendPacketsMessage;
+import com.corundumstudio.socketio.messages.XHRPostMessage;
 import com.corundumstudio.socketio.protocol.Encoder;
 import com.corundumstudio.socketio.protocol.Packet;
-import com.corundumstudio.socketio.protocol.PacketType;
-import com.corundumstudio.socketio.transport.XHRPollingClient;
 
 @Sharable
 public class EncoderHandler extends ChannelOutboundHandlerAdapter {
+
+    public static final AttributeKey<Boolean> WRITE_ONCE = AttributeKey.<Boolean>valueOf("writeOnce");
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -68,21 +69,6 @@ public class EncoderHandler extends ChannelOutboundHandlerAdapter {
 
     public EncoderHandler(Encoder encoder) {
         this.encoder = encoder;
-    }
-
-    private void write(XHRSendPacketsMessage msg, ChannelHandlerContext ctx, ByteBuf out) throws IOException {
-        Channel channel = ctx.channel();
-        Attribute<Boolean> attr = channel.attr(XHRPollingClient.WRITE_ONCE);
-
-        if (!channel.isActive()
-                || msg.getPacketQueue().isEmpty()
-                    || !attr.compareAndSet(null, true)) {
-            out.release();
-            return;
-        }
-
-        encoder.encodePackets(msg.getPacketQueue(), out, ctx.alloc());
-        sendMessage(msg, channel, out, "application/octet-stream");
     }
 
     private void write(XHROptionsMessage msg, Channel channel, ByteBuf out) {
@@ -100,7 +86,7 @@ public class EncoderHandler extends ChannelOutboundHandlerAdapter {
     }
 
 
-    private void write(XHROutMessage msg, Channel channel, ByteBuf out) {
+    private void write(XHRPostMessage msg, Channel channel, ByteBuf out) {
         out.writeBytes(Unpooled.copiedBuffer("ok", CharsetUtil.UTF_8));
         sendMessage(msg, channel, out, "text/html");
     }
@@ -163,18 +149,21 @@ public class EncoderHandler extends ChannelOutboundHandlerAdapter {
 
         ByteBuf out = encoder.allocateBuffer(ctx.alloc());
 
-        if (msg instanceof AuthorizeMessage) {
-            handle((AuthorizeMessage) msg, ctx, out);
+        if (msg instanceof OutPacketMessage) {
+            OutPacketMessage m = (OutPacketMessage) msg;
+            if (m.getTransport() == Transport.WEBSOCKET) {
+                handleWebsocket((OutPacketMessage) msg, ctx, out);
+            }
+            if (m.getTransport() == Transport.POLLING) {
+                handleHTTP((OutPacketMessage) msg, ctx, out);
+            }
         }
 
-        if (msg instanceof XHRSendPacketsMessage) {
-            write((XHRSendPacketsMessage) msg, ctx, out);
-        }
         if (msg instanceof XHROptionsMessage) {
             write((XHROptionsMessage) msg, ctx.channel(), out);
         }
-        if (msg instanceof XHROutMessage) {
-            write((XHROutMessage) msg, ctx.channel(), out);
+        if (msg instanceof XHRPostMessage) {
+            write((XHRPostMessage) msg, ctx.channel(), out);
         }
         if (msg instanceof XHRErrorMessage) {
             XHRErrorMessage xhrErrorMessage = (XHRErrorMessage) msg;
@@ -182,38 +171,45 @@ public class EncoderHandler extends ChannelOutboundHandlerAdapter {
             sendMessage(xhrErrorMessage, ctx.channel(), out, "application/octet-stream");
         }
 
-        if (msg instanceof WebSocketPacketMessage) {
-            handle((WebSocketPacketMessage) msg, ctx, out);
-        }
         if (msg instanceof WebsocketErrorMessage) {
             handle((WebsocketErrorMessage) msg, ctx, out);
         }
     }
 
-    private void handle(AuthorizeMessage msg, ChannelHandlerContext ctx, ByteBuf out) throws IOException {
-        Packet packet = new Packet(PacketType.OPEN);
-        packet.setData(msg.getMsg());
-        encoder.encodePacket(packet, out, ctx.alloc());
-        sendMessage(msg, ctx.channel(), out, "application/octet-stream");
+    private void handleWebsocket(OutPacketMessage msg, ChannelHandlerContext ctx, ByteBuf out) throws IOException {
+        while (true) {
+            Packet packet = msg.getClientHead().getPacketsQueue(msg.getTransport()).poll();
+            if (packet == null) {
+                break;
+            }
+            packet.setBinary(true);
+            encoder.encodePacket(packet, out, ctx.alloc());
+            WebSocketFrame res = new TextWebSocketFrame(out);
+            log.trace("Out message: {} sessionId: {}",
+                    out.toString(CharsetUtil.UTF_8), msg.getSessionId());
+            ctx.channel().writeAndFlush(res);
+            if (!out.isReadable()) {
+                out.release();
+            }
+        }
 
-//        Object message = authMsg.getMsg();
-//        if (authMsg.getJsonpParam() != null) {
-//            encoder.encodeJsonP(authMsg.getJsonpParam(), message, out);
-//        } else {
-//            out.writeBytes(message.getBytes(CharsetUtil.UTF_8));
-//        }
-//        sendMessage(authMsg, ctx.channel(), out);
     }
 
-    private void handle(WebSocketPacketMessage webSocketPacketMessage, ChannelHandlerContext ctx, ByteBuf out) throws IOException {
-        encoder.encodePacket(webSocketPacketMessage.getPacket(), out, ctx.alloc());
-        WebSocketFrame res = new TextWebSocketFrame(out);
-        log.trace("Out message: {} sessionId: {}",
-                        out.toString(CharsetUtil.UTF_8), webSocketPacketMessage.getSessionId());
-        ctx.channel().writeAndFlush(res);
-        if (!out.isReadable()) {
+    private void handleHTTP(OutPacketMessage msg, ChannelHandlerContext ctx, ByteBuf out) throws IOException {
+        Channel channel = ctx.channel();
+        Attribute<Boolean> attr = channel.attr(WRITE_ONCE);
+
+        Queue<Packet> queue = msg.getClientHead().getPacketsQueue(msg.getTransport());
+
+        if (!channel.isActive()
+                || queue.isEmpty()
+                    || !attr.compareAndSet(null, true)) {
             out.release();
+            return;
         }
+
+        encoder.encodePackets(queue, out, ctx.alloc());
+        sendMessage(msg, channel, out, "application/octet-stream");
     }
 
     private void handle(WebsocketErrorMessage websocketErrorMessage, ChannelHandlerContext ctx, ByteBuf out) throws IOException {

@@ -16,9 +16,9 @@
 package com.corundumstudio.socketio.handler;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.util.CharsetUtil;
 
 import org.slf4j.Logger;
@@ -31,7 +31,6 @@ import com.corundumstudio.socketio.namespace.NamespacesHub;
 import com.corundumstudio.socketio.protocol.Decoder;
 import com.corundumstudio.socketio.protocol.Packet;
 import com.corundumstudio.socketio.protocol.PacketType;
-import com.corundumstudio.socketio.transport.MainBaseClient;
 import com.corundumstudio.socketio.transport.NamespaceClient;
 
 @Sharable
@@ -56,7 +55,7 @@ public class PacketHandler extends SimpleChannelInboundHandler<PacketsMessage> {
     protected void channelRead0(io.netty.channel.ChannelHandlerContext ctx, PacketsMessage message)
                 throws Exception {
         ByteBuf content = message.getContent();
-        MainBaseClient client = message.getClient();
+        ClientHead client = message.getClient();
 
         if (log.isTraceEnabled()) {
             log.trace("In message: {} sessionId: {}", content.toString(CharsetUtil.UTF_8), client.getSessionId());
@@ -79,7 +78,7 @@ public class PacketHandler extends SimpleChannelInboundHandler<PacketsMessage> {
                     log.debug("Can't find namespace client in namespace: {}, sessionId: {} probably it was disconnected.", ns.getName(), client.getSessionId());
                     return;
                 }
-                packetListener.onPacket(packet, nClient);
+                packetListener.onPacket(packet, nClient, message.getTransport());
             } catch (Exception ex) {
                 String c = content.toString(CharsetUtil.UTF_8);
                 log.error("Error during data processing. Client sessionId: " + client.getSessionId() + ", data: " + c, ex);

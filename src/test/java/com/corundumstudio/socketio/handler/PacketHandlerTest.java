@@ -15,32 +15,27 @@
  */
 package com.corundumstudio.socketio.handler;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Queue;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import mockit.Mocked;
-
-import com.corundumstudio.socketio.Configuration;
-import com.corundumstudio.socketio.store.MemoryStoreFactory;
-import com.corundumstudio.socketio.transport.NamespaceClient;
-import com.corundumstudio.socketio.transport.XHRPollingClient;
-
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.buffer.UnpooledByteBufAllocator;
 import io.netty.channel.Channel;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import mockit.Mocked;
+
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.corundumstudio.socketio.Configuration;
+import com.corundumstudio.socketio.Transport;
 import com.corundumstudio.socketio.ack.AckManager;
-import com.corundumstudio.socketio.handler.PacketHandler;
 import com.corundumstudio.socketio.messages.PacketsMessage;
 import com.corundumstudio.socketio.namespace.Namespace;
 import com.corundumstudio.socketio.namespace.NamespacesHub;
@@ -50,7 +45,7 @@ import com.corundumstudio.socketio.protocol.JacksonJsonSupport;
 import com.corundumstudio.socketio.protocol.JsonSupport;
 import com.corundumstudio.socketio.protocol.Packet;
 import com.corundumstudio.socketio.protocol.PacketType;
-import com.corundumstudio.socketio.transport.MainBaseClient;
+import com.corundumstudio.socketio.transport.NamespaceClient;
 
 public class PacketHandlerTest {
 
@@ -59,9 +54,9 @@ public class PacketHandlerTest {
     private Decoder decoder = new Decoder(map, new AckManager(null));
     private Encoder encoder = new Encoder(cfg, map);
     private NamespacesHub namespacesHub = new NamespacesHub(cfg);
+    private ClientHead client;
     @Mocked
     private Channel channel;
-    private MainBaseClient client = new XHRPollingClient(null, null, UUID.randomUUID(), new MemoryStoreFactory(), null);
     private final AtomicInteger invocations = new AtomicInteger();
 
     @Before
@@ -77,7 +72,7 @@ public class PacketHandlerTest {
     private PacketListener createTestListener(final List<Packet> packets) {
         PacketListener listener = new PacketListener(null, null, null, null, null) {
             @Override
-            public void onPacket(Packet packet, NamespaceClient client) {
+            public void onPacket(Packet packet, NamespaceClient client, Transport transport) {
                 int index = invocations.incrementAndGet();
                 Packet currentPacket = packets.get(index-1);
                 Assert.assertEquals(currentPacket.getType(), packet.getType());
@@ -141,22 +136,19 @@ public class PacketHandlerTest {
         int size = packets.size();
         ByteBuf buffer = Unpooled.buffer();
         encoder.encodePackets(packets, buffer, UnpooledByteBufAllocator.DEFAULT);
-        handler.channelRead0(null, new PacketsMessage(client, buffer));
+        handler.channelRead0(null, new PacketsMessage(client, buffer, null));
         Assert.assertEquals(size, invocations.get());
     }
 
     //@Test
     public void testDecodePerf() throws Exception {
         PacketListener listener = new PacketListener(null, null, null, null, null) {
-            @Override
-            public void onPacket(Packet packet, NamespaceClient client) {
-            }
         };
         PacketHandler handler = new PacketHandler(listener, decoder, namespacesHub, null);
         long start = System.currentTimeMillis();
         ByteBuf buffer = Unpooled.wrappedBuffer("\ufffd10\ufffd3:::Привет\ufffd7\ufffd3:::53d\ufffd3\ufffd0::\ufffd5\ufffd3:::5\ufffd7\ufffd3:::53d\ufffd3\ufffd0::\ufffd5\ufffd3:::5\ufffd7\ufffd3:::53d\ufffd3\ufffd0::\ufffd5\ufffd3:::5\ufffd7\ufffd3:::53d\ufffd3\ufffd0::\ufffd5\ufffd3:::5\ufffd7\ufffd3:::53d\ufffd3\ufffd0::".getBytes());
         for (int i = 0; i < 50000; i++) {
-            handler.channelRead0(null, new PacketsMessage(client, buffer));
+            handler.channelRead0(null, new PacketsMessage(client, buffer, null));
             buffer.readerIndex(0);
         }
         long end = System.currentTimeMillis() - start;

@@ -33,4 +33,13 @@ public enum Transport {
         return value;
     }
 
+    public static Transport byName(String value) {
+        for (Transport t : Transport.values()) {
+            if (t.getValue().equals(value)) {
+                return t;
+            }
+        }
+        throw new IllegalArgumentException("Can't find " + value + " transport");
+    }
+
 }

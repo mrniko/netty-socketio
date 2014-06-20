@@ -19,10 +19,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.corundumstudio.socketio.handler.AuthorizeHandler;
+import com.corundumstudio.socketio.handler.ClientHead;
 import com.corundumstudio.socketio.namespace.NamespacesHub;
 import com.corundumstudio.socketio.protocol.JsonSupport;
 import com.corundumstudio.socketio.store.StoreFactory;
-import com.corundumstudio.socketio.transport.MainBaseClient;
 
 public abstract class BaseStoreFactory implements StoreFactory {
 
@@ -85,7 +85,7 @@ public abstract class BaseStoreFactory implements StoreFactory {
     public abstract PubSubStore pubSubStore();
 
     @Override
-    public void onDisconnect(MainBaseClient client) {
+    public void onDisconnect(ClientHead client) {
     }
 
     @Override

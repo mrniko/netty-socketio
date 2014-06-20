@@ -31,11 +31,11 @@ import com.corundumstudio.socketio.Disconnectable;
 import com.corundumstudio.socketio.MultiTypeAckCallback;
 import com.corundumstudio.socketio.MultiTypeArgs;
 import com.corundumstudio.socketio.SocketIOClient;
+import com.corundumstudio.socketio.handler.ClientHead;
 import com.corundumstudio.socketio.protocol.Packet;
 import com.corundumstudio.socketio.scheduler.CancelableScheduler;
 import com.corundumstudio.socketio.scheduler.SchedulerKey;
 import com.corundumstudio.socketio.scheduler.SchedulerKey.Type;
-import com.corundumstudio.socketio.transport.MainBaseClient;
 
 public class AckManager implements Disconnectable {
 
@@ -166,7 +166,7 @@ public class AckManager implements Disconnectable {
     }
 
     @Override
-    public void onDisconnect(MainBaseClient client) {
+    public void onDisconnect(ClientHead client) {
         AckEntry e = ackEntries.remove(client.getSessionId());
         if (e == null) {
             return;

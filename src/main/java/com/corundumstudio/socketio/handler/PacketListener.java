@@ -19,6 +19,7 @@ import java.util.Collections;
 import java.util.List;
 
 import com.corundumstudio.socketio.AckRequest;
+import com.corundumstudio.socketio.Transport;
 import com.corundumstudio.socketio.ack.AckManager;
 import com.corundumstudio.socketio.namespace.Namespace;
 import com.corundumstudio.socketio.namespace.NamespacesHub;
@@ -27,7 +28,6 @@ import com.corundumstudio.socketio.protocol.PacketType;
 import com.corundumstudio.socketio.scheduler.CancelableScheduler;
 import com.corundumstudio.socketio.scheduler.SchedulerKey;
 import com.corundumstudio.socketio.transport.NamespaceClient;
-import com.corundumstudio.socketio.transport.XHRPollingClient;
 import com.corundumstudio.socketio.transport.XHRPollingTransport;
 
 public class PacketListener {
@@ -47,7 +47,7 @@ public class PacketListener {
         this.scheduler = scheduler;
     }
 
-    public void onPacket(Packet packet, NamespaceClient client) {
+    public void onPacket(Packet packet, NamespaceClient client, Transport transport) {
         final AckRequest ackRequest = new AckRequest(packet, client);
 
         if (packet.isAckRequested()) {
@@ -59,11 +59,10 @@ public class PacketListener {
             Packet outPacket = new Packet(PacketType.PONG);
             outPacket.setData(packet.getData());
             // TODO use future
-            client.send(outPacket);
+            client.getBaseClient().send(outPacket, transport);
 
             if ("probe".equals(packet.getData())) {
-                XHRPollingClient oldClient = xhrPollingTransport.getClient(client.getSessionId());
-                oldClient.send(new Packet(PacketType.NOOP));
+                client.getBaseClient().send(new Packet(PacketType.NOOP), Transport.POLLING);
             }
             break;
         }
@@ -72,6 +71,8 @@ public class PacketListener {
             SchedulerKey key = new SchedulerKey(SchedulerKey.Type.UPGRADE_TIMEOUT, client.getSessionId());
             scheduler.cancel(key);
             // TODO setPingTimeout
+
+            client.getBaseClient().upgradeCurrentTransport(transport);
             break;
         }
 
@@ -80,7 +81,7 @@ public class PacketListener {
                 Namespace namespace = namespacesHub.get(packet.getNsp());
                 namespace.onConnect(client);
                 // send connect handshake packet back to client
-                client.send(packet);
+                client.getBaseClient().send(packet, transport);
             }
 
             if (packet.getSubType() == PacketType.ACK) {

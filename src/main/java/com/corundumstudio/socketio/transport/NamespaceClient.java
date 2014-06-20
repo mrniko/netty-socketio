@@ -25,6 +25,7 @@ import com.corundumstudio.socketio.AckCallback;
 import com.corundumstudio.socketio.HandshakeData;
 import com.corundumstudio.socketio.SocketIOClient;
 import com.corundumstudio.socketio.Transport;
+import com.corundumstudio.socketio.handler.ClientHead;
 import com.corundumstudio.socketio.namespace.Namespace;
 import com.corundumstudio.socketio.protocol.Packet;
 import com.corundumstudio.socketio.protocol.PacketType;
@@ -32,27 +33,27 @@ import com.corundumstudio.socketio.protocol.PacketType;
 public class NamespaceClient implements SocketIOClient {
 
     private final AtomicBoolean disconnected = new AtomicBoolean();
-    private final MainBaseClient baseClient;
+    private final ClientHead baseClient;
     private final Namespace namespace;
 
-    public NamespaceClient(MainBaseClient baseClient, Namespace namespace) {
+    public NamespaceClient(ClientHead baseClient, Namespace namespace) {
         this.baseClient = baseClient;
         this.namespace = namespace;
         namespace.addClient(this);
     }
 
-    public MainBaseClient getBaseClient() {
+    public ClientHead getBaseClient() {
         return baseClient;
     }
 
     @Override
     public Transport getTransport() {
-        return baseClient.getTransport();
+        return baseClient.getCurrentTransport();
     }
 
     @Override
     public boolean isChannelOpen() {
-        return baseClient.getChannel().isOpen();
+        return baseClient.isChannelOpen();
     }
 
     @Override

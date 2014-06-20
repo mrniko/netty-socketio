@@ -30,25 +30,22 @@ import io.netty.util.CharsetUtil;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.corundumstudio.socketio.Configuration;
-import com.corundumstudio.socketio.DisconnectableHub;
 import com.corundumstudio.socketio.HandshakeData;
 import com.corundumstudio.socketio.Transport;
-import com.corundumstudio.socketio.ack.AckManager;
 import com.corundumstudio.socketio.handler.AuthorizeHandler;
-import com.corundumstudio.socketio.handler.HeartbeatHandler;
+import com.corundumstudio.socketio.handler.ClientHead;
+import com.corundumstudio.socketio.handler.ClientsBox;
 import com.corundumstudio.socketio.messages.PacketsMessage;
 import com.corundumstudio.socketio.messages.XHRErrorMessage;
 import com.corundumstudio.socketio.messages.XHROptionsMessage;
-import com.corundumstudio.socketio.messages.XHROutMessage;
+import com.corundumstudio.socketio.messages.XHRPostMessage;
 import com.corundumstudio.socketio.protocol.ErrorAdvice;
 import com.corundumstudio.socketio.protocol.ErrorReason;
 import com.corundumstudio.socketio.protocol.Packet;
@@ -64,22 +61,18 @@ public class XHRPollingTransport extends BaseTransport {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private final Map<UUID, XHRPollingClient> sessionId2Client =
-                                                    new ConcurrentHashMap<UUID, XHRPollingClient>();
     private final CancelableScheduler scheduler;
 
-    private final AckManager ackManager;
-    private final AuthorizeHandler authorizeHandler;
-    private final DisconnectableHub disconnectable;
     private final Configuration configuration;
+    private final ClientsBox clientsBox;
+    private final AuthorizeHandler authorizeHandler;
 
-    public XHRPollingTransport(AckManager ackManager, DisconnectableHub disconnectable, CancelableScheduler scheduler,
-                                AuthorizeHandler authorizeHandler, Configuration configuration, HeartbeatHandler heartbeatHandler) {
-        this.ackManager = ackManager;
+    public XHRPollingTransport(CancelableScheduler scheduler,
+                                AuthorizeHandler authorizeHandler, Configuration configuration, ClientsBox clientsBox) {
         this.authorizeHandler = authorizeHandler;
         this.configuration = configuration;
-        this.disconnectable = disconnectable;
         this.scheduler = scheduler;
+        this.clientsBox = clientsBox;
     }
 
     public static void main(String[] args) {
@@ -111,10 +104,16 @@ public class XHRPollingTransport extends BaseTransport {
             List<String> transport = queryDecoder.parameters().get("transport");
             List<String> sid = queryDecoder.parameters().get("sid");
 
-            if (transport != null && NAME.equals(transport.get(0))
-                    && sid != null && sid.get(0) != null) {
+            if (transport != null && NAME.equals(transport.get(0))) {
                 try {
-                    handleMessage(req, sid.get(0), queryDecoder, ctx);
+                    if (sid != null && sid.get(0) != null) {
+                        final UUID sessionId = UUID.fromString(sid.get(0));
+                        handleMessage(req, sessionId, queryDecoder, ctx);
+                    } else {
+                        // first connection
+                        ClientHead client = ctx.channel().attr(ClientHead.CLIENT).get();
+                        handleMessage(req, client.getSessionId(), queryDecoder, ctx);
+                    }
                 } finally {
                     req.release();
                 }
@@ -124,15 +123,13 @@ public class XHRPollingTransport extends BaseTransport {
         ctx.fireChannelRead(msg);
     }
 
-    private void handleMessage(FullHttpRequest req, String sid, QueryStringDecoder queryDecoder, ChannelHandlerContext ctx)
+    private void handleMessage(FullHttpRequest req, UUID sessionId, QueryStringDecoder queryDecoder, ChannelHandlerContext ctx)
                                                                                 throws IOException {
-            UUID sessionId = UUID.fromString(sid);
-
             String origin = req.headers().get(HttpHeaders.Names.ORIGIN);
             if (queryDecoder.parameters().containsKey("disconnect")) {
-                MainBaseClient client = sessionId2Client.get(sessionId);
+                ClientHead client = clientsBox.get(sessionId);
                 client.onChannelDisconnect();
-                ctx.channel().writeAndFlush(new XHROutMessage(origin, sessionId));
+                ctx.channel().writeAndFlush(new XHRPostMessage(origin, sessionId));
             } else if (HttpMethod.POST.equals(req.getMethod())) {
                 onPost(sessionId, ctx, origin, req.content());
             } else if (HttpMethod.GET.equals(req.getMethod())) {
@@ -143,13 +140,11 @@ public class XHRPollingTransport extends BaseTransport {
     }
 
     private void onOptions(UUID sessionId, ChannelHandlerContext ctx, String origin) {
-        HandshakeData data = authorizeHandler.getHandshakeData(sessionId);
+        HandshakeData data = clientsBox.getHandshakeData(sessionId);
         if (data == null) {
             sendError(ctx, origin, sessionId);
             return;
         }
-
-        XHRPollingClient client = getClient(sessionId, data);
 
         ctx.channel().writeAndFlush(new XHROptionsMessage(origin, sessionId));
     }
@@ -160,7 +155,7 @@ public class XHRPollingTransport extends BaseTransport {
         scheduler.schedule(key, new Runnable() {
             @Override
             public void run() {
-                XHRPollingClient client = sessionId2Client.get(sessionId);
+                ClientHead client = clientsBox.get(sessionId);
                 if (client != null) {
                     client.send(new Packet(PacketType.BINARY_EVENT));
                 }
@@ -178,7 +173,7 @@ public class XHRPollingTransport extends BaseTransport {
                 scheduler.scheduleCallback(key, new Runnable() {
                     @Override
                     public void run() {
-                        XHRPollingClient client = sessionId2Client.get(sessionId);
+                        ClientHead client = clientsBox.get(sessionId);
                         if (client != null) {
                             client.onChannelDisconnect();
                             log.debug("Client: {} disconnected due to connection timeout", sessionId);
@@ -191,50 +186,33 @@ public class XHRPollingTransport extends BaseTransport {
 
     private void onPost(UUID sessionId, ChannelHandlerContext ctx, String origin, ByteBuf content)
                                                                                 throws IOException {
-        HandshakeData data = authorizeHandler.getHandshakeData(sessionId);
+        HandshakeData data = clientsBox.getHandshakeData(sessionId);
         if (data == null) {
             sendError(ctx, origin, sessionId);
             return;
         }
 
-        XHRPollingClient client = getClient(sessionId, data);
+        ClientHead client = clientsBox.get(sessionId);
 
         // release POST response before message processing
-        ctx.channel().writeAndFlush(new XHROutMessage(origin, sessionId));
-        ctx.pipeline().fireChannelRead(new PacketsMessage(client, content));
-
-//        authorizeHandler.connect(client);
+        ctx.channel().writeAndFlush(new XHRPostMessage(origin, sessionId));
+        ctx.pipeline().fireChannelRead(new PacketsMessage(client, content, Transport.POLLING));
     }
 
     private void onGet(UUID sessionId, ChannelHandlerContext ctx, String origin) {
-        HandshakeData data = authorizeHandler.getHandshakeData(sessionId);
+        HandshakeData data = clientsBox.getHandshakeData(sessionId);
         if (data == null) {
             sendError(ctx, origin, sessionId);
             return;
         }
 
-        XHRPollingClient client = getClient(sessionId, data);
-        client.bindChannel(ctx.channel(), origin);
+        ClientHead client = clientsBox.get(sessionId);
+        client.bindChannel(ctx.channel(), Transport.POLLING);
         // TODO implement send packets at one response
         authorizeHandler.connect(client);
 
         scheduleDisconnect(ctx.channel(), sessionId);
         scheduleNoop(sessionId);
-    }
-
-    public XHRPollingClient getClient(UUID sessionId) {
-        return sessionId2Client.get(sessionId);
-    }
-
-    private XHRPollingClient getClient(UUID sessionId, HandshakeData data) {
-        XHRPollingClient client = (XHRPollingClient) sessionId2Client.get(sessionId);
-        if (client == null) {
-            client = new XHRPollingClient(ackManager, disconnectable, sessionId, configuration.getStoreFactory(), data);
-            sessionId2Client.put(sessionId, client);
-
-            log.debug("Client for sessionId: {} was created", sessionId);
-        }
-        return client;
     }
 
     private void sendError(ChannelHandlerContext ctx, String origin, UUID sessionId) {
@@ -246,20 +224,16 @@ public class XHRPollingTransport extends BaseTransport {
     }
 
     @Override
-    public void onDisconnect(MainBaseClient client) {
-        if (client instanceof XHRPollingClient) {
-            UUID sessionId = client.getSessionId();
-
-            sessionId2Client.remove(sessionId);
-            SchedulerKey noopKey = new SchedulerKey(Type.POLLING, sessionId);
-            scheduler.cancel(noopKey);
-            SchedulerKey closeTimeoutKey = new SchedulerKey(Type.CLOSE_TIMEOUT, sessionId);
-            scheduler.cancel(closeTimeoutKey);
-        }
+    public void onDisconnect(ClientHead client) {
+        UUID sessionId = client.getSessionId();
+        SchedulerKey noopKey = new SchedulerKey(Type.POLLING, sessionId);
+        scheduler.cancel(noopKey);
+        SchedulerKey closeTimeoutKey = new SchedulerKey(Type.CLOSE_TIMEOUT, sessionId);
+        scheduler.cancel(closeTimeoutKey);
     }
 
     public void onDisconnect(UUID sessionId) {
-        XHRPollingClient client = sessionId2Client.get(sessionId);
+        ClientHead client = clientsBox.get(sessionId);
         onDisconnect(client);
     }
 

@@ -42,22 +42,22 @@ import org.slf4j.LoggerFactory;
 
 import com.corundumstudio.socketio.Configuration;
 import com.corundumstudio.socketio.Disconnectable;
+import com.corundumstudio.socketio.DisconnectableHub;
 import com.corundumstudio.socketio.HandshakeData;
 import com.corundumstudio.socketio.SocketIOClient;
 import com.corundumstudio.socketio.Transport;
-import com.corundumstudio.socketio.messages.AuthorizeMessage;
+import com.corundumstudio.socketio.ack.AckManager;
 import com.corundumstudio.socketio.namespace.Namespace;
 import com.corundumstudio.socketio.namespace.NamespacesHub;
 import com.corundumstudio.socketio.protocol.AuthPacket;
-import com.corundumstudio.socketio.protocol.Encoder;
 import com.corundumstudio.socketio.protocol.Packet;
 import com.corundumstudio.socketio.protocol.PacketType;
 import com.corundumstudio.socketio.scheduler.CancelableScheduler;
 import com.corundumstudio.socketio.scheduler.SchedulerKey;
 import com.corundumstudio.socketio.scheduler.SchedulerKey.Type;
+import com.corundumstudio.socketio.store.StoreFactory;
 import com.corundumstudio.socketio.store.pubsub.ConnectMessage;
 import com.corundumstudio.socketio.store.pubsub.PubSubStore;
-import com.corundumstudio.socketio.transport.MainBaseClient;
 
 @Sharable
 public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Disconnectable {
@@ -65,20 +65,26 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     private final CancelableScheduler disconnectScheduler;
-    private final Map<UUID, HandshakeData> authorizedSessionIds;
 
     private final String connectPath;
     private final Configuration configuration;
     private final NamespacesHub namespacesHub;
+    private final StoreFactory storeFactory;
+    private final DisconnectableHub disconnectable;
+    private final AckManager ackManager;
+    private final ClientsBox clientsBox;
 
-    public AuthorizeHandler(String connectPath, CancelableScheduler scheduler, Configuration configuration, NamespacesHub namespacesHub) {
+    public AuthorizeHandler(String connectPath, CancelableScheduler scheduler, Configuration configuration, NamespacesHub namespacesHub, StoreFactory storeFactory,
+            DisconnectableHub disconnectable, AckManager ackManager, ClientsBox clientsBox) {
         super();
         this.connectPath = connectPath;
         this.configuration = configuration;
         this.disconnectScheduler = scheduler;
         this.namespacesHub = namespacesHub;
-
-        this.authorizedSessionIds = configuration.getStoreFactory().createMap("authorizedSessionIds");
+        this.storeFactory = storeFactory;
+        this.disconnectable = disconnectable;
+        this.ackManager = ackManager;
+        this.clientsBox = clientsBox;
     }
 
     @Override
@@ -102,8 +108,7 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
                     && sid == null) {
                 String origin = req.headers().get(HttpHeaders.Names.ORIGIN);
                 authorize(ctx, channel, origin, queryDecoder.parameters(), req);
-                req.release();
-                return;
+//                req.release();
             }
         }
         ctx.fireChannelRead(msg);
@@ -128,9 +133,16 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
             log.error("Authorization error", e);
         }
 
+
         if (result) {
             // TODO try to get sessionId from cookie
             UUID sessionId = UUID.randomUUID();
+
+            List<String> transportValue = params.get("transport");
+            Transport transport = Transport.byName(transportValue.get(0));
+            ClientHead client = new ClientHead(sessionId, ackManager, disconnectable, storeFactory, data, clientsBox, transport);
+            channel.attr(ClientHead.CLIENT).set(client);
+            clientsBox.addClient(client);
 
             scheduleDisconnect(channel, sessionId);
 
@@ -139,11 +151,11 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
                 transports = new String[] {"websocket"};
             }
 
-            AuthPacket packet = new AuthPacket(sessionId, transports, configuration.getPollingDuration()*1000,
+            AuthPacket authPacket = new AuthPacket(sessionId, transports, configuration.getPollingDuration()*1000,
                                                     configuration.getCloseTimeout()*1000);
-            channel.writeAndFlush(new AuthorizeMessage(packet, null, origin, sessionId));
-
-            authorizedSessionIds.put(sessionId, data);
+            Packet packet = new Packet(PacketType.OPEN);
+            packet.setData(authPacket);
+            client.send(packet);
 
 //            String msg = createHandshake(sessionId);
 //
@@ -182,7 +194,7 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
                 disconnectScheduler.schedule(key, new Runnable() {
                     @Override
                     public void run() {
-                        authorizedSessionIds.remove(sessionId);
+                        clientsBox.removeClient(sessionId);
                         log.debug("Authorized sessionId: {} removed due to connection timeout", sessionId);
                     }
                 }, configuration.getCloseTimeout(), TimeUnit.SECONDS);
@@ -190,49 +202,31 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
         });
     }
 
-    public HandshakeData getHandshakeData(UUID sessionId) {
-        return authorizedSessionIds.get(sessionId);
-    }
-
     public void connect(UUID sessionId) {
         SchedulerKey key = new SchedulerKey(Type.AUTHORIZE, sessionId);
         disconnectScheduler.cancel(key);
     }
 
-    public void connect(MainBaseClient client) {
+    public void connect(ClientHead client) {
         Namespace ns = namespacesHub.get(Namespace.DEFAULT_NAME);
 
         if (!client.getNamespaces().contains(ns)) {
             connect(client.getSessionId());
-
-            SocketIOClient nsClient = client.addNamespaceClient(ns);
-            ns.onConnect(nsClient);
 
             Packet packet = new Packet(PacketType.MESSAGE);
             packet.setSubType(PacketType.CONNECT);
             client.send(packet);
 
             configuration.getStoreFactory().pubSubStore().publish(PubSubStore.CONNECT, new ConnectMessage(client.getSessionId()));
-        }
 
-//        List<Packet> packets = new ArrayList<Packet>(client.getAllChildClients().size());
-//        for (SocketIOClient с : client.getAllChildClients()) {
-//            Namespace namespace = ((NamespaceClient)с).getNamespace();
-//            if (!client.isConnectSended(namespace)) {
-//                Packet packet = new Packet(PacketType.MESSAGE);
-//                packet.setSubType(PacketType.CONNECT);
-//                packet.setNsp(namespace.getName());
-//                packets.add(packet);
-//            }
-//        }
-//        if (!packets.isEmpty()) {
-//            client.send(packets.toArray(new Packet[packets.size()]));
-//        }
+            SocketIOClient nsClient = client.addNamespaceClient(ns);
+            ns.onConnect(nsClient);
+        }
     }
 
     @Override
-    public void onDisconnect(MainBaseClient client) {
-        authorizedSessionIds.remove(client.getSessionId());
+    public void onDisconnect(ClientHead client) {
+        clientsBox.removeClient(client.getSessionId());
     }
 
 }

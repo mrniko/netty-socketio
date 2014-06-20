@@ -15,12 +15,12 @@
  */
 package com.corundumstudio.socketio;
 
-import com.corundumstudio.socketio.transport.MainBaseClient;
+import com.corundumstudio.socketio.handler.ClientHead;
 
 
 
 public interface Disconnectable {
 
-    void onDisconnect(MainBaseClient client);
+    void onDisconnect(ClientHead client);
 
 }
