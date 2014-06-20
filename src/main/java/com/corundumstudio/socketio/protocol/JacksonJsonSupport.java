@@ -53,54 +53,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public class JacksonJsonSupport implements JsonSupport {
 
-    private class JsonObjectDeserializer extends StdDeserializer<JsonObject> {
-
-        private static final long serialVersionUID = 8025939196914136933L;
-
-        final Set<Class<?>> classes = new ConcurrentHashSet<Class<?>>();
-
-        protected JsonObjectDeserializer() {
-            super(JsonObject.class);
-        }
-
-        @Override
-        public JsonObject deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException,
-                JsonProcessingException {
-            ObjectMapper mapper = (ObjectMapper) jp.getCodec();
-            JsonNode rootNode = mapper.readTree(jp);
-            if (!rootNode.isObject()) {
-                return null;
-            }
-
-            Object val = readObject(mapper, rootNode);
-            return new JsonObject(val);
-        }
-
-        private Object readObject(ObjectMapper mapper, JsonNode rootNode) throws IOException,
-                JsonParseException, JsonMappingException {
-            Class<?> clazz = Object.class;
-            ObjectNode root = (ObjectNode) rootNode;
-            JsonNode node = root.remove(configuration.getJsonTypeFieldName());
-            if (node != null) {
-                try {
-                    String typeName = node.asText();
-                    if (configuration.getPackagePrefix() != null) {
-                        typeName = configuration.getPackagePrefix() + "." + typeName;
-                    }
-                    Class<?> supportClazz = Class.forName(typeName);
-                    if (classes.contains(supportClazz)) {
-                        clazz = supportClazz;
-                    }
-                } catch (ClassNotFoundException e) {
-                    // skip it
-                }
-            }
-            Object val = mapper.treeToValue(root, clazz);
-            return val;
-        }
-
-    }
-
     private class AckArgsDeserializer extends StdDeserializer<AckArgs> {
 
         private static final long serialVersionUID = 7810461017389946707L;
@@ -207,10 +159,8 @@ public class JacksonJsonSupport implements JsonSupport {
     }
 
     private final ThreadLocal<AckCallback<?>> currentAckClass = new ThreadLocal<AckCallback<?>>();
-    private final Configuration configuration;
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final EventDeserializer eventDeserializer = new EventDeserializer();
-    private final JsonObjectDeserializer jsonObjectDeserializer = new JsonObjectDeserializer();
     private final AckArgsDeserializer ackArgsDeserializer = new AckArgsDeserializer();
 
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -220,8 +170,6 @@ public class JacksonJsonSupport implements JsonSupport {
     }
 
     public JacksonJsonSupport(Configuration configuration, Module... modules) {
-        this.configuration = configuration;
-
         if (modules != null && modules.length > 0) {
             objectMapper.registerModules(modules);
         }
@@ -231,7 +179,6 @@ public class JacksonJsonSupport implements JsonSupport {
     protected void init(ObjectMapper objectMapper) {
         SimpleModule module = new SimpleModule();
         module.addDeserializer(Event.class, eventDeserializer);
-        module.addDeserializer(JsonObject.class, jsonObjectDeserializer);
         module.addDeserializer(AckArgs.class, ackArgsDeserializer);
         objectMapper.registerModule(module);
 
@@ -250,11 +197,6 @@ public class JacksonJsonSupport implements JsonSupport {
     @Override
     public void addEventMapping(String eventName, Class<?> ... eventClass) {
         eventDeserializer.eventMapping.put(eventName, Arrays.asList(eventClass));
-    }
-
-    @Override
-    public void addJsonClass(Class<?> clazz) {
-        jsonObjectDeserializer.classes.add(clazz);
     }
 
     @Override

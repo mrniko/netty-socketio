@@ -56,6 +56,7 @@ public class Encoder {
     public void encodePackets(Queue<Packet> packets, ByteBuf buffer, ByteBufAllocator allocator) throws IOException {
         while (true) {
             Packet packet = packets.poll();
+            // TODO packets encode limit amount for polling transport
             if (packet == null) {
                 break;
             }

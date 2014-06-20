@@ -90,10 +90,6 @@ class JsonSupportWrapper implements JsonSupport {
         delegate.addEventMapping(eventName, eventClass);
     }
 
-    public void addJsonClass(Class<?> clazz) {
-        delegate.addJsonClass(clazz);
-    }
-
     public void removeEventMapping(String eventName) {
         delegate.removeEventMapping(eventName);
     }

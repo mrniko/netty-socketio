@@ -104,8 +104,6 @@ public class ClientHead {
     }
 
     public ChannelFuture send(Packet packet, Transport transport) {
-        log.debug("sending packet: {} by transport: {}", packet, transport);
-
         TransportState state = channels.get(transport);
         state.getPacketsQueue().add(packet);
 
@@ -122,9 +120,7 @@ public class ClientHead {
 
     private ChannelFuture sendPackets(Transport transport, Channel channel) {
         // TODO promise handling
-        ChannelPromise promise = channel.newPromise();
-        channel.pipeline().writeAndFlush(new OutPacketMessage(this, transport), promise);
-        return promise;
+        return channel.pipeline().writeAndFlush(new OutPacketMessage(this, transport));
     }
 
     public void removeNamespaceClient(NamespaceClient client) {
@@ -158,7 +154,9 @@ public class ClientHead {
             client.onDisconnect();
         }
         for (TransportState state : channels.values()) {
-            clientsBox.remove(state.getChannel());
+            if (state.getChannel() != null) {
+                clientsBox.remove(state.getChannel());
+            }
         }
     }
 

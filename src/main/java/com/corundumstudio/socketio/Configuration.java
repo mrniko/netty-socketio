@@ -31,7 +31,6 @@ public class Configuration {
 
     private ExceptionListener exceptionListener = new DefaultExceptionListener();
 
-    private String jsonTypeFieldName = "@class";
     private String context = "/socket.io";
 
     private List<Transport> transports = Arrays.asList(Transport.WEBSOCKET, Transport.POLLING);
@@ -97,7 +96,6 @@ public class Configuration {
         setPort(conf.getPort());
 
         setJsonSupport(new JsonSupportWrapper(conf.getJsonSupport()));
-        setJsonTypeFieldName(conf.getJsonTypeFieldName());
         setContext(conf.getContext());
         setAllowCustomRequests(conf.isAllowCustomRequests());
         setPollingDuration(conf.getPollingDuration());
@@ -131,13 +129,6 @@ public class Configuration {
         }
         result.setLength(result.length()-1);
         return result.toString();
-    }
-
-    public String getJsonTypeFieldName() {
-        return jsonTypeFieldName;
-    }
-    public void setJsonTypeFieldName(String jsonTypeFieldName) {
-        this.jsonTypeFieldName = jsonTypeFieldName;
     }
 
     public JsonSupport getJsonSupport() {

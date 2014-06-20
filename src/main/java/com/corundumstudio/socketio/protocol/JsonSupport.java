@@ -42,8 +42,6 @@ public interface JsonSupport {
 
     void addEventMapping(String eventName, Class<?> ... eventClass);
 
-    void addJsonClass(Class<?> clazz);
-
     void removeEventMapping(String eventName);
 
 }
