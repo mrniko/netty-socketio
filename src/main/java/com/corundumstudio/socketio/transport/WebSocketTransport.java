@@ -121,7 +121,12 @@ public class WebSocketTransport extends BaseTransport {
 
     @Override
     public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
-        ctx.flush();
+        ClientHead client = clientsBox.get(ctx.channel());
+        if (client != null && client.isTransportChannel(ctx.channel(), Transport.WEBSOCKET)) {
+            ctx.flush();
+        } else {
+            super.channelReadComplete(ctx);
+        }
     }
 
     @Override

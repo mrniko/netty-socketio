@@ -25,6 +25,7 @@ import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
@@ -40,6 +41,7 @@ import io.netty.handler.codec.http.websocketx.WebSocketFrame;
 import io.netty.util.Attribute;
 import io.netty.util.AttributeKey;
 import io.netty.util.CharsetUtil;
+import io.netty.util.concurrent.GenericFutureListener;
 
 import java.io.IOException;
 import java.util.Queue;
@@ -103,6 +105,7 @@ public class EncoderHandler extends ChannelOutboundHandlerAdapter {
             log.trace("Out message: {} - sessionId: {}",
                         out.toString(CharsetUtil.UTF_8), msg.getSessionId());
         }
+
         if (out.isReadable()) {
             channel.write(out);
         } else {
@@ -117,18 +120,6 @@ public class EncoderHandler extends ChannelOutboundHandlerAdapter {
 
         HttpHeaders.addHeader(res, CONTENT_TYPE, type);
         HttpHeaders.addHeader(res, "Set-Cookie", "io=" + msg.getSessionId());
-
-
-//        if (msg instanceof AuthorizeMessage) {
-//            AuthorizeMessage am = (AuthorizeMessage) msg;
-//            if (am.getJsonpParam() != null) {
-//                HttpHeaders.addHeader(res, CONTENT_TYPE, "application/javascript");
-//            } else {
-//                HttpHeaders.addHeader(res, CONTENT_TYPE, "text/plain; charset=UTF-8");
-//            }
-//        } else {
-//            HttpHeaders.addHeader(res, CONTENT_TYPE, "text/plain; charset=UTF-8");
-//        }
 
         HttpHeaders.addHeader(res, CONNECTION, KEEP_ALIVE);
         if (msg.getOrigin() != null) {
@@ -152,7 +143,7 @@ public class EncoderHandler extends ChannelOutboundHandlerAdapter {
         if (msg instanceof OutPacketMessage) {
             OutPacketMessage m = (OutPacketMessage) msg;
             if (m.getTransport() == Transport.WEBSOCKET) {
-                handleWebsocket((OutPacketMessage) msg, ctx, out);
+                handleWebsocket((OutPacketMessage) msg, ctx);
             }
             if (m.getTransport() == Transport.POLLING) {
                 handleHTTP((OutPacketMessage) msg, ctx, out);
@@ -176,17 +167,22 @@ public class EncoderHandler extends ChannelOutboundHandlerAdapter {
         }
     }
 
-    private void handleWebsocket(OutPacketMessage msg, ChannelHandlerContext ctx, ByteBuf out) throws IOException {
+    private void handleWebsocket(OutPacketMessage msg, ChannelHandlerContext ctx) throws IOException {
         while (true) {
-            Packet packet = msg.getClientHead().getPacketsQueue(msg.getTransport()).poll();
+            Queue<Packet> queue = msg.getClientHead().getPacketsQueue(msg.getTransport());
+            Packet packet = queue.poll();
             if (packet == null) {
                 break;
             }
             packet.setBinary(true);
+
+            ByteBuf out = encoder.allocateBuffer(ctx.alloc());
             encoder.encodePacket(packet, out, ctx.alloc());
+
             WebSocketFrame res = new TextWebSocketFrame(out);
-            log.trace("Out message: {} sessionId: {}",
-                    out.toString(CharsetUtil.UTF_8), msg.getSessionId());
+            if (log.isTraceEnabled()) {
+                log.trace("Out message: {} sessionId: {}", out.toString(CharsetUtil.UTF_8), msg.getSessionId());
+            }
             ctx.channel().writeAndFlush(res);
             if (!out.isReadable()) {
                 out.release();
@@ -208,7 +204,7 @@ public class EncoderHandler extends ChannelOutboundHandlerAdapter {
             return;
         }
 
-        encoder.encodePackets(queue, out, ctx.alloc());
+        encoder.encodePackets(queue, out, ctx.alloc(), 50);
         sendMessage(msg, channel, out, "application/octet-stream");
     }
 

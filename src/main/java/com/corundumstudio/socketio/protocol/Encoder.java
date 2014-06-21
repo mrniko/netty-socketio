@@ -53,14 +53,16 @@ public class Encoder {
         return allocator.heapBuffer();
     }
 
-    public void encodePackets(Queue<Packet> packets, ByteBuf buffer, ByteBufAllocator allocator) throws IOException {
+    public void encodePackets(Queue<Packet> packets, ByteBuf buffer, ByteBufAllocator allocator, int limit) throws IOException {
+        int i = 0;
         while (true) {
             Packet packet = packets.poll();
             // TODO packets encode limit amount for polling transport
-            if (packet == null) {
+            if (packet == null || i == limit) {
                 break;
             }
             encodePacket(packet, buffer, allocator);
+            i++;
         }
     }
 

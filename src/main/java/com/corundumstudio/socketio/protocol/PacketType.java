@@ -22,7 +22,7 @@ public enum PacketType {
 
     CONNECT(0, true), DISCONNECT(1, true), EVENT(2, true), ACK(3, true), ERROR(4, true), BINARY_EVENT(5, true);
 
-    private static final PacketType[] VALUES = values();
+    public static final PacketType[] VALUES = values();
     private final int value;
     private final boolean inner;
 

@@ -18,7 +18,6 @@ package com.corundumstudio.socketio.handler;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
-import io.netty.channel.ChannelPromise;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.util.AttributeKey;
 
@@ -108,11 +107,8 @@ public class ClientHead {
         state.getPacketsQueue().add(packet);
 
         Channel channel = state.getChannel();
-        if (channel == null) {
-            return null;
-        }
-
-        if (transport == Transport.POLLING && channel.attr(EncoderHandler.WRITE_ONCE).get() != null) {
+        if (channel == null
+                || (transport == Transport.POLLING && channel.attr(EncoderHandler.WRITE_ONCE).get() != null)) {
             return null;
         }
         return sendPackets(transport, channel);

@@ -74,7 +74,7 @@ public class PayloadTest {
         packets.add(packet2);
 
         ByteBuf result = Unpooled.buffer();
-        encoder.encodePackets(packets, result, UnpooledByteBufAllocator.DEFAULT);
+//        encoder.encodePackets(packets, result, UnpooledByteBufAllocator.DEFAULT);
         Assert.assertEquals("\ufffd5\ufffd3:::5\ufffd7\ufffd3:::53d", result.toString(CharsetUtil.UTF_8));
     }
 
