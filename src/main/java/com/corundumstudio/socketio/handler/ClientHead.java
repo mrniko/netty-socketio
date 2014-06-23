@@ -129,7 +129,7 @@ public class ClientHead {
                     log.debug("{} removed due to ping timeout", sessionId);
                 }
             }
-        }, configuration.getPingTimeout() + configuration.getPingInterval(), TimeUnit.SECONDS);
+        }, configuration.getPingTimeout() + configuration.getPingInterval(), TimeUnit.MILLISECONDS);
     }
 
     public ChannelFuture send(Packet packet, Transport transport) {
