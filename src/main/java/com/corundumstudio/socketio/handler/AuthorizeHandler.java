@@ -17,7 +17,6 @@ package com.corundumstudio.socketio.handler;
 
 import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
@@ -35,7 +34,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -111,6 +109,7 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
                     req.release();
                     return;
                 }
+                // forward message to polling or websocket handler to bind channel
             }
         }
         ctx.fireChannelRead(msg);
@@ -143,70 +142,34 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
             return false;
         }
 
-            // TODO try to get sessionId from cookie
-            UUID sessionId = UUID.randomUUID();
+        // TODO try to get sessionId from cookie
+        UUID sessionId = UUID.randomUUID();
 
-            List<String> transportValue = params.get("transport");
-            Transport transport = Transport.byName(transportValue.get(0));
-            ClientHead client = new ClientHead(sessionId, ackManager, disconnectable, storeFactory, data, clientsBox, transport);
-            channel.attr(ClientHead.CLIENT).set(client);
-            clientsBox.addClient(client);
+        List<String> transportValue = params.get("transport");
+        Transport transport = Transport.byName(transportValue.get(0));
+        ClientHead client = new ClientHead(sessionId, ackManager, disconnectable, storeFactory, data, clientsBox, transport, disconnectScheduler, configuration);
+        channel.attr(ClientHead.CLIENT).set(client);
+        clientsBox.addClient(client);
 
-            scheduleDisconnect(channel, sessionId);
 
-            String[] transports = {};
-            if (configuration.getTransports().contains(Transport.WEBSOCKET)) {
-                transports = new String[] {"websocket"};
-            }
+        String[] transports = {};
+        if (configuration.getTransports().contains(Transport.WEBSOCKET)) {
+            transports = new String[] {"websocket"};
+        }
 
-            AuthPacket authPacket = new AuthPacket(sessionId, transports, configuration.getPollingDuration()*1000,
-                                                    configuration.getCloseTimeout()*1000);
-            Packet packet = new Packet(PacketType.OPEN);
-            packet.setData(authPacket);
-            client.send(packet);
+        AuthPacket authPacket = new AuthPacket(sessionId, transports, configuration.getPingInterval(),
+                                                                            configuration.getPingTimeout());
+        Packet packet = new Packet(PacketType.OPEN);
+        packet.setData(authPacket);
+        client.send(packet);
 
-//            String msg = createHandshake(sessionId);
-//
-//            List<String> jsonpParams = params.get("jsonp");
-//            String jsonpParam = null;
-//            if (jsonpParams != null) {
-//                jsonpParam = jsonpParams.get(0);
-//            }
-//            channel.writeAndFlush(new AuthorizeMessage(msg, jsonpParam, origin, sessionId));
-//
-//            authorizedSessionIds.put(sessionId, data);
-            log.debug("Handshake authorized for sessionId: {}", sessionId);
-
+        client.schedulePingTimeout();
+        log.debug("Handshake authorized for sessionId: {}", sessionId);
         return true;
     }
 
-    private String createHandshake(UUID sessionId) {
-        String heartbeatTimeoutVal = String.valueOf(configuration.getHeartbeatTimeout());
-        if (!configuration.isHeartbeatsEnabled()) {
-            heartbeatTimeoutVal = "";
-        }
-        String msg = sessionId + ":" + heartbeatTimeoutVal + ":" + configuration.getCloseTimeout() + ":" + configuration.getTransports();
-        return msg;
-    }
-
-    private void scheduleDisconnect(Channel channel, final UUID sessionId) {
-        channel.closeFuture().addListener(new ChannelFutureListener() {
-            @Override
-            public void operationComplete(ChannelFuture future) throws Exception {
-                SchedulerKey key = new SchedulerKey(Type.AUTHORIZE, sessionId);
-                disconnectScheduler.schedule(key, new Runnable() {
-                    @Override
-                    public void run() {
-                        clientsBox.removeClient(sessionId);
-                        log.debug("Authorized sessionId: {} removed due to connection timeout", sessionId);
-                    }
-                }, configuration.getCloseTimeout(), TimeUnit.SECONDS);
-            }
-        });
-    }
-
     public void connect(UUID sessionId) {
-        SchedulerKey key = new SchedulerKey(Type.AUTHORIZE, sessionId);
+        SchedulerKey key = new SchedulerKey(Type.PING_TIMEOUT, sessionId);
         disconnectScheduler.cancel(key);
     }
 

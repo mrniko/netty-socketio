@@ -125,6 +125,8 @@ public class EncoderHandler extends ChannelOutboundHandlerAdapter {
         if (msg.getOrigin() != null) {
             HttpHeaders.addHeader(res, ACCESS_CONTROL_ALLOW_ORIGIN, msg.getOrigin());
             HttpHeaders.addHeader(res, ACCESS_CONTROL_ALLOW_CREDENTIALS, Boolean.TRUE);
+        } else {
+            HttpHeaders.addHeader(res, ACCESS_CONTROL_ALLOW_ORIGIN, "*");
         }
         HttpHeaders.setContentLength(res, message.readableBytes());
 

@@ -83,7 +83,6 @@ public class Decoder {
 
 
     public Packet decodePackets(ByteBuf buffer, UUID uuid) throws IOException {
-        Packet packet;
         boolean isString = buffer.getByte(0) == 0x0;
         if (isString) {
             int headEndIndex = buffer.forEachByte(new ByteBufProcessor() {
@@ -96,13 +95,12 @@ public class Decoder {
 
             buffer.readerIndex(buffer.readerIndex() + headEndIndex);
 
-            ByteBuf frame = buffer.slice(buffer.readerIndex()+1, len);
-            packet = decode(uuid, frame);
-            buffer.readerIndex(buffer.readerIndex() + len + 1);
-        } else {
-            packet = decode(uuid, buffer);
+            ByteBuf frame = buffer.slice(buffer.readerIndex() + 1, len);
+            // skip this frame
+            buffer.readerIndex(buffer.readerIndex() + 1 + len);
+            return decode(uuid, frame);
         }
-        return packet;
+        return decode(uuid, buffer);
     }
 
     private String readString(ByteBuf frame) {

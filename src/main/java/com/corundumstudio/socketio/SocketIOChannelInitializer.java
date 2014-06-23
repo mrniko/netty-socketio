@@ -40,7 +40,6 @@ import com.corundumstudio.socketio.handler.AuthorizeHandler;
 import com.corundumstudio.socketio.handler.ClientHead;
 import com.corundumstudio.socketio.handler.ClientsBox;
 import com.corundumstudio.socketio.handler.EncoderHandler;
-import com.corundumstudio.socketio.handler.HeartbeatHandler;
 import com.corundumstudio.socketio.handler.PacketHandler;
 import com.corundumstudio.socketio.handler.PacketListener;
 import com.corundumstudio.socketio.handler.WrongUrlHandler;
@@ -86,7 +85,6 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
     private CancelableScheduler scheduler = new HashedWheelScheduler();
 
     private PacketHandler packetHandler;
-    private HeartbeatHandler heartbeatHandler;
     private SSLContext sslContext;
     private Configuration configuration;
 
@@ -106,8 +104,6 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
 
         String connectPath = configuration.getContext() + "/";
 
-        heartbeatHandler = new HeartbeatHandler(configuration, scheduler);
-
         boolean isSsl = configuration.getKeyStore() != null;
         if (isSsl) {
             try {
@@ -121,9 +117,9 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
 
         authorizeHandler = new AuthorizeHandler(connectPath, scheduler, configuration, namespacesHub, factory, this, ackManager, clientsBox);
         xhrPollingTransport = new XHRPollingTransport(scheduler, authorizeHandler, configuration, clientsBox);
-        webSocketTransport = new WebSocketTransport(isSsl, authorizeHandler, heartbeatHandler, configuration, scheduler, clientsBox);
+        webSocketTransport = new WebSocketTransport(isSsl, authorizeHandler, configuration, scheduler, clientsBox);
 
-        PacketListener packetListener = new PacketListener(heartbeatHandler, ackManager, namespacesHub, xhrPollingTransport, scheduler);
+        PacketListener packetListener = new PacketListener(ackManager, namespacesHub, xhrPollingTransport, scheduler);
 
 
         packetHandler = new PacketHandler(packetListener, decoder, namespacesHub, configuration.getExceptionListener());
@@ -179,10 +175,7 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
     }
 
     public void onDisconnect(ClientHead client) {
-        heartbeatHandler.onDisconnect(client);
         ackManager.onDisconnect(client);
-        xhrPollingTransport.onDisconnect(client);
-        webSocketTransport.onDisconnect(client);
         authorizeHandler.onDisconnect(client);
         configuration.getStoreFactory().onDisconnect(client);
 

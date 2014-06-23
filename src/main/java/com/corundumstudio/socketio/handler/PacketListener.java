@@ -34,16 +34,12 @@ public class PacketListener {
 
     private final NamespacesHub namespacesHub;
     private final AckManager ackManager;
-    private final HeartbeatHandler heartbeatHandler;
-    private final XHRPollingTransport xhrPollingTransport;
     private final CancelableScheduler scheduler;
 
-    public PacketListener(HeartbeatHandler heartbeatHandler, AckManager ackManager, NamespacesHub namespacesHub, XHRPollingTransport xhrPollingTransport,
+    public PacketListener(AckManager ackManager, NamespacesHub namespacesHub, XHRPollingTransport xhrPollingTransport,
             CancelableScheduler scheduler) {
-        this.heartbeatHandler = heartbeatHandler;
         this.ackManager = ackManager;
         this.namespacesHub = namespacesHub;
-        this.xhrPollingTransport = xhrPollingTransport;
         this.scheduler = scheduler;
     }
 
@@ -63,20 +59,25 @@ public class PacketListener {
 
             if ("probe".equals(packet.getData())) {
                 client.getBaseClient().send(new Packet(PacketType.NOOP), Transport.POLLING);
+            } else {
+                client.getBaseClient().schedulePingTimeout();
             }
             break;
         }
 
         case UPGRADE: {
+            client.getBaseClient().schedulePingTimeout();
+
             SchedulerKey key = new SchedulerKey(SchedulerKey.Type.UPGRADE_TIMEOUT, client.getSessionId());
             scheduler.cancel(key);
-            // TODO setPingTimeout
 
             client.getBaseClient().upgradeCurrentTransport(transport);
             break;
         }
 
         case MESSAGE: {
+            client.getBaseClient().schedulePingTimeout();
+
             if (packet.getSubType() == PacketType.CONNECT) {
                 Namespace namespace = namespacesHub.get(packet.getNsp());
                 namespace.onConnect(client);

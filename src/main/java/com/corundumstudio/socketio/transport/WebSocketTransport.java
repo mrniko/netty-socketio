@@ -20,6 +20,7 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpRequest;
@@ -43,19 +44,17 @@ import com.corundumstudio.socketio.Transport;
 import com.corundumstudio.socketio.handler.AuthorizeHandler;
 import com.corundumstudio.socketio.handler.ClientHead;
 import com.corundumstudio.socketio.handler.ClientsBox;
-import com.corundumstudio.socketio.handler.HeartbeatHandler;
 import com.corundumstudio.socketio.messages.PacketsMessage;
 import com.corundumstudio.socketio.scheduler.CancelableScheduler;
 import com.corundumstudio.socketio.scheduler.SchedulerKey;
 
 @Sharable
-public class WebSocketTransport extends BaseTransport {
+public class WebSocketTransport extends ChannelInboundHandlerAdapter {
 
     public static final String NAME = "websocket";
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private final HeartbeatHandler heartbeatHandler;
     private final AuthorizeHandler authorizeHandler;
     private final CancelableScheduler scheduler;
     private final Configuration configuration;
@@ -64,11 +63,10 @@ public class WebSocketTransport extends BaseTransport {
     private final boolean isSsl;
 
     public WebSocketTransport(boolean isSsl,
-            AuthorizeHandler authorizeHandler, HeartbeatHandler heartbeatHandler, Configuration configuration,
+            AuthorizeHandler authorizeHandler, Configuration configuration,
             CancelableScheduler scheduler, ClientsBox clientsBox) {
         this.isSsl = isSsl;
         this.authorizeHandler = authorizeHandler;
-        this.heartbeatHandler = heartbeatHandler;
         this.configuration = configuration;
         this.scheduler = scheduler;
         this.clientsBox = clientsBox;
@@ -178,12 +176,13 @@ public class WebSocketTransport extends BaseTransport {
         scheduler.schedule(key, new Runnable() {
             @Override
             public void run() {
-                XHRPollingTransport transport = channel.pipeline().remove(XHRPollingTransport.class);
-                transport.onDisconnect(sessionId);
+                if (log.isDebugEnabled()) {
+                    log.debug("client did not complete upgrade - closing transport");
+                }
+                clientsBox.get(sessionId)
+                            .onChannelDisconnect();
             }
         }, configuration.getUpgradeTimeout(), TimeUnit.MILLISECONDS);
-
-        heartbeatHandler.onHeartbeat(client);
     }
 
     private String getWebSocketLocation(HttpRequest req) {
@@ -192,10 +191,6 @@ public class WebSocketTransport extends BaseTransport {
             protocol = "wss://";
         }
         return protocol + req.headers().get(HttpHeaders.Names.HOST) + req.getUri();
-    }
-
-    @Override
-    public void onDisconnect(ClientHead client) {
     }
 
 }

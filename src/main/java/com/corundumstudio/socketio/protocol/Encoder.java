@@ -160,7 +160,7 @@ public class Encoder {
         switch (packet.getType()) {
 
         case PONG: {
-            buf.writeBytes(Unpooled.copiedBuffer(packet.getData().toString(), CharsetUtil.UTF_8));
+            buf.writeBytes(packet.getData().toString().getBytes(CharsetUtil.UTF_8));
             break;
         }
 
@@ -176,12 +176,12 @@ public class Encoder {
 
             if (packet.getSubType() == PacketType.CONNECT) {
                 if (!packet.getNsp().isEmpty()) {
-                    buf.writeBytes(Unpooled.copiedBuffer(packet.getNsp(), CharsetUtil.UTF_8));
+                    buf.writeBytes(packet.getNsp().getBytes(CharsetUtil.UTF_8));
                 }
             } else {
                 if (!packet.getNsp().isEmpty()) {
-                    buf.writeBytes(Unpooled.copiedBuffer(packet.getNsp(), CharsetUtil.UTF_8));
-                    buf.writeBytes(Unpooled.copiedBuffer(",", CharsetUtil.UTF_8));
+                    buf.writeBytes(packet.getNsp().getBytes(CharsetUtil.UTF_8));
+                    buf.writeBytes(",".getBytes(CharsetUtil.UTF_8));
                 }
             }
 

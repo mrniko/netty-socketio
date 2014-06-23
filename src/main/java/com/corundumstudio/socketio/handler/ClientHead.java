@@ -30,11 +30,13 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.corundumstudio.socketio.Configuration;
 import com.corundumstudio.socketio.DisconnectableHub;
 import com.corundumstudio.socketio.HandshakeData;
 import com.corundumstudio.socketio.Transport;
@@ -43,6 +45,9 @@ import com.corundumstudio.socketio.messages.OutPacketMessage;
 import com.corundumstudio.socketio.namespace.Namespace;
 import com.corundumstudio.socketio.protocol.Packet;
 import com.corundumstudio.socketio.protocol.PacketType;
+import com.corundumstudio.socketio.scheduler.CancelableScheduler;
+import com.corundumstudio.socketio.scheduler.SchedulerKey;
+import com.corundumstudio.socketio.scheduler.SchedulerKey.Type;
 import com.corundumstudio.socketio.store.Store;
 import com.corundumstudio.socketio.store.StoreFactory;
 import com.corundumstudio.socketio.transport.NamespaceClient;
@@ -63,12 +68,15 @@ public class ClientHead {
     private final DisconnectableHub disconnectableHub;
     private final AckManager ackManager;
     private ClientsBox clientsBox;
+    private final CancelableScheduler disconnectScheduler;
+    private final Configuration configuration;
 
     // TODO use lazy set
     private volatile Transport currentTransport;
 
     public ClientHead(UUID sessionId, AckManager ackManager, DisconnectableHub disconnectable,
-            StoreFactory storeFactory, HandshakeData handshakeData, ClientsBox clientsBox, Transport transport) {
+            StoreFactory storeFactory, HandshakeData handshakeData, ClientsBox clientsBox, Transport transport, CancelableScheduler disconnectScheduler,
+            Configuration configuration) {
         this.sessionId = sessionId;
         this.ackManager = ackManager;
         this.disconnectableHub = disconnectable;
@@ -76,6 +84,8 @@ public class ClientHead {
         this.handshakeData = handshakeData;
         this.clientsBox = clientsBox;
         this.currentTransport = transport;
+        this.disconnectScheduler = disconnectScheduler;
+        this.configuration = configuration;
 
         channels.put(Transport.POLLING, new TransportState());
         channels.put(Transport.WEBSOCKET, new TransportState());
@@ -100,6 +110,26 @@ public class ClientHead {
 
     public ChannelFuture send(Packet packet) {
         return send(packet, getCurrentTransport());
+    }
+
+    public void cancelPingTimeout() {
+        SchedulerKey key = new SchedulerKey(Type.PING_TIMEOUT, sessionId);
+        disconnectScheduler.cancel(key);
+    }
+
+    public void schedulePingTimeout() {
+        cancelPingTimeout();
+        SchedulerKey key = new SchedulerKey(Type.PING_TIMEOUT, sessionId);
+        disconnectScheduler.schedule(key, new Runnable() {
+            @Override
+            public void run() {
+                ClientHead client = clientsBox.get(sessionId);
+                if (client != null) {
+                    client.onChannelDisconnect();
+                    log.debug("{} removed due to ping timeout", sessionId);
+                }
+            }
+        }, configuration.getPingTimeout() + configuration.getPingInterval(), TimeUnit.SECONDS);
     }
 
     public ChannelFuture send(Packet packet, Transport transport) {
@@ -145,6 +175,8 @@ public class ClientHead {
     }
 
     public void onChannelDisconnect() {
+        cancelPingTimeout();
+
         disconnected.set(true);
         for (NamespaceClient client : namespaceClients.values()) {
             client.onDisconnect();
@@ -206,6 +238,7 @@ public class ClientHead {
 
         for (Entry<Transport, TransportState> entry : channels.entrySet()) {
             if (!entry.getKey().equals(currentTransport)) {
+
                 Queue<Packet> queue = entry.getValue().getPacketsQueue();
                 state.setPacketsQueue(queue);
                 entry.getValue().setPacketsQueue(new ConcurrentLinkedQueue<Packet>());
@@ -213,7 +246,6 @@ public class ClientHead {
                 sendPackets(currentTransport, state.getChannel());
             }
         }
-        // TODO new packets could be added to drained "queue" during upgrade
         this.currentTransport = currentTransport;
 
         log.debug("Transport upgraded to: {} for: {}", currentTransport, sessionId);

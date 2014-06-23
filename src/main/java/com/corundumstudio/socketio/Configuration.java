@@ -38,15 +38,12 @@ public class Configuration {
     private int bossThreads = 0; // 0 = current_processors_amount * 2
     private int workerThreads = 0; // 0 = current_processors_amount * 2
 
-    private int upgradeTimeout = 10000;
 
     private boolean allowCustomRequests = false;
 
-    private int pollingDuration = 20;
-
-    private int heartbeatTimeout = 60;
-    private int heartbeatInterval = 25;
-    private int closeTimeout = 60;
+    private int upgradeTimeout = 10000;
+    private int pingTimeout = 60000;
+    private int pingInterval = 25000;
 
     private int maxHttpContentLength = 64 * 1024;
     private int maxFramePayloadLength = 64 * 1024;
@@ -87,10 +84,8 @@ public class Configuration {
         setBossThreads(conf.getBossThreads());
         setWorkerThreads(conf.getWorkerThreads());
 
-        setCloseTimeout(conf.getCloseTimeout());
-
-        setHeartbeatInterval(conf.getHeartbeatInterval());
-        setHeartbeatTimeout(conf.getHeartbeatTimeout());
+        setPingInterval(conf.getPingInterval());
+        setPingTimeout(conf.getPingTimeout());
 
         setHostname(conf.getHostname());
         setPort(conf.getPort());
@@ -98,7 +93,6 @@ public class Configuration {
         setJsonSupport(new JsonSupportWrapper(conf.getJsonSupport()));
         setContext(conf.getContext());
         setAllowCustomRequests(conf.isAllowCustomRequests());
-        setPollingDuration(conf.getPollingDuration());
 
         setKeyStorePassword(conf.getKeyStorePassword());
         setKeyStore(conf.getKeyStore());
@@ -119,16 +113,6 @@ public class Configuration {
         setAckMode(conf.getAckMode());
         setMaxFramePayloadLength(conf.getMaxFramePayloadLength());
         setUpgradeTimeout(conf.getUpgradeTimeout());
-    }
-
-    private String join(Transport[] transports) {
-        StringBuilder result = new StringBuilder();
-        for (Transport transport : transports) {
-            result.append(transport.getValue());
-            result.append(",");
-        }
-        result.setLength(result.length()-1);
-        return result.toString();
     }
 
     public JsonSupport getJsonSupport() {
@@ -183,45 +167,33 @@ public class Configuration {
     }
 
     /**
-     * Heartbeat interval
+     * Ping interval
      *
      * @param value
      *            - time in seconds
      */
-    public void setHeartbeatInterval(int heartbeatIntervalSecs) {
-        this.heartbeatInterval = heartbeatIntervalSecs;
+    public void setPingInterval(int heartbeatIntervalSecs) {
+        this.pingInterval = heartbeatIntervalSecs;
     }
-    public int getHeartbeatInterval() {
-        return heartbeatInterval;
+    public int getPingInterval() {
+        return pingInterval;
     }
 
     /**
-     * Heartbeat timeout
+     * Ping timeout
      * Use <code>0</code> to disable it
      *
      * @param value
      *            - time in seconds
      */
-    public void setHeartbeatTimeout(int heartbeatTimeoutSecs) {
-        this.heartbeatTimeout = heartbeatTimeoutSecs;
+    public void setPingTimeout(int heartbeatTimeoutSecs) {
+        this.pingTimeout = heartbeatTimeoutSecs;
     }
-    public int getHeartbeatTimeout() {
-        return heartbeatTimeout;
+    public int getPingTimeout() {
+        return pingTimeout;
     }
     public boolean isHeartbeatsEnabled() {
-        return heartbeatTimeout > 0;
-    }
-
-    /**
-     * Channel close timeout due inactivity
-     *
-     * @param closeTimeout - time in seconds
-     */
-    public void setCloseTimeout(int closeTimeout) {
-        this.closeTimeout = closeTimeout;
-    }
-    public int getCloseTimeout() {
-        return closeTimeout;
+        return pingTimeout > 0;
     }
 
     public String getContext() {
@@ -245,19 +217,6 @@ public class Configuration {
      */
     public void setAllowCustomRequests(boolean allowCustomRequests) {
         this.allowCustomRequests = allowCustomRequests;
-    }
-
-    public int getPollingDuration() {
-        return pollingDuration;
-    }
-
-    /**
-     * Polling interval for XHR transport
-     *
-     * @param pollingDuration - time in seconds
-     */
-    public void setPollingDuration(int pollingDuration) {
-        this.pollingDuration = pollingDuration;
     }
 
     /**

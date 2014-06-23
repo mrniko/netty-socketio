@@ -17,11 +17,9 @@ package com.corundumstudio.socketio.transport;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
@@ -31,7 +29,6 @@ import io.netty.util.CharsetUtil;
 import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,11 +48,9 @@ import com.corundumstudio.socketio.protocol.ErrorReason;
 import com.corundumstudio.socketio.protocol.Packet;
 import com.corundumstudio.socketio.protocol.PacketType;
 import com.corundumstudio.socketio.scheduler.CancelableScheduler;
-import com.corundumstudio.socketio.scheduler.SchedulerKey;
-import com.corundumstudio.socketio.scheduler.SchedulerKey.Type;
 
 @Sharable
-public class XHRPollingTransport extends BaseTransport {
+public class XHRPollingTransport extends ChannelInboundHandlerAdapter {
 
     public static final String NAME = "polling";
 
@@ -149,41 +144,6 @@ public class XHRPollingTransport extends BaseTransport {
         ctx.channel().writeAndFlush(new XHROptionsMessage(origin, sessionId));
     }
 
-    private void scheduleNoop(final UUID sessionId) {
-        SchedulerKey key = new SchedulerKey(Type.POLLING, sessionId);
-        scheduler.cancel(key);
-        scheduler.schedule(key, new Runnable() {
-            @Override
-            public void run() {
-                ClientHead client = clientsBox.get(sessionId);
-                if (client != null) {
-                    client.send(new Packet(PacketType.BINARY_EVENT));
-                }
-            }
-        }, configuration.getPollingDuration(), TimeUnit.SECONDS);
-    }
-
-    private void scheduleDisconnect(Channel channel, final UUID sessionId) {
-        final SchedulerKey key = new SchedulerKey(Type.CLOSE_TIMEOUT, sessionId);
-        scheduler.cancel(key);
-        ChannelFuture future = channel.closeFuture();
-        future.addListener(new ChannelFutureListener() {
-            @Override
-            public void operationComplete(ChannelFuture future) throws Exception {
-                scheduler.scheduleCallback(key, new Runnable() {
-                    @Override
-                    public void run() {
-                        ClientHead client = clientsBox.get(sessionId);
-                        if (client != null) {
-                            client.onChannelDisconnect();
-                            log.debug("Client: {} disconnected due to connection timeout", sessionId);
-                        }
-                    }
-                }, configuration.getCloseTimeout(), TimeUnit.SECONDS);
-            }
-        });
-    }
-
     private void onPost(UUID sessionId, ChannelHandlerContext ctx, String origin, ByteBuf content)
                                                                                 throws IOException {
         HandshakeData data = clientsBox.getHandshakeData(sessionId);
@@ -210,9 +170,6 @@ public class XHRPollingTransport extends BaseTransport {
         client.bindChannel(ctx.channel(), Transport.POLLING);
         // TODO implement send packets at one response
         authorizeHandler.connect(client);
-
-        scheduleDisconnect(ctx.channel(), sessionId);
-        scheduleNoop(sessionId);
     }
 
     private void sendError(ChannelHandlerContext ctx, String origin, UUID sessionId) {
@@ -221,20 +178,6 @@ public class XHRPollingTransport extends BaseTransport {
         packet.setReason(ErrorReason.CLIENT_NOT_HANDSHAKEN);
         packet.setAdvice(ErrorAdvice.RECONNECT);
         ctx.channel().writeAndFlush(new XHRErrorMessage(packet, origin, sessionId));
-    }
-
-    @Override
-    public void onDisconnect(ClientHead client) {
-        UUID sessionId = client.getSessionId();
-        SchedulerKey noopKey = new SchedulerKey(Type.POLLING, sessionId);
-        scheduler.cancel(noopKey);
-        SchedulerKey closeTimeoutKey = new SchedulerKey(Type.CLOSE_TIMEOUT, sessionId);
-        scheduler.cancel(closeTimeoutKey);
-    }
-
-    public void onDisconnect(UUID sessionId) {
-        ClientHead client = clientsBox.get(sessionId);
-        onDisconnect(client);
     }
 
 }
