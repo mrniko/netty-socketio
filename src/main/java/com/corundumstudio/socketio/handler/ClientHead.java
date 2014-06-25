@@ -146,7 +146,7 @@ public class ClientHead {
 
     private ChannelFuture sendPackets(Transport transport, Channel channel) {
         // TODO promise handling
-        return channel.pipeline().writeAndFlush(new OutPacketMessage(this, transport));
+        return channel.writeAndFlush(new OutPacketMessage(this, transport));
     }
 
     public void removeNamespaceClient(NamespaceClient client) {

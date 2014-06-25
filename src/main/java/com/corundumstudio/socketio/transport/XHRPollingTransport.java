@@ -15,13 +15,18 @@
  */
 package com.corundumstudio.socketio.transport;
 
+import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 import io.netty.buffer.ByteBuf;
+import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.handler.codec.http.DefaultHttpResponse;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
+import io.netty.handler.codec.http.HttpResponse;
+import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.QueryStringDecoder;
 
 import java.io.IOException;
@@ -31,21 +36,15 @@ import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.corundumstudio.socketio.HandshakeData;
 import com.corundumstudio.socketio.Transport;
 import com.corundumstudio.socketio.handler.AuthorizeHandler;
 import com.corundumstudio.socketio.handler.ClientHead;
 import com.corundumstudio.socketio.handler.ClientsBox;
 import com.corundumstudio.socketio.handler.EncoderHandler;
 import com.corundumstudio.socketio.messages.PacketsMessage;
-import com.corundumstudio.socketio.messages.XHRErrorMessage;
 import com.corundumstudio.socketio.messages.XHROptionsMessage;
 import com.corundumstudio.socketio.messages.XHRPostMessage;
 import com.corundumstudio.socketio.protocol.Decoder;
-import com.corundumstudio.socketio.protocol.ErrorAdvice;
-import com.corundumstudio.socketio.protocol.ErrorReason;
-import com.corundumstudio.socketio.protocol.Packet;
-import com.corundumstudio.socketio.protocol.PacketType;
 
 @Sharable
 public class XHRPollingTransport extends ChannelInboundHandlerAdapter {
@@ -112,13 +111,17 @@ public class XHRPollingTransport extends ChannelInboundHandlerAdapter {
                 onGet(sessionId, ctx, origin);
             } else if (HttpMethod.OPTIONS.equals(req.getMethod())) {
                 onOptions(sessionId, ctx, origin);
+            } else {
+                log.error("Wrong {} method invocation for {}", req.getMethod(), sessionId);
+                sendError(ctx);
             }
     }
 
     private void onOptions(UUID sessionId, ChannelHandlerContext ctx, String origin) {
-        HandshakeData data = clientsBox.getHandshakeData(sessionId);
-        if (data == null) {
-            sendError(ctx, origin, sessionId);
+        ClientHead client = clientsBox.get(sessionId);
+        if (client == null) {
+            log.error("{} is not registered. Closing connection", sessionId);
+            sendError(ctx);
             return;
         }
 
@@ -127,13 +130,13 @@ public class XHRPollingTransport extends ChannelInboundHandlerAdapter {
 
     private void onPost(UUID sessionId, ChannelHandlerContext ctx, String origin, ByteBuf content)
                                                                                 throws IOException {
-        HandshakeData data = clientsBox.getHandshakeData(sessionId);
-        if (data == null) {
-            sendError(ctx, origin, sessionId);
+        ClientHead client = clientsBox.get(sessionId);
+        if (client == null) {
+            log.error("{} is not registered. Closing connection", sessionId);
+            sendError(ctx);
             return;
         }
 
-        ClientHead client = clientsBox.get(sessionId);
 
         // release POST response before message processing
         ctx.channel().writeAndFlush(new XHRPostMessage(origin, sessionId));
@@ -146,24 +149,21 @@ public class XHRPollingTransport extends ChannelInboundHandlerAdapter {
     }
 
     protected void onGet(UUID sessionId, ChannelHandlerContext ctx, String origin) {
-        HandshakeData data = clientsBox.getHandshakeData(sessionId);
-        if (data == null) {
-            sendError(ctx, origin, sessionId);
+        ClientHead client = clientsBox.get(sessionId);
+        if (client == null) {
+            log.error("{} is not registered. Closing connection", sessionId);
+            sendError(ctx);
             return;
         }
 
-        ClientHead client = clientsBox.get(sessionId);
         client.bindChannel(ctx.channel(), Transport.POLLING);
 
         authorizeHandler.connect(client);
     }
 
-    private void sendError(ChannelHandlerContext ctx, String origin, UUID sessionId) {
-        log.debug("Client with sessionId: {} was not found! Reconnect error response sended", sessionId);
-        Packet packet = new Packet(PacketType.ERROR);
-        packet.setReason(ErrorReason.CLIENT_NOT_HANDSHAKEN);
-        packet.setAdvice(ErrorAdvice.RECONNECT);
-        ctx.channel().writeAndFlush(new XHRErrorMessage(packet, origin, sessionId));
+    private void sendError(ChannelHandlerContext ctx) {
+        HttpResponse res = new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.INTERNAL_SERVER_ERROR);
+        ctx.channel().writeAndFlush(res).addListener(ChannelFutureListener.CLOSE);
     }
 
 }

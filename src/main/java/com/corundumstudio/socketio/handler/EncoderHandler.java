@@ -51,8 +51,6 @@ import com.corundumstudio.socketio.Transport;
 import com.corundumstudio.socketio.messages.BaseMessage;
 import com.corundumstudio.socketio.messages.HttpMessage;
 import com.corundumstudio.socketio.messages.OutPacketMessage;
-import com.corundumstudio.socketio.messages.WebsocketErrorMessage;
-import com.corundumstudio.socketio.messages.XHRErrorMessage;
 import com.corundumstudio.socketio.messages.XHROptionsMessage;
 import com.corundumstudio.socketio.messages.XHRPostMessage;
 import com.corundumstudio.socketio.protocol.Encoder;
@@ -155,19 +153,9 @@ public class EncoderHandler extends ChannelOutboundHandlerAdapter {
         if (msg instanceof XHROptionsMessage) {
             write((XHROptionsMessage) msg, ctx.channel(), out);
         }
+
         if (msg instanceof XHRPostMessage) {
             write((XHRPostMessage) msg, ctx.channel(), out);
-        }
-
-
-        if (msg instanceof XHRErrorMessage) {
-            XHRErrorMessage xhrErrorMessage = (XHRErrorMessage) msg;
-            encoder.encodePacket(xhrErrorMessage.getPacket(), out, ctx.alloc(), false, false);
-            sendMessage(xhrErrorMessage, ctx.channel(), out, "application/octet-stream");
-        }
-
-        if (msg instanceof WebsocketErrorMessage) {
-            handle((WebsocketErrorMessage) msg, ctx, out);
         }
     }
 
@@ -215,12 +203,6 @@ public class EncoderHandler extends ChannelOutboundHandlerAdapter {
             encoder.encodePackets(queue, out, ctx.alloc(), 50);
             sendMessage(msg, channel, out, "application/octet-stream");
         }
-    }
-
-    private void handle(WebsocketErrorMessage websocketErrorMessage, ChannelHandlerContext ctx, ByteBuf out) throws IOException {
-        encoder.encodePacket(websocketErrorMessage.getPacket(), out, ctx.alloc(), true, false);
-        TextWebSocketFrame frame = new TextWebSocketFrame(out);
-        ctx.channel().writeAndFlush(frame);
     }
 
 }

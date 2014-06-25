@@ -148,6 +148,10 @@ public class WebSocketTransport extends ChannelInboundHandlerAdapter {
             f.addListener(new ChannelFutureListener() {
                 @Override
                 public void operationComplete(ChannelFuture future) throws Exception {
+                    if (!future.isSuccess()) {
+                        log.error("Can't handshake " + sessionId, future.cause());
+                        return;
+                    }
                     connectClient(channel, sessionId);
                 }
             });
@@ -157,17 +161,14 @@ public class WebSocketTransport extends ChannelInboundHandlerAdapter {
     }
 
     private void connectClient(final Channel channel, final UUID sessionId) {
-        log.debug("сlient {} handshake completed", sessionId);
-
-        HandshakeData data = clientsBox.getHandshakeData(sessionId);
-        if (data == null) {
-            log.warn("Unauthorized client with sessionId: {}, from ip: {}. Channel closed!",
+        ClientHead client = clientsBox.get(sessionId);
+        if (client == null) {
+            log.warn("Unauthorized client with sessionId: {} with ip: {}. Channel closed!",
                         sessionId, channel.remoteAddress());
             channel.close();
             return;
         }
 
-        ClientHead client = clientsBox.get(sessionId);
         client.bindChannel(channel, Transport.WEBSOCKET);
 
         authorizeHandler.connect(client);
@@ -183,6 +184,8 @@ public class WebSocketTransport extends ChannelInboundHandlerAdapter {
                             .onChannelDisconnect();
             }
         }, configuration.getUpgradeTimeout(), TimeUnit.MILLISECONDS);
+
+        log.debug("сlient {} handshake completed", sessionId);
     }
 
     private String getWebSocketLocation(HttpRequest req) {

@@ -30,9 +30,6 @@ public class Packet implements Serializable {
     private String nsp = Namespace.DEFAULT_NAME;
     private Object data;
 
-    private ErrorReason reason;
-    private ErrorAdvice advice;
-
     protected Packet() {
     }
 
@@ -90,22 +87,6 @@ public class Packet implements Serializable {
 
     public void setAckId(Long ackId) {
         this.ackId = ackId;
-    }
-
-    public ErrorReason getReason() {
-        return reason;
-    }
-
-    public void setReason(ErrorReason reason) {
-        this.reason = reason;
-    }
-
-    public ErrorAdvice getAdvice() {
-        return advice;
-    }
-
-    public void setAdvice(ErrorAdvice advice) {
-        this.advice = advice;
     }
 
     public boolean isAckRequested() {
