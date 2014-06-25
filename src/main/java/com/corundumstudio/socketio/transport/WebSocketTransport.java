@@ -157,7 +157,7 @@ public class WebSocketTransport extends ChannelInboundHandlerAdapter {
     }
 
     private void connectClient(final Channel channel, final UUID sessionId) {
-        log.debug("connectClient {}", sessionId);
+        log.debug("сlient {} handshake completed", sessionId);
 
         HandshakeData data = clientsBox.getHandshakeData(sessionId);
         if (data == null) {

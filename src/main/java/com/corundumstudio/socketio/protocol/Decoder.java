@@ -22,6 +22,7 @@ import io.netty.buffer.Unpooled;
 import io.netty.util.CharsetUtil;
 
 import java.io.IOException;
+import java.net.URLDecoder;
 import java.util.UUID;
 
 import com.corundumstudio.socketio.AckCallback;
@@ -35,6 +36,22 @@ public class Decoder {
     public Decoder(JsonSupport jsonSupport, AckManager ackManager) {
         this.jsonSupport = jsonSupport;
         this.ackManager = ackManager;
+    }
+
+    // TODO optimize
+    public ByteBuf preprocessJson(ByteBuf content) throws IOException {
+        String packet = URLDecoder.decode(content.toString(CharsetUtil.UTF_8), CharsetUtil.UTF_8.name());
+
+        // skip "d="
+        packet = packet.substring(2);
+        int splitIndex = packet.indexOf(":");
+        String len = packet.substring(0, splitIndex);
+        Integer length = Integer.valueOf(len);
+
+        packet = packet.substring(splitIndex+1, splitIndex+length+1);
+        packet = new String(packet.getBytes(CharsetUtil.ISO_8859_1), CharsetUtil.UTF_8);
+
+        return Unpooled.wrappedBuffer(packet.getBytes(CharsetUtil.UTF_8));
     }
 
     // fastest way to parse chars to int

@@ -59,15 +59,14 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
 
     public static final String SOCKETIO_ENCODER = "socketioEncoder";
     public static final String WEB_SOCKET_TRANSPORT = "webSocketTransport";
-    public static final String FLASH_SOCKET_TRANSPORT = "flashSocketTransport";
     public static final String XHR_POLLING_TRANSPORT = "xhrPollingTransport";
     public static final String AUTHORIZE_HANDLER = "authorizeHandler";
     public static final String PACKET_HANDLER = "packetHandler";
-    public static final String HTTP_ENCODER = "encoder";
-    public static final String HTTP_AGGREGATOR = "aggregator";
-    public static final String HTTP_REQUEST_DECODER = "decoder";
+    public static final String HTTP_ENCODER = "httpEncoder";
+    public static final String HTTP_AGGREGATOR = "httpAggregator";
+    public static final String HTTP_REQUEST_DECODER = "httpDecoder";
     public static final String SSL_HANDLER = "ssl";
-    public static final String FLASH_POLICY_HANDLER = "flashPolicyHandler";
+
     public static final String RESOURCE_HANDLER = "resourceHandler";
     public static final String WRONG_URL_HANDLER = "wrongUrlBlocker";
 
@@ -116,7 +115,7 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
         factory.init(namespacesHub, authorizeHandler, jsonSupport);
 
         authorizeHandler = new AuthorizeHandler(connectPath, scheduler, configuration, namespacesHub, factory, this, ackManager, clientsBox);
-        xhrPollingTransport = new XHRPollingTransport(scheduler, authorizeHandler, configuration, clientsBox);
+        xhrPollingTransport = new XHRPollingTransport(decoder, authorizeHandler, clientsBox);
         webSocketTransport = new WebSocketTransport(isSsl, authorizeHandler, configuration, scheduler, clientsBox);
 
         PacketListener packetListener = new PacketListener(ackManager, namespacesHub, xhrPollingTransport, scheduler);

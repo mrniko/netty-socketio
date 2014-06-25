@@ -22,10 +22,10 @@ import io.netty.buffer.Unpooled;
 import io.netty.util.CharsetUtil;
 
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
+import java.util.regex.Pattern;
 
 import com.corundumstudio.socketio.Configuration;
 
@@ -39,18 +39,48 @@ public class Encoder {
         this.configuration = configuration;
     }
 
-    public void encodeJsonP(String param, String msg, ByteBuf out) throws IOException {
-        String message = "io.j[" + param + "]("
-                + jsonSupport.writeValueAsString(msg) + ");";
-        out.writeBytes(message.getBytes(CharsetUtil.UTF_8));
-    }
-
     public ByteBuf allocateBuffer(ByteBufAllocator allocator) {
         if (configuration.isPreferDirectBuffer()) {
             return allocator.ioBuffer();
         }
 
         return allocator.heapBuffer();
+    }
+
+    public void encodeJsonP(Integer jsonpIndex, Queue<Packet> packets, ByteBuf out, ByteBufAllocator allocator, int limit) throws IOException {
+        int i = 0;
+        ByteBuf buf = allocateBuffer(allocator);
+
+        while (true) {
+            Packet packet = packets.poll();
+            if (packet == null || i == limit) {
+                break;
+            }
+
+            ByteBuf packetBuf = allocateBuffer(allocator);
+            encodePacket(packet, packetBuf, allocator, true, true);
+            // scan for \\\"
+            int count = count(packetBuf, Unpooled.copiedBuffer("\\\"", CharsetUtil.UTF_8));
+            int packetSize = packetBuf.writerIndex() - count;
+
+            buf.writeBytes(toChars(packetSize));
+            buf.writeBytes(new byte[] {':'});
+            buf.writeBytes(packetBuf);
+
+            i++;
+        }
+
+        out.writeBytes("___eio[".getBytes(CharsetUtil.UTF_8));
+        out.writeBytes(toChars(jsonpIndex));
+        out.writeBytes("](\"".getBytes(CharsetUtil.UTF_8));
+
+        // TODO optimize
+        String packet = buf.toString(CharsetUtil.UTF_8);
+        packet = Pattern.compile("\"", Pattern.LITERAL).matcher(packet).replaceAll("\\\\\"");
+        packet = new String(packet.getBytes(CharsetUtil.UTF_8), CharsetUtil.ISO_8859_1);
+
+        out.writeBytes(packet.getBytes(CharsetUtil.UTF_8));
+        out.writeBytes("\");".getBytes(CharsetUtil.UTF_8));
     }
 
     public void encodePackets(Queue<Packet> packets, ByteBuf buffer, ByteBufAllocator allocator, int limit) throws IOException {
@@ -61,7 +91,7 @@ public class Encoder {
             if (packet == null || i == limit) {
                 break;
             }
-            encodePacket(packet, buffer, allocator);
+            encodePacket(packet, buffer, allocator, false, false);
             i++;
         }
     }
@@ -152,8 +182,11 @@ public class Encoder {
         return res;
     }
 
-    public void encodePacket(Packet packet, ByteBuf buffer, ByteBufAllocator allocator) throws IOException {
-        ByteBuf buf = allocateBuffer(allocator);
+    public void encodePacket(Packet packet, ByteBuf buffer, ByteBufAllocator allocator, boolean binary, boolean jsonp) throws IOException {
+        ByteBuf buf = buffer;
+        if (!binary) {
+            buf = allocateBuffer(allocator);
+        }
         byte[] type = toChars(packet.getType().getValue());
         buf.writeBytes(type);
 
@@ -166,7 +199,11 @@ public class Encoder {
 
         case OPEN: {
             ByteBufOutputStream out = new ByteBufOutputStream(buf);
-            jsonSupport.writeValue(out, packet.getData());
+            if (jsonp) {
+                jsonSupport.writeJsonValue(out, packet.getData());
+            } else {
+                jsonSupport.writeValue(out, packet.getData());
+            }
             break;
         }
 
@@ -181,7 +218,7 @@ public class Encoder {
             } else {
                 if (!packet.getNsp().isEmpty()) {
                     buf.writeBytes(packet.getNsp().getBytes(CharsetUtil.UTF_8));
-                    buf.writeBytes(",".getBytes(CharsetUtil.UTF_8));
+                    buf.writeBytes(new byte[] {','});
                 }
             }
 
@@ -200,29 +237,52 @@ public class Encoder {
                 List<Object> args = packet.getData();
                 values.addAll(args);
                 ByteBufOutputStream out = new ByteBufOutputStream(buf);
-                jsonSupport.writeValue(out, values);
+                if (jsonp) {
+                    jsonSupport.writeJsonValue(out, values);
+                } else {
+                    jsonSupport.writeValue(out, values);
+                }
             }
             break;
 
         case ERROR:
             if (packet.getReason() != null) {
                 int reasonCode = packet.getReason().getValue();
-                buffer.writeByte(toChar(reasonCode));
+                buf.writeByte(toChar(reasonCode));
             }
             if (packet.getAdvice() != null) {
                 int adviceCode = packet.getAdvice().getValue();
-                buffer.writeByte(toChar(adviceCode));
+                buf.writeByte(toChar(adviceCode));
             }
             break;
         }
 
-        if (!packet.isBinary()) {
+        if (!binary) {
             buffer.writeByte(0);
             int length = buf.writerIndex();
             buffer.writeBytes(longToBytes(length));
             buffer.writeByte(0xff);
+            buffer.writeBytes(buf);
         }
-        buffer.writeBytes(buf);
+    }
+
+    private int count(ByteBuf buffer, ByteBuf searchValue) {
+        int count = 0;
+        for (int i = 0; i < buffer.readableBytes(); i++) {
+            if (isValueFound(buffer, i, searchValue)) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    private boolean isValueFound(ByteBuf buffer, int index, ByteBuf search) {
+        for (int i = 0; i < search.readableBytes(); i++) {
+            if (buffer.getByte(index + i) != search.getByte(i)) {
+                return false;
+            }
+        }
+        return true;
     }
 
 }

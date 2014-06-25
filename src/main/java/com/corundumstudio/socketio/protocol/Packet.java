@@ -23,7 +23,6 @@ public class Packet implements Serializable {
 
     private static final long serialVersionUID = 4560159536486711426L;
 
-    private boolean binary;
     private PacketType type;
     private PacketType subType;
     private Long ackId;
@@ -40,13 +39,6 @@ public class Packet implements Serializable {
     public Packet(PacketType type) {
         super();
         this.type = type;
-    }
-
-    public boolean isBinary() {
-        return binary;
-    }
-    public void setBinary(boolean binary) {
-        this.binary = binary;
     }
 
     public PacketType getSubType() {

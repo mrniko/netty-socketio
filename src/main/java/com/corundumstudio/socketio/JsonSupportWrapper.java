@@ -74,18 +74,6 @@ class JsonSupportWrapper implements JsonSupport {
         }
     }
 
-    public String writeValueAsString(Object value) throws IOException {
-        try {
-            return delegate.writeValueAsString(value);
-        } catch (IOException e) {
-            log.error("Can't convert value to string: " + value, e);
-            return null;
-        } catch (RuntimeException e) {
-            log.error("Can't convert value to string: " + value, e);
-            return null;
-        }
-    }
-
     public void addEventMapping(String eventName, Class<?> ... eventClass) {
         delegate.addEventMapping(eventName, eventClass);
     }
@@ -99,6 +87,9 @@ class JsonSupportWrapper implements JsonSupport {
         return delegate.readValue(src, valueType);
     }
 
-
+    @Override
+    public void writeJsonValue(ByteBufOutputStream out, Object value) throws IOException {
+        delegate.writeJsonValue(out, value);
+    }
 
 }

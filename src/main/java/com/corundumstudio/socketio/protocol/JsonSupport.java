@@ -30,13 +30,13 @@ import com.corundumstudio.socketio.AckCallback;
  */
 public interface JsonSupport {
 
+    void writeJsonValue(ByteBufOutputStream out, Object value) throws IOException;
+
     AckArgs readAckArgs(ByteBufInputStream src, AckCallback<?> callback) throws IOException;
 
     <T> T readValue(ByteBufInputStream src, Class<T> valueType) throws IOException;
 
     void writeValue(ByteBufOutputStream out, Object value) throws IOException;
-
-    String writeValueAsString(Object value) throws IOException;
 
     <T> T readValue(String src, Class<T> valueType) throws IOException;
 

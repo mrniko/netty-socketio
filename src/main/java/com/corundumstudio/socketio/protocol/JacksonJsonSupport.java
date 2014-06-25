@@ -25,7 +25,6 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.slf4j.Logger;
@@ -34,14 +33,14 @@ import org.slf4j.LoggerFactory;
 import com.corundumstudio.socketio.AckCallback;
 import com.corundumstudio.socketio.Configuration;
 import com.corundumstudio.socketio.MultiTypeAckCallback;
-import com.corundumstudio.socketio.misc.ConcurrentHashSet;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.SerializableString;
+import com.fasterxml.jackson.core.io.CharacterEscapes;
+import com.fasterxml.jackson.core.io.SerializedString;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -49,9 +48,38 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public class JacksonJsonSupport implements JsonSupport {
+
+    public static class HTMLCharacterEscapes extends CharacterEscapes
+    {
+        private static final long serialVersionUID = 6159367941232231133L;
+
+        private final int[] asciiEscapes;
+
+        public HTMLCharacterEscapes()
+        {
+            // start with set of characters known to require escaping (double-quote, backslash etc)
+            int[] esc = CharacterEscapes.standardAsciiEscapesForJSON();
+            // and force escaping of a few others:
+            esc['"'] = CharacterEscapes.ESCAPE_CUSTOM;
+            asciiEscapes = esc;
+        }
+
+        // this method gets called for character codes 0 - 127
+        @Override
+        public int[] getEscapeCodesForAscii() {
+            return asciiEscapes;
+        }
+
+        @Override
+        public SerializableString getEscapeSequence(int ch) {
+            if (ch == '"') {
+                return new SerializedString("\\\\" + (char)ch);
+            }
+            return null;
+        }
+    }
 
     private class AckArgsDeserializer extends StdDeserializer<AckArgs> {
 
@@ -86,24 +114,6 @@ public class JacksonJsonSupport implements JsonSupport {
                     clazz = Object.class;
                 }
 
-                // TODO refactor it!
-//                if (arg.isNumber()) {
-//                    if (clazz.equals(Long.class)) {
-//                        val = arg.longValue();
-//                    }
-//                    if (clazz.equals(BigDecimal.class)) {
-//                        val = arg.bigIntegerValue();
-//                    }
-//                    if (clazz.equals(Double.class)) {
-//                        val = arg.doubleValue();
-//                    }
-//                    if (clazz.equals(Integer.class)) {
-//                        val = arg.intValue();
-//                    }
-//                    if (clazz.equals(Float.class)) {
-//                        val = (float)arg.doubleValue();
-//                    }
-//                }
                 val = mapper.treeToValue(arg, clazz);
                 args.add(val);
                 i++;
@@ -160,6 +170,7 @@ public class JacksonJsonSupport implements JsonSupport {
 
     private final ThreadLocal<AckCallback<?>> currentAckClass = new ThreadLocal<AckCallback<?>>();
     private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper jsonpObjectMapper = new ObjectMapper();
     private final EventDeserializer eventDeserializer = new EventDeserializer();
     private final AckArgsDeserializer ackArgsDeserializer = new AckArgsDeserializer();
 
@@ -172,8 +183,11 @@ public class JacksonJsonSupport implements JsonSupport {
     public JacksonJsonSupport(Configuration configuration, Module... modules) {
         if (modules != null && modules.length > 0) {
             objectMapper.registerModules(modules);
+            jsonpObjectMapper.registerModules(modules);
         }
         init(objectMapper);
+        init(jsonpObjectMapper);
+        jsonpObjectMapper.getFactory().setCharacterEscapes(new HTMLCharacterEscapes());
     }
 
     protected void init(ObjectMapper objectMapper) {
@@ -218,12 +232,11 @@ public class JacksonJsonSupport implements JsonSupport {
     @Override
     public void writeValue(ByteBufOutputStream out, Object value) throws IOException {
         objectMapper.writeValue(out, value);
-
     }
 
     @Override
-    public String writeValueAsString(Object value) throws IOException {
-        return objectMapper.writeValueAsString(value);
+    public void writeJsonValue(ByteBufOutputStream out, Object value) throws IOException {
+        jsonpObjectMapper.writeValue(out, value);
     }
 
     @Override
