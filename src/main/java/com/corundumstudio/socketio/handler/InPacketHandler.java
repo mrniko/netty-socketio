@@ -28,22 +28,22 @@ import com.corundumstudio.socketio.listener.ExceptionListener;
 import com.corundumstudio.socketio.messages.PacketsMessage;
 import com.corundumstudio.socketio.namespace.Namespace;
 import com.corundumstudio.socketio.namespace.NamespacesHub;
-import com.corundumstudio.socketio.protocol.Decoder;
+import com.corundumstudio.socketio.protocol.PacketDecoder;
 import com.corundumstudio.socketio.protocol.Packet;
 import com.corundumstudio.socketio.protocol.PacketType;
 import com.corundumstudio.socketio.transport.NamespaceClient;
 
 @Sharable
-public class PacketHandler extends SimpleChannelInboundHandler<PacketsMessage> {
+public class InPacketHandler extends SimpleChannelInboundHandler<PacketsMessage> {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     private final PacketListener packetListener;
-    private final Decoder decoder;
+    private final PacketDecoder decoder;
     private final NamespacesHub namespacesHub;
     private final ExceptionListener exceptionListener;
 
-    public PacketHandler(PacketListener packetListener, Decoder decoder, NamespacesHub namespacesHub, ExceptionListener exceptionListener) {
+    public InPacketHandler(PacketListener packetListener, PacketDecoder decoder, NamespacesHub namespacesHub, ExceptionListener exceptionListener) {
         super();
         this.packetListener = packetListener;
         this.decoder = decoder;

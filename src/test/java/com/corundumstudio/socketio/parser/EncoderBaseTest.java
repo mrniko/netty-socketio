@@ -16,11 +16,11 @@
 package com.corundumstudio.socketio.parser;
 
 import com.corundumstudio.socketio.Configuration;
-import com.corundumstudio.socketio.protocol.Encoder;
+import com.corundumstudio.socketio.protocol.PacketEncoder;
 import com.corundumstudio.socketio.protocol.JacksonJsonSupport;
 
 public class EncoderBaseTest {
 
-    final Encoder encoder = new Encoder(new Configuration(), new JacksonJsonSupport(new Configuration()));
+    final PacketEncoder encoder = new PacketEncoder(new Configuration(), new JacksonJsonSupport(new Configuration()));
 
 }

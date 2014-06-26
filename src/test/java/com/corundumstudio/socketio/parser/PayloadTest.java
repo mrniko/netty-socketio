@@ -30,8 +30,8 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.corundumstudio.socketio.Configuration;
-import com.corundumstudio.socketio.protocol.Decoder;
-import com.corundumstudio.socketio.protocol.Encoder;
+import com.corundumstudio.socketio.protocol.PacketDecoder;
+import com.corundumstudio.socketio.protocol.PacketEncoder;
 import com.corundumstudio.socketio.protocol.JacksonJsonSupport;
 import com.corundumstudio.socketio.protocol.Packet;
 import com.corundumstudio.socketio.protocol.PacketType;
@@ -39,8 +39,8 @@ import com.corundumstudio.socketio.protocol.PacketType;
 public class PayloadTest {
 
     private final JacksonJsonSupport support = new JacksonJsonSupport(new Configuration());
-    private final Decoder decoder = new Decoder(support, null);
-    private final Encoder encoder = new Encoder(new Configuration(), support);
+    private final PacketDecoder decoder = new PacketDecoder(support, null);
+    private final PacketEncoder encoder = new PacketEncoder(new Configuration(), support);
 
     @Test
     public void testPayloadDecode() throws IOException {

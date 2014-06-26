@@ -29,7 +29,7 @@ import java.util.regex.Pattern;
 
 import com.corundumstudio.socketio.Configuration;
 
-public class Encoder {
+public class PacketEncoder {
 
     private static final Pattern QUOTES_PATTERN = Pattern.compile("\"", Pattern.LITERAL);
     private static final byte[] JSONP_DELIMITER = new byte[] {':'};
@@ -40,7 +40,7 @@ public class Encoder {
     private final JsonSupport jsonSupport;
     private final Configuration configuration;
 
-    public Encoder(Configuration configuration, JsonSupport jsonSupport) {
+    public PacketEncoder(Configuration configuration, JsonSupport jsonSupport) {
         this.jsonSupport = jsonSupport;
         this.configuration = configuration;
     }

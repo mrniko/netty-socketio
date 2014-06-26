@@ -23,7 +23,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.corundumstudio.socketio.Configuration;
-import com.corundumstudio.socketio.protocol.Decoder;
+import com.corundumstudio.socketio.protocol.PacketDecoder;
 import com.corundumstudio.socketio.protocol.JacksonJsonSupport;
 import com.corundumstudio.socketio.protocol.Packet;
 import com.corundumstudio.socketio.protocol.PacketType;
@@ -50,7 +50,7 @@ public class DecoderEventPacketTest extends DecoderBaseTest {
     public void testDecodeWithData() throws IOException {
         JacksonJsonSupport jsonSupport = new JacksonJsonSupport(new Configuration());
         jsonSupport.addEventMapping("edwald", HashMap.class, Integer.class, String.class);
-        Decoder decoder = new Decoder(jsonSupport, ackManager);
+        PacketDecoder decoder = new PacketDecoder(jsonSupport, ackManager);
 
         Packet packet = decoder.decodePacket("5:::{\"name\":\"edwald\",\"args\":[{\"a\": \"b\"},2,\"3\"]}", null);
         Assert.assertEquals(PacketType.EVENT, packet.getType());

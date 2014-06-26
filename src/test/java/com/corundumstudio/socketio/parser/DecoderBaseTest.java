@@ -21,7 +21,7 @@ import mockit.Mocked;
 
 import com.corundumstudio.socketio.Configuration;
 import com.corundumstudio.socketio.ack.AckManager;
-import com.corundumstudio.socketio.protocol.Decoder;
+import com.corundumstudio.socketio.protocol.PacketDecoder;
 import com.corundumstudio.socketio.protocol.JacksonJsonSupport;
 
 
@@ -30,11 +30,11 @@ public class DecoderBaseTest {
     @Mocked
     protected AckManager ackManager;
 
-    protected Decoder decoder;
+    protected PacketDecoder decoder;
 
     @Before
     public void before() {
-        decoder = new Decoder(new JacksonJsonSupport(new Configuration()), ackManager);
+        decoder = new PacketDecoder(new JacksonJsonSupport(new Configuration()), ackManager);
     }
 
 }

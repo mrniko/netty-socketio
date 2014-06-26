@@ -40,12 +40,12 @@ import com.corundumstudio.socketio.handler.AuthorizeHandler;
 import com.corundumstudio.socketio.handler.ClientHead;
 import com.corundumstudio.socketio.handler.ClientsBox;
 import com.corundumstudio.socketio.handler.EncoderHandler;
-import com.corundumstudio.socketio.handler.PacketHandler;
+import com.corundumstudio.socketio.handler.InPacketHandler;
 import com.corundumstudio.socketio.handler.PacketListener;
 import com.corundumstudio.socketio.handler.WrongUrlHandler;
 import com.corundumstudio.socketio.namespace.NamespacesHub;
-import com.corundumstudio.socketio.protocol.Decoder;
-import com.corundumstudio.socketio.protocol.Encoder;
+import com.corundumstudio.socketio.protocol.PacketDecoder;
+import com.corundumstudio.socketio.protocol.PacketEncoder;
 import com.corundumstudio.socketio.protocol.JsonSupport;
 import com.corundumstudio.socketio.scheduler.CancelableScheduler;
 import com.corundumstudio.socketio.scheduler.HashedWheelScheduler;
@@ -83,7 +83,7 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
 
     private CancelableScheduler scheduler = new HashedWheelScheduler();
 
-    private PacketHandler packetHandler;
+    private InPacketHandler packetHandler;
     private SSLContext sslContext;
     private Configuration configuration;
 
@@ -98,8 +98,8 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
         ackManager = new AckManager(scheduler);
 
         JsonSupport jsonSupport = configuration.getJsonSupport();
-        Encoder encoder = new Encoder(configuration, jsonSupport);
-        Decoder decoder = new Decoder(jsonSupport, ackManager);
+        PacketEncoder encoder = new PacketEncoder(configuration, jsonSupport);
+        PacketDecoder decoder = new PacketDecoder(jsonSupport, ackManager);
 
         String connectPath = configuration.getContext() + "/";
 
@@ -121,9 +121,14 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
         PacketListener packetListener = new PacketListener(ackManager, namespacesHub, xhrPollingTransport, scheduler);
 
 
-        packetHandler = new PacketHandler(packetListener, decoder, namespacesHub, configuration.getExceptionListener());
+        packetHandler = new InPacketHandler(packetListener, decoder, namespacesHub, configuration.getExceptionListener());
+        
+        try {
+            encoderHandler = new EncoderHandler(configuration.isAddVersionHeader(), encoder);
+        } catch (Exception e) {
+            throw new IllegalStateException(e);
+        }
 
-        encoderHandler = new EncoderHandler(encoder);
         wrongUrlHandler = new WrongUrlHandler();
     }
 

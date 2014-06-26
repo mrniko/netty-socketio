@@ -291,7 +291,7 @@
            <extensions>true</extensions>
            <configuration>
                <instructions>
-                   <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
+                   <Bundle-Name>${project.artifactId}</Bundle-Name>
                    <Import-Package>
                     org.springframework.*;resolution:=optional,com.hazelcast.*;resolution:=optional,org.redisson.*;resolution:=optional,*
                    </Import-Package>

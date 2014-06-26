@@ -38,7 +38,6 @@ public class Configuration {
     private int bossThreads = 0; // 0 = current_processors_amount * 2
     private int workerThreads = 0; // 0 = current_processors_amount * 2
 
-
     private boolean allowCustomRequests = false;
 
     private int upgradeTimeout = 10000;
@@ -72,6 +71,8 @@ public class Configuration {
 
     private AckMode ackMode = AckMode.AUTO_SUCCESS_ONLY;
 
+    private boolean addVersionHeader = true;
+    
     public Configuration() {
     }
 
@@ -113,6 +114,8 @@ public class Configuration {
         setAckMode(conf.getAckMode());
         setMaxFramePayloadLength(conf.getMaxFramePayloadLength());
         setUpgradeTimeout(conf.getUpgradeTimeout());
+        
+        setAddVersionHeader(conf.isAddVersionHeader());
     }
 
     public JsonSupport getJsonSupport() {
@@ -425,11 +428,29 @@ public class Configuration {
         return maxFramePayloadLength;
     }
 
-    public int getUpgradeTimeout() {
-        return upgradeTimeout;
-    }
+    /**
+     * Transport upgrade timeout in milliseconds
+     * 
+     * @param upgradeTimeout
+     */
     public void setUpgradeTimeout(int upgradeTimeout) {
         this.upgradeTimeout = upgradeTimeout;
     }
+    public int getUpgradeTimeout() {
+        return upgradeTimeout;
+    }
 
+    /**
+     * Adds 'Server' header with lib version to http response.
+     * Default is <code>true</code>
+     * 
+     * @param addVersionHeader
+     */
+    public void setAddVersionHeader(boolean addVersionHeader) {
+        this.addVersionHeader = addVersionHeader;
+    }
+    public boolean isAddVersionHeader() {
+        return addVersionHeader;
+    }
+    
 }

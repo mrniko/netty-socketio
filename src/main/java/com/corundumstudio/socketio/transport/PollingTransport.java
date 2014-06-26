@@ -44,7 +44,7 @@ import com.corundumstudio.socketio.handler.EncoderHandler;
 import com.corundumstudio.socketio.messages.PacketsMessage;
 import com.corundumstudio.socketio.messages.XHROptionsMessage;
 import com.corundumstudio.socketio.messages.XHRPostMessage;
-import com.corundumstudio.socketio.protocol.Decoder;
+import com.corundumstudio.socketio.protocol.PacketDecoder;
 
 @Sharable
 public class PollingTransport extends ChannelInboundHandlerAdapter {
@@ -53,11 +53,11 @@ public class PollingTransport extends ChannelInboundHandlerAdapter {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private final Decoder decoder;
+    private final PacketDecoder decoder;
     private final ClientsBox clientsBox;
     private final AuthorizeHandler authorizeHandler;
 
-    public PollingTransport(Decoder decoder, AuthorizeHandler authorizeHandler, ClientsBox clientsBox) {
+    public PollingTransport(PacketDecoder decoder, AuthorizeHandler authorizeHandler, ClientsBox clientsBox) {
         this.decoder = decoder;
         this.authorizeHandler = authorizeHandler;
         this.clientsBox = clientsBox;

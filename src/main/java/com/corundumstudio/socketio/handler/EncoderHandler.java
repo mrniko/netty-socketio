@@ -41,7 +41,11 @@ import io.netty.util.AttributeKey;
 import io.netty.util.CharsetUtil;
 
 import java.io.IOException;
+import java.net.URL;
+import java.util.Enumeration;
 import java.util.Queue;
+import java.util.jar.Attributes;
+import java.util.jar.Manifest;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,7 +56,7 @@ import com.corundumstudio.socketio.messages.HttpMessage;
 import com.corundumstudio.socketio.messages.OutPacketMessage;
 import com.corundumstudio.socketio.messages.XHROptionsMessage;
 import com.corundumstudio.socketio.messages.XHRPostMessage;
-import com.corundumstudio.socketio.protocol.Encoder;
+import com.corundumstudio.socketio.protocol.PacketEncoder;
 import com.corundumstudio.socketio.protocol.Packet;
 
 @Sharable
@@ -67,10 +71,36 @@ public class EncoderHandler extends ChannelOutboundHandlerAdapter {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private final Encoder encoder;
+    private final PacketEncoder encoder;
+    
+    private String version;
 
-    public EncoderHandler(Encoder encoder) {
+    public EncoderHandler(boolean addVersionHeader, PacketEncoder encoder) throws IOException {
         this.encoder = encoder;
+
+        if (addVersionHeader) {
+            readVersion();
+        }
+    }
+
+    private void readVersion() throws IOException {
+        Enumeration<URL> resources = getClass().getClassLoader().getResources("META-INF/MANIFEST.MF");
+        while (resources.hasMoreElements()) {
+            try {
+                Manifest manifest = new Manifest(resources.nextElement().openStream());
+                Attributes attrs = manifest.getMainAttributes();
+                if (attrs == null) {
+                    continue;
+                }
+                String name = attrs.getValue("Bundle-Name");
+                if (name != null && name.equals("netty-socketio")) {
+                    version = name + "/" + attrs.getValue("Bundle-Version");
+                    break;
+                }
+            } catch (IOException E) {
+                // skip it
+            }
+        }
     }
 
     private void write(XHROptionsMessage msg, Channel channel, ByteBuf out) {
@@ -84,7 +114,6 @@ public class EncoderHandler extends ChannelOutboundHandlerAdapter {
         sendMessage(msg, channel, out, res);
     }
 
-
     private void write(XHRPostMessage msg, Channel channel, ByteBuf out) {
         out.writeBytes(OK);
         sendMessage(msg, channel, out, "text/html");
@@ -93,10 +122,8 @@ public class EncoderHandler extends ChannelOutboundHandlerAdapter {
     private void sendMessage(HttpMessage msg, Channel channel, ByteBuf out, String type) {
         HttpResponse res = new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.OK);
 
-        res.headers()
-            .add(CONTENT_TYPE, type)
-            .add("Set-Cookie", "io=" + msg.getSessionId())
-            .add(CONNECTION, KEEP_ALIVE);
+        res.headers().add(CONTENT_TYPE, type).add("Set-Cookie", "io=" + msg.getSessionId())
+                .add(CONNECTION, KEEP_ALIVE);
 
         addOriginHeaders(channel, res);
         HttpHeaders.setContentLength(res, out.readableBytes());
@@ -104,9 +131,7 @@ public class EncoderHandler extends ChannelOutboundHandlerAdapter {
         // prevent XSS warnings on IE
         // https://github.com/LearnBoost/socket.io/pull/1333
         String userAgent = channel.attr(EncoderHandler.USER_AGENT).get();
-        if (userAgent != null
-                && (userAgent.contains(";MSIE")
-                    || userAgent.contains("Trident/"))) {
+        if (userAgent != null && (userAgent.contains(";MSIE") || userAgent.contains("Trident/"))) {
             res.headers().add("X-XSS-Protection", "0");
         }
 
@@ -117,8 +142,7 @@ public class EncoderHandler extends ChannelOutboundHandlerAdapter {
         channel.write(res);
 
         if (log.isTraceEnabled()) {
-            log.trace("Out message: {} - sessionId: {}",
-                        out.toString(CharsetUtil.UTF_8), msg.getSessionId());
+            log.trace("Out message: {} - sessionId: {}", out.toString(CharsetUtil.UTF_8), msg.getSessionId());
         }
 
         if (out.isReadable()) {
@@ -131,6 +155,10 @@ public class EncoderHandler extends ChannelOutboundHandlerAdapter {
     }
 
     private void addOriginHeaders(Channel channel, HttpResponse res) {
+        if (version != null) {
+            res.headers().add(HttpHeaders.Names.SERVER, version);
+        }
+        
         String origin = channel.attr(ORIGIN).get();
         if (origin != null) {
             HttpHeaders.addHeader(res, ACCESS_CONTROL_ALLOW_ORIGIN, origin);
@@ -181,7 +209,8 @@ public class EncoderHandler extends ChannelOutboundHandlerAdapter {
 
             WebSocketFrame res = new TextWebSocketFrame(out);
             if (log.isTraceEnabled()) {
-                log.trace("Out message: {} sessionId: {}", out.toString(CharsetUtil.UTF_8), msg.getSessionId());
+                log.trace("Out message: {} sessionId: {}", out.toString(CharsetUtil.UTF_8),
+                        msg.getSessionId());
             }
             ctx.channel().writeAndFlush(res);
             if (!out.isReadable()) {
@@ -197,9 +226,7 @@ public class EncoderHandler extends ChannelOutboundHandlerAdapter {
 
         Queue<Packet> queue = msg.getClientHead().getPacketsQueue(msg.getTransport());
 
-        if (!channel.isActive()
-                || queue.isEmpty()
-                    || !attr.compareAndSet(null, true)) {
+        if (!channel.isActive() || queue.isEmpty() || !attr.compareAndSet(null, true)) {
             out.release();
             return;
         }

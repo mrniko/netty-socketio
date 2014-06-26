@@ -28,12 +28,12 @@ import java.util.UUID;
 import com.corundumstudio.socketio.AckCallback;
 import com.corundumstudio.socketio.ack.AckManager;
 
-public class Decoder {
+public class PacketDecoder {
 
     private final JsonSupport jsonSupport;
     private final AckManager ackManager;
 
-    public Decoder(JsonSupport jsonSupport, AckManager ackManager) {
+    public PacketDecoder(JsonSupport jsonSupport, AckManager ackManager) {
         this.jsonSupport = jsonSupport;
         this.ackManager = ackManager;
     }
