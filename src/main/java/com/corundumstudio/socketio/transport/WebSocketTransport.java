@@ -39,7 +39,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.corundumstudio.socketio.Configuration;
-import com.corundumstudio.socketio.HandshakeData;
 import com.corundumstudio.socketio.Transport;
 import com.corundumstudio.socketio.handler.AuthorizeHandler;
 import com.corundumstudio.socketio.handler.ClientHead;
@@ -98,6 +97,11 @@ public class WebSocketTransport extends ChannelInboundHandlerAdapter {
 
             if (transport != null && NAME.equals(transport.get(0))) {
                 try {
+                    if (!configuration.getTransports().contains(Transport.WEBSOCKET)) {
+                        log.debug("{} transport not supported by configuration.", Transport.WEBSOCKET);
+                        ctx.channel().close();
+                        return;
+                    }
                     if (sid != null && sid.get(0) != null) {
                         final UUID sessionId = UUID.fromString(sid.get(0));
                         handshake(ctx, sessionId, path, req);
@@ -173,17 +177,19 @@ public class WebSocketTransport extends ChannelInboundHandlerAdapter {
 
         authorizeHandler.connect(client);
 
-        SchedulerKey key = new SchedulerKey(SchedulerKey.Type.UPGRADE_TIMEOUT, sessionId);
-        scheduler.schedule(key, new Runnable() {
-            @Override
-            public void run() {
-                if (log.isDebugEnabled()) {
-                    log.debug("client did not complete upgrade - closing transport");
+        if (client.getCurrentTransport() == Transport.POLLING) {
+            SchedulerKey key = new SchedulerKey(SchedulerKey.Type.UPGRADE_TIMEOUT, sessionId);
+            scheduler.schedule(key, new Runnable() {
+                @Override
+                public void run() {
+                    if (log.isDebugEnabled()) {
+                        log.debug("client did not complete upgrade - closing transport");
+                    }
+                    clientsBox.get(sessionId)
+                    .onChannelDisconnect();
                 }
-                clientsBox.get(sessionId)
-                            .onChannelDisconnect();
-            }
-        }, configuration.getUpgradeTimeout(), TimeUnit.MILLISECONDS);
+            }, configuration.getUpgradeTimeout(), TimeUnit.MILLISECONDS);
+        }
 
         log.debug("сlient {} handshake completed", sessionId);
     }
