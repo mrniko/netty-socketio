@@ -53,7 +53,7 @@ import com.corundumstudio.socketio.store.StoreFactory;
 import com.corundumstudio.socketio.store.pubsub.DisconnectMessage;
 import com.corundumstudio.socketio.store.pubsub.PubSubStore;
 import com.corundumstudio.socketio.transport.WebSocketTransport;
-import com.corundumstudio.socketio.transport.XHRPollingTransport;
+import com.corundumstudio.socketio.transport.PollingTransport;
 
 public class SocketIOChannelInitializer extends ChannelInitializer<Channel> implements DisconnectableHub {
 
@@ -76,7 +76,7 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
 
     private ClientsBox clientsBox = new ClientsBox();
     private AuthorizeHandler authorizeHandler;
-    private XHRPollingTransport xhrPollingTransport;
+    private PollingTransport xhrPollingTransport;
     private WebSocketTransport webSocketTransport;
     private EncoderHandler encoderHandler;
     private WrongUrlHandler wrongUrlHandler;
@@ -115,7 +115,7 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
         factory.init(namespacesHub, authorizeHandler, jsonSupport);
 
         authorizeHandler = new AuthorizeHandler(connectPath, scheduler, configuration, namespacesHub, factory, this, ackManager, clientsBox);
-        xhrPollingTransport = new XHRPollingTransport(decoder, authorizeHandler, clientsBox);
+        xhrPollingTransport = new PollingTransport(decoder, authorizeHandler, clientsBox);
         webSocketTransport = new WebSocketTransport(isSsl, authorizeHandler, configuration, scheduler, clientsBox);
 
         PacketListener packetListener = new PacketListener(ackManager, namespacesHub, xhrPollingTransport, scheduler);

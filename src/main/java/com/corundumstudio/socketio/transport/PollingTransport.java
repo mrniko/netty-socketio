@@ -47,7 +47,7 @@ import com.corundumstudio.socketio.messages.XHRPostMessage;
 import com.corundumstudio.socketio.protocol.Decoder;
 
 @Sharable
-public class XHRPollingTransport extends ChannelInboundHandlerAdapter {
+public class PollingTransport extends ChannelInboundHandlerAdapter {
 
     public static final String NAME = "polling";
 
@@ -57,7 +57,7 @@ public class XHRPollingTransport extends ChannelInboundHandlerAdapter {
     private final ClientsBox clientsBox;
     private final AuthorizeHandler authorizeHandler;
 
-    public XHRPollingTransport(Decoder decoder, AuthorizeHandler authorizeHandler, ClientsBox clientsBox) {
+    public PollingTransport(Decoder decoder, AuthorizeHandler authorizeHandler, ClientsBox clientsBox) {
         this.decoder = decoder;
         this.authorizeHandler = authorizeHandler;
         this.clientsBox = clientsBox;
@@ -74,6 +74,12 @@ public class XHRPollingTransport extends ChannelInboundHandlerAdapter {
             if (transport != null && NAME.equals(transport.get(0))) {
                 List<String> sid = queryDecoder.parameters().get("sid");
                 List<String> j = queryDecoder.parameters().get("j");
+
+                String origin = req.headers().get(HttpHeaders.Names.ORIGIN);
+                ctx.channel().attr(EncoderHandler.ORIGIN).set(origin);
+
+                String userAgent = req.headers().get(HttpHeaders.Names.USER_AGENT);
+                ctx.channel().attr(EncoderHandler.USER_AGENT).set(userAgent);
 
                 if (j != null && j.get(0) != null) {
                     Integer index = Integer.valueOf(j.get(0));

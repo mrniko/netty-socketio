@@ -23,7 +23,6 @@ import static io.netty.handler.codec.http.HttpHeaders.Names.CONTENT_TYPE;
 import static io.netty.handler.codec.http.HttpHeaders.Values.KEEP_ALIVE;
 import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler.Sharable;
@@ -59,8 +58,12 @@ import com.corundumstudio.socketio.protocol.Packet;
 @Sharable
 public class EncoderHandler extends ChannelOutboundHandlerAdapter {
 
-    public static final AttributeKey<Integer> JSONP_INDEX = AttributeKey.<Integer>valueOf("jsonpIndex");
-    public static final AttributeKey<Boolean> WRITE_ONCE = AttributeKey.<Boolean>valueOf("writeOnce");
+    private static final byte[] OK = "ok".getBytes(CharsetUtil.UTF_8);
+
+    public static final AttributeKey<String> ORIGIN = AttributeKey.valueOf("origin");
+    public static final AttributeKey<String> USER_AGENT = AttributeKey.valueOf("userAgent");
+    public static final AttributeKey<Integer> JSONP_INDEX = AttributeKey.valueOf("jsonpIndex");
+    public static final AttributeKey<Boolean> WRITE_ONCE = AttributeKey.valueOf("writeOnce");
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -76,19 +79,37 @@ public class EncoderHandler extends ChannelOutboundHandlerAdapter {
         HttpHeaders.addHeader(res, "Set-Cookie", "io=" + msg.getSessionId());
         HttpHeaders.addHeader(res, CONNECTION, KEEP_ALIVE);
         HttpHeaders.addHeader(res, ACCESS_CONTROL_ALLOW_HEADERS, CONTENT_TYPE);
-        addOriginHeaders(msg, res);
+        addOriginHeaders(channel, res);
 
         sendMessage(msg, channel, out, res);
     }
 
 
     private void write(XHRPostMessage msg, Channel channel, ByteBuf out) {
-        out.writeBytes(Unpooled.copiedBuffer("ok", CharsetUtil.UTF_8));
+        out.writeBytes(OK);
         sendMessage(msg, channel, out, "text/html");
     }
 
     private void sendMessage(HttpMessage msg, Channel channel, ByteBuf out, String type) {
-        HttpResponse res = createHttpResponse(msg, out, type);
+        HttpResponse res = new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.OK);
+
+        res.headers()
+            .add(CONTENT_TYPE, type)
+            .add("Set-Cookie", "io=" + msg.getSessionId())
+            .add(CONNECTION, KEEP_ALIVE);
+
+        addOriginHeaders(channel, res);
+        HttpHeaders.setContentLength(res, out.readableBytes());
+
+        // prevent XSS warnings on IE
+        // https://github.com/LearnBoost/socket.io/pull/1333
+        String userAgent = channel.attr(EncoderHandler.USER_AGENT).get();
+        if (userAgent != null
+                && (userAgent.contains(";MSIE")
+                    || userAgent.contains("Trident/"))) {
+            res.headers().add("X-XSS-Protection", "0");
+        }
+
         sendMessage(msg, channel, out, res);
     }
 
@@ -109,22 +130,10 @@ public class EncoderHandler extends ChannelOutboundHandlerAdapter {
         channel.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT).addListener(ChannelFutureListener.CLOSE);
     }
 
-    private HttpResponse createHttpResponse(HttpMessage msg, ByteBuf message, String type) {
-        HttpResponse res = new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.OK);
-
-        HttpHeaders.addHeader(res, CONTENT_TYPE, type);
-        HttpHeaders.addHeader(res, "Set-Cookie", "io=" + msg.getSessionId());
-
-        HttpHeaders.addHeader(res, CONNECTION, KEEP_ALIVE);
-        addOriginHeaders(msg, res);
-        HttpHeaders.setContentLength(res, message.readableBytes());
-
-        return res;
-    }
-
-    private void addOriginHeaders(HttpMessage msg, HttpResponse res) {
-        if (msg.getOrigin() != null) {
-            HttpHeaders.addHeader(res, ACCESS_CONTROL_ALLOW_ORIGIN, msg.getOrigin());
+    private void addOriginHeaders(Channel channel, HttpResponse res) {
+        String origin = channel.attr(ORIGIN).get();
+        if (origin != null) {
+            HttpHeaders.addHeader(res, ACCESS_CONTROL_ALLOW_ORIGIN, origin);
             HttpHeaders.addHeader(res, ACCESS_CONTROL_ALLOW_CREDENTIALS, Boolean.TRUE);
         } else {
             HttpHeaders.addHeader(res, ACCESS_CONTROL_ALLOW_ORIGIN, "*");

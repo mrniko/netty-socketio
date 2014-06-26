@@ -31,6 +31,12 @@ import com.corundumstudio.socketio.Configuration;
 
 public class Encoder {
 
+    private static final Pattern QUOTES_PATTERN = Pattern.compile("\"", Pattern.LITERAL);
+    private static final byte[] JSONP_DELIMITER = new byte[] {':'};
+    private static final byte[] JSONP_HEAD = "___eio[".getBytes(CharsetUtil.UTF_8);
+    private static final byte[] JSONP_START = "](\"".getBytes(CharsetUtil.UTF_8);
+    private static final byte[] JSONP_END = "\");".getBytes(CharsetUtil.UTF_8);
+
     private final JsonSupport jsonSupport;
     private final Configuration configuration;
 
@@ -64,30 +70,29 @@ public class Encoder {
             int packetSize = packetBuf.writerIndex() - count;
 
             buf.writeBytes(toChars(packetSize));
-            buf.writeBytes(new byte[] {':'});
+            buf.writeBytes(JSONP_DELIMITER);
             buf.writeBytes(packetBuf);
 
             i++;
         }
 
-        out.writeBytes("___eio[".getBytes(CharsetUtil.UTF_8));
+        out.writeBytes(JSONP_HEAD);
         out.writeBytes(toChars(jsonpIndex));
-        out.writeBytes("](\"".getBytes(CharsetUtil.UTF_8));
+        out.writeBytes(JSONP_START);
 
         // TODO optimize
         String packet = buf.toString(CharsetUtil.UTF_8);
-        packet = Pattern.compile("\"", Pattern.LITERAL).matcher(packet).replaceAll("\\\\\"");
+        packet = QUOTES_PATTERN.matcher(packet).replaceAll("\\\\\"");
         packet = new String(packet.getBytes(CharsetUtil.UTF_8), CharsetUtil.ISO_8859_1);
 
         out.writeBytes(packet.getBytes(CharsetUtil.UTF_8));
-        out.writeBytes("\");".getBytes(CharsetUtil.UTF_8));
+        out.writeBytes(JSONP_END);
     }
 
     public void encodePackets(Queue<Packet> packets, ByteBuf buffer, ByteBufAllocator allocator, int limit) throws IOException {
         int i = 0;
         while (true) {
             Packet packet = packets.poll();
-            // TODO packets encode limit amount for polling transport
             if (packet == null || i == limit) {
                 break;
             }
@@ -187,8 +192,8 @@ public class Encoder {
         if (!binary) {
             buf = allocateBuffer(allocator);
         }
-        byte[] type = toChars(packet.getType().getValue());
-        buf.writeBytes(type);
+        byte type = toChar(packet.getType().getValue());
+        buf.writeByte(type);
 
         switch (packet.getType()) {
 
@@ -208,8 +213,8 @@ public class Encoder {
             }
 
             case MESSAGE: {
-                byte[] subType = toChars(packet.getSubType().getValue());
-                buf.writeBytes(subType);
+                byte subType = toChar(packet.getSubType().getValue());
+                buf.writeByte(subType);
 
                 if (packet.getSubType() == PacketType.CONNECT) {
                     if (!packet.getNsp().isEmpty()) {

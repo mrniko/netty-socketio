@@ -16,12 +16,12 @@
 package com.corundumstudio.socketio;
 
 import com.corundumstudio.socketio.transport.WebSocketTransport;
-import com.corundumstudio.socketio.transport.XHRPollingTransport;
+import com.corundumstudio.socketio.transport.PollingTransport;
 
 public enum Transport {
 
     WEBSOCKET(WebSocketTransport.NAME),
-    POLLING(XHRPollingTransport.NAME);
+    POLLING(PollingTransport.NAME);
 
     private final String value;
 

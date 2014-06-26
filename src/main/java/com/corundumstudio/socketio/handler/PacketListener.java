@@ -28,7 +28,7 @@ import com.corundumstudio.socketio.protocol.PacketType;
 import com.corundumstudio.socketio.scheduler.CancelableScheduler;
 import com.corundumstudio.socketio.scheduler.SchedulerKey;
 import com.corundumstudio.socketio.transport.NamespaceClient;
-import com.corundumstudio.socketio.transport.XHRPollingTransport;
+import com.corundumstudio.socketio.transport.PollingTransport;
 
 public class PacketListener {
 
@@ -36,7 +36,7 @@ public class PacketListener {
     private final AckManager ackManager;
     private final CancelableScheduler scheduler;
 
-    public PacketListener(AckManager ackManager, NamespacesHub namespacesHub, XHRPollingTransport xhrPollingTransport,
+    public PacketListener(AckManager ackManager, NamespacesHub namespacesHub, PollingTransport xhrPollingTransport,
             CancelableScheduler scheduler) {
         this.ackManager = ackManager;
         this.namespacesHub = namespacesHub;
