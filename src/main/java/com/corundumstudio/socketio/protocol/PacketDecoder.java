@@ -164,7 +164,8 @@ public class PacketDecoder {
         }
 
         if (packet.getType() == PacketType.MESSAGE) {
-            if (packet.getSubType() == PacketType.CONNECT) {
+            if (packet.getSubType() == PacketType.CONNECT
+                    || packet.getSubType() == PacketType.DISCONNECT) {
                 packet.setNsp(readString(frame));
             }
 

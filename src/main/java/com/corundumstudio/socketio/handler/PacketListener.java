@@ -78,6 +78,10 @@ public class PacketListener {
         case MESSAGE: {
             client.getBaseClient().schedulePingTimeout();
 
+            if (packet.getSubType() == PacketType.DISCONNECT) {
+                client.onDisconnect();
+            }
+            
             if (packet.getSubType() == PacketType.CONNECT) {
                 Namespace namespace = namespacesHub.get(packet.getNsp());
                 namespace.onConnect(client);
@@ -101,7 +105,7 @@ public class PacketListener {
         }
 
         case CLOSE:
-            client.onDisconnect();
+            client.getBaseClient().onChannelDisconnect();
             break;
 
         default:

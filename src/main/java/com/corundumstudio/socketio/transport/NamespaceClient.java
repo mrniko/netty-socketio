@@ -21,6 +21,9 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.corundumstudio.socketio.AckCallback;
 import com.corundumstudio.socketio.HandshakeData;
 import com.corundumstudio.socketio.SocketIOClient;
@@ -32,6 +35,8 @@ import com.corundumstudio.socketio.protocol.PacketType;
 
 public class NamespaceClient implements SocketIOClient {
 
+    private final Logger log = LoggerFactory.getLogger(getClass());
+    
     private final AtomicBoolean disconnected = new AtomicBoolean();
     private final ClientHead baseClient;
     private final Namespace namespace;
@@ -108,6 +113,8 @@ public class NamespaceClient implements SocketIOClient {
 
         baseClient.removeNamespaceClient(this);
         namespace.onDisconnect(this);
+        
+        log.debug("Client {} for namespace {} has been disconnected", baseClient.getSessionId(), getNamespace().getName());
     }
 
     @Override
