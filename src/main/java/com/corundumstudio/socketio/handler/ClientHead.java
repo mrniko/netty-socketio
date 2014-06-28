@@ -241,14 +241,13 @@ public class ClientHead {
 
                 Queue<Packet> queue = entry.getValue().getPacketsQueue();
                 state.setPacketsQueue(queue);
-                entry.getValue().setPacketsQueue(new ConcurrentLinkedQueue<Packet>());
 
                 sendPackets(currentTransport, state.getChannel());
+                this.currentTransport = currentTransport;
+                log.debug("Transport upgraded to: {} for: {}", currentTransport, sessionId);
+                break;
             }
         }
-        this.currentTransport = currentTransport;
-
-        log.debug("Transport upgraded to: {} for: {}", currentTransport, sessionId);
     }
 
     public Transport getCurrentTransport() {
