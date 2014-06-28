@@ -44,12 +44,12 @@ Recent Releases
 ================================
 ####Please Note: trunk is current development branch.
 
-####??-Jun-2014 - version 1.7.0
+####28-Jun-2014 - version 1.7.0 released (SocketIO 1.0+ portocol)
 Feature - Socket.IO 1.0 protocol support. Thanks to the new protocol decoding/encoding has speedup  
 __Dropped__ - `SocketIOClient.sendMessage`, `SocketIOClient.sendJsonObject` methods and corresponding listeners  
 __Dropped__ - Flashsocket transport support  
 
-####13-May-2014 - version 1.6.5 released (JDK 1.6+ compatible, Netty 4.0.19)
+####13-May-2014 - version 1.6.5 released (JDK 1.6+ compatible)
 Improvement - single packet encoding optimized, used mostly in WebSocket transport. Encoding time reduced up to 40% (thanks to Viktor Endersz)  
 Improvement - rooms handling optimized  
 Improvement - ExceptionListener.exceptionCaught method added  
