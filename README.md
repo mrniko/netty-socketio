@@ -9,7 +9,7 @@ Licensed under the Apache License 2.0.
 
 Features
 ================================
-* Supports 0.7+ version of [Socket.IO-client](https://github.com/LearnBoost/socket.io-client) up to 0.9.16  (1.0 support in progress)
+* Supports __0.7__...__0.9.16__ (netty-socketio 1.6.5) and __1.0+__ (netty-socketio 1.7.0) version of [Socket.IO-client](https://github.com/LearnBoost/socket.io-client)  
 * Supports xhr-polling transport  
 * Supports flashsocket transport  
 * Supports websocket transport: HyBi 00 (which is the same as Hixie 76), HyBi 8-10 and HyBi 13-17 (17 is the same as IETF 6455).  
@@ -44,12 +44,13 @@ Recent Releases
 ================================
 ####Please Note: trunk is current development branch.
 
-####??-Jun-2014 - version 1.7.0
+####28-Jun-2014 - version 1.7.0 released (SocketIO 1.0+ protocol)
 Feature - Socket.IO 1.0 protocol support. Thanks to the new protocol decoding/encoding has speedup  
 __Dropped__ - `SocketIOClient.sendMessage`, `SocketIOClient.sendJsonObject` methods and corresponding listeners  
 __Dropped__ - Flashsocket transport support  
+__Dropped__ - protocol version 0.7 ... 0.9.16  
 
-####13-May-2014 - version 1.6.5 released (JDK 1.6+ compatible, Netty 4.0.19)
+####13-May-2014 - version 1.6.5 released (JDK 1.6+ compatible)
 Improvement - single packet encoding optimized, used mostly in WebSocket transport. Encoding time reduced up to 40% (thanks to Viktor Endersz)  
 Improvement - rooms handling optimized  
 Improvement - ExceptionListener.exceptionCaught method added  
