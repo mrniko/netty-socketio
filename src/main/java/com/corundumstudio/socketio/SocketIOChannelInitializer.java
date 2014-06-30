@@ -135,7 +135,7 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
         flashSocketTransport = new FlashSocketTransport(connectPath, isSsl, ackManager, this, authorizeHandler, heartbeatHandler, factory, configuration.getMaxFramePayloadLength());
 
         resourceHandler = new ResourceHandler(configuration.getContext());
-        encoderHandler = new EncoderHandler(encoder);
+        encoderHandler = new EncoderHandler(encoder, configuration);
         wrongUrlHandler = new WrongUrlHandler();
     }
 

@@ -44,6 +44,7 @@ import java.io.IOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.corundumstudio.socketio.Configuration;
 import com.corundumstudio.socketio.messages.AuthorizeMessage;
 import com.corundumstudio.socketio.messages.BaseMessage;
 import com.corundumstudio.socketio.messages.HttpMessage;
@@ -61,9 +62,11 @@ public class EncoderHandler extends ChannelOutboundHandlerAdapter {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     private final Encoder encoder;
+    private final Configuration configuration;
 
-    public EncoderHandler(Encoder encoder) {
+    public EncoderHandler(Encoder encoder, Configuration configuration) {
         this.encoder = encoder;
+        this.configuration = configuration;
     }
 
     private void write(XHRSendPacketsMessage msg, ChannelHandlerContext ctx, ByteBuf out) throws IOException {
@@ -114,10 +117,17 @@ public class EncoderHandler extends ChannelOutboundHandlerAdapter {
         }
 
         HttpHeaders.addHeader(res, CONNECTION, KEEP_ALIVE);
-        if (msg.getOrigin() != null) {
-            HttpHeaders.addHeader(res, ACCESS_CONTROL_ALLOW_ORIGIN, msg.getOrigin());
+        
+        if (configuration.getOrigin() == null) {
+            if (msg.getOrigin() != null) {
+                HttpHeaders.addHeader(res, ACCESS_CONTROL_ALLOW_ORIGIN, msg.getOrigin());
+                HttpHeaders.addHeader(res, ACCESS_CONTROL_ALLOW_CREDENTIALS, "true");
+            }
+        } else {
+            HttpHeaders.addHeader(res, ACCESS_CONTROL_ALLOW_ORIGIN, configuration.getOrigin());
             HttpHeaders.addHeader(res, ACCESS_CONTROL_ALLOW_CREDENTIALS, "true");
         }
+        
         HttpHeaders.setContentLength(res, message.readableBytes());
 
         return res;

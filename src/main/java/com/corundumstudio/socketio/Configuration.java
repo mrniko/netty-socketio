@@ -69,6 +69,8 @@ public class Configuration {
     private JsonSupport jsonSupport = new JacksonJsonSupport(this);
 
     private AuthorizationListener authorizationListener = new SuccessAuthorizationListener();
+    
+    private String origin;
 
     private AckMode ackMode = AckMode.AUTO_SUCCESS_ONLY;
 
@@ -116,6 +118,7 @@ public class Configuration {
         setSocketConfig(conf.getSocketConfig());
         setAckMode(conf.getAckMode());
         setMaxFramePayloadLength(conf.getMaxFramePayloadLength());
+        setOrigin(conf.getOrigin());
     }
 
     private String join(Transport[] transports) {
@@ -472,6 +475,21 @@ public class Configuration {
     }
     public int getMaxFramePayloadLength() {
         return maxFramePayloadLength;
+    }
+
+    /**
+     * Set <b>Access-Control-Allow-Origin</b> header value for http each response.
+     * Default is {@code null}.
+     * 
+     * If value is {@code null} then request {@code ORIGIN} header value used.
+     * 
+     * @param origin
+     */
+    public void setOrigin(String origin) {
+        this.origin = origin;
+    }
+    public String getOrigin() {
+        return origin;
     }
 
 }
