@@ -72,6 +72,8 @@ public class Configuration {
     private AckMode ackMode = AckMode.AUTO_SUCCESS_ONLY;
 
     private boolean addVersionHeader = true;
+
+    private String origin;
     
     public Configuration() {
     }
@@ -116,6 +118,7 @@ public class Configuration {
         setUpgradeTimeout(conf.getUpgradeTimeout());
         
         setAddVersionHeader(conf.isAddVersionHeader());
+        setOrigin(conf.getOrigin());
     }
 
     public JsonSupport getJsonSupport() {
@@ -441,7 +444,7 @@ public class Configuration {
     }
 
     /**
-     * Adds 'Server' header with lib version to http response.
+     * Adds <b>Server</b> header with lib version to http response.
      * Default is <code>true</code>
      * 
      * @param addVersionHeader
@@ -452,5 +455,21 @@ public class Configuration {
     public boolean isAddVersionHeader() {
         return addVersionHeader;
     }
+
+    /**
+     * Set <b>Access-Control-Allow-Origin</b> header value for http each
+     * response. 
+     * Default is <code>null</code>
+     *
+     * If value is <code>null</code> then request <b>ORIGIN</b> header value used.
+     *
+     * @param origin
+     */
+    public void setOrigin(String origin) {
+        this.origin = origin;
+    }
+    public String getOrigin() {
+        return origin;
+    }    
     
 }

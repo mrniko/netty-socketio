@@ -50,6 +50,7 @@ import java.util.jar.Manifest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.corundumstudio.socketio.Configuration;
 import com.corundumstudio.socketio.Transport;
 import com.corundumstudio.socketio.messages.BaseMessage;
 import com.corundumstudio.socketio.messages.HttpMessage;
@@ -74,11 +75,13 @@ public class EncoderHandler extends ChannelOutboundHandlerAdapter {
     private final PacketEncoder encoder;
     
     private String version;
+    private Configuration configuration;
 
-    public EncoderHandler(boolean addVersionHeader, PacketEncoder encoder) throws IOException {
+    public EncoderHandler(Configuration configuration, PacketEncoder encoder) throws IOException {
         this.encoder = encoder;
+        this.configuration = configuration;
 
-        if (addVersionHeader) {
+        if (configuration.isAddVersionHeader()) {
             readVersion();
         }
     }
@@ -159,12 +162,16 @@ public class EncoderHandler extends ChannelOutboundHandlerAdapter {
             res.headers().add(HttpHeaders.Names.SERVER, version);
         }
         
-        String origin = channel.attr(ORIGIN).get();
-        if (origin != null) {
-            HttpHeaders.addHeader(res, ACCESS_CONTROL_ALLOW_ORIGIN, origin);
-            HttpHeaders.addHeader(res, ACCESS_CONTROL_ALLOW_CREDENTIALS, Boolean.TRUE);
+        if (configuration.getOrigin() != null) {
+            HttpHeaders.addHeader(res, ACCESS_CONTROL_ALLOW_ORIGIN, configuration.getOrigin());
         } else {
-            HttpHeaders.addHeader(res, ACCESS_CONTROL_ALLOW_ORIGIN, "*");
+            String origin = channel.attr(ORIGIN).get();
+            if (origin != null) {
+                HttpHeaders.addHeader(res, ACCESS_CONTROL_ALLOW_ORIGIN, origin);
+                HttpHeaders.addHeader(res, ACCESS_CONTROL_ALLOW_CREDENTIALS, Boolean.TRUE);
+            } else {
+                HttpHeaders.addHeader(res, ACCESS_CONTROL_ALLOW_ORIGIN, "*");
+            }
         }
     }
 

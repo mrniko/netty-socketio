@@ -124,7 +124,7 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
         packetHandler = new InPacketHandler(packetListener, decoder, namespacesHub, configuration.getExceptionListener());
         
         try {
-            encoderHandler = new EncoderHandler(configuration.isAddVersionHeader(), encoder);
+            encoderHandler = new EncoderHandler(configuration, encoder);
         } catch (Exception e) {
             throw new IllegalStateException(e);
         }
