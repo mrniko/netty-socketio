@@ -32,7 +32,7 @@ import com.corundumstudio.socketio.Configuration;
 public class PacketEncoder {
 
     private static final Pattern QUOTES_PATTERN = Pattern.compile("\"", Pattern.LITERAL);
-    private static final byte[] JSONP_DELIMITER = new byte[] {':'};
+    private static final byte[] B64_DELIMITER = new byte[] {':'};
     private static final byte[] JSONP_HEAD = "___eio[".getBytes(CharsetUtil.UTF_8);
     private static final byte[] JSONP_START = "](\"".getBytes(CharsetUtil.UTF_8);
     private static final byte[] JSONP_END = "\");".getBytes(CharsetUtil.UTF_8);
@@ -57,6 +57,8 @@ public class PacketEncoder {
         int i = 0;
         ByteBuf buf = allocateBuffer(allocator);
 
+        boolean jsonpMode = jsonpIndex != null;
+        
         while (true) {
             Packet packet = packets.poll();
             if (packet == null || i == limit) {
@@ -64,29 +66,39 @@ public class PacketEncoder {
             }
 
             ByteBuf packetBuf = allocateBuffer(allocator);
-            encodePacket(packet, packetBuf, allocator, true, true);
-            // scan for \\\"
-            int count = count(packetBuf, Unpooled.copiedBuffer("\\\"", CharsetUtil.UTF_8));
-            int packetSize = packetBuf.writerIndex() - count;
+            encodePacket(packet, packetBuf, allocator, true, jsonpMode);
+
+            int packetSize = packetBuf.writerIndex();
+            if (jsonpMode) {
+                // scan for \\\"
+                int count = count(packetBuf, Unpooled.copiedBuffer("\\\"", CharsetUtil.UTF_8));
+                packetSize -= count;
+            }
 
             buf.writeBytes(toChars(packetSize));
-            buf.writeBytes(JSONP_DELIMITER);
+            buf.writeBytes(B64_DELIMITER);
             buf.writeBytes(packetBuf);
 
             i++;
         }
 
-        out.writeBytes(JSONP_HEAD);
-        out.writeBytes(toChars(jsonpIndex));
-        out.writeBytes(JSONP_START);
+        if (jsonpMode) {
+            out.writeBytes(JSONP_HEAD);
+            out.writeBytes(toChars(jsonpIndex));
+            out.writeBytes(JSONP_START);
+            
+            String packet = buf.toString(CharsetUtil.UTF_8);
+            // TODO optimize
+            packet = QUOTES_PATTERN.matcher(packet).replaceAll("\\\\\"");
+            packet = new String(packet.getBytes(CharsetUtil.UTF_8), CharsetUtil.ISO_8859_1);
+            out.writeBytes(packet.getBytes(CharsetUtil.UTF_8));
+        } else {
+            out.writeBytes(buf);
+        }
 
-        // TODO optimize
-        String packet = buf.toString(CharsetUtil.UTF_8);
-        packet = QUOTES_PATTERN.matcher(packet).replaceAll("\\\\\"");
-        packet = new String(packet.getBytes(CharsetUtil.UTF_8), CharsetUtil.ISO_8859_1);
-
-        out.writeBytes(packet.getBytes(CharsetUtil.UTF_8));
-        out.writeBytes(JSONP_END);
+        if (jsonpMode) {
+            out.writeBytes(JSONP_END);
+        }
     }
 
     public void encodePackets(Queue<Packet> packets, ByteBuf buffer, ByteBufAllocator allocator, int limit) throws IOException {
@@ -205,7 +217,7 @@ public class PacketEncoder {
             case OPEN: {
                 ByteBufOutputStream out = new ByteBufOutputStream(buf);
                 if (jsonp) {
-                    jsonSupport.writeJsonValue(out, packet.getData());
+                    jsonSupport.writeJsonpValue(out, packet.getData());
                 } else {
                     jsonSupport.writeValue(out, packet.getData());
                 }
@@ -246,7 +258,7 @@ public class PacketEncoder {
                     values.addAll(args);
                     ByteBufOutputStream out = new ByteBufOutputStream(buf);
                     if (jsonp) {
-                        jsonSupport.writeJsonValue(out, values);
+                        jsonSupport.writeJsonpValue(out, values);
                     } else {
                         jsonSupport.writeValue(out, values);
                     }

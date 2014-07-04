@@ -235,7 +235,7 @@ public class JacksonJsonSupport implements JsonSupport {
     }
 
     @Override
-    public void writeJsonValue(ByteBufOutputStream out, Object value) throws IOException {
+    public void writeJsonpValue(ByteBufOutputStream out, Object value) throws IOException {
         jsonpObjectMapper.writeValue(out, value);
     }
 

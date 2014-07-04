@@ -74,6 +74,7 @@ public class PollingTransport extends ChannelInboundHandlerAdapter {
             if (transport != null && NAME.equals(transport.get(0))) {
                 List<String> sid = queryDecoder.parameters().get("sid");
                 List<String> j = queryDecoder.parameters().get("j");
+                List<String> b64 = queryDecoder.parameters().get("b64");
 
                 String origin = req.headers().get(HttpHeaders.Names.ORIGIN);
                 ctx.channel().attr(EncoderHandler.ORIGIN).set(origin);
@@ -84,6 +85,10 @@ public class PollingTransport extends ChannelInboundHandlerAdapter {
                 if (j != null && j.get(0) != null) {
                     Integer index = Integer.valueOf(j.get(0));
                     ctx.channel().attr(EncoderHandler.JSONP_INDEX).set(index);
+                }
+                if (b64 != null && b64.get(0) != null) {
+                    Integer enable = Integer.valueOf(b64.get(0));
+                    ctx.channel().attr(EncoderHandler.B64).set(enable == 1);
                 }
 
                 try {
@@ -147,8 +152,10 @@ public class PollingTransport extends ChannelInboundHandlerAdapter {
         // release POST response before message processing
         ctx.channel().writeAndFlush(new XHRPostMessage(origin, sessionId));
 
-        if (ctx.channel().attr(EncoderHandler.JSONP_INDEX).get() != null) {
-            content = decoder.preprocessJson(content);
+        Boolean b64 = ctx.channel().attr(EncoderHandler.B64).get();
+        if (b64 != null && b64) {
+            Integer jsonIndex = ctx.channel().attr(EncoderHandler.JSONP_INDEX).get();
+            content = decoder.preprocessJson(jsonIndex, content);
         }
 
         ctx.pipeline().fireChannelRead(new PacketsMessage(client, content, Transport.POLLING));

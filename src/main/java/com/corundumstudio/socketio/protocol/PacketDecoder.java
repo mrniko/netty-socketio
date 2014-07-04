@@ -39,11 +39,14 @@ public class PacketDecoder {
     }
 
     // TODO optimize
-    public ByteBuf preprocessJson(ByteBuf content) throws IOException {
+    public ByteBuf preprocessJson(Integer jsonIndex, ByteBuf content) throws IOException {
         String packet = URLDecoder.decode(content.toString(CharsetUtil.UTF_8), CharsetUtil.UTF_8.name());
 
-        // skip "d="
-        packet = packet.substring(2);
+        if (jsonIndex != null) {
+            // skip "d="
+            packet = packet.substring(2);
+        }
+        
         int splitIndex = packet.indexOf(":");
         String len = packet.substring(0, splitIndex);
         Integer length = Integer.valueOf(len);

@@ -88,8 +88,8 @@ class JsonSupportWrapper implements JsonSupport {
     }
 
     @Override
-    public void writeJsonValue(ByteBufOutputStream out, Object value) throws IOException {
-        delegate.writeJsonValue(out, value);
+    public void writeJsonpValue(ByteBufOutputStream out, Object value) throws IOException {
+        delegate.writeJsonpValue(out, value);
     }
 
 }
