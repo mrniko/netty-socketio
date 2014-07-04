@@ -54,11 +54,14 @@ public class PacketEncoder {
     }
 
     public void encodeJsonP(Integer jsonpIndex, Queue<Packet> packets, ByteBuf out, ByteBufAllocator allocator, int limit) throws IOException {
-        int i = 0;
-        ByteBuf buf = allocateBuffer(allocator);
-
         boolean jsonpMode = jsonpIndex != null;
         
+        ByteBuf buf = out;
+        if (jsonpMode) {
+            buf = allocateBuffer(allocator);
+        }
+        
+        int i = 0;
         while (true) {
             Packet packet = packets.poll();
             if (packet == null || i == limit) {
@@ -78,7 +81,7 @@ public class PacketEncoder {
             buf.writeBytes(toChars(packetSize));
             buf.writeBytes(B64_DELIMITER);
             buf.writeBytes(packetBuf);
-
+            
             i++;
         }
 
@@ -92,11 +95,7 @@ public class PacketEncoder {
             packet = QUOTES_PATTERN.matcher(packet).replaceAll("\\\\\"");
             packet = new String(packet.getBytes(CharsetUtil.UTF_8), CharsetUtil.ISO_8859_1);
             out.writeBytes(packet.getBytes(CharsetUtil.UTF_8));
-        } else {
-            out.writeBytes(buf);
-        }
 
-        if (jsonpMode) {
             out.writeBytes(JSONP_END);
         }
     }
