@@ -27,11 +27,15 @@ Features
 Performance
 ================================
 
-CentOS, 1 CPU, 4GB RAM runned on VM (based on customer report, tested in 2012): 
-
+Customer feedback in __2012__:  
+CentOS, 1 CPU, 4GB RAM runned on VM: 
 CPU 10%, Memory 15%  
 6000 xhr-long polling sessions or 15000 websockets sessions  
 4000 messages per second  
+
+
+Customer feedback in __2014__:  
+"To stress test the solution we run 30 000 simultaneous websocket clients and managed to peak at total of about 140 000 messages per second with less than 1 second average delay." (c) Viktor Endersz - Kambi Sports Solutions
 
 Projects using netty-socketio
 ================================
