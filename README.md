@@ -9,10 +9,10 @@ Licensed under the Apache License 2.0.
 
 Features
 ================================
-* Supports __0.7__...__0.9.16__ (netty-socketio 1.6.5) and __1.0+__ (netty-socketio 1.7.0) version of [Socket.IO-client](https://github.com/LearnBoost/socket.io-client)  
+* Supports __0.7__...__0.9.16__ (netty-socketio 1.6.5) and __1.0+__ (netty-socketio latest version) version of [Socket.IO-client](https://github.com/LearnBoost/socket.io-client)  
 * Supports xhr-polling transport  
 * Supports flashsocket transport  
-* Supports websocket transport: HyBi 00 (which is the same as Hixie 76), HyBi 8-10 and HyBi 13-17 (17 is the same as IETF 6455).  
+* Supports websocket transport  
 * Supports namespaces and rooms  
 * Supports ack (acknowledgment of received data)  
 * Supports SSL  
