@@ -39,6 +39,7 @@ Customer feedback in __2014__:
 
 Projects using netty-socketio
 ================================
+AVOS Cloud: [avoscloud.com](https://avoscloud.com/)
 Bingo Crack: [bingocrack.com](http://bingocrack.com/)  
 Kambi Sports Solutions: [kambi.com](http://kambi.com/)  
 ARSnova: [arsnova.eu](https://arsnova.eu)  
@@ -47,6 +48,10 @@ Zipwhip: [zipwhip.com](https://zipwhip.com/)
 Recent Releases
 ================================
 ####Please Note: trunk is current development branch.
+
+####07-Jul-2014 - version 1.7.1 released (SocketIO 1.0+ protocol)  
+Feature - ability to set custom `Access-Control-Allow-Origin` via Configuration.origin  
+Fixed - connection via CLI socket.io-client  
 
 ####28-Jun-2014 - version 1.7.0 released (SocketIO 1.0+ protocol)
 Feature - Socket.IO 1.0 protocol support. Thanks to the new protocol decoding/encoding has speedup  
