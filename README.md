@@ -39,7 +39,6 @@ Customer feedback in __2014__:
 
 Projects using netty-socketio
 ================================
-Payber: [payber.com](https://payber.com)
 AVOS Cloud: [avoscloud.com](https://avoscloud.com/)  
 Bingo Crack: [bingocrack.com](http://bingocrack.com/)  
 Kambi Sports Solutions: [kambi.com](http://kambi.com/)  
