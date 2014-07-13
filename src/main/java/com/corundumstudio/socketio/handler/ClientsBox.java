@@ -18,18 +18,18 @@ package com.corundumstudio.socketio.handler;
 import io.netty.channel.Channel;
 
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.corundumstudio.socketio.HandshakeData;
+import com.corundumstudio.socketio.SessionID;
 
 public class ClientsBox {
 
-    private final Map<UUID, ClientHead> uuid2clients = new ConcurrentHashMap<UUID, ClientHead>();
+    private final Map<SessionID, ClientHead> uuid2clients = new ConcurrentHashMap<SessionID, ClientHead>();
     private final Map<Channel, ClientHead> channel2clients = new ConcurrentHashMap<Channel, ClientHead>();
 
     // TODO use storeFactory
-    public HandshakeData getHandshakeData(UUID sessionId) {
+    public HandshakeData getHandshakeData(SessionID sessionId) {
         ClientHead client = uuid2clients.get(sessionId);
         if (client == null) {
             return null;
@@ -42,11 +42,11 @@ public class ClientsBox {
         uuid2clients.put(clientHead.getSessionId(), clientHead);
     }
 
-    public void removeClient(UUID sessionId) {
+    public void removeClient(SessionID sessionId) {
         uuid2clients.remove(sessionId);
     }
 
-    public ClientHead get(UUID sessionId) {
+    public ClientHead get(SessionID sessionId) {
         return uuid2clients.get(sessionId);
     }
 

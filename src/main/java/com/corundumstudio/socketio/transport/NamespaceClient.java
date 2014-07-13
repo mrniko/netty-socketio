@@ -18,7 +18,6 @@ package com.corundumstudio.socketio.transport;
 import java.net.SocketAddress;
 import java.util.Arrays;
 import java.util.Set;
-import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.slf4j.Logger;
@@ -26,6 +25,7 @@ import org.slf4j.LoggerFactory;
 
 import com.corundumstudio.socketio.AckCallback;
 import com.corundumstudio.socketio.HandshakeData;
+import com.corundumstudio.socketio.SessionID;
 import com.corundumstudio.socketio.SocketIOClient;
 import com.corundumstudio.socketio.Transport;
 import com.corundumstudio.socketio.handler.ClientHead;
@@ -124,7 +124,7 @@ public class NamespaceClient implements SocketIOClient {
     }
 
     @Override
-    public UUID getSessionId() {
+    public SessionID getSessionId() {
         return baseClient.getSessionId();
     }
 

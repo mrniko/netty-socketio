@@ -15,11 +15,11 @@
  */
 package com.corundumstudio.socketio.messages;
 
-import java.util.UUID;
+import com.corundumstudio.socketio.SessionID;
 
 public class XHROptionsMessage extends XHRPostMessage {
 
-    public XHROptionsMessage(String origin, UUID sessionId) {
+    public XHROptionsMessage(String origin, SessionID sessionId) {
         super(origin, sessionId);
     }
 

@@ -24,7 +24,6 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 
 import java.net.InetSocketAddress;
 import java.util.Collection;
-import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -82,7 +81,7 @@ public class SocketIOServer implements ClientListeners {
      * @param uuid
      * @return
      */
-    public SocketIOClient getClient(UUID uuid) {
+    public SocketIOClient getClient(SessionID uuid) {
         return namespacesHub.get(Namespace.DEFAULT_NAME).getClient(uuid);
     }
 

@@ -15,16 +15,16 @@
  */
 package com.corundumstudio.socketio.scheduler;
 
-import java.util.UUID;
+import com.corundumstudio.socketio.SessionID;
 
 public class SchedulerKey {
 
     public enum Type {POLLING, HEARBEAT_TIMEOUT, PING_TIMEOUT, ACK_TIMEOUT, UPGRADE_TIMEOUT};
 
     private final Type type;
-    private final UUID sessionId;
+    private final SessionID sessionId;
 
-    public SchedulerKey(Type type, UUID sessionId) {
+    public SchedulerKey(Type type, SessionID sessionId) {
         this.type = type;
         this.sessionId = sessionId;
     }

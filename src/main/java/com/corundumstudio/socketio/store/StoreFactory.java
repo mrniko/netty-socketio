@@ -16,9 +16,9 @@
 package com.corundumstudio.socketio.store;
 
 import java.util.Map;
-import java.util.UUID;
 
 import com.corundumstudio.socketio.Disconnectable;
+import com.corundumstudio.socketio.SessionID;
 import com.corundumstudio.socketio.handler.AuthorizeHandler;
 import com.corundumstudio.socketio.namespace.NamespacesHub;
 import com.corundumstudio.socketio.protocol.JsonSupport;
@@ -35,7 +35,7 @@ public interface StoreFactory extends Disconnectable {
 
     <K, V> Map<K, V> createMap(String name);
 
-    Store createStore(UUID sessionId);
+    Store createStore(SessionID sessionId);
 
     void init(NamespacesHub namespacesHub, AuthorizeHandler authorizeHandler, JsonSupport jsonSupport);
 

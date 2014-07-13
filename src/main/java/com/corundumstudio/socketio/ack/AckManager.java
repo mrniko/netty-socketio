@@ -18,7 +18,6 @@ package com.corundumstudio.socketio.ack;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
@@ -30,6 +29,7 @@ import com.corundumstudio.socketio.AckCallback;
 import com.corundumstudio.socketio.Disconnectable;
 import com.corundumstudio.socketio.MultiTypeAckCallback;
 import com.corundumstudio.socketio.MultiTypeArgs;
+import com.corundumstudio.socketio.SessionID;
 import com.corundumstudio.socketio.SocketIOClient;
 import com.corundumstudio.socketio.handler.ClientHead;
 import com.corundumstudio.socketio.protocol.Packet;
@@ -70,7 +70,7 @@ public class AckManager implements Disconnectable {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private final Map<UUID, AckEntry> ackEntries = new ConcurrentHashMap<UUID, AckEntry>();
+    private final Map<SessionID, AckEntry> ackEntries = new ConcurrentHashMap<SessionID, AckEntry>();
 
     private final CancelableScheduler scheduler;
 
@@ -79,12 +79,12 @@ public class AckManager implements Disconnectable {
         this.scheduler = scheduler;
     }
 
-    public void initAckIndex(UUID sessionId, long index) {
+    public void initAckIndex(SessionID sessionId, long index) {
         AckEntry ackEntry = getAckEntry(sessionId);
         ackEntry.initAckIndex(index);
     }
 
-    private AckEntry getAckEntry(UUID sessionId) {
+    private AckEntry getAckEntry(SessionID sessionId) {
         AckEntry ackEntry = ackEntries.get(sessionId);
         if (ackEntry == null) {
             ackEntry = new AckEntry();
@@ -120,7 +120,7 @@ public class AckManager implements Disconnectable {
         }
     }
 
-    private AckCallback removeCallback(UUID sessionId, long index) {
+    private AckCallback removeCallback(SessionID sessionId, long index) {
         AckEntry ackEntry = ackEntries.get(sessionId);
         // may be null if client disconnected
         // before timeout occurs
@@ -130,12 +130,12 @@ public class AckManager implements Disconnectable {
         return null;
     }
 
-    public AckCallback<?> getCallback(UUID sessionId, long index) {
+    public AckCallback<?> getCallback(SessionID sessionId, long index) {
         AckEntry ackEntry = getAckEntry(sessionId);
         return ackEntry.getAckCallback(index);
     }
 
-    public long registerAck(UUID sessionId, AckCallback callback) {
+    public long registerAck(SessionID sessionId, AckCallback callback) {
         AckEntry ackEntry = getAckEntry(sessionId);
         ackEntry.initAckIndex(0);
         long index = ackEntry.addAckCallback(callback);
@@ -149,7 +149,7 @@ public class AckManager implements Disconnectable {
         return index;
     }
 
-    private void scheduleTimeout(final long index, final UUID sessionId, AckCallback callback) {
+    private void scheduleTimeout(final long index, final SessionID sessionId, AckCallback callback) {
         if (callback.getTimeout() == -1) {
             return;
         }

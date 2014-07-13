@@ -15,14 +15,14 @@
  */
 package com.corundumstudio.socketio.messages;
 
-import java.util.UUID;
+import com.corundumstudio.socketio.SessionID;
 
 public class HttpMessage extends BaseMessage {
 
     private final String origin;
-    private final UUID sessionId;
+    private final SessionID sessionId;
 
-    public HttpMessage(String origin, UUID sessionId) {
+    public HttpMessage(String origin, SessionID sessionId) {
         this.origin = origin;
         this.sessionId = sessionId;
     }
@@ -31,7 +31,7 @@ public class HttpMessage extends BaseMessage {
         return origin;
     }
 
-    public UUID getSessionId() {
+    public SessionID getSessionId() {
         return sessionId;
     }
 

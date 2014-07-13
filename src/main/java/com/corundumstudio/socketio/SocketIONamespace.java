@@ -16,7 +16,6 @@
 package com.corundumstudio.socketio;
 
 import java.util.Collection;
-import java.util.UUID;
 
 import com.corundumstudio.socketio.listener.ClientListeners;
 
@@ -41,6 +40,6 @@ public interface SocketIONamespace extends ClientListeners {
      * @param uuid
      * @return
      */
-    SocketIOClient getClient(UUID uuid);
+    SocketIOClient getClient(SessionID uuid);
 
 }

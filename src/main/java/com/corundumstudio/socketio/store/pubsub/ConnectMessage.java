@@ -15,23 +15,23 @@
  */
 package com.corundumstudio.socketio.store.pubsub;
 
-import java.util.UUID;
+import com.corundumstudio.socketio.SessionID;
 
 public class ConnectMessage extends PubSubMessage {
 
     private static final long serialVersionUID = 3108918714495865101L;
 
-    private UUID sessionId;
+    private SessionID sessionId;
 
     public ConnectMessage() {
     }
 
-    public ConnectMessage(UUID sessionId) {
+    public ConnectMessage(SessionID sessionId) {
         super();
         this.sessionId = sessionId;
     }
 
-    public UUID getSessionId() {
+    public SessionID getSessionId() {
         return sessionId;
     }
 

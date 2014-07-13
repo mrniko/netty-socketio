@@ -42,18 +42,19 @@ import com.corundumstudio.socketio.handler.ClientsBox;
 import com.corundumstudio.socketio.handler.EncoderHandler;
 import com.corundumstudio.socketio.handler.InPacketHandler;
 import com.corundumstudio.socketio.handler.PacketListener;
+import com.corundumstudio.socketio.handler.SessionIDFactory;
 import com.corundumstudio.socketio.handler.WrongUrlHandler;
 import com.corundumstudio.socketio.namespace.NamespacesHub;
+import com.corundumstudio.socketio.protocol.JsonSupport;
 import com.corundumstudio.socketio.protocol.PacketDecoder;
 import com.corundumstudio.socketio.protocol.PacketEncoder;
-import com.corundumstudio.socketio.protocol.JsonSupport;
 import com.corundumstudio.socketio.scheduler.CancelableScheduler;
 import com.corundumstudio.socketio.scheduler.HashedWheelScheduler;
 import com.corundumstudio.socketio.store.StoreFactory;
 import com.corundumstudio.socketio.store.pubsub.DisconnectMessage;
 import com.corundumstudio.socketio.store.pubsub.PubSubStore;
-import com.corundumstudio.socketio.transport.WebSocketTransport;
 import com.corundumstudio.socketio.transport.PollingTransport;
+import com.corundumstudio.socketio.transport.WebSocketTransport;
 
 public class SocketIOChannelInitializer extends ChannelInitializer<Channel> implements DisconnectableHub {
 
@@ -94,7 +95,6 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
 
     public void start(Configuration configuration, NamespacesHub namespacesHub) {
         this.configuration = configuration;
-
         ackManager = new AckManager(scheduler);
 
         JsonSupport jsonSupport = configuration.getJsonSupport();
@@ -114,9 +114,10 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
         StoreFactory factory = configuration.getStoreFactory();
         factory.init(namespacesHub, authorizeHandler, jsonSupport);
 
-        authorizeHandler = new AuthorizeHandler(connectPath, scheduler, configuration, namespacesHub, factory, this, ackManager, clientsBox);
-        xhrPollingTransport = new PollingTransport(decoder, authorizeHandler, clientsBox);
-        webSocketTransport = new WebSocketTransport(isSsl, authorizeHandler, configuration, scheduler, clientsBox);
+        SessionIDFactory sessionIDFactory = configuration.getSessionIDFactory();
+        authorizeHandler = new AuthorizeHandler(connectPath, scheduler, configuration, namespacesHub, factory, this, ackManager, clientsBox, sessionIDFactory);
+        xhrPollingTransport = new PollingTransport(decoder, authorizeHandler, clientsBox, sessionIDFactory);
+        webSocketTransport = new WebSocketTransport(isSsl, authorizeHandler, configuration, scheduler, clientsBox, sessionIDFactory);
 
         PacketListener packetListener = new PacketListener(ackManager, namespacesHub, xhrPollingTransport, scheduler);
 
