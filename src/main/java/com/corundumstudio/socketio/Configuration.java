@@ -19,6 +19,7 @@ import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
 
+import com.corundumstudio.socketio.handler.DefaultSessionIDFactory;
 import com.corundumstudio.socketio.handler.SessionIDFactory;
 import com.corundumstudio.socketio.handler.SuccessAuthorizationListener;
 import com.corundumstudio.socketio.listener.DefaultExceptionListener;
@@ -77,7 +78,7 @@ public class Configuration {
 
     private String origin;
 
-    private SessionIDFactory sessionIDFactory;
+    private SessionIDFactory sessionIDFactory = new DefaultSessionIDFactory();
 
     public Configuration() {
     }
