@@ -21,6 +21,8 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.FixedRecvByteBufAllocator;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.util.concurrent.Future;
+import io.netty.util.concurrent.FutureListener;
 
 import java.net.InetSocketAddress;
 import java.util.Collection;
@@ -115,13 +117,21 @@ public class SocketIOServer implements ClientListeners {
      * Start server
      */
     public void start() {
+        startAsync().syncUninterruptibly();
+    }
+
+    /**
+     * Start server asynchronously
+     */
+    public Future<Void> startAsync() {
+        log.info("Session store / pubsub factory used: {}", configCopy.getStoreFactory());
         initGroups();
 
         pipelineFactory.start(configCopy, namespacesHub);
         ServerBootstrap b = new ServerBootstrap();
         b.group(bossGroup, workerGroup)
-            .channel(NioServerSocketChannel.class)
-            .childHandler(pipelineFactory);
+        .channel(NioServerSocketChannel.class)
+        .childHandler(pipelineFactory);
         applyConnectionOptions(b);
 
         InetSocketAddress addr = new InetSocketAddress(configCopy.getPort());
@@ -129,10 +139,16 @@ public class SocketIOServer implements ClientListeners {
             addr = new InetSocketAddress(configCopy.getHostname(), configCopy.getPort());
         }
 
-        b.bind(addr).syncUninterruptibly();
-
-        log.info("Session store / pubsub factory used: {}", configCopy.getStoreFactory());
-        log.info("SocketIO server started at port: {}", configCopy.getPort());
+        return b.bind(addr).addListener(new FutureListener<Void>() {
+            @Override
+            public void operationComplete(Future<Void> future) throws Exception {
+                if (future.isSuccess()) {
+                    log.info("SocketIO server started at port: {}", configCopy.getPort());
+                } else {
+                    log.error("SocketIO server start failed at port: {}!", configCopy.getPort());
+                }
+            }
+        });
     }
 
     protected void applyConnectionOptions(ServerBootstrap bootstrap) {
