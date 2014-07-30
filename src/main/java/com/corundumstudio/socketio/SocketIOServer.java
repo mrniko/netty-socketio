@@ -16,11 +16,14 @@
 package com.corundumstudio.socketio;
 
 import io.netty.bootstrap.ServerBootstrap;
+import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.FixedRecvByteBufAllocator;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.util.concurrent.Future;
+import io.netty.util.concurrent.FutureListener;
 
 import java.net.InetSocketAddress;
 import java.util.Collection;
@@ -115,6 +118,11 @@ public class SocketIOServer implements ClientListeners {
      * Start server
      */
     public void start() {
+        startAsync().awaitUninterruptibly();
+    }
+
+    public Future<Void> startAsync() {
+        log.info("Session store / pubsub factory used: {}", configCopy.getStoreFactory());
         initGroups();
 
         pipelineFactory.start(configCopy, namespacesHub);
@@ -129,10 +137,18 @@ public class SocketIOServer implements ClientListeners {
             addr = new InetSocketAddress(configCopy.getHostname(), configCopy.getPort());
         }
 
-        b.bind(addr).syncUninterruptibly();
-
-        log.info("Session store / pubsub factory used: {}", configCopy.getStoreFactory());
-        log.info("SocketIO server started at port: {}", configCopy.getPort());
+        ChannelFuture future = b.bind(addr);
+        future.addListener(new FutureListener<Void>() {
+            @Override
+            public void operationComplete(Future<Void> future) throws Exception {
+                if (future.isSuccess()) {
+                    log.info("SocketIO server started at port: {}", configCopy.getPort());
+                } else {
+                    log.error("SocketIO server start at port: {} failed!", configCopy.getPort());
+                }
+            }
+        });
+        return future;
     }
 
     protected void applyConnectionOptions(ServerBootstrap bootstrap) {
