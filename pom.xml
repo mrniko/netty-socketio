@@ -319,7 +319,7 @@
                  <failIfMissing>true</failIfMissing>
                  <aggregate>false</aggregate>
                  <includes>
-                     <include>src/**</include>
+                     <include>src/**/*.java</include>
                  </includes>
                  <excludes>
                      <exclude>target/**</exclude>
