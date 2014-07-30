@@ -84,7 +84,7 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
     private XHRPollingTransport xhrPollingTransport;
     private WebSocketTransport webSocketTransport;
     private FlashSocketTransport flashSocketTransport;
-    private final FlashPolicyHandler flashPolicyHandler = new FlashPolicyHandler();
+    private FlashPolicyHandler flashPolicyHandler;
     private ResourceHandler resourceHandler;
     private EncoderHandler encoderHandler;
     private WrongUrlHandler wrongUrlHandler;
@@ -124,6 +124,7 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
             }
         }
 
+        flashPolicyHandler = new FlashPolicyHandler(configuration);
         packetHandler = new PacketHandler(packetListener, decoder, namespacesHub, configuration.getExceptionListener());
         authorizeHandler = new AuthorizeHandler(connectPath, scheduler, configuration, namespacesHub);
 

@@ -24,18 +24,49 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.util.CharsetUtil;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.net.URLConnection;
+import java.nio.ByteBuffer;
+import java.nio.channels.Channels;
+import java.nio.channels.ReadableByteChannel;
+
+import com.corundumstudio.socketio.Configuration;
+
 @Sharable
 public class FlashPolicyHandler extends ChannelInboundHandlerAdapter {
 
     private final ByteBuf requestBuffer = Unpooled.copiedBuffer( "<policy-file-request/>", CharsetUtil.UTF_8);
+    private ByteBuf responseBuffer;
 
-    private final ByteBuf responseBuffer = Unpooled.copiedBuffer(
-                            "<?xml version=\"1.0\"?>"
-                            + "<!DOCTYPE cross-domain-policy SYSTEM \"/xml/dtds/cross-domain-policy.dtd\">"
-                            + "<cross-domain-policy> "
-                            + "   <site-control permitted-cross-domain-policies=\"master-only\"/>"
-                            + "   <allow-access-from domain=\"*\" to-ports=\"*\" />"
-                            + "</cross-domain-policy>", CharsetUtil.UTF_8);
+    public FlashPolicyHandler(Configuration configuration) {
+        try {
+            if (configuration.getCrossDomainPolicy() == null) {
+                URL resUrl = getClass().getResource("/static/flashsocket/crossdomain.xml");
+                URLConnection urlConnection = resUrl.openConnection();
+
+                InputStream stream = urlConnection.getInputStream();
+                try {
+                    readFile(stream);
+                } finally {
+                    stream.close();
+                }
+            } else {
+                readFile(configuration.getCrossDomainPolicy());
+            }
+        } catch (IOException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    private void readFile(InputStream stream) throws IOException {
+        ReadableByteChannel channel = Channels.newChannel(stream);
+        ByteBuffer buffer = ByteBuffer.allocate(5*1024);
+        channel.read(buffer);
+        buffer.flip();
+        responseBuffer = Unpooled.copiedBuffer(buffer);
+    }
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {

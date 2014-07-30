@@ -52,6 +52,8 @@ public class Configuration {
     private String hostname;
     private int port = -1;
 
+    private InputStream crossDomainPolicy;
+
     private String keyStoreFormat = "JKS";
     private InputStream keyStore;
     private String keyStorePassword;
@@ -69,7 +71,7 @@ public class Configuration {
     private JsonSupport jsonSupport = new JacksonJsonSupport(this);
 
     private AuthorizationListener authorizationListener = new SuccessAuthorizationListener();
-    
+
     private String origin;
 
     private AckMode ackMode = AckMode.AUTO_SUCCESS_ONLY;
@@ -119,6 +121,7 @@ public class Configuration {
         setAckMode(conf.getAckMode());
         setMaxFramePayloadLength(conf.getMaxFramePayloadLength());
         setOrigin(conf.getOrigin());
+        setCrossDomainPolicy(conf.getCrossDomainPolicy());
     }
 
     private String join(Transport[] transports) {
@@ -480,9 +483,9 @@ public class Configuration {
     /**
      * Set <b>Access-Control-Allow-Origin</b> header value for http each response.
      * Default is {@code null}.
-     * 
+     *
      * If value is {@code null} then request {@code ORIGIN} header value used.
-     * 
+     *
      * @param origin
      */
     public void setOrigin(String origin) {
@@ -490,6 +493,18 @@ public class Configuration {
     }
     public String getOrigin() {
         return origin;
+    }
+
+    /**
+     * crossdomain.xml file stream used for flash-socket transport
+     *
+     * @param crossDomainPolicy
+     */
+    public void setCrossDomainPolicy(InputStream crossDomainPolicy) {
+        this.crossDomainPolicy = crossDomainPolicy;
+    }
+    public InputStream getCrossDomainPolicy() {
+        return crossDomainPolicy;
     }
 
 }
