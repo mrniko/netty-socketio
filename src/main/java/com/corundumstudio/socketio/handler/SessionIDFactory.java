@@ -13,26 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.corundumstudio.socketio.messages;
+package com.corundumstudio.socketio.handler;
 
 import com.corundumstudio.socketio.SessionID;
 
-public abstract class HttpMessage extends BaseMessage {
+public interface SessionIDFactory {
 
-    private final String origin;
-    private final SessionID sessionId;
+    SessionID generateNew();
 
-    public HttpMessage(String origin, SessionID sessionId) {
-        this.origin = origin;
-        this.sessionId = sessionId;
-    }
-
-    public String getOrigin() {
-        return origin;
-    }
-
-    public SessionID getSessionId() {
-        return sessionId;
-    }
-
+    SessionID fromString(String string);
+    
 }

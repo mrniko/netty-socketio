@@ -16,15 +16,16 @@
 package com.corundumstudio.socketio.store;
 
 import java.util.Map;
-import java.util.UUID;
 
 import org.redisson.Redisson;
+
+import com.corundumstudio.socketio.SessionID;
 
 public class RedissonStore implements Store {
 
     private final Map<String, String> map;
 
-    public RedissonStore(UUID sessionId, Redisson redisson) {
+    public RedissonStore(SessionID sessionId, Redisson redisson) {
         this.map = redisson.getMap(sessionId.toString());
     }
 

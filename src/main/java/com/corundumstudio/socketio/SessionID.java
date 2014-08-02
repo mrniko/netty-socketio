@@ -13,26 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.corundumstudio.socketio.messages;
+package com.corundumstudio.socketio;
 
-import com.corundumstudio.socketio.SessionID;
+public interface SessionID {
 
-public abstract class HttpMessage extends BaseMessage {
-
-    private final String origin;
-    private final SessionID sessionId;
-
-    public HttpMessage(String origin, SessionID sessionId) {
-        this.origin = origin;
-        this.sessionId = sessionId;
-    }
-
-    public String getOrigin() {
-        return origin;
-    }
-
-    public SessionID getSessionId() {
-        return sessionId;
-    }
-
+    String toString();
 }

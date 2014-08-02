@@ -23,9 +23,9 @@ import io.netty.util.CharsetUtil;
 
 import java.io.IOException;
 import java.net.URLDecoder;
-import java.util.UUID;
 
 import com.corundumstudio.socketio.AckCallback;
+import com.corundumstudio.socketio.SessionID;
 import com.corundumstudio.socketio.ack.AckManager;
 
 public class PacketDecoder {
@@ -81,7 +81,7 @@ public class PacketDecoder {
     }
 
     @Deprecated
-    public Packet decodePacket(String string, UUID uuid) throws IOException {
+    public Packet decodePacket(String string, SessionID uuid) throws IOException {
         ByteBuf buf = Unpooled.copiedBuffer(string, CharsetUtil.UTF_8);
         try {
             return null;
@@ -102,7 +102,7 @@ public class PacketDecoder {
     }
 
 
-    public Packet decodePackets(ByteBuf buffer, UUID uuid) throws IOException {
+    public Packet decodePackets(ByteBuf buffer, SessionID uuid) throws IOException {
         boolean isString = buffer.getByte(0) == 0x0;
         if (isString) {
             int headEndIndex = buffer.forEachByte(new ByteBufProcessor() {
@@ -133,7 +133,7 @@ public class PacketDecoder {
         return new String(bytes, CharsetUtil.UTF_8);
     }
 
-    private Packet decode(UUID uuid, ByteBuf frame) throws IOException {
+    private Packet decode(SessionID uuid, ByteBuf frame) throws IOException {
         PacketType type = readType(frame);
         Packet packet = new Packet(type);
 

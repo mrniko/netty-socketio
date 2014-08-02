@@ -16,10 +16,10 @@
 package com.corundumstudio.socketio.store;
 
 import java.util.Map;
-import java.util.UUID;
 
 import org.redisson.Redisson;
 
+import com.corundumstudio.socketio.SessionID;
 import com.corundumstudio.socketio.store.pubsub.BaseStoreFactory;
 import com.corundumstudio.socketio.store.pubsub.PubSubStore;
 
@@ -52,7 +52,7 @@ public class RedissonStoreFactory extends BaseStoreFactory {
     }
 
     @Override
-    public Store createStore(UUID sessionId) {
+    public Store createStore(SessionID sessionId) {
         return new RedissonStore(sessionId, redisClient);
     }
 

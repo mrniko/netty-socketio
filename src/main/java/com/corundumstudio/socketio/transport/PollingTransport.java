@@ -36,11 +36,14 @@ import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.corundumstudio.socketio.DefaultSessionID;
+import com.corundumstudio.socketio.SessionID;
 import com.corundumstudio.socketio.Transport;
 import com.corundumstudio.socketio.handler.AuthorizeHandler;
 import com.corundumstudio.socketio.handler.ClientHead;
 import com.corundumstudio.socketio.handler.ClientsBox;
 import com.corundumstudio.socketio.handler.EncoderHandler;
+import com.corundumstudio.socketio.handler.SessionIDFactory;
 import com.corundumstudio.socketio.messages.PacketsMessage;
 import com.corundumstudio.socketio.messages.XHROptionsMessage;
 import com.corundumstudio.socketio.messages.XHRPostMessage;
@@ -57,7 +60,7 @@ public class PollingTransport extends ChannelInboundHandlerAdapter {
     private final ClientsBox clientsBox;
     private final AuthorizeHandler authorizeHandler;
 
-    public PollingTransport(PacketDecoder decoder, AuthorizeHandler authorizeHandler, ClientsBox clientsBox) {
+    public PollingTransport(PacketDecoder decoder, AuthorizeHandler authorizeHandler, ClientsBox clientsBox, SessionIDFactory sessionIDFactory) {
         this.decoder = decoder;
         this.authorizeHandler = authorizeHandler;
         this.clientsBox = clientsBox;
@@ -93,7 +96,8 @@ public class PollingTransport extends ChannelInboundHandlerAdapter {
 
                 try {
                     if (sid != null && sid.get(0) != null) {
-                        final UUID sessionId = UUID.fromString(sid.get(0));
+                        // TODO: abstract factory for sessionID
+                        final SessionID sessionId = new DefaultSessionID(UUID.fromString(sid.get(0)));
                         handleMessage(req, sessionId, queryDecoder, ctx);
                     } else {
                         // first connection
@@ -109,7 +113,7 @@ public class PollingTransport extends ChannelInboundHandlerAdapter {
         ctx.fireChannelRead(msg);
     }
 
-    private void handleMessage(FullHttpRequest req, UUID sessionId, QueryStringDecoder queryDecoder, ChannelHandlerContext ctx)
+    private void handleMessage(FullHttpRequest req, SessionID sessionId, QueryStringDecoder queryDecoder, ChannelHandlerContext ctx)
                                                                                 throws IOException {
             String origin = req.headers().get(HttpHeaders.Names.ORIGIN);
             if (queryDecoder.parameters().containsKey("disconnect")) {
@@ -128,7 +132,7 @@ public class PollingTransport extends ChannelInboundHandlerAdapter {
             }
     }
 
-    private void onOptions(UUID sessionId, ChannelHandlerContext ctx, String origin) {
+    private void onOptions(SessionID sessionId, ChannelHandlerContext ctx, String origin) {
         ClientHead client = clientsBox.get(sessionId);
         if (client == null) {
             log.error("{} is not registered. Closing connection", sessionId);
@@ -139,7 +143,7 @@ public class PollingTransport extends ChannelInboundHandlerAdapter {
         ctx.channel().writeAndFlush(new XHROptionsMessage(origin, sessionId));
     }
 
-    private void onPost(UUID sessionId, ChannelHandlerContext ctx, String origin, ByteBuf content)
+    private void onPost(SessionID sessionId, ChannelHandlerContext ctx, String origin, ByteBuf content)
                                                                                 throws IOException {
         ClientHead client = clientsBox.get(sessionId);
         if (client == null) {
@@ -161,7 +165,7 @@ public class PollingTransport extends ChannelInboundHandlerAdapter {
         ctx.pipeline().fireChannelRead(new PacketsMessage(client, content, Transport.POLLING));
     }
 
-    protected void onGet(UUID sessionId, ChannelHandlerContext ctx, String origin) {
+    protected void onGet(SessionID sessionId, ChannelHandlerContext ctx, String origin) {
         ClientHead client = clientsBox.get(sessionId);
         if (client == null) {
             log.error("{} is not registered. Closing connection", sessionId);

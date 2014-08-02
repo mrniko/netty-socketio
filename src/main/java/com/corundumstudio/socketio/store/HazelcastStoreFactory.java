@@ -16,8 +16,8 @@
 package com.corundumstudio.socketio.store;
 
 import java.util.Map;
-import java.util.UUID;
 
+import com.corundumstudio.socketio.SessionID;
 import com.corundumstudio.socketio.store.pubsub.BaseStoreFactory;
 import com.corundumstudio.socketio.store.pubsub.PubSubStore;
 import com.hazelcast.client.HazelcastClient;
@@ -56,7 +56,7 @@ public class HazelcastStoreFactory extends BaseStoreFactory {
     }
 
     @Override
-    public Store createStore(UUID sessionId) {
+    public Store createStore(SessionID sessionId) {
         return new HazelcastStore(sessionId, hazelcastClient);
     }
 

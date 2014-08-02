@@ -31,6 +31,7 @@ public class HandshakeData implements Serializable {
     private String url;
     private Map<String, List<String>> urlParams;
     private boolean xdomain;
+    private SessionID sessionId;
 
     public HandshakeData() {
     }
@@ -83,5 +84,13 @@ public class HandshakeData implements Serializable {
         }
         return null;
     }
+
+	public void setSessionId(SessionID sessionId) {
+		this.sessionId = sessionId;
+	}
+
+	public SessionID getSessionId() {
+		return this.sessionId;
+	}
 
 }

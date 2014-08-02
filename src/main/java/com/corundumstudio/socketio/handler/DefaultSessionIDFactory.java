@@ -13,26 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.corundumstudio.socketio.messages;
+package com.corundumstudio.socketio.handler;
 
+import java.util.UUID;
+
+import com.corundumstudio.socketio.DefaultSessionID;
 import com.corundumstudio.socketio.SessionID;
 
-public abstract class HttpMessage extends BaseMessage {
+public class DefaultSessionIDFactory implements SessionIDFactory {
 
-    private final String origin;
-    private final SessionID sessionId;
-
-    public HttpMessage(String origin, SessionID sessionId) {
-        this.origin = origin;
-        this.sessionId = sessionId;
+    @Override
+    public SessionID generateNew() {
+        return new DefaultSessionID(UUID.randomUUID());
     }
 
-    public String getOrigin() {
-        return origin;
-    }
-
-    public SessionID getSessionId() {
-        return sessionId;
+    @Override
+    public SessionID fromString(String string) {
+        return new DefaultSessionID(UUID.fromString(string));
     }
 
 }

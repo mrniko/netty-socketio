@@ -27,9 +27,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Queue;
 import java.util.Set;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -39,6 +37,7 @@ import org.slf4j.LoggerFactory;
 import com.corundumstudio.socketio.Configuration;
 import com.corundumstudio.socketio.DisconnectableHub;
 import com.corundumstudio.socketio.HandshakeData;
+import com.corundumstudio.socketio.SessionID;
 import com.corundumstudio.socketio.Transport;
 import com.corundumstudio.socketio.ack.AckManager;
 import com.corundumstudio.socketio.messages.OutPacketMessage;
@@ -62,7 +61,7 @@ public class ClientHead {
     private final Map<Namespace, NamespaceClient> namespaceClients = new ConcurrentHashMap<Namespace, NamespaceClient>();
     private final Map<Transport, TransportState> channels = new HashMap<Transport, TransportState>();
     private final HandshakeData handshakeData;
-    private final UUID sessionId;
+    private final SessionID sessionId;
 
     private final Store store;
     private final DisconnectableHub disconnectableHub;
@@ -74,7 +73,7 @@ public class ClientHead {
     // TODO use lazy set
     private volatile Transport currentTransport;
 
-    public ClientHead(UUID sessionId, AckManager ackManager, DisconnectableHub disconnectable,
+    public ClientHead(SessionID sessionId, AckManager ackManager, DisconnectableHub disconnectable,
             StoreFactory storeFactory, HandshakeData handshakeData, ClientsBox clientsBox, Transport transport, CancelableScheduler disconnectScheduler,
             Configuration configuration) {
         this.sessionId = sessionId;
@@ -196,7 +195,7 @@ public class ClientHead {
         return ackManager;
     }
 
-    public UUID getSessionId() {
+    public SessionID getSessionId() {
         return sessionId;
     }
 

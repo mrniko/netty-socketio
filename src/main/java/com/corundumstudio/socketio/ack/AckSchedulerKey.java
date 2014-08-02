@@ -15,15 +15,14 @@
  */
 package com.corundumstudio.socketio.ack;
 
-import java.util.UUID;
-
+import com.corundumstudio.socketio.SessionID;
 import com.corundumstudio.socketio.scheduler.SchedulerKey;
 
 public class AckSchedulerKey extends SchedulerKey {
 
     private final long index;
 
-    public AckSchedulerKey(Type type, UUID sessionId, long index) {
+    public AckSchedulerKey(Type type, SessionID sessionId, long index) {
         super(type, sessionId);
         this.index = index;
     }

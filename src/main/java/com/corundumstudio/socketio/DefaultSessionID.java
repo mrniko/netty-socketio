@@ -13,29 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.corundumstudio.socketio.scheduler;
+package com.corundumstudio.socketio;
 
-import com.corundumstudio.socketio.SessionID;
+import java.util.UUID;
 
-public class SchedulerKey {
+/**
+ * Default SessionID implementation based on UUID class.
+ */
+public class DefaultSessionID implements SessionID {
 
-    public enum Type {POLLING, HEARBEAT_TIMEOUT, PING_TIMEOUT, ACK_TIMEOUT, UPGRADE_TIMEOUT};
+    private UUID uuid;
 
-    private final Type type;
-    private final SessionID sessionId;
+    public DefaultSessionID(UUID id) {
+        this.uuid = id;
+    }
 
-    public SchedulerKey(Type type, SessionID sessionId) {
-        this.type = type;
-        this.sessionId = sessionId;
+    @Override
+    public String toString() {
+        return this.uuid.toString();
     }
 
     @Override
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result
-                + ((sessionId == null) ? 0 : sessionId.hashCode());
-        result = prime * result + ((type == null) ? 0 : type.hashCode());
+        result = prime * result + ((uuid == null) ? 0 : uuid.hashCode());
         return result;
     }
 
@@ -47,15 +49,12 @@ public class SchedulerKey {
             return false;
         if (getClass() != obj.getClass())
             return false;
-        SchedulerKey other = (SchedulerKey) obj;
-        if (sessionId == null) {
-            if (other.sessionId != null)
+        DefaultSessionID other = (DefaultSessionID) obj;
+        if (uuid == null) {
+            if (other.uuid != null)
                 return false;
-        } else if (!sessionId.equals(other.sessionId))
-            return false;
-        if (type != other.type)
+        } else if (!uuid.equals(other.uuid))
             return false;
         return true;
     }
-
 }

@@ -32,17 +32,18 @@ import io.netty.handler.codec.http.websocketx.WebSocketServerHandshakerFactory;
 import io.netty.util.ReferenceCountUtil;
 
 import java.util.List;
-import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.corundumstudio.socketio.Configuration;
+import com.corundumstudio.socketio.SessionID;
 import com.corundumstudio.socketio.Transport;
 import com.corundumstudio.socketio.handler.AuthorizeHandler;
 import com.corundumstudio.socketio.handler.ClientHead;
 import com.corundumstudio.socketio.handler.ClientsBox;
+import com.corundumstudio.socketio.handler.SessionIDFactory;
 import com.corundumstudio.socketio.messages.PacketsMessage;
 import com.corundumstudio.socketio.scheduler.CancelableScheduler;
 import com.corundumstudio.socketio.scheduler.SchedulerKey;
@@ -61,14 +62,17 @@ public class WebSocketTransport extends ChannelInboundHandlerAdapter {
 
     private final boolean isSsl;
 
+    private SessionIDFactory sessionIDFactory;
+
     public WebSocketTransport(boolean isSsl,
             AuthorizeHandler authorizeHandler, Configuration configuration,
-            CancelableScheduler scheduler, ClientsBox clientsBox) {
+            CancelableScheduler scheduler, ClientsBox clientsBox, SessionIDFactory sessionIDFactory) {
         this.isSsl = isSsl;
         this.authorizeHandler = authorizeHandler;
         this.configuration = configuration;
         this.scheduler = scheduler;
         this.clientsBox = clientsBox;
+        this.sessionIDFactory = sessionIDFactory;
     }
 
     @Override
@@ -103,7 +107,7 @@ public class WebSocketTransport extends ChannelInboundHandlerAdapter {
                         return;
                     }
                     if (sid != null && sid.get(0) != null) {
-                        final UUID sessionId = UUID.fromString(sid.get(0));
+                        final SessionID sessionId = sessionIDFactory.fromString(sid.get(0));
                         handshake(ctx, sessionId, path, req);
                     } else {
                         ClientHead client = ctx.channel().attr(ClientHead.CLIENT).get();
@@ -141,7 +145,7 @@ public class WebSocketTransport extends ChannelInboundHandlerAdapter {
         super.channelInactive(ctx);
     }
 
-    private void handshake(ChannelHandlerContext ctx, final UUID sessionId, String path, FullHttpRequest req) {
+    private void handshake(ChannelHandlerContext ctx, final SessionID sessionId, String path, FullHttpRequest req) {
         final Channel channel = ctx.channel();
 
         WebSocketServerHandshakerFactory factory =
@@ -164,7 +168,7 @@ public class WebSocketTransport extends ChannelInboundHandlerAdapter {
         }
     }
 
-    private void connectClient(final Channel channel, final UUID sessionId) {
+    private void connectClient(final Channel channel, final SessionID sessionId) {
         ClientHead client = clientsBox.get(sessionId);
         if (client == null) {
             log.warn("Unauthorized client with sessionId: {} with ip: {}. Channel closed!",

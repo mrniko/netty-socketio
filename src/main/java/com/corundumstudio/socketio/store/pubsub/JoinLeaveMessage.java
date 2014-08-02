@@ -15,20 +15,20 @@
  */
 package com.corundumstudio.socketio.store.pubsub;
 
-import java.util.UUID;
+import com.corundumstudio.socketio.SessionID;
 
 public class JoinLeaveMessage extends PubSubMessage {
 
     private static final long serialVersionUID = -944515928988033174L;
 
-    private UUID sessionId;
+    private SessionID sessionId;
     private String namespace;
     private String room;
 
     public JoinLeaveMessage() {
     }
 
-    public JoinLeaveMessage(UUID id, String room, String namespace) {
+    public JoinLeaveMessage(SessionID id, String room, String namespace) {
         super();
         this.sessionId = id;
         this.room = room;
@@ -39,7 +39,7 @@ public class JoinLeaveMessage extends PubSubMessage {
         return namespace;
     }
 
-    public UUID getSessionId() {
+    public SessionID getSessionId() {
         return sessionId;
     }
 
