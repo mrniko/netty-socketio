@@ -74,7 +74,7 @@ public class EncoderHandler extends ChannelOutboundHandlerAdapter {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     private final PacketEncoder encoder;
-    
+
     private String version;
     private Configuration configuration;
 
@@ -107,20 +107,22 @@ public class EncoderHandler extends ChannelOutboundHandlerAdapter {
         }
     }
 
-    private void write(XHROptionsMessage msg, Channel channel, ByteBuf out) {
+    private void write(XHROptionsMessage msg, ChannelHandlerContext ctx) {
         HttpResponse res = new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.OK);
 
         HttpHeaders.addHeader(res, "Set-Cookie", "io=" + msg.getSessionId());
         HttpHeaders.addHeader(res, CONNECTION, KEEP_ALIVE);
         HttpHeaders.addHeader(res, ACCESS_CONTROL_ALLOW_HEADERS, CONTENT_TYPE);
-        addOriginHeaders(channel, res);
+        addOriginHeaders(ctx.channel(), res);
 
-        sendMessage(msg, channel, out, res);
+        ByteBuf out = encoder.allocateBuffer(ctx.alloc());
+        sendMessage(msg, ctx.channel(), out, res);
     }
 
-    private void write(XHRPostMessage msg, Channel channel, ByteBuf out) {
+    private void write(XHRPostMessage msg, ChannelHandlerContext ctx) {
+        ByteBuf out = encoder.allocateBuffer(ctx.alloc());
         out.writeBytes(OK);
-        sendMessage(msg, channel, out, "text/html");
+        sendMessage(msg, ctx.channel(), out, "text/html");
     }
 
     private void sendMessage(HttpMessage msg, Channel channel, ByteBuf out, String type) {
@@ -162,7 +164,7 @@ public class EncoderHandler extends ChannelOutboundHandlerAdapter {
         if (version != null) {
             res.headers().add(HttpHeaders.Names.SERVER, version);
         }
-        
+
         if (configuration.getOrigin() != null) {
             HttpHeaders.addHeader(res, ACCESS_CONTROL_ALLOW_ORIGIN, configuration.getOrigin());
         } else {
@@ -183,24 +185,18 @@ public class EncoderHandler extends ChannelOutboundHandlerAdapter {
             return;
         }
 
-        ByteBuf out = encoder.allocateBuffer(ctx.alloc());
-
         if (msg instanceof OutPacketMessage) {
             OutPacketMessage m = (OutPacketMessage) msg;
             if (m.getTransport() == Transport.WEBSOCKET) {
                 handleWebsocket((OutPacketMessage) msg, ctx);
             }
             if (m.getTransport() == Transport.POLLING) {
-                handleHTTP((OutPacketMessage) msg, ctx, out);
+                handleHTTP((OutPacketMessage) msg, ctx);
             }
-        }
-
-        if (msg instanceof XHROptionsMessage) {
-            write((XHROptionsMessage) msg, ctx.channel(), out);
-        }
-
-        if (msg instanceof XHRPostMessage) {
-            write((XHRPostMessage) msg, ctx.channel(), out);
+        } else if (msg instanceof XHROptionsMessage) {
+            write((XHROptionsMessage) msg, ctx);
+        } else if (msg instanceof XHRPostMessage) {
+            write((XHRPostMessage) msg, ctx);
         }
     }
 
@@ -228,17 +224,17 @@ public class EncoderHandler extends ChannelOutboundHandlerAdapter {
 
     }
 
-    private void handleHTTP(OutPacketMessage msg, ChannelHandlerContext ctx, ByteBuf out) throws IOException {
+    private void handleHTTP(OutPacketMessage msg, ChannelHandlerContext ctx) throws IOException {
         Channel channel = ctx.channel();
         Attribute<Boolean> attr = channel.attr(WRITE_ONCE);
 
         Queue<Packet> queue = msg.getClientHead().getPacketsQueue(msg.getTransport());
 
         if (!channel.isActive() || queue.isEmpty() || !attr.compareAndSet(null, true)) {
-            out.release();
             return;
         }
 
+        ByteBuf out = encoder.allocateBuffer(ctx.alloc());
         Boolean b64 = ctx.channel().attr(EncoderHandler.B64).get();
         if (b64 != null && b64) {
             Integer jsonpIndex = ctx.channel().attr(EncoderHandler.JSONP_INDEX).get();
