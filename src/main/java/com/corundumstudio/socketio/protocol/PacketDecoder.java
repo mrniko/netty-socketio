@@ -46,7 +46,7 @@ public class PacketDecoder {
             // skip "d="
             packet = packet.substring(2);
         }
-        
+
         int splitIndex = packet.indexOf(":");
         String len = packet.substring(0, splitIndex);
         Integer length = Integer.valueOf(len);
@@ -60,9 +60,9 @@ public class PacketDecoder {
     // fastest way to parse chars to int
     private long parseLong(ByteBuf chars, int length) {
         long result = 0;
-        for (int i = chars.readerIndex(); i < length; i++) {
+        for (int i = chars.readerIndex(); i < chars.readerIndex() + length; i++) {
             int digit = ((int)chars.getByte(i) & 0xF);
-            for (int j = 0; j < length-1-i; j++) {
+            for (int j = 0; j < chars.readerIndex() + length-1-i; j++) {
                 digit *= 10;
             }
             result += digit;
@@ -103,14 +103,9 @@ public class PacketDecoder {
 
 
     public Packet decodePackets(ByteBuf buffer, UUID uuid) throws IOException {
-        boolean isString = buffer.getByte(0) == 0x0;
+        boolean isString = buffer.getByte(buffer.readerIndex()) == 0x0;
         if (isString) {
-            int headEndIndex = buffer.forEachByte(new ByteBufProcessor() {
-                @Override
-                public boolean process(byte value) throws Exception {
-                    return value != -1;
-                }
-            });
+            int headEndIndex = buffer.bytesBefore((byte)-1);
             int len = (int) parseLong(buffer, headEndIndex);
 
             buffer.readerIndex(buffer.readerIndex() + headEndIndex);
