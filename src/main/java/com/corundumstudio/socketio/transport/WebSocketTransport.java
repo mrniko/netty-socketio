@@ -182,11 +182,13 @@ public class WebSocketTransport extends ChannelInboundHandlerAdapter {
             scheduler.schedule(key, new Runnable() {
                 @Override
                 public void run() {
-                    if (log.isDebugEnabled()) {
-                        log.debug("client did not complete upgrade - closing transport");
+                    ClientHead clientHead = clientsBox.get(sessionId);
+                    if (clientHead != null) {
+                        if (log.isDebugEnabled()) {
+                            log.debug("client did not complete upgrade - closing transport");
+                        }
+                        clientHead.onChannelDisconnect();
                     }
-                    clientsBox.get(sessionId)
-                    .onChannelDisconnect();
                 }
             }, configuration.getUpgradeTimeout(), TimeUnit.MILLISECONDS);
         }
