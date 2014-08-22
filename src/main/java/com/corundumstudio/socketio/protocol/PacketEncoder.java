@@ -268,10 +268,11 @@ public class PacketEncoder {
                             jsonSupport.writeValue(os, values);
 
                             CharsetEncoder enc = CharsetUtil.ISO_8859_1.newEncoder();
-                            if (enc.canEncode(b.toString(CharsetUtil.UTF_8))) {
-                                buf.writeBytes(b);
+                            String str = b.toString(CharsetUtil.ISO_8859_1);
+                            if (enc.canEncode(str)) {
+                                buf.writeBytes(str.getBytes(CharsetUtil.UTF_8));
                             } else {
-                                buf.writeBytes(b.toString(CharsetUtil.ISO_8859_1).getBytes(CharsetUtil.UTF_8));
+                                buf.writeBytes(b);
                             }
                         } else {
                             jsonSupport.writeValue(out, values);
