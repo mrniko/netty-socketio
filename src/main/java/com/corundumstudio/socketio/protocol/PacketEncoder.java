@@ -22,6 +22,7 @@ import io.netty.buffer.Unpooled;
 import io.netty.util.CharsetUtil;
 
 import java.io.IOException;
+import java.nio.charset.CharsetEncoder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
@@ -260,7 +261,21 @@ public class PacketEncoder {
                     if (jsonp) {
                         jsonSupport.writeJsonpValue(out, values);
                     } else {
-                        jsonSupport.writeValue(out, values);
+                        if (binary) {
+                            // handling websocket encoding bug
+                            ByteBuf b = allocateBuffer(allocator);
+                            ByteBufOutputStream os = new ByteBufOutputStream(b);
+                            jsonSupport.writeValue(os, values);
+
+                            CharsetEncoder enc = CharsetUtil.ISO_8859_1.newEncoder();
+                            if (enc.canEncode(b.toString(CharsetUtil.UTF_8))) {
+                                buf.writeBytes(b);
+                            } else {
+                                buf.writeBytes(b.toString(CharsetUtil.ISO_8859_1).getBytes(CharsetUtil.UTF_8));
+                            }
+                        } else {
+                            jsonSupport.writeValue(out, values);
+                        }
                     }
                 }
                 break;
