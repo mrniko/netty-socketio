@@ -264,15 +264,20 @@ public class PacketEncoder {
                         if (binary) {
                             // handling websocket encoding bug
                             ByteBuf b = allocateBuffer(allocator);
-                            ByteBufOutputStream os = new ByteBufOutputStream(b);
-                            jsonSupport.writeValue(os, values);
+                            try {
+                                ByteBufOutputStream os = new ByteBufOutputStream(b);
+                                jsonSupport.writeValue(os, values);
 
-                            CharsetEncoder enc = CharsetUtil.ISO_8859_1.newEncoder();
-                            String str = b.toString(CharsetUtil.ISO_8859_1);
-                            if (enc.canEncode(str)) {
-                                buf.writeBytes(str.getBytes(CharsetUtil.UTF_8));
-                            } else {
-                                buf.writeBytes(b);
+                                CharsetEncoder enc = CharsetUtil.ISO_8859_1.newEncoder();
+                                String str = b.toString(CharsetUtil.ISO_8859_1);
+                                if (enc.canEncode(str)) {
+                                    buf.writeBytes(str.getBytes(CharsetUtil.UTF_8));
+                                } else {
+                                    buf.writeBytes(b);
+                                }
+                            }
+                            finally {
+                                b.release();
                             }
                         } else {
                             jsonSupport.writeValue(out, values);
