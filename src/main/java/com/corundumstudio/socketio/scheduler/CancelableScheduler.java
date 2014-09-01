@@ -31,6 +31,4 @@ public interface CancelableScheduler {
 
     void schedule(SchedulerKey key, Runnable runnable, long delay, TimeUnit unit);
 
-    void shutdown();
-
 }

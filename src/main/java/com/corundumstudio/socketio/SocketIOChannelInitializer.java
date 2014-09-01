@@ -122,7 +122,7 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
 
 
         packetHandler = new InPacketHandler(packetListener, decoder, namespacesHub, configuration.getExceptionListener());
-        
+
         try {
             encoderHandler = new EncoderHandler(configuration, encoder);
         } catch (Exception e) {
@@ -191,7 +191,6 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
     public void stop() {
         StoreFactory factory = configuration.getStoreFactory();
         factory.shutdown();
-        scheduler.shutdown();
     }
 
 }

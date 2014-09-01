@@ -16,9 +16,7 @@
 package com.corundumstudio.socketio.scheduler;
 
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.util.HashedWheelTimer;
-import io.netty.util.Timeout;
-import io.netty.util.TimerTask;
+import io.netty.util.concurrent.ScheduledFuture;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -26,8 +24,7 @@ import java.util.concurrent.TimeUnit;
 
 public class HashedWheelScheduler implements CancelableScheduler {
 
-    private final Map<SchedulerKey, Timeout> scheduledFutures = new ConcurrentHashMap<SchedulerKey, Timeout>();
-    private final HashedWheelTimer executorService = new HashedWheelTimer();
+    private final Map<SchedulerKey, ScheduledFuture<?>> scheduledFutures = new ConcurrentHashMap<SchedulerKey, ScheduledFuture<?>>();
 
     private volatile ChannelHandlerContext ctx;
 
@@ -37,47 +34,25 @@ public class HashedWheelScheduler implements CancelableScheduler {
     }
 
     public void cancel(SchedulerKey key) {
-        Timeout timeout = scheduledFutures.remove(key);
+        ScheduledFuture<?> timeout = scheduledFutures.remove(key);
         if (timeout != null) {
-            timeout.cancel();
+            timeout.cancel(false);
         }
     }
 
     public void schedule(final Runnable runnable, long delay, TimeUnit unit) {
-        executorService.newTimeout(new TimerTask() {
+        ctx.executor().schedule(new Runnable() {
             @Override
-            public void run(Timeout timeout) throws Exception {
+            public void run() {
                 runnable.run();
             }
         }, delay, unit);
     }
 
     public void scheduleCallback(final SchedulerKey key, final Runnable runnable, long delay, TimeUnit unit) {
-        Timeout timeout = executorService.newTimeout(new TimerTask() {
+        ScheduledFuture<?> timeout = ctx.executor().schedule(new Runnable() {
             @Override
-            public void run(Timeout timeout) throws Exception {
-                ctx.executor().execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            runnable.run();
-                        } finally {
-                            scheduledFutures.remove(key);
-                        }
-                    }
-                });
-            }
-        }, delay, unit);
-
-        if (!timeout.isExpired()) {
-            scheduledFutures.put(key, timeout);
-        }
-    }
-
-    public void schedule(final SchedulerKey key, final Runnable runnable, long delay, TimeUnit unit) {
-        Timeout timeout = executorService.newTimeout(new TimerTask() {
-            @Override
-            public void run(Timeout timeout) throws Exception {
+            public void run() {
                 try {
                     runnable.run();
                 } finally {
@@ -86,13 +61,26 @@ public class HashedWheelScheduler implements CancelableScheduler {
             }
         }, delay, unit);
 
-        if (!timeout.isExpired()) {
+        if (!timeout.isDone()) {
             scheduledFutures.put(key, timeout);
         }
     }
 
-    public void shutdown() {
-        executorService.stop();
+    public void schedule(final SchedulerKey key, final Runnable runnable, long delay, TimeUnit unit) {
+        ScheduledFuture<?> timeout = ctx.executor().schedule(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    runnable.run();
+                } finally {
+                    scheduledFutures.remove(key);
+                }
+            }
+        }, delay, unit);
+
+        if (!timeout.isDone()) {
+            scheduledFutures.put(key, timeout);
+        }
     }
 
 }
