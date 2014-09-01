@@ -16,6 +16,7 @@
 package com.corundumstudio.socketio.scheduler;
 
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.util.concurrent.EventExecutor;
 import io.netty.util.concurrent.ScheduledFuture;
 
 import java.util.Map;
@@ -26,11 +27,11 @@ public class HashedWheelScheduler implements CancelableScheduler {
 
     private final Map<SchedulerKey, ScheduledFuture<?>> scheduledFutures = new ConcurrentHashMap<SchedulerKey, ScheduledFuture<?>>();
 
-    private volatile ChannelHandlerContext ctx;
+    private volatile EventExecutor executor;
 
     @Override
     public void update(ChannelHandlerContext ctx) {
-        this.ctx = ctx;
+        this.executor = ctx.executor();
     }
 
     public void cancel(SchedulerKey key) {
@@ -41,7 +42,7 @@ public class HashedWheelScheduler implements CancelableScheduler {
     }
 
     public void schedule(final Runnable runnable, long delay, TimeUnit unit) {
-        ctx.executor().schedule(new Runnable() {
+        executor.schedule(new Runnable() {
             @Override
             public void run() {
                 runnable.run();
@@ -50,7 +51,7 @@ public class HashedWheelScheduler implements CancelableScheduler {
     }
 
     public void scheduleCallback(final SchedulerKey key, final Runnable runnable, long delay, TimeUnit unit) {
-        ScheduledFuture<?> timeout = ctx.executor().schedule(new Runnable() {
+        ScheduledFuture<?> timeout = executor.schedule(new Runnable() {
             @Override
             public void run() {
                 try {
@@ -67,7 +68,7 @@ public class HashedWheelScheduler implements CancelableScheduler {
     }
 
     public void schedule(final SchedulerKey key, final Runnable runnable, long delay, TimeUnit unit) {
-        ScheduledFuture<?> timeout = ctx.executor().schedule(new Runnable() {
+        ScheduledFuture<?> timeout = executor.schedule(new Runnable() {
             @Override
             public void run() {
                 try {
