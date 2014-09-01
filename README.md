@@ -49,6 +49,12 @@ Recent Releases
 ================================
 ####Please Note: trunk is current development branch.
 
+####22-Aug-2014 - version 1.7.2 released (SocketIO 1.0+ protocol)  
+Fixed - wrong outgoing message encoding using websocket transport  
+Fixed - NPE in websocket transport  
+Fixed - multiple packet decoding in polling transport  
+Fixed - buffer leak  
+
 ####07-Jul-2014 - version 1.7.1 released (SocketIO 1.0+ protocol)  
 Feature - ability to set custom `Access-Control-Allow-Origin` via Configuration.origin  
 Fixed - connection via CLI socket.io-client  
