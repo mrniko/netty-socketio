@@ -19,6 +19,8 @@ import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.FixedRecvByteBufAllocator;
+import io.netty.channel.epoll.EpollEventLoopGroup;
+import io.netty.channel.epoll.EpollServerSocketChannel;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.util.concurrent.Future;
@@ -128,9 +130,15 @@ public class SocketIOServer implements ClientListeners {
         initGroups();
 
         pipelineFactory.start(configCopy, namespacesHub);
+
+        Class channelClass = NioServerSocketChannel.class;
+        if (configCopy.isUseLinuxNativeEpoll()) {
+            channelClass = EpollServerSocketChannel.class;
+        }
+
         ServerBootstrap b = new ServerBootstrap();
         b.group(bossGroup, workerGroup)
-        .channel(NioServerSocketChannel.class)
+        .channel(channelClass)
         .childHandler(pipelineFactory);
         applyConnectionOptions(b);
 
@@ -169,8 +177,13 @@ public class SocketIOServer implements ClientListeners {
     }
 
     protected void initGroups() {
-        bossGroup = new NioEventLoopGroup(configCopy.getBossThreads());
-        workerGroup = new NioEventLoopGroup(configCopy.getWorkerThreads());
+        if (configCopy.isUseLinuxNativeEpoll()) {
+            bossGroup = new EpollEventLoopGroup(configCopy.getBossThreads());
+            workerGroup = new EpollEventLoopGroup(configCopy.getWorkerThreads());
+        } else {
+            bossGroup = new NioEventLoopGroup(configCopy.getBossThreads());
+            workerGroup = new NioEventLoopGroup(configCopy.getWorkerThreads());
+        }
     }
 
     /**

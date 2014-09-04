@@ -37,6 +37,7 @@ public class Configuration {
 
     private int bossThreads = 0; // 0 = current_processors_amount * 2
     private int workerThreads = 0; // 0 = current_processors_amount * 2
+    private boolean useLinuxNativeEpoll;
 
     private boolean allowCustomRequests = false;
 
@@ -74,7 +75,7 @@ public class Configuration {
     private boolean addVersionHeader = true;
 
     private String origin;
-    
+
     public Configuration() {
     }
 
@@ -86,6 +87,7 @@ public class Configuration {
     Configuration(Configuration conf) {
         setBossThreads(conf.getBossThreads());
         setWorkerThreads(conf.getWorkerThreads());
+        setUseLinuxNativeEpoll(conf.isUseLinuxNativeEpoll());
 
         setPingInterval(conf.getPingInterval());
         setPingTimeout(conf.getPingTimeout());
@@ -116,7 +118,7 @@ public class Configuration {
         setAckMode(conf.getAckMode());
         setMaxFramePayloadLength(conf.getMaxFramePayloadLength());
         setUpgradeTimeout(conf.getUpgradeTimeout());
-        
+
         setAddVersionHeader(conf.isAddVersionHeader());
         setOrigin(conf.getOrigin());
     }
@@ -433,7 +435,7 @@ public class Configuration {
 
     /**
      * Transport upgrade timeout in milliseconds
-     * 
+     *
      * @param upgradeTimeout
      */
     public void setUpgradeTimeout(int upgradeTimeout) {
@@ -446,7 +448,7 @@ public class Configuration {
     /**
      * Adds <b>Server</b> header with lib version to http response.
      * Default is <code>true</code>
-     * 
+     *
      * @param addVersionHeader
      */
     public void setAddVersionHeader(boolean addVersionHeader) {
@@ -458,7 +460,7 @@ public class Configuration {
 
     /**
      * Set <b>Access-Control-Allow-Origin</b> header value for http each
-     * response. 
+     * response.
      * Default is <code>null</code>
      *
      * If value is <code>null</code> then request <b>ORIGIN</b> header value used.
@@ -470,6 +472,13 @@ public class Configuration {
     }
     public String getOrigin() {
         return origin;
-    }    
-    
+    }
+
+    public boolean isUseLinuxNativeEpoll() {
+        return useLinuxNativeEpoll;
+    }
+    public void setUseLinuxNativeEpoll(boolean useLinuxNativeEpoll) {
+        this.useLinuxNativeEpoll = useLinuxNativeEpoll;
+    }
+
 }
