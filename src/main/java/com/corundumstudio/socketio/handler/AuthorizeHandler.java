@@ -146,6 +146,14 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
         UUID sessionId = UUID.randomUUID();
 
         List<String> transportValue = params.get("transport");
+        if (transportValue == null) {
+            log.warn("Got no transports for request {}", req.getUri());
+
+            HttpResponse res = new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.UNAUTHORIZED);
+            channel.writeAndFlush(res).addListener(ChannelFutureListener.CLOSE);
+            return false;
+        }
+
         Transport transport = Transport.byName(transportValue.get(0));
         ClientHead client = new ClientHead(sessionId, ackManager, disconnectable, storeFactory, data, clientsBox, transport, disconnectScheduler, configuration);
         channel.attr(ClientHead.CLIENT).set(client);
