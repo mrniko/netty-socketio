@@ -24,14 +24,20 @@ public class BroadcastAckCallback<T> {
     final AtomicInteger counter = new AtomicInteger();
     final AtomicBoolean successExecuted = new AtomicBoolean();
     final Class<T> resultClass;
+    final int timeout;
+
+    public BroadcastAckCallback(Class<T> resultClass, int timeout) {
+        this.resultClass = resultClass;
+        this.timeout = timeout;
+    }
 
     public BroadcastAckCallback(Class<T> resultClass) {
-        this.resultClass = resultClass;
+        this(resultClass, -1);
     }
 
     final AckCallback<T> createClientCallback(final SocketIOClient client) {
         counter.getAndIncrement();
-        return new AckCallback<T>(resultClass) {
+        return new AckCallback<T>(resultClass, timeout) {
             @Override
             public void onSuccess(T result) {
                 counter.getAndDecrement();
