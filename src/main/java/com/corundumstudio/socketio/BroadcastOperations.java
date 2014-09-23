@@ -104,7 +104,7 @@ public class BroadcastOperations implements ClientOperations {
 
     public <T> void sendEvent(String name, Object data, BroadcastAckCallback<T> ackCallback) {
         for (SocketIOClient client : clients) {
-            client.sendEvent(name, data, ackCallback.createClientCallback(client));
+            client.sendEvent(name, ackCallback.createClientCallback(client), data);
         }
         ackCallback.loopFinished();
     }
