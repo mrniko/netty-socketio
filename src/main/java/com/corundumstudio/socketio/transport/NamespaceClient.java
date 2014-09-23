@@ -36,7 +36,7 @@ import com.corundumstudio.socketio.protocol.PacketType;
 public class NamespaceClient implements SocketIOClient {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
-    
+
     private final AtomicBoolean disconnected = new AtomicBoolean();
     private final ClientHead baseClient;
     private final Namespace namespace;
@@ -113,14 +113,16 @@ public class NamespaceClient implements SocketIOClient {
 
         baseClient.removeNamespaceClient(this);
         namespace.onDisconnect(this);
-        
+
         log.debug("Client {} for namespace {} has been disconnected", baseClient.getSessionId(), getNamespace().getName());
     }
 
     @Override
     public void disconnect() {
-        send(new Packet(PacketType.DISCONNECT));
-        onDisconnect();
+        Packet packet = new Packet(PacketType.MESSAGE);
+        packet.setSubType(PacketType.DISCONNECT);
+        send(packet);
+//        onDisconnect();
     }
 
     @Override
