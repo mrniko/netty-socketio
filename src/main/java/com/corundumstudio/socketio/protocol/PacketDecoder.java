@@ -174,7 +174,8 @@ public class PacketDecoder {
                 packet.setData(args.getArgs());
             }
 
-            if (packet.getSubType() == PacketType.EVENT) {
+            if (packet.getSubType() == PacketType.EVENT
+                    || packet.getSubType() == PacketType.BINARY_EVENT) {
                 ByteBufInputStream in = new ByteBufInputStream(frame);
                 Event event = jsonSupport.readValue(in, Event.class);
                 packet.setName(event.getName());

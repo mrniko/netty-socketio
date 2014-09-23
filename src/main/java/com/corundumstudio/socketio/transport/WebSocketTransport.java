@@ -15,6 +15,7 @@
  */
 package com.corundumstudio.socketio.transport;
 
+import io.netty.buffer.ByteBufHolder;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
@@ -25,6 +26,7 @@ import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.QueryStringDecoder;
+import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.CloseWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketServerHandshaker;
@@ -76,8 +78,9 @@ public class WebSocketTransport extends ChannelInboundHandlerAdapter {
         if (msg instanceof CloseWebSocketFrame) {
             ctx.channel().close();
             ReferenceCountUtil.release(msg);
-        } else if (msg instanceof TextWebSocketFrame) {
-            TextWebSocketFrame frame = (TextWebSocketFrame) msg;
+        } else if (msg instanceof BinaryWebSocketFrame
+                    || msg instanceof TextWebSocketFrame) {
+            ByteBufHolder frame = (ByteBufHolder) msg;
             ClientHead client = clientsBox.get(ctx.channel());
             if (client == null) {
                 log.debug("Client with was already disconnected. Channel closed!");
