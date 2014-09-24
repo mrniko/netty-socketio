@@ -95,7 +95,7 @@ public class PacketEncoder {
             buf.release();
             // TODO optimize
             packet = QUOTES_PATTERN.matcher(packet).replaceAll("\\\\\"");
-            packet = new String(packet.getBytes(CharsetUtil.UTF_8), CharsetUtil.ISO_8859_1);
+//            packet = new String(packet.getBytes(CharsetUtil.UTF_8), CharsetUtil.ISO_8859_1);
             out.writeBytes(packet.getBytes(CharsetUtil.UTF_8));
 
             out.writeBytes(JSONP_END);
@@ -261,27 +261,7 @@ public class PacketEncoder {
                     if (jsonp) {
                         jsonSupport.writeJsonpValue(out, values);
                     } else {
-                        if (binary) {
-                            // handling websocket encoding bug
-                            ByteBuf b = allocateBuffer(allocator);
-                            try {
-                                ByteBufOutputStream os = new ByteBufOutputStream(b);
-                                jsonSupport.writeValue(os, values);
-
-                                CharsetEncoder enc = CharsetUtil.ISO_8859_1.newEncoder();
-                                String str = b.toString(CharsetUtil.ISO_8859_1);
-                                if (enc.canEncode(str)) {
-                                    buf.writeBytes(str.getBytes(CharsetUtil.UTF_8));
-                                } else {
-                                    buf.writeBytes(b);
-                                }
-                            }
-                            finally {
-                                b.release();
-                            }
-                        } else {
-                            jsonSupport.writeValue(out, values);
-                        }
+                        jsonSupport.writeValue(out, values);
                     }
                 }
                 break;

@@ -17,7 +17,6 @@ package com.corundumstudio.socketio.protocol;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufInputStream;
-import io.netty.buffer.ByteBufProcessor;
 import io.netty.buffer.Unpooled;
 import io.netty.util.CharsetUtil;
 
@@ -52,7 +51,7 @@ public class PacketDecoder {
         Integer length = Integer.valueOf(len);
 
         packet = packet.substring(splitIndex+1, splitIndex+length+1);
-        packet = new String(packet.getBytes(CharsetUtil.ISO_8859_1), CharsetUtil.UTF_8);
+//        packet = new String(packet.getBytes(CharsetUtil.ISO_8859_1), CharsetUtil.UTF_8);
 
         return Unpooled.wrappedBuffer(packet.getBytes(CharsetUtil.UTF_8));
     }
@@ -89,18 +88,6 @@ public class PacketDecoder {
             buf.release();
         }
     }
-
-    private static int find(ByteBuf buffer, final char item) {
-        int index = buffer.forEachByte(buffer.readerIndex(), buffer.readableBytes(), new ByteBufProcessor() {
-            @Override
-            public boolean process(byte value) throws Exception {
-                return value != item;
-            }
-        });
-
-        return index;
-    }
-
 
     public Packet decodePackets(ByteBuf buffer, UUID uuid) throws IOException {
         boolean isString = buffer.getByte(buffer.readerIndex()) == 0x0;
@@ -144,10 +131,10 @@ public class PacketDecoder {
         PacketType innerType = readInnerType(frame);
         packet.setSubType(innerType);
 
-        int endIndex = find(frame, '[');
-        if (endIndex > frame.readerIndex()) {
+        int endIndex = frame.bytesBefore((byte)'[');
+        if (endIndex > 0) {
             // TODO optimize
-            String nspAckId = readString(frame, endIndex - frame.readerIndex());
+            String nspAckId = readString(frame, endIndex);
             if (nspAckId.contains(",")) {
                 String[] parts = nspAckId.split(",");
                 String nsp = parts[0];
