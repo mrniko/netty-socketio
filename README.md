@@ -11,7 +11,6 @@ Features
 ================================
 * Supports __0.7__...__0.9.16__ (netty-socketio 1.6.5) and __1.0+__ (netty-socketio latest version) version of [Socket.IO-client](https://github.com/LearnBoost/socket.io-client)  
 * Supports xhr-polling transport  
-* Supports flashsocket transport  
 * Supports websocket transport  
 * Supports namespaces and rooms  
 * Supports ack (acknowledgment of received data)  
@@ -48,6 +47,15 @@ Zipwhip: [zipwhip.com](https://zipwhip.com/)
 Recent Releases
 ================================
 ####Please Note: trunk is current development branch.
+
+####24-Sep-2014 - version 1.7.3 released (SocketIO 1.0+ protocol)  
+Feature - Epoll support  
+Improvement - BinaryEvent support  
+Fixed - SocketIOClient disconnect handling  
+Fixed - broadcast callback  
+Fixed - NPE then no transport defined during auth  
+Fixed - ping timeout for polling transport  
+Fixed - buffer leak in PacketEncoder  
 
 ####22-Aug-2014 - version 1.7.2 released (SocketIO 1.0+ protocol)  
 Fixed - wrong outgoing message encoding using websocket transport  
