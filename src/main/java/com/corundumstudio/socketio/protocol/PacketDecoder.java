@@ -57,7 +57,7 @@ public class PacketDecoder {
     }
 
     // fastest way to parse chars to int
-    private long parseLong(ByteBuf chars, int length) {
+    private long readLong(ByteBuf chars, int length) {
         long result = 0;
         for (int i = chars.readerIndex(); i < chars.readerIndex() + length; i++) {
             int digit = ((int)chars.getByte(i) & 0xF);
@@ -66,6 +66,7 @@ public class PacketDecoder {
             }
             result += digit;
         }
+        chars.readerIndex(chars.readerIndex() + length);
         return result;
     }
 
@@ -93,9 +94,7 @@ public class PacketDecoder {
         boolean isString = buffer.getByte(buffer.readerIndex()) == 0x0;
         if (isString) {
             int headEndIndex = buffer.bytesBefore((byte)-1);
-            int len = (int) parseLong(buffer, headEndIndex);
-
-            buffer.readerIndex(buffer.readerIndex() + headEndIndex);
+            int len = (int) readLong(buffer, headEndIndex);
 
             ByteBuf frame = buffer.slice(buffer.readerIndex() + 1, len);
             // skip this frame
@@ -134,8 +133,9 @@ public class PacketDecoder {
         int endIndex = frame.bytesBefore((byte)'[');
         if (endIndex > 0) {
             // TODO optimize
-            String nspAckId = readString(frame, endIndex);
-            if (nspAckId.contains(",")) {
+            boolean hasNsp = frame.bytesBefore(endIndex, (byte)',') != -1;
+            if (hasNsp) {
+                String nspAckId = readString(frame, endIndex);
                 String[] parts = nspAckId.split(",");
                 String nsp = parts[0];
                 packet.setNsp(nsp);
@@ -144,7 +144,8 @@ public class PacketDecoder {
                     packet.setAckId(Long.valueOf(ackId));
                 }
             } else {
-                packet.setAckId(Long.valueOf(nspAckId));
+                long ackId = readLong(frame, endIndex);
+                packet.setAckId(ackId);
             }
         }
 
