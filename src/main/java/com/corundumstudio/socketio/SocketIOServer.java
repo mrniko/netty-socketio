@@ -33,7 +33,6 @@ import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.corundumstudio.socketio.listener.ClientListeners;
 import com.corundumstudio.socketio.listener.ConnectListener;
 import com.corundumstudio.socketio.listener.DataListener;
 import com.corundumstudio.socketio.listener.DisconnectListener;
@@ -45,7 +44,7 @@ import com.corundumstudio.socketio.namespace.NamespacesHub;
  * Fully thread-safe.
  *
  */
-public class SocketIOServer implements ClientListeners {
+public class SocketIOServer implements SocketIONamespace {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -76,8 +75,9 @@ public class SocketIOServer implements ClientListeners {
      *
      * @return clients collection
      */
+    @Override
     public Collection<SocketIOClient> getAllClients() {
-        return namespacesHub.get(Namespace.DEFAULT_NAME).getAllClients();
+        return mainNamespace.getAllClients();
     }
 
     /**
@@ -86,8 +86,9 @@ public class SocketIOServer implements ClientListeners {
      * @param uuid
      * @return
      */
+    @Override
     public SocketIOClient getClient(UUID uuid) {
-        return namespacesHub.get(Namespace.DEFAULT_NAME).getClient(uuid);
+        return mainNamespace.getClient(uuid);
     }
 
     /**
@@ -99,8 +100,9 @@ public class SocketIOServer implements ClientListeners {
         return namespacesHub.getAllNamespaces();
     }
 
+    @Override
     public BroadcastOperations getBroadcastOperations() {
-        return new BroadcastOperations(getAllClients(), configCopy.getStoreFactory());
+        return mainNamespace.getBroadcastOperations();
     }
 
     /**
@@ -110,9 +112,9 @@ public class SocketIOServer implements ClientListeners {
      * @param room
      * @return
      */
+    @Override
     public BroadcastOperations getRoomOperations(String room) {
-        Iterable<SocketIOClient> clients = namespacesHub.getRoomClients(room);
-        return new BroadcastOperations(clients, configCopy.getStoreFactory());
+        return mainNamespace.getRoomOperations(room);
     }
 
     /**
