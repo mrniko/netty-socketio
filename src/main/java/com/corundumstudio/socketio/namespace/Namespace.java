@@ -206,6 +206,11 @@ public class Namespace implements SocketIONamespace {
     }
 
     @Override
+    public BroadcastOperations getRoomOperations(String room) {
+        return new BroadcastOperations(getRoomClients(room), storeFactory);
+    }
+
+    @Override
     public int hashCode() {
         final int prime = 31;
         int result = 1;

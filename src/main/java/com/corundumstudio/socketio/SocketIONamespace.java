@@ -28,6 +28,8 @@ public interface SocketIONamespace extends ClientListeners {
 
     BroadcastOperations getBroadcastOperations();
 
+    BroadcastOperations getRoomOperations(String room);
+
     /**
      * Get all clients connected to namespace
      *
