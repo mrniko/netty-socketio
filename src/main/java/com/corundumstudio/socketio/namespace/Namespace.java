@@ -76,7 +76,7 @@ public class Namespace implements SocketIONamespace {
     public Namespace(String name, Configuration configuration) {
         super();
         this.name = name;
-        this.jsonSupport = configuration.getJsonSupport();
+        this.jsonSupport = configuration.getJsonSupport().clone();
         this.storeFactory = configuration.getStoreFactory();
         this.exceptionListener = configuration.getExceptionListener();
         this.ackMode = configuration.getAckMode();
