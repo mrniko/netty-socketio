@@ -326,6 +326,10 @@ public class Namespace implements SocketIONamespace {
         return Collections.unmodifiableCollection(allClients.values());
     }
 
+    public JsonSupport getJsonSupport() {
+        return jsonSupport;
+    }
+
     public SocketIOClient getClient(UUID uuid) {
         return allClients.get(uuid);
     }

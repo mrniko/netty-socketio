@@ -99,7 +99,7 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
 
         JsonSupport jsonSupport = configuration.getJsonSupport();
         PacketEncoder encoder = new PacketEncoder(configuration, jsonSupport);
-        PacketDecoder decoder = new PacketDecoder(jsonSupport, ackManager);
+        PacketDecoder decoder = new PacketDecoder(jsonSupport, namespacesHub, ackManager);
 
         String connectPath = configuration.getContext() + "/";
 
