@@ -21,6 +21,6 @@ import com.corundumstudio.socketio.protocol.JacksonJsonSupport;
 
 public class EncoderBaseTest {
 
-    final PacketEncoder encoder = new PacketEncoder(new Configuration(), new JacksonJsonSupport(new Configuration()));
+    final PacketEncoder encoder = new PacketEncoder(new Configuration(), new JacksonJsonSupport());
 
 }
