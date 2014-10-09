@@ -9,7 +9,7 @@ Licensed under the Apache License 2.0.
 
 Features
 ================================
-* Supports __0.7__...__0.9.16__ (netty-socketio 1.6.5) and __1.0+__ (netty-socketio latest version) version of [Socket.IO-client](https://github.com/LearnBoost/socket.io-client)  
+* Supports __0.7__...__0.9.16__ (netty-socketio 1.6.6) and __1.0+__ (netty-socketio latest version) version of [Socket.IO-client](https://github.com/LearnBoost/socket.io-client)  
 * Supports xhr-polling transport  
 * Supports websocket transport  
 * Supports namespaces and rooms  
@@ -47,6 +47,11 @@ Zipwhip: [zipwhip.com](https://zipwhip.com/)
 Recent Releases
 ================================
 ####Please Note: trunk is current development branch.
+
+####29-Sep-2014 - version 1.6.6 released
+Feature - `origin` setting added  
+Feature - `crossDomainPolicy` setting added  
+Feature - `SocketIOServer.startAsync` method added  
 
 ####24-Sep-2014 - version 1.7.3 released (SocketIO 1.0+ protocol)  
 Feature - Epoll support  
