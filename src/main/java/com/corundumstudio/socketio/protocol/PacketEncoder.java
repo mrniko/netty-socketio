@@ -206,7 +206,7 @@ public class PacketEncoder {
             buf = allocateBuffer(allocator);
         }
         byte type = toChar(packet.getType().getValue());
-        buf.writeByte(type);
+        buf.writeBytes(new byte[] {type});
 
         switch (packet.getType()) {
 
@@ -227,7 +227,7 @@ public class PacketEncoder {
 
             case MESSAGE: {
                 byte subType = toChar(packet.getSubType().getValue());
-                buf.writeByte(subType);
+                buf.writeBytes(new byte[] {subType});
 
                 if (packet.getSubType() == PacketType.CONNECT) {
                     if (!packet.getNsp().isEmpty()) {
@@ -269,10 +269,10 @@ public class PacketEncoder {
         }
 
         if (!binary) {
-            buffer.writeByte(0);
+            buffer.writeBytes(new byte[] {0});
             int length = buf.writerIndex();
             buffer.writeBytes(longToBytes(length));
-            buffer.writeByte(0xff);
+            buffer.writeBytes(new byte[] {(byte)0xff});
             buffer.writeBytes(buf);
         }
     }
