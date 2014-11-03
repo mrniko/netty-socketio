@@ -111,10 +111,10 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
                 throw new IllegalStateException(e);
             }
         }
-        StoreFactory factory = configuration.getStoreFactory();
-        factory.init(namespacesHub, authorizeHandler, jsonSupport);
 
+        StoreFactory factory = configuration.getStoreFactory();
         authorizeHandler = new AuthorizeHandler(connectPath, scheduler, configuration, namespacesHub, factory, this, ackManager, clientsBox);
+        factory.init(namespacesHub, authorizeHandler, jsonSupport);
         xhrPollingTransport = new PollingTransport(decoder, authorizeHandler, clientsBox);
         webSocketTransport = new WebSocketTransport(isSsl, authorizeHandler, configuration, scheduler, clientsBox);
 
@@ -122,7 +122,7 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
 
 
         packetHandler = new InPacketHandler(packetListener, decoder, namespacesHub, configuration.getExceptionListener());
-        
+
         try {
             encoderHandler = new EncoderHandler(configuration, encoder);
         } catch (Exception e) {
