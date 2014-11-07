@@ -71,6 +71,8 @@ public class ClientHead {
     private final CancelableScheduler disconnectScheduler;
     private final Configuration configuration;
 
+    private Packet lastBinaryPacket;
+
     // TODO use lazy set
     private volatile Transport currentTransport;
 
@@ -256,6 +258,13 @@ public class ClientHead {
 
     public Queue<Packet> getPacketsQueue(Transport transport) {
         return channels.get(transport).getPacketsQueue();
+    }
+
+    public void setLastBinaryPacket(Packet lastBinaryPacket) {
+        this.lastBinaryPacket = lastBinaryPacket;
+    }
+    public Packet getLastBinaryPacket() {
+        return lastBinaryPacket;
     }
 
 }

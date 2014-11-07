@@ -22,12 +22,16 @@ import io.netty.util.CharsetUtil;
 
 import java.io.IOException;
 import java.net.URLDecoder;
+import java.util.LinkedList;
 import java.util.UUID;
 
 import com.corundumstudio.socketio.AckCallback;
 import com.corundumstudio.socketio.ack.AckManager;
+import com.corundumstudio.socketio.handler.ClientHead;
 
 public class PacketDecoder {
+
+    private final ByteBuf QUOTES = Unpooled.copiedBuffer("\"", CharsetUtil.UTF_8);
 
     private final JsonSupport jsonSupport;
     private final AckManager ackManager;
@@ -51,7 +55,6 @@ public class PacketDecoder {
         Integer length = Integer.valueOf(len);
 
         packet = packet.substring(splitIndex+1, splitIndex+length+1);
-//        packet = new String(packet.getBytes(CharsetUtil.ISO_8859_1), CharsetUtil.UTF_8);
 
         return Unpooled.wrappedBuffer(packet.getBytes(CharsetUtil.UTF_8));
     }
@@ -90,7 +93,7 @@ public class PacketDecoder {
         }
     }
 
-    public Packet decodePackets(ByteBuf buffer, UUID uuid) throws IOException {
+    public Packet decodePackets(ByteBuf buffer, ClientHead client) throws IOException {
         boolean isString = buffer.getByte(buffer.readerIndex()) == 0x0;
         if (isString) {
             int headEndIndex = buffer.bytesBefore((byte)-1);
@@ -99,9 +102,9 @@ public class PacketDecoder {
             ByteBuf frame = buffer.slice(buffer.readerIndex() + 1, len);
             // skip this frame
             buffer.readerIndex(buffer.readerIndex() + 1 + len);
-            return decode(uuid, frame);
+            return decode(client, frame);
         }
-        return decode(uuid, buffer);
+        return decode(client, buffer);
     }
 
     private String readString(ByteBuf frame) {
@@ -114,7 +117,10 @@ public class PacketDecoder {
         return new String(bytes, CharsetUtil.UTF_8);
     }
 
-    private Packet decode(UUID uuid, ByteBuf frame) throws IOException {
+    private Packet decode(ClientHead head, ByteBuf frame) throws IOException {
+        if (frame.getByte(0) == 'b') {
+            return parseBinary(head, frame);
+        }
         PacketType type = readType(frame);
         Packet packet = new Packet(type);
 
@@ -130,6 +136,12 @@ public class PacketDecoder {
         PacketType innerType = readInnerType(frame);
         packet.setSubType(innerType);
 
+        parseHeader(frame, packet, innerType);
+        parseBody(head, frame, packet);
+        return packet;
+    }
+
+    private void parseHeader(ByteBuf frame, Packet packet, PacketType innerType) {
         int endIndex = frame.bytesBefore((byte)'[');
         if (endIndex > 0) {
             // TODO optimize
@@ -144,11 +156,57 @@ public class PacketDecoder {
                     packet.setAckId(Long.valueOf(ackId));
                 }
             } else {
-                long ackId = readLong(frame, endIndex);
-                packet.setAckId(ackId);
+                boolean hasAttachments = frame.bytesBefore(endIndex, (byte)'-') != -1;
+                if (hasAttachments && PacketType.BINARY_EVENT.equals(innerType)) {
+                    int attachments = (int) readLong(frame, endIndex-1);
+                    packet.initAttachments(attachments);
+                    frame.readerIndex(frame.readerIndex() + 1);
+                } else {
+                    long ackId = readLong(frame, endIndex);
+                    packet.setAckId(ackId);
+                }
             }
         }
+    }
 
+    private Packet parseBinary(ClientHead head, ByteBuf frame) throws IOException {
+        frame.readShort();
+        Packet binaryPacket = head.getLastBinaryPacket();
+        if (binaryPacket != null) {
+            binaryPacket.addAttachment(Unpooled.copiedBuffer(frame));
+            frame.readerIndex(frame.readerIndex() + frame.readableBytes());
+
+            if (binaryPacket.isAttachmentsLoaded()) {
+                LinkedList<ByteBuf> slices = new LinkedList<ByteBuf>();
+                ByteBuf source = binaryPacket.getDataSource();
+                for (int i = 0; i < binaryPacket.getAttachments().size(); i++) {
+                    ByteBuf attachment = binaryPacket.getAttachments().get(i);
+                    ByteBuf scanValue = Unpooled.copiedBuffer("{\"_placeholder\":true,\"num\":" + i + "}", CharsetUtil.UTF_8);
+                    int pos = PacketEncoder.find(source, scanValue);
+                    if (pos == -1) {
+                        throw new IllegalStateException("Can't find attachment by index: " + i + " in packet source");
+                    }
+
+                    ByteBuf prefixBuf = source.slice(source.readerIndex(), pos - source.readerIndex());
+                    slices.add(prefixBuf);
+                    slices.add(QUOTES);
+                    slices.add(attachment);
+                    slices.add(QUOTES);
+
+                    source.readerIndex(pos + scanValue.readableBytes());
+                }
+                slices.add(source.slice());
+
+                ByteBuf compositeBuf = Unpooled.wrappedBuffer(slices.toArray(new ByteBuf[slices.size()]));
+                parseBody(head, compositeBuf, binaryPacket);
+                head.setLastBinaryPacket(null);
+                return binaryPacket;
+            }
+        }
+        return new Packet(PacketType.MESSAGE);
+    }
+
+    private void parseBody(ClientHead head, ByteBuf frame, Packet packet) throws IOException {
         if (packet.getType() == PacketType.MESSAGE) {
             if (packet.getSubType() == PacketType.CONNECT
                     || packet.getSubType() == PacketType.DISCONNECT) {
@@ -157,20 +215,25 @@ public class PacketDecoder {
 
             if (packet.getSubType() == PacketType.ACK) {
                 ByteBufInputStream in = new ByteBufInputStream(frame);
-                AckCallback<?> callback = ackManager.getCallback(uuid, packet.getAckId());
+                AckCallback<?> callback = ackManager.getCallback(head.getSessionId(), packet.getAckId());
                 AckArgs args = jsonSupport.readAckArgs(in, callback);
                 packet.setData(args.getArgs());
             }
 
             if (packet.getSubType() == PacketType.EVENT
                     || packet.getSubType() == PacketType.BINARY_EVENT) {
-                ByteBufInputStream in = new ByteBufInputStream(frame);
-                Event event = jsonSupport.readValue(in, Event.class);
-                packet.setName(event.getName());
-                packet.setData(event.getArgs());
+                if (packet.hasAttachments() && !packet.isAttachmentsLoaded()) {
+                    packet.setDataSource(Unpooled.copiedBuffer(frame));
+                    frame.readerIndex(frame.readableBytes());
+                    head.setLastBinaryPacket(packet);
+                } else {
+                    ByteBufInputStream in = new ByteBufInputStream(frame);
+                    Event event = jsonSupport.readValue(in, Event.class);
+                    packet.setName(event.getName());
+                    packet.setData(event.getArgs());
+                }
             }
         }
-        return packet;
     }
 
 }

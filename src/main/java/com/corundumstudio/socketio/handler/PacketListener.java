@@ -81,7 +81,7 @@ public class PacketListener {
             if (packet.getSubType() == PacketType.DISCONNECT) {
                 client.onDisconnect();
             }
-            
+
             if (packet.getSubType() == PacketType.CONNECT) {
                 Namespace namespace = namespacesHub.get(packet.getNsp());
                 namespace.onConnect(client);
@@ -93,7 +93,8 @@ public class PacketListener {
                 ackManager.onAck(client, packet);
             }
 
-            if (packet.getSubType() == PacketType.EVENT) {
+            if (packet.getSubType() == PacketType.EVENT
+                    || packet.getSubType() == PacketType.BINARY_EVENT) {
                 Namespace namespace = namespacesHub.get(packet.getNsp());
                 List<Object> args = Collections.emptyList();
                 if (packet.getData() != null) {

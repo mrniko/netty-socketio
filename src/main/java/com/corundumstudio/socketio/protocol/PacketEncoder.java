@@ -95,7 +95,6 @@ public class PacketEncoder {
             buf.release();
             // TODO optimize
             packet = QUOTES_PATTERN.matcher(packet).replaceAll("\\\\\"");
-//            packet = new String(packet.getBytes(CharsetUtil.UTF_8), CharsetUtil.ISO_8859_1);
             out.writeBytes(packet.getBytes(CharsetUtil.UTF_8));
 
             out.writeBytes(JSONP_END);
@@ -290,7 +289,16 @@ public class PacketEncoder {
         return count;
     }
 
-    private boolean isValueFound(ByteBuf buffer, int index, ByteBuf search) {
+    public static int find(ByteBuf buffer, ByteBuf searchValue) {
+        for (int i = buffer.readerIndex(); i < buffer.readerIndex() + buffer.readableBytes(); i++) {
+            if (isValueFound(buffer, i, searchValue)) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    private static boolean isValueFound(ByteBuf buffer, int index, ByteBuf search) {
         for (int i = 0; i < search.readableBytes(); i++) {
             if (buffer.getByte(index + i) != search.getByte(i)) {
                 return false;

@@ -16,9 +16,12 @@
 package com.corundumstudio.socketio.handler;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufUtil;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.handler.codec.base64.Base64;
 import io.netty.util.CharsetUtil;
 
 import org.slf4j.Logger;
@@ -62,7 +65,10 @@ public class InPacketHandler extends SimpleChannelInboundHandler<PacketsMessage>
         }
         while (content.isReadable()) {
             try {
-                Packet packet = decoder.decodePackets(content, client.getSessionId());
+                Packet packet = decoder.decodePackets(content, client);
+                if (packet.hasAttachments() && !packet.isAttachmentsLoaded()) {
+                    return;
+                }
                 Namespace ns = namespacesHub.get(packet.getNsp());
                 if (ns == null) {
                     log.debug("Can't find namespace for endpoint: {}, sessionId: {} probably it was removed.", packet.getNsp(), client.getSessionId());
