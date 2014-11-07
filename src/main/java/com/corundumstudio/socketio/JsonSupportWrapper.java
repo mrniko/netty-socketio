@@ -83,6 +83,11 @@ class JsonSupportWrapper implements JsonSupport {
     }
 
     @Override
+    public JsonSupport clone() {
+        return new JsonSupportWrapper(delegate.clone());
+    }
+
+    @Override
     public <T> T readValue(String src, Class<T> valueType) throws IOException {
         return delegate.readValue(src, valueType);
     }

@@ -15,6 +15,8 @@
  */
 package com.corundumstudio.socketio.protocol;
 
+import com.corundumstudio.socketio.namespace.Namespace;
+import com.corundumstudio.socketio.namespace.NamespacesHub;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufInputStream;
 import io.netty.buffer.Unpooled;
@@ -35,10 +37,12 @@ public class PacketDecoder {
 
     private final JsonSupport jsonSupport;
     private final AckManager ackManager;
+    private final NamespacesHub nspHub;
 
-    public PacketDecoder(JsonSupport jsonSupport, AckManager ackManager) {
+    public PacketDecoder(JsonSupport jsonSupport, NamespacesHub nspHub, AckManager ackManager) {
         this.jsonSupport = jsonSupport;
         this.ackManager = ackManager;
+        this.nspHub = nspHub;
     }
 
     // TODO optimize
@@ -212,6 +216,13 @@ public class PacketDecoder {
                     || packet.getSubType() == PacketType.DISCONNECT) {
                 packet.setNsp(readString(frame));
             }
+
+            JsonSupport jsonSupport = this.jsonSupport;
+            Namespace nsp = nspHub.get(packet.getNsp());
+            if(nsp != null) {
+                jsonSupport = nsp.getJsonSupport();
+            }
+
 
             if (packet.getSubType() == PacketType.ACK) {
                 ByteBufInputStream in = new ByteBufInputStream(frame);

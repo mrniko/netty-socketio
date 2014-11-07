@@ -66,7 +66,7 @@ public class Configuration {
 
     private StoreFactory storeFactory = new MemoryStoreFactory();
 
-    private JsonSupport jsonSupport = new JacksonJsonSupport(this);
+    private JsonSupport jsonSupport = new JacksonJsonSupport();
 
     private AuthorizationListener authorizationListener = new SuccessAuthorizationListener();
 

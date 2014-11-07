@@ -15,6 +15,7 @@
  */
 package com.corundumstudio.socketio.parser;
 
+import com.corundumstudio.socketio.namespace.NamespacesHub;
 import org.junit.Before;
 
 import mockit.Mocked;
@@ -34,7 +35,7 @@ public class DecoderBaseTest {
 
     @Before
     public void before() {
-        decoder = new PacketDecoder(new JacksonJsonSupport(new Configuration()), ackManager);
+        decoder = new PacketDecoder(new JacksonJsonSupport(), new NamespacesHub(new Configuration()), ackManager);
     }
 
 }
