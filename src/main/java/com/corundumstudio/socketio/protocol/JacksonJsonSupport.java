@@ -176,11 +176,7 @@ public class JacksonJsonSupport implements JsonSupport {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    public JacksonJsonSupport(Configuration configuration) {
-        this(configuration, null);
-    }
-
-    public JacksonJsonSupport(Configuration configuration, Module... modules) {
+    public JacksonJsonSupport(Module... modules) {
         if (modules != null && modules.length > 0) {
             objectMapper.registerModules(modules);
             jsonpObjectMapper.registerModules(modules);
@@ -245,5 +241,8 @@ public class JacksonJsonSupport implements JsonSupport {
         return objectMapper.readValue(src, valueType);
     }
 
-
+    @Override
+    public JsonSupport clone() {
+        return new JacksonJsonSupport();
+    }
 }

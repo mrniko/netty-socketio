@@ -28,7 +28,7 @@ import com.corundumstudio.socketio.AckCallback;
  * to JSON support operations.
  *
  */
-public interface JsonSupport {
+public interface JsonSupport extends Cloneable {
 
     void writeJsonpValue(ByteBufOutputStream out, Object value) throws IOException;
 
@@ -43,5 +43,7 @@ public interface JsonSupport {
     void addEventMapping(String eventName, Class<?> ... eventClass);
 
     void removeEventMapping(String eventName);
+
+    JsonSupport clone();
 
 }
