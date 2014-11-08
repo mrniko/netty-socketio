@@ -50,7 +50,7 @@ public class DecoderEventPacketTest extends DecoderBaseTest {
     @Test
     public void testDecodeWithData() throws IOException {
         JacksonJsonSupport jsonSupport = new JacksonJsonSupport();
-        jsonSupport.addEventMapping("edwald", HashMap.class, Integer.class, String.class);
+        jsonSupport.addEventMapping("", "edwald", HashMap.class, Integer.class, String.class);
         PacketDecoder decoder = new PacketDecoder(jsonSupport, new NamespacesHub(new Configuration()), ackManager);
 
         Packet packet = decoder.decodePacket("5:::{\"name\":\"edwald\",\"args\":[{\"a\": \"b\"},2,\"3\"]}", null);

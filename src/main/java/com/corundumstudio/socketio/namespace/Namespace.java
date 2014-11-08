@@ -76,7 +76,7 @@ public class Namespace implements SocketIONamespace {
     public Namespace(String name, Configuration configuration) {
         super();
         this.name = name;
-        this.jsonSupport = configuration.getJsonSupport().clone();
+        this.jsonSupport = configuration.getJsonSupport();
         this.storeFactory = configuration.getStoreFactory();
         this.exceptionListener = configuration.getExceptionListener();
         this.ackMode = configuration.getAckMode();
@@ -102,7 +102,7 @@ public class Namespace implements SocketIONamespace {
             }
         }
         entry.addListener(listener);
-        jsonSupport.addEventMapping(eventName, eventClass);
+        jsonSupport.addEventMapping(name, eventName, eventClass);
     }
 
     @Override
@@ -117,7 +117,7 @@ public class Namespace implements SocketIONamespace {
             }
         }
         entry.addListener(listener);
-        jsonSupport.addEventMapping(eventName, eventClass);
+        jsonSupport.addEventMapping(name, eventName, eventClass);
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})

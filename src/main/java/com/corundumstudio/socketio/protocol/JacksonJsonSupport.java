@@ -31,8 +31,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.corundumstudio.socketio.AckCallback;
-import com.corundumstudio.socketio.Configuration;
 import com.corundumstudio.socketio.MultiTypeAckCallback;
+import com.corundumstudio.socketio.namespace.Namespace;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -123,11 +123,56 @@ public class JacksonJsonSupport implements JsonSupport {
 
     }
 
+    public static class EventKey {
+
+        private String namespaceName;
+        private String eventName;
+
+        public EventKey(String namespaceName, String eventName) {
+            super();
+            this.namespaceName = namespaceName;
+            this.eventName = eventName;
+        }
+
+        @Override
+        public int hashCode() {
+            final int prime = 31;
+            int result = 1;
+            result = prime * result + ((eventName == null) ? 0 : eventName.hashCode());
+            result = prime * result + ((namespaceName == null) ? 0 : namespaceName.hashCode());
+            return result;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj)
+                return true;
+            if (obj == null)
+                return false;
+            if (getClass() != obj.getClass())
+                return false;
+            EventKey other = (EventKey) obj;
+            if (eventName == null) {
+                if (other.eventName != null)
+                    return false;
+            } else if (!eventName.equals(other.eventName))
+                return false;
+            if (namespaceName == null) {
+                if (other.namespaceName != null)
+                    return false;
+            } else if (!namespaceName.equals(other.namespaceName))
+                return false;
+            return true;
+        }
+
+    }
+
     private class EventDeserializer extends StdDeserializer<Event> {
 
         private static final long serialVersionUID = 8178797221017768689L;
 
-        final Map<String, List<Class<?>>> eventMapping = new ConcurrentHashMap<String, List<Class<?>>>();
+        final Map<EventKey, List<Class<?>>> eventMapping = new ConcurrentHashMap<EventKey, List<Class<?>>>();
+
 
         protected EventDeserializer() {
             super(Event.class);
@@ -139,8 +184,13 @@ public class JacksonJsonSupport implements JsonSupport {
             ObjectMapper mapper = (ObjectMapper) jp.getCodec();
             ArrayNode root = (ArrayNode) mapper.readTree(jp);
             String eventName = root.get(0).asText();
-            if (!eventMapping.containsKey(eventName)) {
-                return new Event(eventName, Collections.emptyList());
+
+            EventKey ek = new EventKey(namespaceClass.get(), eventName);
+            if (!eventMapping.containsKey(ek)) {
+                ek = new EventKey(Namespace.DEFAULT_NAME, eventName);
+                if (!eventMapping.containsKey(ek)) {
+                    return new Event(eventName, Collections.emptyList());
+                }
             }
 
             List<Object> eventArgs = new ArrayList<Object>();
@@ -149,7 +199,7 @@ public class JacksonJsonSupport implements JsonSupport {
                 Iterator<JsonNode> iterator = root.elements();
                 // skip 0 node
                 iterator.next();
-                List<Class<?>> eventClasses = eventMapping.get(eventName);
+                List<Class<?>> eventClasses = eventMapping.get(ek);
                 int i = 0;
                 while (iterator.hasNext()) {
                     JsonNode node = iterator.next();
@@ -168,6 +218,7 @@ public class JacksonJsonSupport implements JsonSupport {
 
     }
 
+    private final ThreadLocal<String> namespaceClass = new ThreadLocal<String>();
     private final ThreadLocal<AckCallback<?>> currentAckClass = new ThreadLocal<AckCallback<?>>();
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final ObjectMapper jsonpObjectMapper = new ObjectMapper();
@@ -196,27 +247,21 @@ public class JacksonJsonSupport implements JsonSupport {
         objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         objectMapper.configure(SerializationFeature.WRITE_BIGDECIMAL_AS_PLAIN, true);
         objectMapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
-
-//        TODO If jsonObjectDeserializer will be not enough
-//        TypeResolverBuilder<?> typer = new DefaultTypeResolverBuilder(DefaultTyping.NON_FINAL);
-//        typer.init(JsonTypeInfo.Id.CLASS, null);
-//        typer.inclusion(JsonTypeInfo.As.PROPERTY);
-//        typer.typeProperty(configuration.getJsonTypeFieldName());
-//        objectMapper.setDefaultTyping(typer);
     }
 
     @Override
-    public void addEventMapping(String eventName, Class<?> ... eventClass) {
-        eventDeserializer.eventMapping.put(eventName, Arrays.asList(eventClass));
+    public void addEventMapping(String namespaceName, String eventName, Class<?> ... eventClass) {
+        eventDeserializer.eventMapping.put(new EventKey(namespaceName, eventName), Arrays.asList(eventClass));
     }
 
     @Override
-    public void removeEventMapping(String eventName) {
-        eventDeserializer.eventMapping.remove(eventName);
+    public void removeEventMapping(String namespaceName, String eventName) {
+        eventDeserializer.eventMapping.remove(new EventKey(namespaceName, eventName));
     }
 
     @Override
-    public <T> T readValue(ByteBufInputStream src, Class<T> valueType) throws IOException {
+    public <T> T readValue(String namespaceName, ByteBufInputStream src, Class<T> valueType) throws IOException {
+        namespaceClass.set(namespaceName);
         return objectMapper.readValue(src, valueType);
     }
 
@@ -236,13 +281,4 @@ public class JacksonJsonSupport implements JsonSupport {
         jsonpObjectMapper.writeValue(out, value);
     }
 
-    @Override
-    public <T> T readValue(String src, Class<T> valueType) throws IOException {
-        return objectMapper.readValue(src, valueType);
-    }
-
-    @Override
-    public JsonSupport clone() {
-        return new JacksonJsonSupport();
-    }
 }

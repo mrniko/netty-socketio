@@ -15,8 +15,6 @@
  */
 package com.corundumstudio.socketio.protocol;
 
-import com.corundumstudio.socketio.namespace.Namespace;
-import com.corundumstudio.socketio.namespace.NamespacesHub;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufInputStream;
 import io.netty.buffer.Unpooled;
@@ -30,6 +28,7 @@ import java.util.UUID;
 import com.corundumstudio.socketio.AckCallback;
 import com.corundumstudio.socketio.ack.AckManager;
 import com.corundumstudio.socketio.handler.ClientHead;
+import com.corundumstudio.socketio.namespace.NamespacesHub;
 
 public class PacketDecoder {
 
@@ -217,13 +216,6 @@ public class PacketDecoder {
                 packet.setNsp(readString(frame));
             }
 
-            JsonSupport jsonSupport = this.jsonSupport;
-            Namespace nsp = nspHub.get(packet.getNsp());
-            if(nsp != null) {
-                jsonSupport = nsp.getJsonSupport();
-            }
-
-
             if (packet.getSubType() == PacketType.ACK) {
                 ByteBufInputStream in = new ByteBufInputStream(frame);
                 AckCallback<?> callback = ackManager.getCallback(head.getSessionId(), packet.getAckId());
@@ -239,7 +231,7 @@ public class PacketDecoder {
                     head.setLastBinaryPacket(packet);
                 } else {
                     ByteBufInputStream in = new ByteBufInputStream(frame);
-                    Event event = jsonSupport.readValue(in, Event.class);
+                    Event event = jsonSupport.readValue(packet.getNsp(), in, Event.class);
                     packet.setName(event.getName());
                     packet.setData(event.getArgs());
                 }

@@ -50,9 +50,9 @@ class JsonSupportWrapper implements JsonSupport {
         }
     }
 
-    public <T> T readValue(ByteBufInputStream src, Class<T> valueType) throws IOException {
+    public <T> T readValue(String namespaceName, ByteBufInputStream src, Class<T> valueType) throws IOException {
         try {
-            return delegate.readValue(src, valueType);
+            return delegate.readValue(namespaceName, src, valueType);
         } catch (IOException e) {
             src.reset();
             log.error("Can't read value 1: " + src.readLine() + " for type: " + valueType, e);
@@ -74,22 +74,12 @@ class JsonSupportWrapper implements JsonSupport {
         }
     }
 
-    public void addEventMapping(String eventName, Class<?> ... eventClass) {
-        delegate.addEventMapping(eventName, eventClass);
+    public void addEventMapping(String namespaceName, String eventName, Class<?> ... eventClass) {
+        delegate.addEventMapping(namespaceName, eventName, eventClass);
     }
 
-    public void removeEventMapping(String eventName) {
-        delegate.removeEventMapping(eventName);
-    }
-
-    @Override
-    public JsonSupport clone() {
-        return new JsonSupportWrapper(delegate.clone());
-    }
-
-    @Override
-    public <T> T readValue(String src, Class<T> valueType) throws IOException {
-        return delegate.readValue(src, valueType);
+    public void removeEventMapping(String namespaceName, String eventName) {
+        delegate.removeEventMapping(namespaceName, eventName);
     }
 
     @Override

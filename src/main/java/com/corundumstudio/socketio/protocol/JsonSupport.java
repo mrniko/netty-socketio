@@ -28,22 +28,18 @@ import com.corundumstudio.socketio.AckCallback;
  * to JSON support operations.
  *
  */
-public interface JsonSupport extends Cloneable {
+public interface JsonSupport {
 
     void writeJsonpValue(ByteBufOutputStream out, Object value) throws IOException;
 
     AckArgs readAckArgs(ByteBufInputStream src, AckCallback<?> callback) throws IOException;
 
-    <T> T readValue(ByteBufInputStream src, Class<T> valueType) throws IOException;
+    <T> T readValue(String namespaceName, ByteBufInputStream src, Class<T> valueType) throws IOException;
 
     void writeValue(ByteBufOutputStream out, Object value) throws IOException;
 
-    <T> T readValue(String src, Class<T> valueType) throws IOException;
+    void addEventMapping(String namespaceName, String eventName, Class<?> ... eventClass);
 
-    void addEventMapping(String eventName, Class<?> ... eventClass);
-
-    void removeEventMapping(String eventName);
-
-    JsonSupport clone();
+    void removeEventMapping(String namespaceName, String eventName);
 
 }
