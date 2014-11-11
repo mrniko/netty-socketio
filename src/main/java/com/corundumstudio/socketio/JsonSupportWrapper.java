@@ -19,6 +19,7 @@ import io.netty.buffer.ByteBufInputStream;
 import io.netty.buffer.ByteBufOutputStream;
 
 import java.io.IOException;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -85,6 +86,11 @@ class JsonSupportWrapper implements JsonSupport {
     @Override
     public void writeJsonpValue(ByteBufOutputStream out, Object value) throws IOException {
         delegate.writeJsonpValue(out, value);
+    }
+
+    @Override
+    public List<byte[]> getArrays() {
+        return delegate.getArrays();
     }
 
 }

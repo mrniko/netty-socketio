@@ -29,6 +29,8 @@ import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelOutboundHandlerAdapter;
 import io.netty.channel.ChannelPromise;
+import io.netty.handler.codec.base64.Base64;
+import io.netty.handler.codec.base64.Base64Dialect;
 import io.netty.handler.codec.http.DefaultHttpResponse;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpResponse;
@@ -63,6 +65,7 @@ import com.corundumstudio.socketio.protocol.Packet;
 @Sharable
 public class EncoderHandler extends ChannelOutboundHandlerAdapter {
 
+    private static final byte[] BINARY_HEADER = "b4".getBytes(CharsetUtil.UTF_8);
     private static final byte[] OK = "ok".getBytes(CharsetUtil.UTF_8);
 
     public static final AttributeKey<String> ORIGIN = AttributeKey.valueOf("origin");
@@ -220,8 +223,14 @@ public class EncoderHandler extends ChannelOutboundHandlerAdapter {
             if (!out.isReadable()) {
                 out.release();
             }
-        }
 
+            for (ByteBuf buf : packet.getAttachments()) {
+                ByteBuf outBuf = encoder.allocateBuffer(ctx.alloc());
+                outBuf.writeBytes(BINARY_HEADER);
+                outBuf.writeBytes(Base64.encode(buf, Base64Dialect.URL_SAFE));
+                ctx.channel().writeAndFlush(outBuf);
+            }
+        }
     }
 
     private void handleHTTP(OutPacketMessage msg, ChannelHandlerContext ctx) throws IOException {

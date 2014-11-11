@@ -24,7 +24,9 @@ import com.corundumstudio.socketio.protocol.Packet;
 public interface ClientOperations {
 
     /**
-     * Send packet
+     * Send custom packet.
+     * But {@link ClientOperations#sendEvent} method
+     * usage is enough for most cases.
      *
      * @param packet - packet to send
      */

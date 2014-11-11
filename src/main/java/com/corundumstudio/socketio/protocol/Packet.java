@@ -19,6 +19,7 @@ import io.netty.buffer.ByteBuf;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import com.corundumstudio.socketio.namespace.Namespace;
@@ -36,7 +37,7 @@ public class Packet implements Serializable {
 
     private ByteBuf dataSource;
     private int attachmentsCount;
-    private List<ByteBuf> attachments;
+    private List<ByteBuf> attachments = Collections.emptyList();
 
     protected Packet() {
     }

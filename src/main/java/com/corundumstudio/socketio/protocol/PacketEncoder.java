@@ -19,10 +19,11 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.ByteBufOutputStream;
 import io.netty.buffer.Unpooled;
+import io.netty.handler.codec.base64.Base64;
+import io.netty.handler.codec.base64.Base64Dialect;
 import io.netty.util.CharsetUtil;
 
 import java.io.IOException;
-import java.nio.charset.CharsetEncoder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
@@ -84,6 +85,14 @@ public class PacketEncoder {
             buf.writeBytes(packetBuf);
 
             i++;
+
+            for (ByteBuf attachment : packet.getAttachments()) {
+                ByteBuf encodedBuf = Base64.encode(attachment, Base64Dialect.URL_SAFE);
+                buf.writeBytes(toChars(encodedBuf.readableBytes() + 2));
+                buf.writeBytes(B64_DELIMITER);
+                buf.writeBytes(new byte[] {'b', '4'});
+                buf.writeBytes(encodedBuf);
+            }
         }
 
         if (jsonpMode) {
@@ -109,7 +118,16 @@ public class PacketEncoder {
                 break;
             }
             encodePacket(packet, buffer, allocator, false, false);
+
             i++;
+
+            for (ByteBuf attachment : packet.getAttachments()) {
+                ByteBuf encodedBuf = Base64.encode(attachment, Base64Dialect.URL_SAFE);
+                buffer.writeBytes(toChars(encodedBuf.readableBytes() + 2));
+                buffer.writeBytes(B64_DELIMITER);
+                buffer.writeBytes(new byte[] {'b', '4'});
+                buffer.writeBytes(encodedBuf);
+            }
         }
     }
 
@@ -226,8 +244,48 @@ public class PacketEncoder {
                 }
 
                 case MESSAGE: {
+
+                    ByteBuf encBuf = null;
+
+
+                    if (packet.getSubType() == PacketType.EVENT
+                            || packet.getSubType() == PacketType.ACK
+                            || packet.getSubType() == PacketType.ERROR) {
+
+                        List<Object> values = new ArrayList<Object>();
+                        if (packet.getSubType() == PacketType.EVENT
+                                || packet.getSubType() == PacketType.ERROR) {
+                            values.add(packet.getName());
+                        }
+
+                        encBuf = allocateBuffer(allocator);
+
+                        List<Object> args = packet.getData();
+                        values.addAll(args);
+                        ByteBufOutputStream out = new ByteBufOutputStream(encBuf);
+                        if (jsonp) {
+                            jsonSupport.writeJsonpValue(out, values);
+                        } else {
+                            jsonSupport.writeValue(out, values);
+                        }
+
+                        if (!jsonSupport.getArrays().isEmpty()) {
+                            packet.initAttachments(jsonSupport.getArrays().size());
+                            for (byte[] array : jsonSupport.getArrays()) {
+                                packet.addAttachment(Unpooled.wrappedBuffer(array));
+                            }
+                            packet.setSubType(PacketType.BINARY_EVENT);
+                        }
+                    }
+
                     byte subType = toChar(packet.getSubType().getValue());
                     buf.writeByte(subType);
+
+                    if (packet.hasAttachments()) {
+                        byte[] ackId = toChars(packet.getAttachments().size());
+                        buf.writeBytes(ackId);
+                        buf.writeByte('-');
+                    }
 
                     if (packet.getSubType() == PacketType.CONNECT) {
                         if (!packet.getNsp().isEmpty()) {
@@ -245,25 +303,10 @@ public class PacketEncoder {
                         buf.writeBytes(ackId);
                     }
 
-                    List<Object> values = new ArrayList<Object>();
-
-                    if (packet.getSubType() == PacketType.EVENT
-                            || packet.getSubType() == PacketType.ERROR) {
-                        values.add(packet.getName());
+                    if (encBuf != null) {
+                        buf.writeBytes(encBuf);
                     }
 
-                    if (packet.getSubType() == PacketType.EVENT
-                            || packet.getSubType() == PacketType.ACK
-                            || packet.getSubType() == PacketType.ERROR) {
-                        List<Object> args = packet.getData();
-                        values.addAll(args);
-                        ByteBufOutputStream out = new ByteBufOutputStream(buf);
-                        if (jsonp) {
-                            jsonSupport.writeJsonpValue(out, values);
-                        } else {
-                            jsonSupport.writeValue(out, values);
-                        }
-                    }
                     break;
                 }
             }

@@ -19,6 +19,7 @@ import io.netty.buffer.ByteBufInputStream;
 import io.netty.buffer.ByteBufOutputStream;
 
 import java.io.IOException;
+import java.util.List;
 
 import com.corundumstudio.socketio.AckCallback;
 
@@ -41,5 +42,7 @@ public interface JsonSupport {
     void addEventMapping(String namespaceName, String eventName, Class<?> ... eventClass);
 
     void removeEventMapping(String namespaceName, String eventName);
+
+    List<byte[]> getArrays();
 
 }
