@@ -104,6 +104,7 @@ public class PacketEncoder {
             buf.release();
             // TODO optimize
             packet = QUOTES_PATTERN.matcher(packet).replaceAll("\\\\\"");
+            packet = new String(packet.getBytes(CharsetUtil.UTF_8), CharsetUtil.ISO_8859_1);
             out.writeBytes(packet.getBytes(CharsetUtil.UTF_8));
 
             out.writeBytes(JSONP_END);

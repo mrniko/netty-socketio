@@ -48,16 +48,18 @@ public class PacketDecoder {
     public ByteBuf preprocessJson(Integer jsonIndex, ByteBuf content) throws IOException {
         String packet = URLDecoder.decode(content.toString(CharsetUtil.UTF_8), CharsetUtil.UTF_8.name());
 
+        int startPos = 0;
         if (jsonIndex != null) {
             // skip "d="
-            packet = packet.substring(2);
+            startPos = 2;
         }
 
         int splitIndex = packet.indexOf(":");
-        String len = packet.substring(0, splitIndex);
+        String len = packet.substring(startPos, splitIndex);
         Integer length = Integer.valueOf(len);
 
         packet = packet.substring(splitIndex+1, splitIndex+length+1);
+        packet = new String(packet.getBytes(CharsetUtil.ISO_8859_1), CharsetUtil.UTF_8);
 
         return Unpooled.wrappedBuffer(packet.getBytes(CharsetUtil.UTF_8));
     }
