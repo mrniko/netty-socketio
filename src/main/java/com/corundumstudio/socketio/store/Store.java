@@ -18,9 +18,9 @@ package com.corundumstudio.socketio.store;
 
 public interface Store {
 
-    void set(String key, String val);
+    void set(String key, Object val);
 
-    String get(String key);
+    <T> T get(String key);
 
     boolean has(String key);
 

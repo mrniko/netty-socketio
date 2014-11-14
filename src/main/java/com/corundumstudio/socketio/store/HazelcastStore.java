@@ -23,20 +23,20 @@ import com.hazelcast.core.IMap;
 
 public class HazelcastStore implements Store {
 
-    private final IMap<String, String> map;
+    private final IMap<String, Object> map;
 
     public HazelcastStore(UUID sessionId, HazelcastInstance hazelcastInstance) {
         map = hazelcastInstance.getMap(sessionId.toString());
     }
 
     @Override
-    public void set(String key, String val) {
+    public void set(String key, Object val) {
         map.put(key, val);
     }
 
     @Override
-    public String get(String key) {
-        return map.get(key);
+    public <T> T get(String key) {
+        return (T) map.get(key);
     }
 
     @Override

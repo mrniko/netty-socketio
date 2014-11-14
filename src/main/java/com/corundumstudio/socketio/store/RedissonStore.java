@@ -22,20 +22,20 @@ import org.redisson.Redisson;
 
 public class RedissonStore implements Store {
 
-    private final Map<String, String> map;
+    private final Map<String, Object> map;
 
     public RedissonStore(UUID sessionId, Redisson redisson) {
         this.map = redisson.getMap(sessionId.toString());
     }
 
     @Override
-    public void set(String key, String value) {
+    public void set(String key, Object value) {
         map.put(key, value);
     }
 
     @Override
-    public String get(String key) {
-        return map.get(key);
+    public <T> T get(String key) {
+        return (T) map.get(key);
     }
 
     @Override

@@ -20,16 +20,16 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class MemoryStore implements Store {
 
-    private final Map<String, String> store = new ConcurrentHashMap<String, String>();
+    private final Map<String, Object> store = new ConcurrentHashMap<String, Object>();
 
     @Override
-    public void set(String key, String value) {
+    public void set(String key, Object value) {
         store.put(key, value);
     }
 
     @Override
-    public String get(String key) {
-        return store.get(key);
+    public <T> T get(String key) {
+        return (T) store.get(key);
     }
 
     @Override

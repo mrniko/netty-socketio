@@ -178,12 +178,12 @@ public class NamespaceClient implements SocketIOClient {
     }
 
     @Override
-    public void set(String key, String val) {
+    public void set(String key, Object val) {
         baseClient.getStore().set(key, val);
     }
 
     @Override
-    public String get(String key) {
+    public <T> T get(String key) {
         return baseClient.getStore().get(key);
     }
 
