@@ -95,7 +95,7 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
             if (!configuration.isAllowCustomRequests()
                     && !queryDecoder.path().startsWith(connectPath)) {
                 HttpResponse res = new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.BAD_REQUEST);
-                channel.write(res).addListener(ChannelFutureListener.CLOSE);
+                channel.writeAndFlush(res).addListener(ChannelFutureListener.CLOSE);
                 req.release();
                 log.warn("Blocked wrong request! url: {}, ip: {}", queryDecoder.path(), channel.remoteAddress());
                 return;
