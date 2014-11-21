@@ -40,6 +40,7 @@ import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.core.SerializableString;
 import com.fasterxml.jackson.core.io.CharacterEscapes;
 import com.fasterxml.jackson.core.io.SerializedString;
@@ -61,7 +62,6 @@ import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonFormatTypes;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonFormatVisitorWrapper;
 import com.fasterxml.jackson.databind.jsontype.TypeSerializer;
 import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.ser.BeanSerializerModifier;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
@@ -200,8 +200,7 @@ public class JacksonJsonSupport implements JsonSupport {
         public Event deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException,
                 JsonProcessingException {
             ObjectMapper mapper = (ObjectMapper) jp.getCodec();
-            ArrayNode root = (ArrayNode) mapper.readTree(jp);
-            String eventName = root.get(0).asText();
+            String eventName = jp.nextTextValue();
 
             EventKey ek = new EventKey(namespaceClass.get(), eventName);
             if (!eventMapping.containsKey(ek)) {
@@ -213,23 +212,21 @@ public class JacksonJsonSupport implements JsonSupport {
 
             List<Object> eventArgs = new ArrayList<Object>();
             Event event = new Event(eventName, eventArgs);
-            if (root.size() > 1) {
-                Iterator<JsonNode> iterator = root.elements();
-                // skip 0 node
-                iterator.next();
-                List<Class<?>> eventClasses = eventMapping.get(ek);
-                int i = 0;
-                while (iterator.hasNext()) {
-                    JsonNode node = iterator.next();
-                    if (i > eventClasses.size() - 1) {
-                        log.debug("Event {} has more args than declared in handler: {}", eventName, root);
-                        break;
-                    }
-                    Class<?> eventClass = eventClasses.get(i);
-                    Object arg = mapper.treeToValue(node, eventClass);
-                    eventArgs.add(arg);
-                    i++;
+            List<Class<?>> eventClasses = eventMapping.get(ek);
+            int i = 0;
+            while (true) {
+                JsonToken token = jp.nextToken();
+                if (token == JsonToken.END_ARRAY) {
+                    break;
                 }
+                if (i > eventClasses.size() - 1) {
+                    log.debug("Event {} has more args than declared in handler: {}", eventName, null);
+                    break;
+                }
+                Class<?> eventClass = eventClasses.get(i);
+                Object arg = mapper.readValue(jp, eventClass);
+                eventArgs.add(arg);
+                i++;
             }
             return event;
         }

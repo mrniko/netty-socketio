@@ -18,6 +18,8 @@ package com.corundumstudio.socketio.protocol;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufInputStream;
 import io.netty.buffer.Unpooled;
+import io.netty.handler.codec.base64.Base64;
+import io.netty.handler.codec.base64.Base64Dialect;
 import io.netty.util.CharsetUtil;
 
 import java.io.IOException;
@@ -123,7 +125,8 @@ public class PacketDecoder {
     }
 
     private Packet decode(ClientHead head, ByteBuf frame) throws IOException {
-        if (frame.getByte(0) == 'b') {
+        if ((frame.getByte(0) == 'b' && frame.getByte(1) == '4')
+                || frame.getByte(0) == 4 || frame.getByte(0) == 1) {
             return parseBinary(head, frame);
         }
         PacketType type = readType(frame);
@@ -175,10 +178,28 @@ public class PacketDecoder {
     }
 
     private Packet parseBinary(ClientHead head, ByteBuf frame) throws IOException {
-        frame.readShort();
+        if (frame.getByte(0) == 1) {
+            frame.readByte();
+            int headEndIndex = frame.bytesBefore((byte)-1);
+            int len = (int) readLong(frame, headEndIndex);
+            frame.readShort();
+        }
+
+        if (frame.getByte(0) == 'b' && frame.getByte(1) == '4') {
+            frame.readShort();
+        } else if (frame.getByte(0) == 4) {
+            frame.readByte();
+        }
+
         Packet binaryPacket = head.getLastBinaryPacket();
         if (binaryPacket != null) {
-            binaryPacket.addAttachment(Unpooled.copiedBuffer(frame));
+            ByteBuf attachBuf;
+            if (frame.getByte(0) == 'b' && frame.getByte(1) == '4') {
+                attachBuf = frame;
+            } else {
+                attachBuf = Base64.encode(frame);
+            }
+            binaryPacket.addAttachment(Unpooled.copiedBuffer(attachBuf));
             frame.readerIndex(frame.readerIndex() + frame.readableBytes());
 
             if (binaryPacket.isAttachmentsLoaded()) {

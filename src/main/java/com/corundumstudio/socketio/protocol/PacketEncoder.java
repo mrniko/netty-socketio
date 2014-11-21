@@ -34,6 +34,7 @@ import com.corundumstudio.socketio.Configuration;
 public class PacketEncoder {
 
     private static final Pattern QUOTES_PATTERN = Pattern.compile("\"", Pattern.LITERAL);
+    private static final byte[] BINARY_HEADER = "b4".getBytes(CharsetUtil.UTF_8);
     private static final byte[] B64_DELIMITER = new byte[] {':'};
     private static final byte[] JSONP_HEAD = "___eio[".getBytes(CharsetUtil.UTF_8);
     private static final byte[] JSONP_START = "](\"".getBytes(CharsetUtil.UTF_8);
@@ -90,7 +91,7 @@ public class PacketEncoder {
                 ByteBuf encodedBuf = Base64.encode(attachment, Base64Dialect.URL_SAFE);
                 buf.writeBytes(toChars(encodedBuf.readableBytes() + 2));
                 buf.writeBytes(B64_DELIMITER);
-                buf.writeBytes(new byte[] {'b', '4'});
+                buf.writeBytes(BINARY_HEADER);
                 buf.writeBytes(encodedBuf);
             }
         }
@@ -123,11 +124,11 @@ public class PacketEncoder {
             i++;
 
             for (ByteBuf attachment : packet.getAttachments()) {
-                ByteBuf encodedBuf = Base64.encode(attachment, Base64Dialect.URL_SAFE);
-                buffer.writeBytes(toChars(encodedBuf.readableBytes() + 2));
-                buffer.writeBytes(B64_DELIMITER);
-                buffer.writeBytes(new byte[] {'b', '4'});
-                buffer.writeBytes(encodedBuf);
+                buffer.writeByte(1);
+                buffer.writeBytes(longToBytes(attachment.readableBytes() + 1));
+                buffer.writeByte(0xff);
+                buffer.writeByte(4);
+                buffer.writeBytes(attachment);
             }
         }
     }
