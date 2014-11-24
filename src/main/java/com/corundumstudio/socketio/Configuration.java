@@ -52,6 +52,8 @@ public class Configuration {
     private String hostname;
     private int port = -1;
 
+    private String sslProtocol = "TLSv1";
+
     private String keyStoreFormat = "JKS";
     private InputStream keyStore;
     private String keyStorePassword;
@@ -121,6 +123,7 @@ public class Configuration {
 
         setAddVersionHeader(conf.isAddVersionHeader());
         setOrigin(conf.getOrigin());
+        setSSLProtocol(conf.getSSLProtocol());
     }
 
     public JsonSupport getJsonSupport() {
@@ -480,5 +483,18 @@ public class Configuration {
     public void setUseLinuxNativeEpoll(boolean useLinuxNativeEpoll) {
         this.useLinuxNativeEpoll = useLinuxNativeEpoll;
     }
+
+    /**
+     * Set the name of the requested SSL protocol
+     *
+     * @param sslProtocol
+     */
+    public void setSSLProtocol(String sslProtocol) {
+        this.sslProtocol = sslProtocol;
+    }
+    public String getSSLProtocol() {
+        return sslProtocol;
+    }
+
 
 }

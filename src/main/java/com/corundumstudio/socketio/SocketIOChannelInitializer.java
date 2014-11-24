@@ -173,7 +173,7 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
         KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
         kmf.init(ks, configuration.getKeyStorePassword().toCharArray());
 
-        SSLContext serverContext = SSLContext.getInstance("TLSv1");
+        SSLContext serverContext = SSLContext.getInstance(configuration.getSSLProtocol());
         serverContext.init(kmf.getKeyManagers(), managers, null);
         return serverContext;
     }
