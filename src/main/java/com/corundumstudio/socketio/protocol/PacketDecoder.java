@@ -182,7 +182,9 @@ public class PacketDecoder {
             frame.readByte();
             int headEndIndex = frame.bytesBefore((byte)-1);
             int len = (int) readLong(frame, headEndIndex);
-            frame.readShort();
+            ByteBuf oldFrame = frame;
+            frame = frame.slice(oldFrame.readerIndex() + 1, len);
+            oldFrame.readerIndex(oldFrame.readerIndex() + 1 + len);
         }
 
         if (frame.getByte(0) == 'b' && frame.getByte(1) == '4') {
