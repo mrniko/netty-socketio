@@ -151,29 +151,37 @@ public class PacketDecoder {
 
     private void parseHeader(ByteBuf frame, Packet packet, PacketType innerType) {
         int endIndex = frame.bytesBefore((byte)'[');
-        if (endIndex > 0) {
-            // TODO optimize
-            boolean hasNsp = frame.bytesBefore(endIndex, (byte)',') != -1;
-            if (hasNsp) {
-                String nspAckId = readString(frame, endIndex);
-                String[] parts = nspAckId.split(",");
-                String nsp = parts[0];
-                packet.setNsp(nsp);
-                if (parts.length > 1) {
-                    String ackId = parts[1];
-                    packet.setAckId(Long.valueOf(ackId));
-                }
-            } else {
-                boolean hasAttachments = frame.bytesBefore(endIndex, (byte)'-') != -1;
-                if (hasAttachments && PacketType.BINARY_EVENT.equals(innerType)) {
-                    int attachments = (int) readLong(frame, endIndex-1);
-                    packet.initAttachments(attachments);
-                    frame.readerIndex(frame.readerIndex() + 1);
-                } else {
-                    long ackId = readLong(frame, endIndex);
-                    packet.setAckId(ackId);
-                }
+        if (endIndex == 0) {
+            return;
+        }
+
+        int attachmentsDividerIndex = frame.bytesBefore(endIndex, (byte)'-');
+        boolean hasAttachments = attachmentsDividerIndex != -1;
+        if (hasAttachments && PacketType.BINARY_EVENT.equals(innerType)) {
+            int attachments = (int) readLong(frame, attachmentsDividerIndex);
+            packet.initAttachments(attachments);
+            frame.readerIndex(frame.readerIndex() + 1);
+
+            endIndex -= attachmentsDividerIndex + 1;
+        }
+        if (endIndex == 0) {
+            return;
+        }
+
+        // TODO optimize
+        boolean hasNsp = frame.bytesBefore(endIndex, (byte)',') != -1;
+        if (hasNsp) {
+            String nspAckId = readString(frame, endIndex);
+            String[] parts = nspAckId.split(",");
+            String nsp = parts[0];
+            packet.setNsp(nsp);
+            if (parts.length > 1) {
+                String ackId = parts[1];
+                packet.setAckId(Long.valueOf(ackId));
             }
+        } else {
+            long ackId = readLong(frame, endIndex);
+            packet.setAckId(ackId);
         }
     }
 

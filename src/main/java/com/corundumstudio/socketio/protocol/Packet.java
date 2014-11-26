@@ -99,7 +99,7 @@ public class Packet implements Serializable {
     }
 
     public boolean isAckRequested() {
-        return getAckId() != null && getSubType().equals(PacketType.EVENT);
+        return getAckId() != null;
     }
 
     public void initAttachments(int attachmentsCount) {
