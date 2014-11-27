@@ -180,8 +180,7 @@ public class Configuration {
     /**
      * Ping interval
      *
-     * @param value
-     *            - time in seconds
+     * @param value - time in milliseconds
      */
     public void setPingInterval(int heartbeatIntervalSecs) {
         this.pingInterval = heartbeatIntervalSecs;
@@ -194,8 +193,7 @@ public class Configuration {
      * Ping timeout
      * Use <code>0</code> to disable it
      *
-     * @param value
-     *            - time in seconds
+     * @param value - time in milliseconds
      */
     public void setPingTimeout(int heartbeatTimeoutSecs) {
         this.pingTimeout = heartbeatTimeoutSecs;
