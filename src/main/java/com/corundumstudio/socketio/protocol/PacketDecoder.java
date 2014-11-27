@@ -151,7 +151,7 @@ public class PacketDecoder {
 
     private void parseHeader(ByteBuf frame, Packet packet, PacketType innerType) {
         int endIndex = frame.bytesBefore((byte)'[');
-        if (endIndex == 0) {
+        if (endIndex <= 0) {
             return;
         }
 
