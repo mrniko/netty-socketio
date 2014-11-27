@@ -40,11 +40,7 @@ class JsonSupportWrapper implements JsonSupport {
     public AckArgs readAckArgs(ByteBufInputStream src, AckCallback<?> callback) throws IOException {
         try {
             return delegate.readAckArgs(src, callback);
-        } catch (IOException e) {
-            src.reset();
-            log.error("Can't read ack args: " + src.readLine() + " for type: " + callback.getResultClass(), e);
-            return null;
-        } catch (RuntimeException e) {
+        } catch (Exception e) {
             src.reset();
             log.error("Can't read ack args: " + src.readLine() + " for type: " + callback.getResultClass(), e);
             return null;
@@ -54,13 +50,9 @@ class JsonSupportWrapper implements JsonSupport {
     public <T> T readValue(String namespaceName, ByteBufInputStream src, Class<T> valueType) throws IOException {
         try {
             return delegate.readValue(namespaceName, src, valueType);
-        } catch (IOException e) {
+        } catch (Exception e) {
             src.reset();
-            log.error("Can't read value 1: " + src.readLine() + " for type: " + valueType, e);
-            return null;
-        } catch (RuntimeException e) {
-            src.reset();
-            log.error("Can't read value 2: " + src.readLine() + " for type: " + valueType, e);
+            log.error("Can't read value: " + src.readLine() + " for type: " + valueType, e);
             return null;
         }
     }
@@ -68,9 +60,7 @@ class JsonSupportWrapper implements JsonSupport {
     public void writeValue(ByteBufOutputStream out, Object value) throws IOException {
         try {
             delegate.writeValue(out, value);
-        } catch (IOException e) {
-            log.error("Can't write value: " + value, e);
-        } catch (RuntimeException e) {
+        } catch (Exception e) {
             log.error("Can't write value: " + value, e);
         }
     }
