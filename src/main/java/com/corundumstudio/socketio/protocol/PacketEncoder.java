@@ -298,7 +298,7 @@ public class PacketEncoder {
                     } else {
                         if (!packet.getNsp().isEmpty()) {
                             buf.writeBytes(packet.getNsp().getBytes(CharsetUtil.UTF_8));
-                            buf.writeBytes(new byte[] {','});
+                            buf.writeByte(',');
                         }
                     }
 
