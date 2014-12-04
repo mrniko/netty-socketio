@@ -85,6 +85,8 @@ public class PacketEncoder {
             buf.writeBytes(B64_DELIMITER);
             buf.writeBytes(packetBuf);
 
+            packetBuf.release();
+
             i++;
 
             for (ByteBuf attachment : packet.getAttachments()) {
@@ -307,6 +309,7 @@ public class PacketEncoder {
 
                     if (encBuf != null) {
                         buf.writeBytes(encBuf);
+                        encBuf.release();
                     }
 
                     break;
@@ -320,6 +323,8 @@ public class PacketEncoder {
                 buffer.writeBytes(longToBytes(length));
                 buffer.writeByte(0xff);
                 buffer.writeBytes(buf);
+
+                buf.release();
             }
         }
     }
