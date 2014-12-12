@@ -137,13 +137,13 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
             channel.writeAndFlush(new AuthorizeMessage(msg, jsonpParam, origin, sessionId));
 
             authorizedSessionIds.put(sessionId, data);
-            log.debug("Handshake authorized for sessionId: {}", sessionId);
+            log.debug("Handshake authorized for sessionId: {} query params: {} headers: {}", sessionId, params, headers);
         } else {
             HttpResponse res = new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.UNAUTHORIZED);
             ChannelFuture f = channel.writeAndFlush(res);
             f.addListener(ChannelFutureListener.CLOSE);
 
-            log.debug("Handshake unauthorized");
+            log.debug("Handshake unauthorized, query params: {} headers: {}", params, headers);
         }
     }
 
