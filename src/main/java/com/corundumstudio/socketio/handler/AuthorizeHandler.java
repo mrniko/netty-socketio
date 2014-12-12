@@ -138,7 +138,7 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
             HttpResponse res = new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.UNAUTHORIZED);
             channel.writeAndFlush(res)
                     .addListener(ChannelFutureListener.CLOSE);
-            log.debug("Handshake unauthorized");
+            log.debug("Handshake unauthorized, query params: {} headers: {}", params, headers);
             return false;
         }
 
@@ -172,7 +172,7 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
         client.send(packet);
 
         client.schedulePingTimeout();
-        log.debug("Handshake authorized for sessionId: {}", sessionId);
+        log.debug("Handshake authorized for sessionId: {}, query params: {} headers: {}", sessionId, params, headers);
         return true;
     }
 
