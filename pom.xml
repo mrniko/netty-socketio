@@ -97,32 +97,32 @@
   <dependency>
   	<groupId>io.netty</groupId>
   	<artifactId>netty-buffer</artifactId>
-  	<version>4.0.23.Final</version>
+  	<version>4.0.24.Final</version>
   </dependency>
   <dependency>
   	<groupId>io.netty</groupId>
   	<artifactId>netty-common</artifactId>
-  	<version>4.0.23.Final</version>
+  	<version>4.0.24.Final</version>
   </dependency>
   <dependency>
   	<groupId>io.netty</groupId>
   	<artifactId>netty-transport</artifactId>
-  	<version>4.0.23.Final</version>
+  	<version>4.0.24.Final</version>
   </dependency>
   <dependency>
   	<groupId>io.netty</groupId>
   	<artifactId>netty-handler</artifactId>
-  	<version>4.0.23.Final</version>
+  	<version>4.0.24.Final</version>
   </dependency>
   <dependency>
   	<groupId>io.netty</groupId>
   	<artifactId>netty-codec-http</artifactId>
-  	<version>4.0.23.Final</version>
+  	<version>4.0.24.Final</version>
   </dependency>
   <dependency>
   	<groupId>io.netty</groupId>
   	<artifactId>netty-codec</artifactId>
-  	<version>4.0.23.Final</version>
+  	<version>4.0.24.Final</version>
   </dependency>
   
   <dependency>
@@ -147,12 +147,12 @@
   <dependency>
   	<groupId>com.fasterxml.jackson.core</groupId>
   	<artifactId>jackson-core</artifactId>
-  	<version>2.4.2</version>
+  	<version>2.4.4</version>
   </dependency>
   <dependency>
   	<groupId>com.fasterxml.jackson.core</groupId>
   	<artifactId>jackson-databind</artifactId>
-  	<version>2.4.2</version>
+  	<version>2.4.4</version>
   </dependency>
 
 
