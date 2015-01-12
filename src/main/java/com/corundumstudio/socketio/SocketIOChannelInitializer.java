@@ -135,14 +135,30 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
     @Override
     protected void initChannel(Channel ch) throws Exception {
         ChannelPipeline pipeline = ch.pipeline();
-
-        if (sslContext != null) {
+        addSslHandler(pipeline);
+        addSocketioHandlers(pipeline);
+    }
+    
+    /**
+     * Adds the ssl handler
+     * 
+     * @return
+     */
+    protected void addSslHandler(ChannelPipeline pipeline) {
+    	if (sslContext != null) {
             SSLEngine engine = sslContext.createSSLEngine();
             engine.setUseClientMode(false);
             pipeline.addLast(SSL_HANDLER, new SslHandler(engine));
         }
-
-        pipeline.addLast(HTTP_REQUEST_DECODER, new HttpRequestDecoder());
+    }
+    
+    /**
+     * Adds the socketio channel handlers
+     * 
+     * @param pipeline
+     */
+    protected void addSocketioHandlers(ChannelPipeline pipeline) {
+    	pipeline.addLast(HTTP_REQUEST_DECODER, new HttpRequestDecoder());
         pipeline.addLast(HTTP_AGGREGATOR, new HttpObjectAggregator(configuration.getMaxHttpContentLength()));
         pipeline.addLast(HTTP_ENCODER, new HttpResponseEncoder());
 
