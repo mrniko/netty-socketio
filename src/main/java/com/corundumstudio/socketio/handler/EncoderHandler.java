@@ -217,8 +217,9 @@ public class EncoderHandler extends ChannelOutboundHandlerAdapter {
             if (log.isTraceEnabled()) {
                 log.trace("Out message: {} sessionId: {}", out.toString(CharsetUtil.UTF_8), msg.getSessionId());
             }
-            ctx.channel().writeAndFlush(res);
-            if (!out.isReadable()) {
+            if (out.isReadable()) {
+                ctx.channel().writeAndFlush(res);
+            } else {
                 out.release();
             }
 
