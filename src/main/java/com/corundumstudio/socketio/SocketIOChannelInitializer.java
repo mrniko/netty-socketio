@@ -22,6 +22,7 @@ import io.netty.channel.ChannelPipeline;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpRequestDecoder;
 import io.netty.handler.codec.http.HttpResponseEncoder;
+import io.netty.handler.codec.http.websocketx.WebSocketFrameAggregator;
 import io.netty.handler.ssl.SslHandler;
 
 import java.security.KeyStore;
@@ -59,6 +60,7 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
 
     public static final String SOCKETIO_ENCODER = "socketioEncoder";
     public static final String WEB_SOCKET_TRANSPORT = "webSocketTransport";
+    public static final String WEB_SOCKET_AGGREGATOR = "webSocketAggregator";
     public static final String XHR_POLLING_TRANSPORT = "xhrPollingTransport";
     public static final String AUTHORIZE_HANDLER = "authorizeHandler";
     public static final String PACKET_HANDLER = "packetHandler";
@@ -138,27 +140,27 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
         addSslHandler(pipeline);
         addSocketioHandlers(pipeline);
     }
-    
+
     /**
      * Adds the ssl handler
-     * 
+     *
      * @return
      */
     protected void addSslHandler(ChannelPipeline pipeline) {
-    	if (sslContext != null) {
+        if (sslContext != null) {
             SSLEngine engine = sslContext.createSSLEngine();
             engine.setUseClientMode(false);
             pipeline.addLast(SSL_HANDLER, new SslHandler(engine));
         }
     }
-    
+
     /**
      * Adds the socketio channel handlers
-     * 
+     *
      * @param pipeline
      */
     protected void addSocketioHandlers(ChannelPipeline pipeline) {
-    	pipeline.addLast(HTTP_REQUEST_DECODER, new HttpRequestDecoder());
+        pipeline.addLast(HTTP_REQUEST_DECODER, new HttpRequestDecoder());
         pipeline.addLast(HTTP_AGGREGATOR, new HttpObjectAggregator(configuration.getMaxHttpContentLength()));
         pipeline.addLast(HTTP_ENCODER, new HttpResponseEncoder());
 
