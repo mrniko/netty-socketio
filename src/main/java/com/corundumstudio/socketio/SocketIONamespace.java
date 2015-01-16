@@ -26,6 +26,8 @@ import com.corundumstudio.socketio.listener.ClientListeners;
  */
 public interface SocketIONamespace extends ClientListeners {
 
+    String getName();
+
     BroadcastOperations getBroadcastOperations();
 
     BroadcastOperations getRoomOperations(String room);
