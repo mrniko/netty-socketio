@@ -52,6 +52,7 @@ Recent Releases
 Improvement - `SocketIONamespace.getName()` added  
 Fixed - WebSocket frames aggregation  
 Fixed - WebSocket buffer release  
+Fixed - `Unexpected end-of-input in VALUE_STRING` error  
 Fixed - Access-Control-Allow-Credentials is TRUE for requests with origin header  
 
 ####05-Dec-2014 - version 1.7.5 released  
