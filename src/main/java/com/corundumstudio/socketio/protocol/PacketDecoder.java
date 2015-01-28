@@ -19,7 +19,6 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufInputStream;
 import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.base64.Base64;
-import io.netty.handler.codec.base64.Base64Dialect;
 import io.netty.util.CharsetUtil;
 
 import java.io.IOException;
@@ -44,6 +43,10 @@ public class PacketDecoder {
         this.jsonSupport = jsonSupport;
         this.ackManager = ackManager;
         this.nspHub = nspHub;
+    }
+
+    private boolean isStringPacket(ByteBuf content) {
+        return content.getByte(content.readerIndex()) == 0x0;
     }
 
     // TODO optimize
@@ -100,11 +103,34 @@ public class PacketDecoder {
         }
     }
 
+    private boolean hasLengthHeader(ByteBuf buffer) {
+        int lengthEndIndex = buffer.bytesBefore(Math.min(buffer.readableBytes(), 10), (byte)':');
+        if (lengthEndIndex >= 1 && lengthEndIndex <= 10) {
+            for (int i = 0; i < lengthEndIndex; i++) {
+                byte b = buffer.getByte(buffer.readerIndex() + i);
+                int digit = ((int)b & 0xF);
+                if (digit > 9 || digit < 0) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
     public Packet decodePackets(ByteBuf buffer, ClientHead client) throws IOException {
-        boolean isString = buffer.getByte(buffer.readerIndex()) == 0x0;
-        if (isString) {
+        if (isStringPacket(buffer)) {
+            // TODO refactor
             int headEndIndex = buffer.bytesBefore((byte)-1);
             int len = (int) readLong(buffer, headEndIndex);
+
+            ByteBuf frame = buffer.slice(buffer.readerIndex() + 1, len);
+            // skip this frame
+            buffer.readerIndex(buffer.readerIndex() + 1 + len);
+            return decode(client, frame);
+        } else if (hasLengthHeader(buffer)) {
+            // TODO refactor
+            int lengthEndIndex = buffer.bytesBefore((byte)':');
+            int len = (int) readLong(buffer, lengthEndIndex);
 
             ByteBuf frame = buffer.slice(buffer.readerIndex() + 1, len);
             // skip this frame
