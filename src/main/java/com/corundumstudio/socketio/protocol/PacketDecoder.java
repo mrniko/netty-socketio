@@ -113,8 +113,9 @@ public class PacketDecoder {
                     return false;
                 }
             }
+            return true;
         }
-        return true;
+        return false;
     }
 
     public Packet decodePackets(ByteBuf buffer, ClientHead client) throws IOException {
