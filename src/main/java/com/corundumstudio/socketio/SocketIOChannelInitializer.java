@@ -22,7 +22,6 @@ import io.netty.channel.ChannelPipeline;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpRequestDecoder;
 import io.netty.handler.codec.http.HttpResponseEncoder;
-import io.netty.handler.codec.http.websocketx.WebSocketFrameAggregator;
 import io.netty.handler.ssl.SslHandler;
 
 import java.security.KeyStore;
@@ -45,16 +44,16 @@ import com.corundumstudio.socketio.handler.InPacketHandler;
 import com.corundumstudio.socketio.handler.PacketListener;
 import com.corundumstudio.socketio.handler.WrongUrlHandler;
 import com.corundumstudio.socketio.namespace.NamespacesHub;
+import com.corundumstudio.socketio.protocol.JsonSupport;
 import com.corundumstudio.socketio.protocol.PacketDecoder;
 import com.corundumstudio.socketio.protocol.PacketEncoder;
-import com.corundumstudio.socketio.protocol.JsonSupport;
 import com.corundumstudio.socketio.scheduler.CancelableScheduler;
 import com.corundumstudio.socketio.scheduler.HashedWheelScheduler;
 import com.corundumstudio.socketio.store.StoreFactory;
 import com.corundumstudio.socketio.store.pubsub.DisconnectMessage;
 import com.corundumstudio.socketio.store.pubsub.PubSubStore;
-import com.corundumstudio.socketio.transport.WebSocketTransport;
 import com.corundumstudio.socketio.transport.PollingTransport;
+import com.corundumstudio.socketio.transport.WebSocketTransport;
 
 public class SocketIOChannelInitializer extends ChannelInitializer<Channel> implements DisconnectableHub {
 
@@ -101,7 +100,7 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
 
         JsonSupport jsonSupport = configuration.getJsonSupport();
         PacketEncoder encoder = new PacketEncoder(configuration, jsonSupport);
-        PacketDecoder decoder = new PacketDecoder(jsonSupport, namespacesHub, ackManager);
+        PacketDecoder decoder = new PacketDecoder(jsonSupport, ackManager);
 
         String connectPath = configuration.getContext() + "/";
 

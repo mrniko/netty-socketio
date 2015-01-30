@@ -29,7 +29,6 @@ import java.util.UUID;
 import com.corundumstudio.socketio.AckCallback;
 import com.corundumstudio.socketio.ack.AckManager;
 import com.corundumstudio.socketio.handler.ClientHead;
-import com.corundumstudio.socketio.namespace.NamespacesHub;
 
 public class PacketDecoder {
 
@@ -37,12 +36,10 @@ public class PacketDecoder {
 
     private final JsonSupport jsonSupport;
     private final AckManager ackManager;
-    private final NamespacesHub nspHub;
 
-    public PacketDecoder(JsonSupport jsonSupport, NamespacesHub nspHub, AckManager ackManager) {
+    public PacketDecoder(JsonSupport jsonSupport, AckManager ackManager) {
         this.jsonSupport = jsonSupport;
         this.ackManager = ackManager;
-        this.nspHub = nspHub;
     }
 
     private boolean isStringPacket(ByteBuf content) {
@@ -104,16 +101,14 @@ public class PacketDecoder {
     }
 
     private boolean hasLengthHeader(ByteBuf buffer) {
-        int lengthEndIndex = buffer.bytesBefore(Math.min(buffer.readableBytes(), 10), (byte)':');
-        if (lengthEndIndex >= 1 && lengthEndIndex <= 10) {
-            for (int i = 0; i < lengthEndIndex; i++) {
-                byte b = buffer.getByte(buffer.readerIndex() + i);
-                int digit = ((int)b & 0xF);
-                if (digit > 9 || digit < 0) {
-                    return false;
-                }
+        for (int i = 0; i < Math.min(buffer.readableBytes(), 10); i++) {
+            byte b = buffer.getByte(buffer.readerIndex() + i);
+            if (b == (byte)':' && i > 0) {
+                return true;
             }
-            return true;
+            if (b > 57 || b < 48) {
+                return false;
+            }
         }
         return false;
     }
