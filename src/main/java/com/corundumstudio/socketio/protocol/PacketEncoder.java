@@ -33,12 +33,11 @@ import com.corundumstudio.socketio.Configuration;
 
 public class PacketEncoder {
 
-    private static final Pattern QUOTES_PATTERN = Pattern.compile("\"", Pattern.LITERAL);
     private static final byte[] BINARY_HEADER = "b4".getBytes(CharsetUtil.UTF_8);
     private static final byte[] B64_DELIMITER = new byte[] {':'};
     private static final byte[] JSONP_HEAD = "___eio[".getBytes(CharsetUtil.UTF_8);
-    private static final byte[] JSONP_START = "](\"".getBytes(CharsetUtil.UTF_8);
-    private static final byte[] JSONP_END = "\");".getBytes(CharsetUtil.UTF_8);
+    private static final byte[] JSONP_START = "]('".getBytes(CharsetUtil.UTF_8);
+    private static final byte[] JSONP_END = "');".getBytes(CharsetUtil.UTF_8);
 
     private final JsonSupport jsonSupport;
     private final Configuration configuration;
@@ -72,14 +71,9 @@ public class PacketEncoder {
             }
 
             ByteBuf packetBuf = allocateBuffer(allocator);
-            encodePacket(packet, packetBuf, allocator, true, jsonpMode);
+            encodePacket(packet, packetBuf, allocator, true);
 
             int packetSize = packetBuf.writerIndex();
-            if (jsonpMode) {
-                // scan for \\\"
-                int count = count(packetBuf, Unpooled.copiedBuffer("\\\"", CharsetUtil.UTF_8));
-                packetSize -= count;
-            }
 
             buf.writeBytes(toChars(packetSize));
             buf.writeBytes(B64_DELIMITER);
@@ -106,7 +100,7 @@ public class PacketEncoder {
             String packet = buf.toString(CharsetUtil.UTF_8);
             buf.release();
             // TODO optimize
-            packet = QUOTES_PATTERN.matcher(packet).replaceAll("\\\\\"");
+            packet = packet.replace("\\", "\\\\");
             packet = new String(packet.getBytes(CharsetUtil.UTF_8), CharsetUtil.ISO_8859_1);
             out.writeBytes(packet.getBytes(CharsetUtil.UTF_8));
 
@@ -121,7 +115,7 @@ public class PacketEncoder {
             if (packet == null || i == limit) {
                 break;
             }
-            encodePacket(packet, buffer, allocator, false, false);
+            encodePacket(packet, buffer, allocator, false);
 
             i++;
 
@@ -221,7 +215,7 @@ public class PacketEncoder {
         return res;
     }
 
-    public void encodePacket(Packet packet, ByteBuf buffer, ByteBufAllocator allocator, boolean binary, boolean jsonp) throws IOException {
+    public void encodePacket(Packet packet, ByteBuf buffer, ByteBufAllocator allocator, boolean binary) throws IOException {
         ByteBuf buf = buffer;
         if (!binary) {
             buf = allocateBuffer(allocator);
@@ -239,11 +233,7 @@ public class PacketEncoder {
 
                 case OPEN: {
                     ByteBufOutputStream out = new ByteBufOutputStream(buf);
-                    if (jsonp) {
-                        jsonSupport.writeJsonpValue(out, packet.getData());
-                    } else {
-                        jsonSupport.writeValue(out, packet.getData());
-                    }
+                    jsonSupport.writeValue(out, packet.getData());
                     break;
                 }
 
@@ -267,11 +257,7 @@ public class PacketEncoder {
                         List<Object> args = packet.getData();
                         values.addAll(args);
                         ByteBufOutputStream out = new ByteBufOutputStream(encBuf);
-                        if (jsonp) {
-                            jsonSupport.writeJsonpValue(out, values);
-                        } else {
-                            jsonSupport.writeValue(out, values);
-                        }
+                        jsonSupport.writeValue(out, values);
 
                         if (!jsonSupport.getArrays().isEmpty()) {
                             packet.initAttachments(jsonSupport.getArrays().size());
@@ -327,16 +313,6 @@ public class PacketEncoder {
                 buf.release();
             }
         }
-    }
-
-    private int count(ByteBuf buffer, ByteBuf searchValue) {
-        int count = 0;
-        for (int i = 0; i < buffer.readableBytes(); i++) {
-            if (isValueFound(buffer, i, searchValue)) {
-                count++;
-            }
-        }
-        return count;
     }
 
     public static int find(ByteBuf buffer, ByteBuf searchValue) {

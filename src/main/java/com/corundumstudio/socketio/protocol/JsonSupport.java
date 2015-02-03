@@ -31,8 +31,6 @@ import com.corundumstudio.socketio.AckCallback;
  */
 public interface JsonSupport {
 
-    void writeJsonpValue(ByteBufOutputStream out, Object value) throws IOException;
-
     AckArgs readAckArgs(ByteBufInputStream src, AckCallback<?> callback) throws IOException;
 
     <T> T readValue(String namespaceName, ByteBufInputStream src, Class<T> valueType) throws IOException;

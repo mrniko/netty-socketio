@@ -74,11 +74,6 @@ class JsonSupportWrapper implements JsonSupport {
     }
 
     @Override
-    public void writeJsonpValue(ByteBufOutputStream out, Object value) throws IOException {
-        delegate.writeJsonpValue(out, value);
-    }
-
-    @Override
     public List<byte[]> getArrays() {
         return delegate.getArrays();
     }

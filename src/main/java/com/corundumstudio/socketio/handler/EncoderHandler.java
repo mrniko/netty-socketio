@@ -212,7 +212,7 @@ public class EncoderHandler extends ChannelOutboundHandlerAdapter {
             }
 
             final ByteBuf out = encoder.allocateBuffer(ctx.alloc());
-            encoder.encodePacket(packet, out, ctx.alloc(), true, false);
+            encoder.encodePacket(packet, out, ctx.alloc(), true);
 
             WebSocketFrame res = new TextWebSocketFrame(out);
             if (log.isTraceEnabled()) {

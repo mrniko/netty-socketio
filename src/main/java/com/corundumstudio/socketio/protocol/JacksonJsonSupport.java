@@ -325,7 +325,6 @@ public class JacksonJsonSupport implements JsonSupport {
     private final ThreadLocal<String> namespaceClass = new ThreadLocal<String>();
     private final ThreadLocal<AckCallback<?>> currentAckClass = new ThreadLocal<AckCallback<?>>();
     private final ObjectMapper objectMapper = new ObjectMapper();
-    private final ObjectMapper jsonpObjectMapper = new ObjectMapper();
     private final EventDeserializer eventDeserializer = new EventDeserializer();
     private final AckArgsDeserializer ackArgsDeserializer = new AckArgsDeserializer();
 
@@ -334,11 +333,8 @@ public class JacksonJsonSupport implements JsonSupport {
     public JacksonJsonSupport(Module... modules) {
         if (modules != null && modules.length > 0) {
             objectMapper.registerModules(modules);
-            jsonpObjectMapper.registerModules(modules);
         }
         init(objectMapper);
-        init(jsonpObjectMapper);
-        jsonpObjectMapper.getFactory().setCharacterEscapes(new HTMLCharacterEscapes());
     }
 
     protected void init(ObjectMapper objectMapper) {
@@ -380,12 +376,6 @@ public class JacksonJsonSupport implements JsonSupport {
     public void writeValue(ByteBufOutputStream out, Object value) throws IOException {
         modifier.getSerializer().clear();
         objectMapper.writeValue(out, value);
-    }
-
-    @Override
-    public void writeJsonpValue(ByteBufOutputStream out, Object value) throws IOException {
-        modifier.getSerializer().clear();
-        jsonpObjectMapper.writeValue(out, value);
     }
 
     @Override
