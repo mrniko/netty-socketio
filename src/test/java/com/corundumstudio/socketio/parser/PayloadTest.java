@@ -40,7 +40,7 @@ import com.corundumstudio.socketio.protocol.PacketType;
 public class PayloadTest {
 
     private final JacksonJsonSupport support = new JacksonJsonSupport();
-    private final PacketDecoder decoder = new PacketDecoder(support, new NamespacesHub(new Configuration()), null);
+    private final PacketDecoder decoder = new PacketDecoder(support, null);
     private final PacketEncoder encoder = new PacketEncoder(new Configuration(), support);
 
     @Test
