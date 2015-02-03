@@ -27,13 +27,14 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.corundumstudio.socketio.Configuration;
 
 public class PacketEncoder {
 
-    private static final Pattern QUOTES_PATTERN = Pattern.compile("\"", Pattern.LITERAL);
+    private static final Pattern ESCAPE_SEQUENCES_PATTERN = Pattern.compile("\\\\([tbnrf])");
     private static final byte[] BINARY_HEADER = "b4".getBytes(CharsetUtil.UTF_8);
     private static final byte[] B64_DELIMITER = new byte[] {':'};
     private static final byte[] JSONP_HEAD = "___eio[".getBytes(CharsetUtil.UTF_8);
@@ -106,7 +107,7 @@ public class PacketEncoder {
             String packet = buf.toString(CharsetUtil.UTF_8);
             buf.release();
             // TODO optimize
-            packet = QUOTES_PATTERN.matcher(packet).replaceAll("\\\\\"");
+            packet = escapeJsonpPacket(packet);
             packet = new String(packet.getBytes(CharsetUtil.UTF_8), CharsetUtil.ISO_8859_1);
             out.writeBytes(packet.getBytes(CharsetUtil.UTF_8));
 
@@ -355,6 +356,19 @@ public class PacketEncoder {
             }
         }
         return true;
+    }
+
+    private String escapeJsonpPacket(String packet) {
+        packet = packet.replace("\"", "\\\"");
+
+        Matcher matcher = ESCAPE_SEQUENCES_PATTERN.matcher(packet);
+        StringBuffer buffer = new StringBuffer();
+        while (matcher.find()) {
+            matcher.appendReplacement(buffer, "\\\\\\\\\\\\" + matcher.group(1));
+        }
+        matcher.appendTail(buffer);
+
+        return buffer.toString();
     }
 
 }
