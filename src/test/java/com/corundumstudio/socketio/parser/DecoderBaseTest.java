@@ -35,7 +35,7 @@ public class DecoderBaseTest {
 
     @Before
     public void before() {
-        decoder = new PacketDecoder(new JacksonJsonSupport(), new NamespacesHub(new Configuration()), ackManager);
+        decoder = new PacketDecoder(new JacksonJsonSupport(), ackManager);
     }
 
 }
