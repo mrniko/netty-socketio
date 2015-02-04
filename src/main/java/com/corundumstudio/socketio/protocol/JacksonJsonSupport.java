@@ -69,36 +69,6 @@ import com.fasterxml.jackson.databind.type.ArrayType;
 
 public class JacksonJsonSupport implements JsonSupport {
 
-    public static class HTMLCharacterEscapes extends CharacterEscapes
-    {
-        private static final long serialVersionUID = 6159367941232231133L;
-
-        private final int[] asciiEscapes;
-
-        public HTMLCharacterEscapes()
-        {
-            // start with set of characters known to require escaping (double-quote, backslash etc)
-            int[] esc = CharacterEscapes.standardAsciiEscapesForJSON();
-            // and force escaping of a few others:
-            esc['"'] = CharacterEscapes.ESCAPE_CUSTOM;
-            asciiEscapes = esc;
-        }
-
-        // this method gets called for character codes 0 - 127
-        @Override
-        public int[] getEscapeCodesForAscii() {
-            return asciiEscapes;
-        }
-
-        @Override
-        public SerializableString getEscapeSequence(int ch) {
-            if (ch == '"') {
-                return new SerializedString("\\\\" + (char)ch);
-            }
-            return null;
-        }
-    }
-
     private class AckArgsDeserializer extends StdDeserializer<AckArgs> {
 
         private static final long serialVersionUID = 7810461017389946707L;
