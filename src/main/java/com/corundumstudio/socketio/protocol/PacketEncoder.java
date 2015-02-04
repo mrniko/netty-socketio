@@ -100,7 +100,7 @@ public class PacketEncoder {
             String packet = buf.toString(CharsetUtil.UTF_8);
             buf.release();
             // TODO optimize
-            packet = packet.replace("\\", "\\\\");
+            packet = packet.replace("\\", "\\\\").replace("'", "\\'");
             packet = new String(packet.getBytes(CharsetUtil.UTF_8), CharsetUtil.ISO_8859_1);
             out.writeBytes(packet.getBytes(CharsetUtil.UTF_8));
 
