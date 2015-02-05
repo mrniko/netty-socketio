@@ -27,7 +27,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
-import java.util.regex.Pattern;
 
 import com.corundumstudio.socketio.Configuration;
 
@@ -55,8 +54,8 @@ public class PacketEncoder {
         return allocator.heapBuffer();
     }
 
-    public void encodeJsonP(Integer jsonpIndex, Queue<Packet> packets, ByteBuf out, ByteBufAllocator allocator, int limit) throws IOException {
-        boolean jsonpMode = jsonpIndex != null;
+    public void encodeJsonP(Integer jsonpIndex, Queue<Packet> packets, final ByteBuf out, ByteBufAllocator allocator, int limit) throws IOException {
+        final boolean jsonpMode = jsonpIndex != null;
 
         ByteBuf buf = allocateBuffer(allocator);
 
@@ -71,10 +70,6 @@ public class PacketEncoder {
             encodePacket(packet, packetBuf, allocator, true);
 
             int packetSize = packetBuf.writerIndex();
-            if (jsonpMode) {
-                int count = count(packetBuf, Unpooled.copiedBuffer("\\\\\\n", CharsetUtil.UTF_8));
-                packetSize -= count;
-            }
 
             buf.writeBytes(toChars(packetSize));
             buf.writeBytes(B64_DELIMITER);
@@ -93,22 +88,32 @@ public class PacketEncoder {
             }
         }
 
-        String packet = buf.toString(CharsetUtil.UTF_8);
-        buf.release();
-
         if (jsonpMode) {
             out.writeBytes(JSONP_HEAD);
             out.writeBytes(toChars(jsonpIndex));
             out.writeBytes(JSONP_START);
-            packet = packet.replace("\\", "\\\\").replace("'", "\\'").replace("\\\\\\\\\\n", "\\\\\\n");
         }
 
-        // TODO optimize
-        packet = new String(packet.getBytes(CharsetUtil.UTF_8), CharsetUtil.ISO_8859_1);
-        out.writeBytes(packet.getBytes(CharsetUtil.UTF_8));
-        
+        processUtf8(buf, out, jsonpMode);
+        buf.release();
+
         if (jsonpMode) {
             out.writeBytes(JSONP_END);
+        }
+    }
+
+    private static void processUtf8(ByteBuf in, ByteBuf out, boolean jsonpMode) {
+        while (in.isReadable()) {
+            short value = (short) (in.readByte() & 0xFF);
+            if (value >>> 7 == 0) {
+                if (jsonpMode && (value == '\\' || value == '\'')) {
+                    out.writeByte('\\');
+                }
+                out.writeByte(value);
+            } else {
+                out.writeByte(((value >>> 6) | 0xC0));
+                out.writeByte(((value & 0x3F) | 0x80));
+            }
         }
     }
 
@@ -317,16 +322,6 @@ public class PacketEncoder {
                 buf.release();
             }
         }
-    }
-
-    private int count(ByteBuf buffer, ByteBuf searchValue) {
-        int count = 0;
-        for (int i = 0; i < buffer.readableBytes(); i++) {
-            if (isValueFound(buffer, i, searchValue)) {
-                count++;
-            }
-        }
-        return count;
     }
 
     public static int find(ByteBuf buffer, ByteBuf searchValue) {
