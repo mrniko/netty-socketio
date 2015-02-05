@@ -133,6 +133,12 @@ public class PacketDecoder {
             return decode(client, frame);
         } else if (hasLengthHeader(buffer)) {
             // TODO refactor
+
+            String str = buffer.toString(CharsetUtil.UTF_8);
+            str = new String(str.getBytes(CharsetUtil.ISO_8859_1), CharsetUtil.UTF_8);
+
+            buffer.clear().writeBytes(str.getBytes(CharsetUtil.UTF_8));
+
             int lengthEndIndex = buffer.bytesBefore((byte)':');
             int len = (int) readLong(buffer, lengthEndIndex);
 
