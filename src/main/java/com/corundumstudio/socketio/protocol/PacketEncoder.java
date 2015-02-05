@@ -74,6 +74,10 @@ public class PacketEncoder {
             encodePacket(packet, packetBuf, allocator, true);
 
             int packetSize = packetBuf.writerIndex();
+            if (jsonpMode) {
+                int count = count(packetBuf, Unpooled.copiedBuffer("\\\\\\n", CharsetUtil.UTF_8));
+                packetSize -= count;
+            }
 
             buf.writeBytes(toChars(packetSize));
             buf.writeBytes(B64_DELIMITER);
@@ -100,7 +104,7 @@ public class PacketEncoder {
             String packet = buf.toString(CharsetUtil.UTF_8);
             buf.release();
             // TODO optimize
-            packet = packet.replace("\\", "\\\\").replace("'", "\\'");
+            packet = packet.replace("\\", "\\\\").replace("'", "\\'").replace("\\\\\\\\\\n", "\\\\\\n");
             packet = new String(packet.getBytes(CharsetUtil.UTF_8), CharsetUtil.ISO_8859_1);
             out.writeBytes(packet.getBytes(CharsetUtil.UTF_8));
 
@@ -313,6 +317,16 @@ public class PacketEncoder {
                 buf.release();
             }
         }
+    }
+
+    private int count(ByteBuf buffer, ByteBuf searchValue) {
+        int count = 0;
+        for (int i = 0; i < buffer.readableBytes(); i++) {
+            if (isValueFound(buffer, i, searchValue)) {
+                count++;
+            }
+        }
+        return count;
     }
 
     public static int find(ByteBuf buffer, ByteBuf searchValue) {

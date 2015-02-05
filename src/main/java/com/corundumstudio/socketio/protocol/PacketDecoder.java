@@ -56,9 +56,10 @@ public class PacketDecoder {
             startPos = 2;
         }
 
+        int slashesCount = packet.split("\\\\\\\\\\\\n").length - 1;
         int splitIndex = packet.indexOf(":");
         String len = packet.substring(startPos, splitIndex);
-        Integer length = Integer.valueOf(len);
+        Integer length = Integer.valueOf(len) + slashesCount;
 
         packet = packet.substring(splitIndex+1, splitIndex+length+1);
         packet = new String(packet.getBytes(CharsetUtil.ISO_8859_1), CharsetUtil.UTF_8);
