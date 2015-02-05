@@ -54,12 +54,19 @@ public class PacketDecoder {
         if (jsonIndex != null) {
             // skip "d="
             startPos = 2;
+
+            /**
+             * double escaping is required for escaped new lines because unescaping of new lines can be done safely on server-side
+             * (c) socket.io.js
+             *
+             * @see https://github.com/Automattic/socket.io-client/blob/1.3.3/socket.io.js#L2682
+             */
+            packet = packet.replace("\\\\n", "\\n");
         }
 
-        int slashesCount = packet.split("\\\\\\\\\\\\n").length - 1;
         int splitIndex = packet.indexOf(":");
         String len = packet.substring(startPos, splitIndex);
-        Integer length = Integer.valueOf(len) + slashesCount;
+        Integer length = Integer.valueOf(len);
 
         packet = packet.substring(splitIndex+1, splitIndex+length+1);
         packet = new String(packet.getBytes(CharsetUtil.ISO_8859_1), CharsetUtil.UTF_8);
