@@ -74,11 +74,6 @@ public class PacketEncoder {
             encodePacket(packet, packetBuf, allocator, true);
 
             int packetSize = packetBuf.writerIndex();
-            if (jsonpMode) {
-                int count = count(packetBuf, Unpooled.copiedBuffer("\\\\\\n", CharsetUtil.UTF_8));
-                packetSize -= count;
-            }
-
             buf.writeBytes(toChars(packetSize));
             buf.writeBytes(B64_DELIMITER);
             buf.writeBytes(packetBuf);
@@ -101,11 +96,10 @@ public class PacketEncoder {
             out.writeBytes(toChars(jsonpIndex));
             out.writeBytes(JSONP_START);
 
-            String packet = buf.toString(CharsetUtil.UTF_8);
+            String packet = buf.toString(CharsetUtil.ISO_8859_1);
             buf.release();
             // TODO optimize
-            packet = packet.replace("\\", "\\\\").replace("'", "\\'").replace("\\\\\\\\\\n", "\\\\\\n");
-            packet = new String(packet.getBytes(CharsetUtil.UTF_8), CharsetUtil.ISO_8859_1);
+            packet = packet.replace("\\", "\\\\").replace("'", "\\'");
             out.writeBytes(packet.getBytes(CharsetUtil.UTF_8));
 
             out.writeBytes(JSONP_END);
