@@ -32,6 +32,8 @@ import com.corundumstudio.socketio.handler.ClientHead;
 
 public class PacketDecoder {
 
+    private final UTF8CharsScanner utf8scanner = new UTF8CharsScanner();
+
     private final ByteBuf QUOTES = Unpooled.copiedBuffer("\"", CharsetUtil.UTF_8);
 
     private final JsonSupport jsonSupport;
@@ -134,9 +136,13 @@ public class PacketDecoder {
         } else if (hasLengthHeader(buffer)) {
             // TODO refactor
             int lengthEndIndex = buffer.bytesBefore((byte)':');
-            int len = (int) readLong(buffer, lengthEndIndex);
+            int lenHeader = (int) readLong(buffer, lengthEndIndex);
+            int len = utf8scanner.getActualLength(buffer, lenHeader);
 
             ByteBuf frame = buffer.slice(buffer.readerIndex() + 1, len);
+            if (lenHeader != len) {
+                frame = Unpooled.wrappedBuffer(frame.toString(CharsetUtil.UTF_8).getBytes(CharsetUtil.ISO_8859_1));
+            }
             // skip this frame
             buffer.readerIndex(buffer.readerIndex() + 1 + len);
             return decode(client, frame);
