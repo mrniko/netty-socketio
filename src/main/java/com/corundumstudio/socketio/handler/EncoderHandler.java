@@ -251,7 +251,11 @@ public class EncoderHandler extends ChannelOutboundHandlerAdapter {
         if (b64 != null && b64) {
             Integer jsonpIndex = ctx.channel().attr(EncoderHandler.JSONP_INDEX).get();
             encoder.encodeJsonP(jsonpIndex, queue, out, ctx.alloc(), 50);
-            sendMessage(msg, channel, out, "application/javascript");
+            String type = "application/javascript";
+            if (jsonpIndex == null) {
+                type = "text/plain";
+            }
+            sendMessage(msg, channel, out, type);
         } else {
             encoder.encodePackets(queue, out, ctx.alloc(), 50);
             sendMessage(msg, channel, out, "application/octet-stream");

@@ -27,7 +27,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
-import java.util.regex.Pattern;
 
 import com.corundumstudio.socketio.Configuration;
 
@@ -58,10 +57,7 @@ public class PacketEncoder {
     public void encodeJsonP(Integer jsonpIndex, Queue<Packet> packets, ByteBuf out, ByteBufAllocator allocator, int limit) throws IOException {
         boolean jsonpMode = jsonpIndex != null;
 
-        ByteBuf buf = out;
-        if (jsonpMode) {
-            buf = allocateBuffer(allocator);
-        }
+        ByteBuf buf = allocateBuffer(allocator);
 
         int i = 0;
         while (true) {
@@ -95,14 +91,28 @@ public class PacketEncoder {
             out.writeBytes(JSONP_HEAD);
             out.writeBytes(toChars(jsonpIndex));
             out.writeBytes(JSONP_START);
+        }
 
-            String packet = buf.toString(CharsetUtil.ISO_8859_1);
-            buf.release();
-            // TODO optimize
-            packet = packet.replace("\\", "\\\\").replace("'", "\\'");
-            out.writeBytes(packet.getBytes(CharsetUtil.UTF_8));
+        processUtf8(buf, out, jsonpMode);
+        buf.release();
 
+        if (jsonpMode) {
             out.writeBytes(JSONP_END);
+        }
+    }
+
+    private void processUtf8(ByteBuf in, ByteBuf out, boolean jsonpMode) {
+        while (in.isReadable()) {
+            short value = (short) (in.readByte() & 0xFF);
+            if (value >>> 7 == 0) {
+                if (jsonpMode && (value == '\\' || value == '\'')) {
+                    out.writeByte('\\');
+                }
+                out.writeByte(value);
+            } else {
+                out.writeByte(((value >>> 6) | 0xC0));
+                out.writeByte(((value & 0x3F) | 0x80));
+            }
         }
     }
 
@@ -311,16 +321,6 @@ public class PacketEncoder {
                 buf.release();
             }
         }
-    }
-
-    private int count(ByteBuf buffer, ByteBuf searchValue) {
-        int count = 0;
-        for (int i = 0; i < buffer.readableBytes(); i++) {
-            if (isValueFound(buffer, i, searchValue)) {
-                count++;
-            }
-        }
-        return count;
     }
 
     public static int find(ByteBuf buffer, ByteBuf searchValue) {
