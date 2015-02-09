@@ -117,7 +117,7 @@ public class EncoderHandler extends ChannelOutboundHandlerAdapter {
         }
 
         HttpHeaders.addHeader(res, CONNECTION, KEEP_ALIVE);
-        
+
         if (configuration.getOrigin() == null) {
             if (msg.getOrigin() != null) {
                 HttpHeaders.addHeader(res, ACCESS_CONTROL_ALLOW_ORIGIN, msg.getOrigin());
@@ -126,7 +126,7 @@ public class EncoderHandler extends ChannelOutboundHandlerAdapter {
         } else {
             HttpHeaders.addHeader(res, ACCESS_CONTROL_ALLOW_ORIGIN, configuration.getOrigin());
         }
-        
+
         HttpHeaders.setContentLength(res, message.readableBytes());
 
         return res;
@@ -180,8 +180,10 @@ public class EncoderHandler extends ChannelOutboundHandlerAdapter {
         WebSocketFrame res = new TextWebSocketFrame(out);
         log.trace("Out message: {} sessionId: {}",
                         out.toString(CharsetUtil.UTF_8), webSocketPacketMessage.getSessionId());
-        channel.writeAndFlush(res);
-        if (!out.isReadable()) {
+
+        if (out.isReadable()) {
+            channel.writeAndFlush(res);
+        } else {
             out.release();
         }
     }
