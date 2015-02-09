@@ -17,6 +17,7 @@ package com.corundumstudio.socketio.protocol;
 
 import io.netty.buffer.ByteBufInputStream;
 import io.netty.buffer.ByteBufOutputStream;
+import io.netty.util.internal.PlatformDependent;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
@@ -159,7 +160,7 @@ public class JacksonJsonSupport implements JsonSupport {
 
         private static final long serialVersionUID = 8178797221017768689L;
 
-        final Map<EventKey, List<Class<?>>> eventMapping = new ConcurrentHashMap<EventKey, List<Class<?>>>();
+        final Map<EventKey, List<Class<?>>> eventMapping = PlatformDependent.newConcurrentHashMap();
 
 
         protected EventDeserializer() {

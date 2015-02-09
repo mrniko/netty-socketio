@@ -15,6 +15,8 @@
  */
 package com.corundumstudio.socketio.store;
 
+import io.netty.util.internal.PlatformDependent;
+
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -47,7 +49,7 @@ public class MemoryStoreFactory extends BaseStoreFactory {
 
     @Override
     public <K, V> Map<K, V> createMap(String name) {
-        return new ConcurrentHashMap<K, V>();
+        return PlatformDependent.newConcurrentHashMap();
     }
 
 }

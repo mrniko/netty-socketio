@@ -15,6 +15,8 @@
  */
 package com.corundumstudio.socketio.namespace;
 
+import io.netty.util.internal.PlatformDependent;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -23,7 +25,6 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentMap;
 
@@ -58,14 +59,13 @@ public class Namespace implements SocketIONamespace {
     public static final String DEFAULT_NAME = "";
 
     private final ScannerEngine engine = new ScannerEngine();
-    private final ConcurrentMap<String, EventEntry<?>> eventListeners =
-                                                            new ConcurrentHashMap<String, EventEntry<?>>();
+    private final ConcurrentMap<String, EventEntry<?>> eventListeners = PlatformDependent.newConcurrentHashMap();
     private final Queue<ConnectListener> connectListeners = new ConcurrentLinkedQueue<ConnectListener>();
     private final Queue<DisconnectListener> disconnectListeners = new ConcurrentLinkedQueue<DisconnectListener>();
 
-    private final Map<UUID, SocketIOClient> allClients = new ConcurrentHashMap<UUID, SocketIOClient>();
-    private final ConcurrentMap<String, Set<UUID>> roomClients = new ConcurrentHashMap<String, Set<UUID>>();
-    private final ConcurrentMap<UUID, Set<String>> clientRooms = new ConcurrentHashMap<UUID, Set<String>>();
+    private final Map<UUID, SocketIOClient> allClients = PlatformDependent.newConcurrentHashMap();
+    private final ConcurrentMap<String, Set<UUID>> roomClients = PlatformDependent.newConcurrentHashMap();
+    private final ConcurrentMap<UUID, Set<String>> clientRooms = PlatformDependent.newConcurrentHashMap();
 
     private final String name;
     private final AckMode ackMode;
@@ -261,7 +261,7 @@ public class Namespace implements SocketIONamespace {
     private <K, V> void join(ConcurrentMap<K, Set<V>> map, K key, V value) {
         Set<V> clients = map.get(key);
         if (clients == null) {
-            clients = Collections.newSetFromMap(new ConcurrentHashMap<V, Boolean>());
+            clients = Collections.newSetFromMap(PlatformDependent.<V, Boolean>newConcurrentHashMap());
             Set<V> oldClients = map.putIfAbsent(key, clients);
             if (oldClients != null) {
                 clients = oldClients;

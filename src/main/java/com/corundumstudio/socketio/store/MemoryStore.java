@@ -15,12 +15,13 @@
  */
 package com.corundumstudio.socketio.store;
 
+import io.netty.util.internal.PlatformDependent;
+
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class MemoryStore implements Store {
 
-    private final Map<String, Object> store = new ConcurrentHashMap<String, Object>();
+    private final Map<String, Object> store = PlatformDependent.newConcurrentHashMap();
 
     @Override
     public void set(String key, Object value) {

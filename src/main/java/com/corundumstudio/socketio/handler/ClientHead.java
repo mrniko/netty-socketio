@@ -20,6 +20,7 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.util.AttributeKey;
+import io.netty.util.internal.PlatformDependent;
 
 import java.net.SocketAddress;
 import java.util.HashMap;
@@ -59,7 +60,7 @@ public class ClientHead {
     public static final AttributeKey<ClientHead> CLIENT = AttributeKey.<ClientHead>valueOf("client");
 
     private final AtomicBoolean disconnected = new AtomicBoolean();
-    private final Map<Namespace, NamespaceClient> namespaceClients = new ConcurrentHashMap<Namespace, NamespaceClient>();
+    private final Map<Namespace, NamespaceClient> namespaceClients = PlatformDependent.newConcurrentHashMap();
     private final Map<Transport, TransportState> channels = new HashMap<Transport, TransportState>();
     private final HandshakeData handshakeData;
     private final UUID sessionId;

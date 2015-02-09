@@ -15,8 +15,9 @@
  */
 package com.corundumstudio.socketio.store;
 
+import io.netty.util.internal.PlatformDependent;
+
 import java.util.Queue;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentMap;
 
@@ -35,8 +36,7 @@ public class HazelcastPubSubStore implements PubSubStore {
     private final HazelcastInstance hazelcastSub;
     private final Long nodeId;
 
-    private final ConcurrentMap<String, Queue<String>> map =
-                                        new ConcurrentHashMap<String, Queue<String>>();
+    private final ConcurrentMap<String, Queue<String>> map = PlatformDependent.newConcurrentHashMap();
 
     public HazelcastPubSubStore(HazelcastInstance hazelcastPub, HazelcastInstance hazelcastSub, Long nodeId) {
         this.hazelcastPub = hazelcastPub;

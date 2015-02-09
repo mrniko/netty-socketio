@@ -19,14 +19,14 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.util.HashedWheelTimer;
 import io.netty.util.Timeout;
 import io.netty.util.TimerTask;
+import io.netty.util.internal.PlatformDependent;
 
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 public class HashedWheelScheduler implements CancelableScheduler {
 
-    private final Map<SchedulerKey, Timeout> scheduledFutures = new ConcurrentHashMap<SchedulerKey, Timeout>();
+    private final Map<SchedulerKey, Timeout> scheduledFutures = PlatformDependent.newConcurrentHashMap();
     private final HashedWheelTimer executorService = new HashedWheelTimer();
 
     private volatile ChannelHandlerContext ctx;

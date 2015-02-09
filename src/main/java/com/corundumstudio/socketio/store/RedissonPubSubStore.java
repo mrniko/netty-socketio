@@ -15,6 +15,8 @@
  */
 package com.corundumstudio.socketio.store;
 
+import io.netty.util.internal.PlatformDependent;
+
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -34,8 +36,7 @@ public class RedissonPubSubStore implements PubSubStore {
     private final Redisson redissonSub;
     private final Long nodeId;
 
-    private final ConcurrentMap<String, Queue<Integer>> map =
-                                        new ConcurrentHashMap<String, Queue<Integer>>();
+    private final ConcurrentMap<String, Queue<Integer>> map = PlatformDependent.newConcurrentHashMap();
 
     public RedissonPubSubStore(Redisson redissonPub, Redisson redissonSub, Long nodeId) {
         this.redissonPub = redissonPub;
