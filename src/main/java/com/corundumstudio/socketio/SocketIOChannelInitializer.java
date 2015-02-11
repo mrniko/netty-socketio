@@ -15,6 +15,7 @@
  */
 package com.corundumstudio.socketio;
 
+import com.corundumstudio.socketio.scheduler.HashedWheelTimeoutScheduler;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInitializer;
@@ -82,7 +83,7 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
     private EncoderHandler encoderHandler;
     private WrongUrlHandler wrongUrlHandler;
 
-    private CancelableScheduler scheduler = new HashedWheelScheduler();
+    private CancelableScheduler scheduler = new HashedWheelTimeoutScheduler();
 
     private InPacketHandler packetHandler;
     private SSLContext sslContext;
