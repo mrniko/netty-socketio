@@ -68,6 +68,14 @@ public class InPacketHandler extends SimpleChannelInboundHandler<PacketsMessage>
                 }
                 Namespace ns = namespacesHub.get(packet.getNsp());
                 if (ns == null) {
+                    if (packet.getSubType() == PacketType.CONNECT) {
+                        Packet p = new Packet(PacketType.MESSAGE);
+                        p.setSubType(PacketType.ERROR);
+                        p.setNsp(packet.getNsp());
+                        p.setData("Invalid namespace");
+                        client.send(p);
+                        return;
+                    }
                     log.debug("Can't find namespace for endpoint: {}, sessionId: {} probably it was removed.", packet.getNsp(), client.getSessionId());
                     return;
                 }

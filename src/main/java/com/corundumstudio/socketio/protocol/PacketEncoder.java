@@ -249,14 +249,18 @@ public class PacketEncoder {
 
                     ByteBuf encBuf = null;
 
+                    if (packet.getSubType() == PacketType.ERROR) {
+                        encBuf = allocateBuffer(allocator);
+
+                        ByteBufOutputStream out = new ByteBufOutputStream(encBuf);
+                        jsonSupport.writeValue(out, packet.getData());
+                    }
 
                     if (packet.getSubType() == PacketType.EVENT
-                            || packet.getSubType() == PacketType.ACK
-                            || packet.getSubType() == PacketType.ERROR) {
+                            || packet.getSubType() == PacketType.ACK) {
 
                         List<Object> values = new ArrayList<Object>();
-                        if (packet.getSubType() == PacketType.EVENT
-                                || packet.getSubType() == PacketType.ERROR) {
+                        if (packet.getSubType() == PacketType.EVENT) {
                             values.add(packet.getName());
                         }
 
