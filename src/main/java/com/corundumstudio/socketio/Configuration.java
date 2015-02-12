@@ -22,7 +22,6 @@ import java.util.List;
 import com.corundumstudio.socketio.handler.SuccessAuthorizationListener;
 import com.corundumstudio.socketio.listener.DefaultExceptionListener;
 import com.corundumstudio.socketio.listener.ExceptionListener;
-import com.corundumstudio.socketio.protocol.JacksonJsonSupport;
 import com.corundumstudio.socketio.protocol.JsonSupport;
 import com.corundumstudio.socketio.store.MemoryStoreFactory;
 import com.corundumstudio.socketio.store.StoreFactory;
@@ -68,7 +67,7 @@ public class Configuration {
 
     private StoreFactory storeFactory = new MemoryStoreFactory();
 
-    private JsonSupport jsonSupport = new JacksonJsonSupport();
+    private JsonSupport jsonSupport;
 
     private AuthorizationListener authorizationListener = new SuccessAuthorizationListener();
 
@@ -96,6 +95,21 @@ public class Configuration {
 
         setHostname(conf.getHostname());
         setPort(conf.getPort());
+
+        if (conf.getJsonSupport() == null) {
+            try {
+                getClass().getClassLoader().loadClass("com.fasterxml.jackson.databind.ObjectMapper");
+                try {
+                    Class<?> jjs = getClass().getClassLoader().loadClass("com.corundumstudio.socketio.protocol.JacksonJsonSupport");
+                    JsonSupport js = (JsonSupport) jjs.getConstructor().newInstance();
+                    conf.setJsonSupport(js);
+                } catch (Exception e) {
+                    throw new IllegalArgumentException(e);
+                }
+            } catch (ClassNotFoundException e) {
+                throw new IllegalArgumentException("Can't find jackson lib in classpath", e);
+            }
+        }
 
         setJsonSupport(new JsonSupportWrapper(conf.getJsonSupport()));
         setContext(conf.getContext());

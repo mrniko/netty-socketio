@@ -28,7 +28,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,9 +41,6 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.JsonToken;
-import com.fasterxml.jackson.core.SerializableString;
-import com.fasterxml.jackson.core.io.CharacterEscapes;
-import com.fasterxml.jackson.core.io.SerializedString;
 import com.fasterxml.jackson.databind.BeanDescription;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -300,6 +296,10 @@ public class JacksonJsonSupport implements JsonSupport {
     private final AckArgsDeserializer ackArgsDeserializer = new AckArgsDeserializer();
 
     private final Logger log = LoggerFactory.getLogger(getClass());
+
+    public JacksonJsonSupport() {
+        this(new Module[] {});
+    }
 
     public JacksonJsonSupport(Module... modules) {
         if (modules != null && modules.length > 0) {
