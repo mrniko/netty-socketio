@@ -121,7 +121,6 @@ public class ClientHead {
     }
 
     public void schedulePingTimeout() {
-        cancelPingTimeout();
         SchedulerKey key = new SchedulerKey(Type.PING_TIMEOUT, sessionId);
         disconnectScheduler.schedule(key, new Runnable() {
             @Override
