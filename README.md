@@ -48,6 +48,11 @@ Recent Releases
 ================================
 ####Please Note: trunk is current development branch.
 
+####18-Feb-2015 - version 1.7.7 released  
+Improvement - no need to add jackson lib if you use own JsonSupport impl    
+Fixed - SocketIO client 1.3.x support  
+Fixed - Charset encoding handling (thanks to  alim-akbashev)  
+
 ####17-Jan-2015 - version 1.7.6 released  
 Improvement - `SocketIONamespace.getName()` added  
 Fixed - WebSocket frames aggregation  
