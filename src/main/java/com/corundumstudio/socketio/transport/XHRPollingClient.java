@@ -18,10 +18,10 @@ package com.corundumstudio.socketio.transport;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.util.AttributeKey;
+import io.netty.util.internal.PlatformDependent;
 
 import java.util.Queue;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
 import com.corundumstudio.socketio.DisconnectableHub;
 import com.corundumstudio.socketio.HandshakeData;
@@ -35,7 +35,7 @@ public class XHRPollingClient extends MainBaseClient {
 
     public static final AttributeKey<Boolean> WRITE_ONCE = AttributeKey.<Boolean>valueOf("writeOnce");
 
-    private final Queue<Packet> packetQueue = new ConcurrentLinkedQueue<Packet>();
+    private final Queue<Packet> packetQueue = PlatformDependent.newMpscQueue();
     private String origin;
 
     public XHRPollingClient(AckManager ackManager, DisconnectableHub disconnectable,

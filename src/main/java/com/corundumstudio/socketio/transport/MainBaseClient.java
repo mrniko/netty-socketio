@@ -18,6 +18,7 @@ package com.corundumstudio.socketio.transport;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
+import io.netty.util.concurrent.Future;
 
 import java.net.SocketAddress;
 import java.util.Collection;
@@ -72,7 +73,7 @@ public abstract class MainBaseClient {
         return transport;
     }
 
-    public abstract ChannelFuture send(Packet packet);
+    public abstract Future send(Packet packet);
 
     public void removeChildClient(SocketIOClient client) {
         namespaceClients.remove((Namespace) client.getNamespace());
@@ -123,7 +124,7 @@ public abstract class MainBaseClient {
     }
 
     public void disconnect() {
-        ChannelFuture future = send(new Packet(PacketType.DISCONNECT));
+        Future future = send(new Packet(PacketType.DISCONNECT));
         future.addListener(ChannelFutureListener.CLOSE);
 
         onChannelDisconnect();

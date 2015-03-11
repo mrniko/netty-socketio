@@ -16,7 +16,7 @@
 package com.corundumstudio.socketio.transport;
 
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
+import io.netty.util.concurrent.Future;
 
 import java.util.UUID;
 
@@ -37,8 +37,14 @@ public class WebSocketClient extends MainBaseClient {
         setChannel(channel);
     }
 
-    public ChannelFuture send(Packet packet) {
-        return getChannel().writeAndFlush(new WebSocketPacketMessage(getSessionId(), packet));
+    public Future send(final Packet packet) {
+        return getChannel().eventLoop().submit(new Runnable() {
+            @Override
+            public void run() {
+                getChannel()
+                        .writeAndFlush(new WebSocketPacketMessage(getSessionId(), packet));
+            }
+        });
     }
 
 }
