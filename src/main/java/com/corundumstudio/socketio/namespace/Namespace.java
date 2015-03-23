@@ -299,7 +299,7 @@ public class Namespace implements SocketIONamespace {
 
     public void leave(String room, UUID sessionId) {
         leave(roomClients, room, sessionId);
-        leave(clientRooms, sessionId, room);
+        clientRooms.remove(sessionId);
     }
 
     public Set<String> getRooms(SocketIOClient client) {
