@@ -234,6 +234,7 @@ public class JacksonJsonSupport implements JsonSupport {
         objectMapper.registerModule(module);
 
         objectMapper.setSerializationInclusion(Include.NON_NULL);
+        objectMapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
         objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         objectMapper.configure(SerializationFeature.WRITE_BIGDECIMAL_AS_PLAIN, true);
 
