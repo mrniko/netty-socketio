@@ -133,7 +133,7 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
 
         xhrPollingTransport = new XHRPollingTransport(connectPath, ackManager, this, scheduler, authorizeHandler, configuration);
         webSocketTransport = new WebSocketTransport(connectPath, isSsl, ackManager, this, authorizeHandler, heartbeatHandler, factory, configuration);
-        flashSocketTransport = new FlashSocketTransport(connectPath, isSsl, ackManager, this, authorizeHandler, heartbeatHandler, factory, configuration.getMaxFramePayloadLength());
+        flashSocketTransport = new FlashSocketTransport(connectPath, isSsl, ackManager, this, authorizeHandler, heartbeatHandler, factory, configuration);
 
         resourceHandler = new ResourceHandler(configuration.getContext());
         encoderHandler = new EncoderHandler(encoder, configuration);

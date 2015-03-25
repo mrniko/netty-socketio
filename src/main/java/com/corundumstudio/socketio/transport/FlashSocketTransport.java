@@ -18,6 +18,7 @@ package com.corundumstudio.socketio.transport;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.ChannelHandler.Sharable;
 
+import com.corundumstudio.socketio.Configuration;
 import com.corundumstudio.socketio.DisconnectableHub;
 import com.corundumstudio.socketio.SocketIOChannelInitializer;
 import com.corundumstudio.socketio.Transport;
@@ -33,9 +34,9 @@ public class FlashSocketTransport extends WebSocketTransport {
 
     public FlashSocketTransport(String connectPath, boolean isSsl, AckManager ackManager,
             DisconnectableHub disconnectable, AuthorizeHandler authorizeHandler,
-            HeartbeatHandler heartbeatHandler, StoreFactory storeFactory, int maxFramePayloadLength) {
+            HeartbeatHandler heartbeatHandler, StoreFactory storeFactory, Configuration config) {
         super(connectPath, isSsl, ackManager, disconnectable,
-                authorizeHandler, heartbeatHandler, storeFactory, maxFramePayloadLength);
+                authorizeHandler, heartbeatHandler, storeFactory, config);
         path = connectPath + NAME;
     }
 
