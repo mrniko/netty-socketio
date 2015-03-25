@@ -47,6 +47,7 @@ public class Configuration {
 
     private int maxHttpContentLength = 64 * 1024;
     private int maxFramePayloadLength = 64 * 1024;
+    private boolean useStrictOrdering = false;
 
     private String packagePrefix;
     private String hostname;
@@ -122,6 +123,7 @@ public class Configuration {
         setMaxFramePayloadLength(conf.getMaxFramePayloadLength());
         setOrigin(conf.getOrigin());
         setCrossDomainPolicy(conf.getCrossDomainPolicy());
+        setUseStrictOrdering(conf.isUseStrictOrdering());
     }
 
     private String join(Transport[] transports) {
@@ -505,6 +507,18 @@ public class Configuration {
     }
     public InputStream getCrossDomainPolicy() {
         return crossDomainPolicy;
+    }
+
+    /**
+     * Packet strict ordering in websocket transport
+     * 
+     * @param useStrictOrdering
+     */
+    public void setUseStrictOrdering(boolean useStrictOrdering) {
+        this.useStrictOrdering = useStrictOrdering;
+    }
+    public boolean isUseStrictOrdering() {
+        return useStrictOrdering;
     }
 
 }

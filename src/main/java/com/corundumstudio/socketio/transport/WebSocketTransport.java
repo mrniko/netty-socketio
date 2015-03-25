@@ -37,6 +37,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.corundumstudio.socketio.Configuration;
 import com.corundumstudio.socketio.DisconnectableHub;
 import com.corundumstudio.socketio.HandshakeData;
 import com.corundumstudio.socketio.SocketIOChannelInitializer;
@@ -62,7 +63,7 @@ public class WebSocketTransport extends BaseTransport {
     private final AuthorizeHandler authorizeHandler;
     private final DisconnectableHub disconnectableHub;
     private final StoreFactory storeFactory;
-    private final int maxFramePayloadLength;
+    private final Configuration config;
 
     private final boolean isSsl;
     protected String path;
@@ -70,7 +71,7 @@ public class WebSocketTransport extends BaseTransport {
 
 
     public WebSocketTransport(String connectPath, boolean isSsl, AckManager ackManager, DisconnectableHub disconnectable,
-            AuthorizeHandler authorizeHandler, HeartbeatHandler heartbeatHandler, StoreFactory storeFactory, int maxFramePayloadLength) {
+            AuthorizeHandler authorizeHandler, HeartbeatHandler heartbeatHandler, StoreFactory storeFactory, Configuration config) {
         this.path = connectPath + NAME;
         this.isSsl = isSsl;
         this.authorizeHandler = authorizeHandler;
@@ -78,7 +79,7 @@ public class WebSocketTransport extends BaseTransport {
         this.disconnectableHub = disconnectable;
         this.heartbeatHandler = heartbeatHandler;
         this.storeFactory = storeFactory;
-        this.maxFramePayloadLength = maxFramePayloadLength;
+        this.config = config;
     }
 
     @Override
@@ -141,7 +142,7 @@ public class WebSocketTransport extends BaseTransport {
         final UUID sessionId = UUID.fromString(parts[4]);
 
         WebSocketServerHandshakerFactory factory =
-                new WebSocketServerHandshakerFactory(getWebSocketLocation(req), null, false, maxFramePayloadLength);
+                new WebSocketServerHandshakerFactory(getWebSocketLocation(req), null, false, config.getMaxFramePayloadLength());
         WebSocketServerHandshaker handshaker = factory.newHandshaker(req);
         if (handshaker != null) {
             ChannelFuture f = handshaker.handshake(channel, req);
@@ -165,7 +166,7 @@ public class WebSocketTransport extends BaseTransport {
             return;
         }
 
-        WebSocketClient client = new WebSocketClient(channel, ackManager, disconnectableHub, sessionId, getTransport(), storeFactory, data);
+        WebSocketClient client = new WebSocketClient(channel, ackManager, disconnectableHub, sessionId, getTransport(), storeFactory, data, config);
 
         channelId2Client.put(channel, client);
         sessionId2Client.put(sessionId, client);

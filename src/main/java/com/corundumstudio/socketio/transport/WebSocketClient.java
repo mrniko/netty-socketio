@@ -20,6 +20,7 @@ import io.netty.util.concurrent.Future;
 
 import java.util.UUID;
 
+import com.corundumstudio.socketio.Configuration;
 import com.corundumstudio.socketio.DisconnectableHub;
 import com.corundumstudio.socketio.HandshakeData;
 import com.corundumstudio.socketio.Transport;
@@ -30,21 +31,27 @@ import com.corundumstudio.socketio.store.StoreFactory;
 
 public class WebSocketClient extends MainBaseClient {
 
+    private final Configuration config;
+    
     public WebSocketClient(Channel channel, AckManager ackManager,
                             DisconnectableHub disconnectable, UUID sessionId,
-                             Transport transport, StoreFactory storeFactory, HandshakeData handshakeData) {
+                             Transport transport, StoreFactory storeFactory, HandshakeData handshakeData, Configuration config) {
         super(sessionId, ackManager, disconnectable, transport, storeFactory, handshakeData);
         setChannel(channel);
+        this.config = config;
     }
 
     public Future send(final Packet packet) {
-        return getChannel().eventLoop().submit(new Runnable() {
-            @Override
-            public void run() {
-                getChannel()
-                        .writeAndFlush(new WebSocketPacketMessage(getSessionId(), packet));
-            }
-        });
+        if (config.isUseStrictOrdering()) {
+            return getChannel().eventLoop().submit(new Runnable() {
+                @Override
+                public void run() {
+                    getChannel()
+                    .writeAndFlush(new WebSocketPacketMessage(getSessionId(), packet));
+                }
+            });
+        }
+        return getChannel().writeAndFlush(new WebSocketPacketMessage(getSessionId(), packet));
     }
 
 }
