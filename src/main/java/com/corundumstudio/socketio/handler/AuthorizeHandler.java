@@ -34,6 +34,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -86,7 +87,23 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
     }
 
     @Override
+    public void channelActive(final ChannelHandlerContext ctx) throws Exception {
+        SchedulerKey key = new SchedulerKey(Type.PING_TIMEOUT, ctx.channel());
+        disconnectScheduler.schedule(key, new Runnable() {
+            @Override
+            public void run() {
+                ctx.channel().close();
+                log.debug("Client with ip {} opens channel but not sended any data! Channel closed!", ctx.channel().remoteAddress());
+            }
+        }, configuration.getPingTimeout() + configuration.getPingInterval(), TimeUnit.MILLISECONDS);
+        super.channelActive(ctx);
+    }
+    
+    @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+        SchedulerKey key = new SchedulerKey(Type.PING_TIMEOUT, ctx.channel());
+        disconnectScheduler.cancel(key);
+
         if (msg instanceof FullHttpRequest) {
             FullHttpRequest req = (FullHttpRequest) msg;
             Channel channel = ctx.channel();
