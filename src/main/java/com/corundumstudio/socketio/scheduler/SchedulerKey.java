@@ -15,18 +15,17 @@
  */
 package com.corundumstudio.socketio.scheduler;
 
-import java.util.UUID;
 
 public class SchedulerKey {
 
     public enum Type {POLLING, HEARBEAT_TIMEOUT, CLOSE_TIMEOUT, AUTHORIZE, ACK_TIMEOUT};
 
     private final Type type;
-    private final UUID sessionId;
+    private final Object key;
 
-    public SchedulerKey(Type type, UUID sessionId) {
+    public SchedulerKey(Type type, Object key) {
         this.type = type;
-        this.sessionId = sessionId;
+        this.key = key;
     }
 
     @Override
@@ -34,7 +33,7 @@ public class SchedulerKey {
         final int prime = 31;
         int result = 1;
         result = prime * result
-                + ((sessionId == null) ? 0 : sessionId.hashCode());
+                + ((key == null) ? 0 : key.hashCode());
         result = prime * result + ((type == null) ? 0 : type.hashCode());
         return result;
     }
@@ -48,10 +47,10 @@ public class SchedulerKey {
         if (getClass() != obj.getClass())
             return false;
         SchedulerKey other = (SchedulerKey) obj;
-        if (sessionId == null) {
-            if (other.sessionId != null)
+        if (key == null) {
+            if (other.key != null)
                 return false;
-        } else if (!sessionId.equals(other.sessionId))
+        } else if (!key.equals(other.key))
             return false;
         if (type != other.type)
             return false;

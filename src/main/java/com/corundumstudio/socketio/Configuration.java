@@ -44,6 +44,7 @@ public class Configuration {
     private int heartbeatTimeout = 60;
     private int heartbeatInterval = 25;
     private int closeTimeout = 60;
+    private int firstDataTimeout = 5;
 
     private int maxHttpContentLength = 64 * 1024;
     private int maxFramePayloadLength = 64 * 1024;
@@ -124,6 +125,7 @@ public class Configuration {
         setOrigin(conf.getOrigin());
         setCrossDomainPolicy(conf.getCrossDomainPolicy());
         setUseStrictOrdering(conf.isUseStrictOrdering());
+        setFirstDataTimeout(conf.getFirstDataTimeout());
     }
 
     private String join(Transport[] transports) {
@@ -519,6 +521,20 @@ public class Configuration {
     }
     public boolean isUseStrictOrdering() {
         return useStrictOrdering;
+    }
+
+    /**
+     * Timeout between channel opening and first data transfer
+     * Helps to avoid 'silent channel' attack and prevents
+     * 'Too many open files' problem in this case
+     * 
+     * @param firstDataTimeout
+     */
+    public void setFirstDataTimeout(int firstDataTimeout) {
+        this.firstDataTimeout = firstDataTimeout;
+    }
+    public int getFirstDataTimeout() {
+        return firstDataTimeout;
     }
 
 }

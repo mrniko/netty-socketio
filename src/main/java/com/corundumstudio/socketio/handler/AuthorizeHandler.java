@@ -77,9 +77,26 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
 
         this.authorizedSessionIds = configuration.getStoreFactory().createMap("authorizedSessionIds");
     }
+    
+    @Override
+    public void channelActive(final ChannelHandlerContext ctx) throws Exception {
+        SchedulerKey key = new SchedulerKey(Type.CLOSE_TIMEOUT, ctx.channel());
+        disconnectScheduler.schedule(key, new Runnable() {
+            @Override
+            public void run() {
+                ctx.channel().close();
+                log.debug("Client with ip {} opens channel but not sended any data! Channel closed!", ctx.channel().remoteAddress());
+            }
+        }, configuration.getFirstDataTimeout(), TimeUnit.SECONDS);
+        
+        super.channelActive(ctx);
+    }
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+        SchedulerKey key = new SchedulerKey(Type.CLOSE_TIMEOUT, ctx.channel());
+        disconnectScheduler.cancel(key);
+        
         if (msg instanceof FullHttpRequest) {
             FullHttpRequest req = (FullHttpRequest) msg;
             Channel channel = ctx.channel();
