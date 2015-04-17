@@ -48,6 +48,10 @@ Recent Releases
 ================================
 ####Please Note: trunk is current development branch.
 
+####26-Mar-2015 - version 1.6.7 released  
+Improvement - `useStrictOrdering` param added for websocket packets strict ordering
+Improvement - `FAIL_ON_EMPTY_BEANS = false` option setted in json decoder
+
 ####18-Feb-2015 - version 1.7.7 released  
 Improvement - no need to add jackson lib if you use own JsonSupport impl    
 Fixed - SocketIO client 1.3.x support  
