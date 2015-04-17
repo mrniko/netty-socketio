@@ -43,6 +43,7 @@ public class Configuration {
     private int upgradeTimeout = 10000;
     private int pingTimeout = 60000;
     private int pingInterval = 25000;
+    private int firstDataTimeout = 5000;
 
     private int maxHttpContentLength = 64 * 1024;
     private int maxFramePayloadLength = 64 * 1024;
@@ -508,5 +509,18 @@ public class Configuration {
         return sslProtocol;
     }
 
+    /**
+     * Timeout between channel opening and first data transfer
+     * Helps to avoid 'silent channel' attack and prevents
+     * 'Too many open files' problem in this case
+     * 
+     * @param firstDataTimeout
+     */
+    public void setFirstDataTimeout(int firstDataTimeout) {
+        this.firstDataTimeout = firstDataTimeout;
+    }
+    public int getFirstDataTimeout() {
+        return firstDataTimeout;
+    }
 
 }

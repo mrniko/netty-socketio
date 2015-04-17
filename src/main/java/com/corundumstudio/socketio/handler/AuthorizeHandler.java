@@ -95,7 +95,7 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
                 ctx.channel().close();
                 log.debug("Client with ip {} opens channel but not sended any data! Channel closed!", ctx.channel().remoteAddress());
             }
-        }, configuration.getPingTimeout() + configuration.getPingInterval(), TimeUnit.MILLISECONDS);
+        }, configuration.getFirstDataTimeout(), TimeUnit.MILLISECONDS);
         super.channelActive(ctx);
     }
     
@@ -202,8 +202,6 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
         Namespace ns = namespacesHub.get(Namespace.DEFAULT_NAME);
 
         if (!client.getNamespaces().contains(ns)) {
-//            connect(client.getSessionId());
-
             Packet packet = new Packet(PacketType.MESSAGE);
             packet.setSubType(PacketType.CONNECT);
             client.send(packet);
