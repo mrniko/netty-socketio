@@ -310,6 +310,10 @@ public class Namespace implements SocketIONamespace {
         return Collections.unmodifiableSet(res);
     }
 
+    public Set<String> getRooms() {
+        return roomClients.keySet();
+    }
+
     public Iterable<SocketIOClient> getRoomClients(String room) {
         Set<UUID> sessionIds = roomClients.get(room);
 
