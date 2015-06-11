@@ -98,7 +98,7 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
         }, configuration.getFirstDataTimeout(), TimeUnit.MILLISECONDS);
         super.channelActive(ctx);
     }
-    
+
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         SchedulerKey key = new SchedulerKey(Type.PING_TIMEOUT, ctx.channel());
@@ -159,8 +159,7 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
             return false;
         }
 
-        // TODO try to get sessionId from cookie
-        UUID sessionId = UUID.randomUUID();
+        UUID sessionId = this.generateOrGetSessionIdFromRequest(headers);
 
         List<String> transportValue = params.get("transport");
         if (transportValue == null) {
@@ -191,6 +190,22 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
         client.schedulePingTimeout();
         log.debug("Handshake authorized for sessionId: {}, query params: {} headers: {}", sessionId, params, headers);
         return true;
+    }
+
+    /**
+        This method will either generate a new random sessionId or will retrieve the value stored
+        in the "io" cookie.  Failures to parse will cause a logging warning to be generated and a
+        random uuid to be generated instead (same as not passing a cookie in the first place).
+    */
+    private UUID generateOrGetSessionIdFromRequest(Map<String, List<String>> headers) {
+        if ( headers.containsKey("io") && headers.get("io").size() == 1 ) {
+            try {
+                return UUID.fromString(headers.get("io").get(0));
+            } catch ( IllegalArgumentException iaex ) {
+                log.warn("Malformed UUID received for session! io=" + headers.get("io"));
+            }
+        }
+        return UUID.randomUUID();
     }
 
     public void connect(UUID sessionId) {
