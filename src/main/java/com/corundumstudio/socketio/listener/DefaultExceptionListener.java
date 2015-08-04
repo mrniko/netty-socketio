@@ -43,16 +43,6 @@ public class DefaultExceptionListener extends ExceptionListenerAdapter {
         log.error(e.getMessage(), e);
     }
 
-    @Override
-    public void onMessageException(Exception e, String data, SocketIOClient client) {
-        log.error(e.getMessage(), e);
-    }
-
-    @Override
-    public void onJsonException(Exception e, Object data, SocketIOClient client) {
-        log.error(e.getMessage(), e);
-    }
-
     public boolean exceptionCaught(ChannelHandlerContext ctx, Throwable e) throws Exception {
         log.error(e.getMessage(), e);
         return true;

@@ -41,14 +41,6 @@ public abstract class ExceptionListenerAdapter implements ExceptionListener {
     }
 
     @Override
-    public void onMessageException(Exception e, String data, SocketIOClient client) {
-    }
-
-    @Override
-    public void onJsonException(Exception e, Object data, SocketIOClient client) {
-    }
-
-    @Override
     public boolean exceptionCaught(ChannelHandlerContext ctx, Throwable e) throws Exception {
         return false;
     }
