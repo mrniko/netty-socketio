@@ -150,7 +150,7 @@ public class WebSocketTransport extends ChannelInboundHandlerAdapter {
         final Channel channel = ctx.channel();
 
         WebSocketServerHandshakerFactory factory =
-                new WebSocketServerHandshakerFactory(getWebSocketLocation(req), null, false, configuration.getMaxFramePayloadLength());
+                new WebSocketServerHandshakerFactory(getWebSocketLocation(req), null, true, configuration.getMaxFramePayloadLength());
         WebSocketServerHandshaker handshaker = factory.newHandshaker(req);
         if (handshaker != null) {
             ChannelFuture f = handshaker.handshake(channel, req);
