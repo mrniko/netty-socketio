@@ -218,13 +218,6 @@ Base configuration. More details about Configuration object is [here](https://gi
         
 Programmatic handlers binding:
         
-        server.addMessageListener(new DataListener<String>() {
-            @Override
-            public void onData(SocketIOClient client, String message, AckRequest ackRequest) {
-                ...
-            }
-        });
-
         server.addEventListener("someevent", SomeClass.class, new DataListener<SomeClass>() {
             @Override
             public void onData(SocketIOClient client, Object data, AckRequest ackRequest) {
@@ -288,20 +281,6 @@ Declarative handlers binding. Handlers could be bound via annotations on any obj
                  ...
              }
 
-             // only data object is required in arguments, 
-             // SocketIOClient and AckRequest could be ommited
-             @OnJsonObject
-             public void onSomeEventHandler(SocketIOClient client, SomeClass data, AckRequest ackRequest) {
-                 ...
-             }
-
-             // only data object is required in arguments, 
-             // SocketIOClient and AckRequest could be ommited
-             @OnMessage
-             public void onSomeEventHandler(SocketIOClient client, String data, AckRequest ackRequest) {
-                 ...
-             }
-
         }
         
         SomeBusinessService someService = new SomeBusinessService();
@@ -331,16 +310,6 @@ Declarative handlers binding. Handlers could be bound via annotations on any obj
 
 	       socket.on('connect', function() {
                     // connection established, now we can send an objects
-
-
-                    // send json-object to server
-                    // '@class' property should be defined and should 
-                    // equals to full class name.
-                    var obj = { '@class' : 'com.sample.SomeClass',
-                                 ...
-                              };
-                    socket.json.send(obj);
-
 
 
                     // send event-object to server
