@@ -48,6 +48,12 @@ Recent Releases
 ================================
 ####Please Note: trunk is current development branch.
 
+####30-Nov-2015 - version 1.7.8 released  
+Improvement - `WebSocketServerHandshaker.allowExtensions` is `true` now  
+Improvement - SessionID cookie implementation (thanks to @ryandietrich)  
+Fixed - clientRooms leak (thanks to @andreaspalm)  
+Fixed - ExceptionListener not used for errors in JSON parsing  
+
 ####26-Mar-2015 - version 1.6.7 released  
 Improvement - `useStrictOrdering` param added for websocket packets strict ordering  
 Improvement - `FAIL_ON_EMPTY_BEANS = false` option setted in json decoder  
