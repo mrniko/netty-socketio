@@ -53,6 +53,7 @@ Improvement - `WebSocketServerHandshaker.allowExtensions` is `true` now
 Improvement - SessionID cookie implementation (thanks to @ryandietrich)  
 Fixed - clientRooms leak (thanks to @andreaspalm)  
 Fixed - ExceptionListener not used for errors in JSON parsing  
+Fixed - "silent channel" attack    
 
 ####26-Mar-2015 - version 1.6.7 released  
 Improvement - `useStrictOrdering` param added for websocket packets strict ordering  
