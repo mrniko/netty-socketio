@@ -35,7 +35,7 @@ import io.netty.handler.codec.http.QueryStringDecoder;
 @Sharable
 public class WrongUrlHandler extends ChannelInboundHandlerAdapter {
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
+    private static final Logger log = LoggerFactory.getLogger(WrongUrlHandler.class);
 
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         if (msg instanceof FullHttpRequest) {

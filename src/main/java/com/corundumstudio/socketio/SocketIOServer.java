@@ -47,7 +47,7 @@ import com.corundumstudio.socketio.namespace.NamespacesHub;
  */
 public class SocketIOServer implements ClientListeners {
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
+    private static final Logger log = LoggerFactory.getLogger(SocketIOServer.class);
 
     private final Configuration configCopy;
     private final Configuration configuration;

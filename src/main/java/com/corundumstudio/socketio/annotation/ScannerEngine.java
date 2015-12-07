@@ -28,7 +28,7 @@ import com.corundumstudio.socketio.namespace.Namespace;
 
 public class ScannerEngine {
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
+    private static final Logger log = LoggerFactory.getLogger(ScannerEngine.class);
 
     private static final List<? extends AnnotationScanner> annotations =
                     Arrays.asList(new OnConnectScanner(), new OnDisconnectScanner(), new OnEventScanner());

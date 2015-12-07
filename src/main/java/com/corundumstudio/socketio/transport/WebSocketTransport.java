@@ -56,7 +56,7 @@ public class WebSocketTransport extends ChannelInboundHandlerAdapter {
 
     public static final String NAME = "websocket";
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
+    private static final Logger log = LoggerFactory.getLogger(WebSocketTransport.class);
 
     private final AuthorizeHandler authorizeHandler;
     private final CancelableScheduler scheduler;
