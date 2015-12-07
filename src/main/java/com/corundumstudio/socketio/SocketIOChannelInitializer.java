@@ -15,7 +15,6 @@
  */
 package com.corundumstudio.socketio;
 
-import com.corundumstudio.socketio.scheduler.HashedWheelTimeoutScheduler;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInitializer;
@@ -49,7 +48,7 @@ import com.corundumstudio.socketio.protocol.JsonSupport;
 import com.corundumstudio.socketio.protocol.PacketDecoder;
 import com.corundumstudio.socketio.protocol.PacketEncoder;
 import com.corundumstudio.socketio.scheduler.CancelableScheduler;
-import com.corundumstudio.socketio.scheduler.HashedWheelScheduler;
+import com.corundumstudio.socketio.scheduler.HashedWheelTimeoutScheduler;
 import com.corundumstudio.socketio.store.StoreFactory;
 import com.corundumstudio.socketio.store.pubsub.DisconnectMessage;
 import com.corundumstudio.socketio.store.pubsub.PubSubStore;

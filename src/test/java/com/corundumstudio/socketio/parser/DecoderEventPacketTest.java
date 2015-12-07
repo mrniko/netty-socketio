@@ -17,16 +17,13 @@ package com.corundumstudio.socketio.parser;
 
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.Map;
 
-import com.corundumstudio.socketio.namespace.NamespacesHub;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.corundumstudio.socketio.Configuration;
-import com.corundumstudio.socketio.protocol.PacketDecoder;
 import com.corundumstudio.socketio.protocol.JacksonJsonSupport;
 import com.corundumstudio.socketio.protocol.Packet;
+import com.corundumstudio.socketio.protocol.PacketDecoder;
 import com.corundumstudio.socketio.protocol.PacketType;
 
 public class DecoderEventPacketTest extends DecoderBaseTest {
