@@ -204,6 +204,7 @@ public class JacksonJsonSupport implements JsonSupport {
     {
 
         private final ThreadLocal<List<byte[]>> arrays = new ThreadLocal<List<byte[]>>() {
+            @Override
             protected List<byte[]> initialValue() {
                 return new ArrayList<byte[]>();
             };

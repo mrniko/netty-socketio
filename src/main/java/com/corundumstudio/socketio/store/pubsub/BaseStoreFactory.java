@@ -34,6 +34,7 @@ public abstract class BaseStoreFactory implements StoreFactory {
         return nodeId;
     }
 
+    @Override
     public void init(final NamespacesHub namespacesHub, final AuthorizeHandler authorizeHandler, JsonSupport jsonSupport) {
         pubSubStore().subscribe(PubSubStore.DISCONNECT, new PubSubListener<DisconnectMessage>() {
             @Override
