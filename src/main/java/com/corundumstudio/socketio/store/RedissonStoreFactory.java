@@ -19,15 +19,16 @@ import java.util.Map;
 import java.util.UUID;
 
 import org.redisson.Redisson;
+import org.redisson.RedissonClient;
 
 import com.corundumstudio.socketio.store.pubsub.BaseStoreFactory;
 import com.corundumstudio.socketio.store.pubsub.PubSubStore;
 
 public class RedissonStoreFactory extends BaseStoreFactory {
 
-    private final Redisson redisClient;
-    private final Redisson redisPub;
-    private final Redisson redisSub;
+    private final RedissonClient redisClient;
+    private final RedissonClient redisPub;
+    private final RedissonClient redisSub;
 
     private final PubSubStore pubSubStore;
 
@@ -35,7 +36,7 @@ public class RedissonStoreFactory extends BaseStoreFactory {
         this(Redisson.create());
     }
 
-    public RedissonStoreFactory(Redisson redisson) {
+    public RedissonStoreFactory(RedissonClient redisson) {
         this.redisClient = redisson;
         this.redisPub = redisson;
         this.redisSub = redisson;
