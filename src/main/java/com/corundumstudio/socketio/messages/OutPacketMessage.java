@@ -20,8 +20,8 @@ import com.corundumstudio.socketio.handler.ClientHead;
 
 public class OutPacketMessage extends HttpMessage {
 
-    ClientHead clientHead;
-    Transport transport;
+    private final ClientHead clientHead;
+    private final Transport transport;
 
     public OutPacketMessage(ClientHead clientHead, Transport transport) {
         super(clientHead.getOrigin(), clientHead.getSessionId());

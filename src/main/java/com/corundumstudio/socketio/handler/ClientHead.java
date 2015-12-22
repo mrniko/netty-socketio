@@ -15,13 +15,6 @@
  */
 package com.corundumstudio.socketio.handler;
 
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
-import io.netty.handler.codec.http.HttpHeaders;
-import io.netty.util.AttributeKey;
-import io.netty.util.internal.PlatformDependent;
-
 import java.net.SocketAddress;
 import java.util.HashMap;
 import java.util.Map;
@@ -29,8 +22,6 @@ import java.util.Map.Entry;
 import java.util.Queue;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -52,6 +43,13 @@ import com.corundumstudio.socketio.scheduler.SchedulerKey.Type;
 import com.corundumstudio.socketio.store.Store;
 import com.corundumstudio.socketio.store.StoreFactory;
 import com.corundumstudio.socketio.transport.NamespaceClient;
+
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
+import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.util.AttributeKey;
+import io.netty.util.internal.PlatformDependent;
 
 public class ClientHead {
 
@@ -147,7 +145,6 @@ public class ClientHead {
     }
 
     private ChannelFuture sendPackets(Transport transport, Channel channel) {
-        // TODO promise handling
         return channel.writeAndFlush(new OutPacketMessage(this, transport));
     }
 
