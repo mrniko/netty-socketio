@@ -24,9 +24,13 @@ public class SocketIOUUID {
 
     public static int node = 1;
 
+    public static Snowflake s;
+
+    public static void init () {
+        s = new Snowflake(node);
+    }
 
     public static Long getId(){
-        Snowflake s = new Snowflake(node);
         return s.next();
     }
 }

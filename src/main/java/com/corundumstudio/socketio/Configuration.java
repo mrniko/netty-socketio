@@ -45,6 +45,10 @@ public class Configuration {
     private int pingInterval = 25000;
     private int firstDataTimeout = 5000;
 
+
+
+    private int node = 1;
+
     private int maxHttpContentLength = 64 * 1024;
     private int maxFramePayloadLength = 64 * 1024;
 
@@ -523,4 +527,11 @@ public class Configuration {
         return firstDataTimeout;
     }
 
+    public int getNode() {
+        return node;
+    }
+
+    public void setNode(int node) {
+        this.node = node;
+    }
 }

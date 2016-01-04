@@ -65,6 +65,9 @@ public class SocketIOServer implements ClientListeners {
         this.configCopy = new Configuration(configuration);
         namespacesHub = new NamespacesHub(configCopy);
         mainNamespace = addNamespace(Namespace.DEFAULT_NAME);
+
+        SocketIOUUID.node = configuration.getNode();
+        SocketIOUUID.init();
     }
 
     public void setPipelineFactory(SocketIOChannelInitializer pipelineFactory) {
