@@ -23,7 +23,7 @@ public class AckSchedulerKey extends SchedulerKey {
 
     private final long index;
 
-    public AckSchedulerKey(Type type, UUID sessionId, long index) {
+    public AckSchedulerKey(Type type, Long sessionId, long index) {
         super(type, sessionId);
         this.index = index;
     }

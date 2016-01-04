@@ -86,7 +86,7 @@ public class SocketIOServer implements ClientListeners {
      * @param uuid
      * @return
      */
-    public SocketIOClient getClient(UUID uuid) {
+    public SocketIOClient getClient(Long uuid) {
         return namespacesHub.get(Namespace.DEFAULT_NAME).getClient(uuid);
     }
 

@@ -108,7 +108,7 @@ public class WebSocketTransport extends ChannelInboundHandlerAdapter {
                         return;
                     }
                     if (sid != null && sid.get(0) != null) {
-                        final UUID sessionId = UUID.fromString(sid.get(0));
+                        final Long sessionId = Long.valueOf(sid.get(0));
                         handshake(ctx, sessionId, path, req);
                     } else {
                         ClientHead client = ctx.channel().attr(ClientHead.CLIENT).get();
@@ -146,7 +146,7 @@ public class WebSocketTransport extends ChannelInboundHandlerAdapter {
         super.channelInactive(ctx);
     }
 
-    private void handshake(ChannelHandlerContext ctx, final UUID sessionId, String path, FullHttpRequest req) {
+    private void handshake(ChannelHandlerContext ctx, final Long sessionId, String path, FullHttpRequest req) {
         final Channel channel = ctx.channel();
 
         WebSocketServerHandshakerFactory factory =
@@ -172,7 +172,7 @@ public class WebSocketTransport extends ChannelInboundHandlerAdapter {
         }
     }
 
-    private void connectClient(final Channel channel, final UUID sessionId) {
+    private void connectClient(final Channel channel, final Long sessionId) {
         ClientHead client = clientsBox.get(sessionId);
         if (client == null) {
             log.warn("Unauthorized client with sessionId: {} with ip: {}. Channel closed!",

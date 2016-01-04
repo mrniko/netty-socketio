@@ -45,6 +45,6 @@ public interface SocketIONamespace extends ClientListeners {
      * @param uuid
      * @return
      */
-    SocketIOClient getClient(UUID uuid);
+    SocketIOClient getClient(Long uuid);
 
 }

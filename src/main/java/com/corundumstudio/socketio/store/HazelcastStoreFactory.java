@@ -56,7 +56,7 @@ public class HazelcastStoreFactory extends BaseStoreFactory {
     }
 
     @Override
-    public Store createStore(UUID sessionId) {
+    public Store createStore(Long sessionId) {
         return new HazelcastStore(sessionId, hazelcastClient);
     }
 

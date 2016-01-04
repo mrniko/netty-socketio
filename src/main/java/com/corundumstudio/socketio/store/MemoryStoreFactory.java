@@ -29,7 +29,7 @@ public class MemoryStoreFactory extends BaseStoreFactory {
     private final MemoryPubSubStore pubSubMemoryStore = new MemoryPubSubStore();
 
     @Override
-    public Store createStore(UUID sessionId) {
+    public Store createStore(Long sessionId) {
         return new MemoryStore();
     }
 

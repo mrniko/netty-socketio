@@ -19,7 +19,7 @@ import java.util.UUID;
 
 public class XHROptionsMessage extends XHRPostMessage {
 
-    public XHROptionsMessage(String origin, UUID sessionId) {
+    public XHROptionsMessage(String origin, Long sessionId) {
         super(origin, sessionId);
     }
 

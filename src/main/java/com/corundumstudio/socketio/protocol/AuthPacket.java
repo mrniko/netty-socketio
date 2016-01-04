@@ -20,12 +20,12 @@ import java.util.UUID;
 
 public class AuthPacket {
 
-    private final UUID sid;
+    private final long sid;
     private final String[] upgrades;
     private final int pingInterval;
     private final int pingTimeout;
 
-    public AuthPacket(UUID sid, String[] upgrades, int pingInterval, int pingTimeout) {
+    public AuthPacket(long sid, String[] upgrades, int pingInterval, int pingTimeout) {
         super();
         this.sid = sid;
         this.upgrades = upgrades;
@@ -41,7 +41,7 @@ public class AuthPacket {
         return pingTimeout;
     }
 
-    public UUID getSid() {
+    public long getSid() {
         return sid;
     }
 

@@ -71,7 +71,7 @@ public class AckManager implements Disconnectable {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private final Map<UUID, AckEntry> ackEntries = PlatformDependent.newConcurrentHashMap();
+    private final Map<Long, AckEntry> ackEntries = PlatformDependent.newConcurrentHashMap();
 
     private final CancelableScheduler scheduler;
 
@@ -80,12 +80,12 @@ public class AckManager implements Disconnectable {
         this.scheduler = scheduler;
     }
 
-    public void initAckIndex(UUID sessionId, long index) {
+    public void initAckIndex(Long  sessionId, long index) {
         AckEntry ackEntry = getAckEntry(sessionId);
         ackEntry.initAckIndex(index);
     }
 
-    private AckEntry getAckEntry(UUID sessionId) {
+    private AckEntry getAckEntry(Long sessionId) {
         AckEntry ackEntry = ackEntries.get(sessionId);
         if (ackEntry == null) {
             ackEntry = new AckEntry();
@@ -121,7 +121,7 @@ public class AckManager implements Disconnectable {
         }
     }
 
-    private AckCallback removeCallback(UUID sessionId, long index) {
+    private AckCallback removeCallback(long sessionId, long index) {
         AckEntry ackEntry = ackEntries.get(sessionId);
         // may be null if client disconnected
         // before timeout occurs
@@ -131,12 +131,12 @@ public class AckManager implements Disconnectable {
         return null;
     }
 
-    public AckCallback<?> getCallback(UUID sessionId, long index) {
+    public AckCallback<?> getCallback(long sessionId, long index) {
         AckEntry ackEntry = getAckEntry(sessionId);
         return ackEntry.getAckCallback(index);
     }
 
-    public long registerAck(UUID sessionId, AckCallback callback) {
+    public long registerAck(long sessionId, AckCallback callback) {
         AckEntry ackEntry = getAckEntry(sessionId);
         ackEntry.initAckIndex(0);
         long index = ackEntry.addAckCallback(callback);
@@ -150,7 +150,7 @@ public class AckManager implements Disconnectable {
         return index;
     }
 
-    private void scheduleTimeout(final long index, final UUID sessionId, AckCallback callback) {
+    private void scheduleTimeout(final long index, final long sessionId, AckCallback callback) {
         if (callback.getTimeout() == -1) {
             return;
         }

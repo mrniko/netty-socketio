@@ -25,7 +25,7 @@ public class HazelcastStore implements Store {
 
     private final IMap<String, Object> map;
 
-    public HazelcastStore(UUID sessionId, HazelcastInstance hazelcastInstance) {
+    public HazelcastStore(Long sessionId, HazelcastInstance hazelcastInstance) {
         map = hazelcastInstance.getMap(sessionId.toString());
     }
 

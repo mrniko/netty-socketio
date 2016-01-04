@@ -35,7 +35,7 @@ public interface StoreFactory extends Disconnectable {
 
     <K, V> Map<K, V> createMap(String name);
 
-    Store createStore(UUID sessionId);
+    Store createStore(Long sessionId);
 
     void init(NamespacesHub namespacesHub, AuthorizeHandler authorizeHandler, JsonSupport jsonSupport);
 

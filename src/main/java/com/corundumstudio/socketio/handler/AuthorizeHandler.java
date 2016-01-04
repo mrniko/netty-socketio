@@ -16,6 +16,9 @@
 package com.corundumstudio.socketio.handler;
 
 import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
+
+import com.corundumstudio.socketio.transport.SocketIOUUID;
+import com.relops.snowflake.Snowflake;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler.Sharable;
@@ -159,7 +162,7 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
             return false;
         }
 
-        UUID sessionId = this.generateOrGetSessionIdFromRequest(headers);
+        long sessionId = this.generateOrGetSessionIdFromRequest(headers);
 
         List<String> transportValue = params.get("transport");
         if (transportValue == null) {
@@ -197,18 +200,19 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
         in the "io" cookie.  Failures to parse will cause a logging warning to be generated and a
         random uuid to be generated instead (same as not passing a cookie in the first place).
     */
-    private UUID generateOrGetSessionIdFromRequest(Map<String, List<String>> headers) {
-        if ( headers.containsKey("io") && headers.get("io").size() == 1 ) {
+    private long generateOrGetSessionIdFromRequest(Map<String, List<String>> headers) {
+        if (headers.containsKey("io") && headers.get("io").size() == 1) {
             try {
-                return UUID.fromString(headers.get("io").get(0));
-            } catch ( IllegalArgumentException iaex ) {
-                log.warn("Malformed UUID received for session! io=" + headers.get("io"));
+                return Long.valueOf(headers.get("io").get(0));
+            } catch (IllegalArgumentException iaex) {
+                log.warn("Malformed long received for session! io=" + headers.get("io"));
             }
         }
-        return UUID.randomUUID();
+        long id = SocketIOUUID.getId();
+        return id;
     }
 
-    public void connect(UUID sessionId) {
+    public void connect(Long sessionId) {
         SchedulerKey key = new SchedulerKey(Type.PING_TIMEOUT, sessionId);
         disconnectScheduler.cancel(key);
     }

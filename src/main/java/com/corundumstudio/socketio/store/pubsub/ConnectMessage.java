@@ -21,17 +21,17 @@ public class ConnectMessage extends PubSubMessage {
 
     private static final long serialVersionUID = 3108918714495865101L;
 
-    private UUID sessionId;
+    private Long sessionId;
 
     public ConnectMessage() {
     }
 
-    public ConnectMessage(UUID sessionId) {
+    public ConnectMessage(Long sessionId) {
         super();
         this.sessionId = sessionId;
     }
 
-    public UUID getSessionId() {
+    public Long getSessionId() {
         return sessionId;
     }
 

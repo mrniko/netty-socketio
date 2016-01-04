@@ -72,7 +72,7 @@ public interface SocketIOClient extends ClientOperations, Store {
      *
      * @return - session id
      */
-    UUID getSessionId();
+    Long getSessionId();
 
     /**
      * Get client remote address

@@ -24,7 +24,7 @@ public class RedissonStore implements Store {
 
     private final Map<String, Object> map;
 
-    public RedissonStore(UUID sessionId, RedissonClient redisson) {
+    public RedissonStore(Long sessionId, RedissonClient redisson) {
         this.map = redisson.getMap(sessionId.toString());
     }
 

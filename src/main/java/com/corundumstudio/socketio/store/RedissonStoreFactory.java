@@ -53,7 +53,7 @@ public class RedissonStoreFactory extends BaseStoreFactory {
     }
 
     @Override
-    public Store createStore(UUID sessionId) {
+    public Store createStore(Long sessionId) {
         return new RedissonStore(sessionId, redisClient);
     }
 

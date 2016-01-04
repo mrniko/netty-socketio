@@ -25,11 +25,11 @@ import com.corundumstudio.socketio.HandshakeData;
 
 public class ClientsBox {
 
-    private final Map<UUID, ClientHead> uuid2clients = PlatformDependent.newConcurrentHashMap();
+    private final Map<Long, ClientHead> uuid2clients = PlatformDependent.newConcurrentHashMap();
     private final Map<Channel, ClientHead> channel2clients = PlatformDependent.newConcurrentHashMap();
 
     // TODO use storeFactory
-    public HandshakeData getHandshakeData(UUID sessionId) {
+    public HandshakeData getHandshakeData(Long sessionId) {
         ClientHead client = uuid2clients.get(sessionId);
         if (client == null) {
             return null;
@@ -42,11 +42,11 @@ public class ClientsBox {
         uuid2clients.put(clientHead.getSessionId(), clientHead);
     }
 
-    public void removeClient(UUID sessionId) {
+    public void removeClient(Long sessionId) {
         uuid2clients.remove(sessionId);
     }
 
-    public ClientHead get(UUID sessionId) {
+    public ClientHead get(Long sessionId) {
         return uuid2clients.get(sessionId);
     }
 
