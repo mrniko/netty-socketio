@@ -15,17 +15,14 @@
  */
 package com.corundumstudio.socketio.protocol;
 
-import java.util.UUID;
-
-
 public class AuthPacket {
 
-    private final long sid;
+    private final Long sid;
     private final String[] upgrades;
     private final int pingInterval;
     private final int pingTimeout;
 
-    public AuthPacket(long sid, String[] upgrades, int pingInterval, int pingTimeout) {
+    public AuthPacket(Long sid, String[] upgrades, int pingInterval, int pingTimeout) {
         super();
         this.sid = sid;
         this.upgrades = upgrades;
@@ -41,8 +38,8 @@ public class AuthPacket {
         return pingTimeout;
     }
 
-    public long getSid() {
-        return sid;
+    public String getSid() {
+        return Long.toString(sid);
     }
 
     public String[] getUpgrades() {

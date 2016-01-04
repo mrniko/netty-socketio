@@ -15,8 +15,6 @@
  */
 package com.corundumstudio.socketio.store.pubsub;
 
-import java.util.UUID;
-
 public class JoinLeaveMessage extends PubSubMessage {
 
     private static final long serialVersionUID = -944515928988033174L;

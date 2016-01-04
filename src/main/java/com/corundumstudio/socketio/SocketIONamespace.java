@@ -15,10 +15,9 @@
  */
 package com.corundumstudio.socketio;
 
-import java.util.Collection;
-import java.util.UUID;
-
 import com.corundumstudio.socketio.listener.ClientListeners;
+
+import java.util.Collection;
 
 /**
  * Fully thread-safe.

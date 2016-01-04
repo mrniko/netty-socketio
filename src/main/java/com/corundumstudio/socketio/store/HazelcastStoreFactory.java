@@ -15,13 +15,12 @@
  */
 package com.corundumstudio.socketio.store;
 
-import java.util.Map;
-import java.util.UUID;
-
 import com.corundumstudio.socketio.store.pubsub.BaseStoreFactory;
 import com.corundumstudio.socketio.store.pubsub.PubSubStore;
 import com.hazelcast.client.HazelcastClient;
 import com.hazelcast.core.HazelcastInstance;
+
+import java.util.Map;
 
 /**
  * WARN: It's necessary to add netty-socketio.jar in hazelcast server classpath.

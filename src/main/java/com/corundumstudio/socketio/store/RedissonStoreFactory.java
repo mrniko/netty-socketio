@@ -15,14 +15,12 @@
  */
 package com.corundumstudio.socketio.store;
 
-import java.util.Map;
-import java.util.UUID;
-
+import com.corundumstudio.socketio.store.pubsub.BaseStoreFactory;
+import com.corundumstudio.socketio.store.pubsub.PubSubStore;
 import org.redisson.Redisson;
 import org.redisson.RedissonClient;
 
-import com.corundumstudio.socketio.store.pubsub.BaseStoreFactory;
-import com.corundumstudio.socketio.store.pubsub.PubSubStore;
+import java.util.Map;
 
 public class RedissonStoreFactory extends BaseStoreFactory {
 

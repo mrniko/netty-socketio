@@ -15,14 +15,13 @@
  */
 package com.corundumstudio.socketio.store;
 
-import java.util.Map;
-import java.util.UUID;
-
 import com.corundumstudio.socketio.Disconnectable;
 import com.corundumstudio.socketio.handler.AuthorizeHandler;
 import com.corundumstudio.socketio.namespace.NamespacesHub;
 import com.corundumstudio.socketio.protocol.JsonSupport;
 import com.corundumstudio.socketio.store.pubsub.PubSubStore;
+
+import java.util.Map;
 
 /**
  *

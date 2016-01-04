@@ -15,8 +15,6 @@
  */
 package com.corundumstudio.socketio.store;
 
-import java.util.UUID;
-
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IMap;
 

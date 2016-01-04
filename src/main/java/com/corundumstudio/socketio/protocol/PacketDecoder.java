@@ -15,6 +15,9 @@
  */
 package com.corundumstudio.socketio.protocol;
 
+import com.corundumstudio.socketio.AckCallback;
+import com.corundumstudio.socketio.ack.AckManager;
+import com.corundumstudio.socketio.handler.ClientHead;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufInputStream;
 import io.netty.buffer.Unpooled;
@@ -24,11 +27,6 @@ import io.netty.util.CharsetUtil;
 import java.io.IOException;
 import java.net.URLDecoder;
 import java.util.LinkedList;
-import java.util.UUID;
-
-import com.corundumstudio.socketio.AckCallback;
-import com.corundumstudio.socketio.ack.AckManager;
-import com.corundumstudio.socketio.handler.ClientHead;
 
 public class PacketDecoder {
 
@@ -95,7 +93,7 @@ public class PacketDecoder {
     }
 
     @Deprecated
-    public Packet decodePacket(String string, UUID uuid) throws IOException {
+    public Packet decodePacket(String string, Long uuid) throws IOException {
         ByteBuf buf = Unpooled.copiedBuffer(string, CharsetUtil.UTF_8);
         try {
             return null;

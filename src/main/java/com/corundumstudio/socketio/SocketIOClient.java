@@ -15,12 +15,11 @@
  */
 package com.corundumstudio.socketio;
 
-import java.net.SocketAddress;
-import java.util.Set;
-import java.util.UUID;
-
 import com.corundumstudio.socketio.protocol.Packet;
 import com.corundumstudio.socketio.store.Store;
+
+import java.net.SocketAddress;
+import java.util.Set;
 
 
 /**
@@ -68,7 +67,7 @@ public interface SocketIOClient extends ClientOperations, Store {
     SocketIONamespace getNamespace();
 
     /**
-     * Client session id, uses {@link UUID} object
+     * Client session id, uses {@link Long} object
      *
      * @return - session id
      */

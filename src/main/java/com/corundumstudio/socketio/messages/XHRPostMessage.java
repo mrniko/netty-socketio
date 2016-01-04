@@ -15,8 +15,6 @@
  */
 package com.corundumstudio.socketio.messages;
 
-import java.util.UUID;
-
 public class XHRPostMessage extends HttpMessage {
 
     public XHRPostMessage(String origin, Long sessionId) {

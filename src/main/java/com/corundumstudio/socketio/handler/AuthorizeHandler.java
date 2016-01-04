@@ -147,7 +147,7 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
             return false;
         }
 
-        long sessionId = this.generateOrGetSessionIdFromRequest(headers);
+        Long sessionId = this.generateOrGetSessionIdFromRequest(headers);
 
         List<String> transportValue = params.get("transport");
         if (transportValue == null) {
@@ -185,7 +185,7 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
         in the "io" cookie.  Failures to parse will cause a logging warning to be generated and a
         random uuid to be generated instead (same as not passing a cookie in the first place).
     */
-    private long generateOrGetSessionIdFromRequest(Map<String, List<String>> headers) {
+    private Long generateOrGetSessionIdFromRequest(Map<String, List<String>> headers) {
         if (headers.containsKey("io") && headers.get("io").size() == 1) {
             try {
                 return Long.valueOf(headers.get("io").get(0));
@@ -193,7 +193,9 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
                 log.warn("Malformed long received for session! io=" + headers.get("io"));
             }
         }
-        long id = SocketIOUUID.getId();
+
+        Long id = SocketIOUUID.getId();
+        log.info("session id {} generater" ,id);
         return id;
     }
 

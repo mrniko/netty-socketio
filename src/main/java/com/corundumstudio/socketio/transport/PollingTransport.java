@@ -15,27 +15,6 @@
  */
 package com.corundumstudio.socketio.transport;
 
-import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
-import io.netty.buffer.ByteBuf;
-import io.netty.channel.ChannelFutureListener;
-import io.netty.channel.ChannelHandler.Sharable;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.handler.codec.http.DefaultHttpResponse;
-import io.netty.handler.codec.http.FullHttpRequest;
-import io.netty.handler.codec.http.HttpHeaders;
-import io.netty.handler.codec.http.HttpMethod;
-import io.netty.handler.codec.http.HttpResponse;
-import io.netty.handler.codec.http.HttpResponseStatus;
-import io.netty.handler.codec.http.QueryStringDecoder;
-
-import java.io.IOException;
-import java.util.List;
-import java.util.UUID;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.corundumstudio.socketio.Transport;
 import com.corundumstudio.socketio.handler.AuthorizeHandler;
 import com.corundumstudio.socketio.handler.ClientHead;
@@ -45,6 +24,19 @@ import com.corundumstudio.socketio.messages.PacketsMessage;
 import com.corundumstudio.socketio.messages.XHROptionsMessage;
 import com.corundumstudio.socketio.messages.XHRPostMessage;
 import com.corundumstudio.socketio.protocol.PacketDecoder;
+import io.netty.buffer.ByteBuf;
+import io.netty.channel.ChannelFutureListener;
+import io.netty.channel.ChannelHandler.Sharable;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.handler.codec.http.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.util.List;
+
+import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 
 @Sharable
 public class PollingTransport extends ChannelInboundHandlerAdapter {
@@ -70,7 +62,7 @@ public class PollingTransport extends ChannelInboundHandlerAdapter {
             QueryStringDecoder queryDecoder = new QueryStringDecoder(req.getUri());
 
             List<String> transport = queryDecoder.parameters().get("transport");
-
+            
             if (transport != null && NAME.equals(transport.get(0))) {
                 List<String> sid = queryDecoder.parameters().get("sid");
                 List<String> j = queryDecoder.parameters().get("j");
@@ -92,8 +84,14 @@ public class PollingTransport extends ChannelInboundHandlerAdapter {
                 }
 
                 try {
+                    log.info("sid {} params {} headers {} ",sid, queryDecoder.parameters(),req.headers().get("Cookie"));
+
+
                     if (sid != null && sid.get(0) != null) {
+
+
                         final Long sessionId = Long.valueOf(sid.get(0));
+                        log.info("client {} ", clientsBox.get(sessionId));
                         handleMessage(req, sessionId, queryDecoder, ctx);
                     } else {
                         // first connection

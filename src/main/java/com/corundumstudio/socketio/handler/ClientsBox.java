@@ -15,15 +15,17 @@
  */
 package com.corundumstudio.socketio.handler;
 
+import com.corundumstudio.socketio.HandshakeData;
 import io.netty.channel.Channel;
 import io.netty.util.internal.PlatformDependent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Map;
-import java.util.UUID;
-
-import com.corundumstudio.socketio.HandshakeData;
 
 public class ClientsBox {
+
+    private final Logger log = LoggerFactory.getLogger(getClass());
 
     private final Map<Long, ClientHead> uuid2clients = PlatformDependent.newConcurrentHashMap();
     private final Map<Channel, ClientHead> channel2clients = PlatformDependent.newConcurrentHashMap();
@@ -39,7 +41,9 @@ public class ClientsBox {
     }
 
     public void addClient(ClientHead clientHead) {
+        log.info("uuid2clients set {} {}", clientHead.getSessionId(),clientHead);
         uuid2clients.put(clientHead.getSessionId(), clientHead);
+        log.info("uuid2clients get {} {}", clientHead.getSessionId(),uuid2clients.get(clientHead.getSessionId()));
     }
 
     public void removeClient(Long sessionId) {
