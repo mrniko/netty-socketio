@@ -84,14 +84,8 @@ public class PollingTransport extends ChannelInboundHandlerAdapter {
                 }
 
                 try {
-                    log.info("sid {} params {} headers {} ",sid, queryDecoder.parameters(),req.headers().get("Cookie"));
-
-
                     if (sid != null && sid.get(0) != null) {
-
-
                         final Long sessionId = Long.valueOf(sid.get(0));
-                        log.info("client {} ", clientsBox.get(sessionId));
                         handleMessage(req, sessionId, queryDecoder, ctx);
                     } else {
                         // first connection

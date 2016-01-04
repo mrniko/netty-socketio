@@ -41,9 +41,7 @@ public class ClientsBox {
     }
 
     public void addClient(ClientHead clientHead) {
-        log.info("uuid2clients set {} {}", clientHead.getSessionId(),clientHead);
         uuid2clients.put(clientHead.getSessionId(), clientHead);
-        log.info("uuid2clients get {} {}", clientHead.getSessionId(),uuid2clients.get(clientHead.getSessionId()));
     }
 
     public void removeClient(Long sessionId) {

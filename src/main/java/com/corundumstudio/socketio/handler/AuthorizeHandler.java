@@ -195,7 +195,6 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
         }
 
         Long id = SocketIOUUID.getId();
-        log.info("session id {} generater" ,id);
         return id;
     }
 

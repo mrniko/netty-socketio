@@ -208,7 +208,8 @@ public class EncoderHandler extends ChannelOutboundHandlerAdapter {
             Queue<Packet> queue = msg.getClientHead().getPacketsQueue(msg.getTransport());
             Packet packet = queue.poll();
             if (packet == null) {
-                promise.setSuccess();
+                promise.trySuccess();
+//                promise.setSuccess();
                 break;
             }
 
