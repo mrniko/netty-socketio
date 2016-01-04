@@ -275,7 +275,7 @@ public class Namespace implements SocketIONamespace {
         }
     }
 
-    public void join(String room, long sessionId) {
+    public void join(String room, Long sessionId) {
         join(roomClients, room, sessionId);
         join(clientRooms, sessionId, room);
     }
@@ -297,7 +297,7 @@ public class Namespace implements SocketIONamespace {
         }
     }
 
-    public void leave(String room, long sessionId) {
+    public void leave(String room, Long sessionId) {
         leave(roomClients, room, sessionId);
         clientRooms.remove(sessionId);
     }
