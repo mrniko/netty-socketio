@@ -221,7 +221,11 @@ public class EncoderHandler extends ChannelOutboundHandlerAdapter {
             }
 
             if (out.isReadable()) {
-                ctx.channel().writeAndFlush(res, promise);
+                if (!promise.isDone()) {
+                    ctx.channel().writeAndFlush(res, promise);
+                } else {
+                    ctx.channel().writeAndFlush(res);
+                }
             } else {
                 promise.trySuccess();
                 out.release();
