@@ -209,7 +209,6 @@ public class EncoderHandler extends ChannelOutboundHandlerAdapter {
             Packet packet = queue.poll();
             if (packet == null) {
                 promise.trySuccess();
-//                promise.setSuccess();
                 break;
             }
 
@@ -222,9 +221,13 @@ public class EncoderHandler extends ChannelOutboundHandlerAdapter {
             }
 
             if (out.isReadable()) {
-                ctx.channel().writeAndFlush(res, promise);
+                if (!promise.isDone()) {
+                    ctx.channel().writeAndFlush(res, promise);
+                } else {
+                    ctx.channel().writeAndFlush(res);
+                }
             } else {
-                promise.setSuccess();
+                promise.trySuccess();
                 out.release();
             }
 
@@ -247,7 +250,7 @@ public class EncoderHandler extends ChannelOutboundHandlerAdapter {
         Queue<Packet> queue = msg.getClientHead().getPacketsQueue(msg.getTransport());
 
         if (!channel.isActive() || queue.isEmpty() || !attr.compareAndSet(null, true)) {
-            promise.setSuccess();
+            promise.trySuccess();
             return;
         }
 
