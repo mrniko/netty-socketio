@@ -50,11 +50,7 @@ public class PacketDecoder {
     public ByteBuf preprocessJson(Integer jsonIndex, ByteBuf content) throws IOException {
         String packet = URLDecoder.decode(content.toString(CharsetUtil.UTF_8), CharsetUtil.UTF_8.name());
 
-        int startPos = 0;
         if (jsonIndex != null) {
-            // skip "d="
-            startPos = 2;
-
             /**
             * double escaping is required for escaped new lines because unescaping of new lines can be done safely on server-side
             * (c) socket.io.js
@@ -62,6 +58,9 @@ public class PacketDecoder {
             * @see https://github.com/Automattic/socket.io-client/blob/1.3.3/socket.io.js#L2682
             */
             packet = packet.replace("\\\\n", "\\n");
+
+            // skip "d="
+            packet = packet.substring(2);
         }
         packet = new String(packet.getBytes(CharsetUtil.ISO_8859_1), CharsetUtil.UTF_8);
 
