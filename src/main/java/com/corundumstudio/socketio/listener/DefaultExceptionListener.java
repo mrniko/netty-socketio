@@ -26,7 +26,7 @@ import com.corundumstudio.socketio.SocketIOClient;
 
 public class DefaultExceptionListener extends ExceptionListenerAdapter {
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
+    private static final Logger log = LoggerFactory.getLogger(DefaultExceptionListener.class);
 
     @Override
     public void onEventException(Exception e, List<Object> args, SocketIOClient client) {

@@ -53,7 +53,7 @@ import io.netty.util.internal.PlatformDependent;
 
 public class ClientHead {
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
+    private static final Logger log = LoggerFactory.getLogger(ClientHead.class);
 
     public static final AttributeKey<ClientHead> CLIENT = AttributeKey.<ClientHead>valueOf("client");
 

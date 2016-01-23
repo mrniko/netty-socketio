@@ -29,7 +29,7 @@ import com.corundumstudio.socketio.protocol.JsonSupport;
 
 class JsonSupportWrapper implements JsonSupport {
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
+    private static final Logger log = LoggerFactory.getLogger(JsonSupportWrapper.class);
 
     private final JsonSupport delegate;
 

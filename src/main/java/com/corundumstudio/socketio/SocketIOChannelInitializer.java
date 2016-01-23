@@ -71,7 +71,7 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
     public static final String RESOURCE_HANDLER = "resourceHandler";
     public static final String WRONG_URL_HANDLER = "wrongUrlBlocker";
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
+    private static final Logger log = LoggerFactory.getLogger(SocketIOChannelInitializer.class);
 
     private AckManager ackManager;
 

@@ -35,7 +35,7 @@ import com.corundumstudio.socketio.protocol.PacketType;
 
 public class NamespaceClient implements SocketIOClient {
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
+    private static final Logger log = LoggerFactory.getLogger(NamespaceClient.class);
 
     private final AtomicBoolean disconnected = new AtomicBoolean();
     private final ClientHead baseClient;
