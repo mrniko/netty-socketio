@@ -195,6 +195,7 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
         return serverContext;
     }
 
+    @Override
     public void onDisconnect(ClientHead client) {
         ackManager.onDisconnect(client);
         authorizeHandler.onDisconnect(client);

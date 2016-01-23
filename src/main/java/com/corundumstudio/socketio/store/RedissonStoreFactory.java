@@ -57,6 +57,7 @@ public class RedissonStoreFactory extends BaseStoreFactory {
         return new RedissonStore(sessionId, redisClient);
     }
 
+    @Override
     public PubSubStore pubSubStore() {
         return pubSubStore;
     }

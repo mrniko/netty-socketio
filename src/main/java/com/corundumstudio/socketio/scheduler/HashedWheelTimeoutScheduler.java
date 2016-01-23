@@ -45,6 +45,7 @@ public class HashedWheelTimeoutScheduler implements CancelableScheduler {
         this.ctx = ctx;
     }
 
+    @Override
     public void cancel(SchedulerKey key) {
         Timeout timeout = scheduledFutures.remove(key);
         if (timeout != null) {
@@ -52,6 +53,7 @@ public class HashedWheelTimeoutScheduler implements CancelableScheduler {
         }
     }
 
+    @Override
     public void schedule(final Runnable runnable, long delay, TimeUnit unit) {
         executorService.newTimeout(new TimerTask() {
             @Override
@@ -61,6 +63,7 @@ public class HashedWheelTimeoutScheduler implements CancelableScheduler {
         }, delay, unit);
     }
 
+    @Override
     public void scheduleCallback(final SchedulerKey key, final Runnable runnable, long delay, TimeUnit unit) {
         Timeout timeout = executorService.newTimeout(new TimerTask() {
             @Override
@@ -81,6 +84,7 @@ public class HashedWheelTimeoutScheduler implements CancelableScheduler {
         replaceScheduledFuture(key, timeout);
     }
 
+    @Override
     public void schedule(final SchedulerKey key, final Runnable runnable, long delay, TimeUnit unit) {
         Timeout timeout = executorService.newTimeout(new TimerTask() {
             @Override
@@ -96,6 +100,7 @@ public class HashedWheelTimeoutScheduler implements CancelableScheduler {
         replaceScheduledFuture(key, timeout);
     }
 
+    @Override
     public void shutdown() {
         executorService.stop();
     }

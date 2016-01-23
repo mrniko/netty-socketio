@@ -43,6 +43,7 @@ public class DefaultExceptionListener extends ExceptionListenerAdapter {
         log.error(e.getMessage(), e);
     }
 
+    @Override
     public boolean exceptionCaught(ChannelHandlerContext ctx, Throwable e) throws Exception {
         log.error(e.getMessage(), e);
         return true;

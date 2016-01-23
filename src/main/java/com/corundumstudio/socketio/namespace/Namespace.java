@@ -86,6 +86,7 @@ public class Namespace implements SocketIONamespace {
         allClients.put(client.getSessionId(), client);
     }
 
+    @Override
     public String getName() {
         return name;
     }
@@ -331,6 +332,7 @@ public class Namespace implements SocketIONamespace {
         return result;
     }
 
+    @Override
     public Collection<SocketIOClient> getAllClients() {
         return Collections.unmodifiableCollection(allClients.values());
     }
@@ -339,6 +341,7 @@ public class Namespace implements SocketIONamespace {
         return jsonSupport;
     }
 
+    @Override
     public SocketIOClient getClient(UUID uuid) {
         return allClients.get(uuid);
     }
