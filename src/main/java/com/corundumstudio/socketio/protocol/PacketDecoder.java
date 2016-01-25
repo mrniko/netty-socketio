@@ -120,6 +120,9 @@ public class PacketDecoder {
         if (isStringPacket(buffer)) {
             // TODO refactor
             int headEndIndex = buffer.bytesBefore((byte)-1);
+            if (headEndIndex == -1) {
+                headEndIndex = buffer.bytesBefore((byte)0x3f);
+            }
             int len = (int) readLong(buffer, headEndIndex);
 
             ByteBuf frame = buffer.slice(buffer.readerIndex() + 1, len);
