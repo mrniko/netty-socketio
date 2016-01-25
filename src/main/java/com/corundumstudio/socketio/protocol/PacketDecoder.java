@@ -119,9 +119,9 @@ public class PacketDecoder {
     public Packet decodePackets(ByteBuf buffer, ClientHead client) throws IOException {
         if (isStringPacket(buffer)) {
             // TODO refactor
-            int headEndIndex = buffer.bytesBefore((byte)-1);
+            int headEndIndex = buffer.bytesBefore(10, (byte)-1);
             if (headEndIndex == -1) {
-                headEndIndex = buffer.bytesBefore((byte)0x3f);
+                headEndIndex = buffer.bytesBefore(10, (byte)0x3f);
             }
             int len = (int) readLong(buffer, headEndIndex);
 
