@@ -61,7 +61,7 @@ import com.corundumstudio.socketio.store.pubsub.PubSubStore;
 @Sharable
 public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Disconnectable {
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
+    private static final Logger log = LoggerFactory.getLogger(AuthorizeHandler.class);
 
     private final CancelableScheduler disconnectScheduler;
 

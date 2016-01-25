@@ -51,7 +51,7 @@ public class PollingTransport extends ChannelInboundHandlerAdapter {
 
     public static final String NAME = "polling";
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
+    private static final Logger log = LoggerFactory.getLogger(PollingTransport.class);
 
     private final PacketDecoder decoder;
     private final ClientsBox clientsBox;

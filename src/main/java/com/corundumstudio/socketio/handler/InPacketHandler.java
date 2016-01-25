@@ -36,7 +36,7 @@ import com.corundumstudio.socketio.transport.NamespaceClient;
 @Sharable
 public class InPacketHandler extends SimpleChannelInboundHandler<PacketsMessage> {
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
+    private static final Logger log = LoggerFactory.getLogger(InPacketHandler.class);
 
     private final PacketListener packetListener;
     private final PacketDecoder decoder;

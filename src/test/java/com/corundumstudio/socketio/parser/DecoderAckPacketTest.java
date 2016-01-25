@@ -16,12 +16,9 @@
 package com.corundumstudio.socketio.parser;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.UUID;
 
 import mockit.Expectations;
-
-import com.fasterxml.jackson.core.JsonParseException;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -29,6 +26,7 @@ import org.junit.Test;
 import com.corundumstudio.socketio.AckCallback;
 import com.corundumstudio.socketio.protocol.Packet;
 import com.corundumstudio.socketio.protocol.PacketType;
+import com.fasterxml.jackson.core.JsonParseException;
 
 public class DecoderAckPacketTest extends DecoderBaseTest {
 

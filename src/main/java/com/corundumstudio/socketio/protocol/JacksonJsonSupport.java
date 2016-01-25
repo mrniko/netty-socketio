@@ -204,6 +204,7 @@ public class JacksonJsonSupport implements JsonSupport {
     {
 
         private final ThreadLocal<List<byte[]>> arrays = new ThreadLocal<List<byte[]>>() {
+            @Override
             protected List<byte[]> initialValue() {
                 return new ArrayList<byte[]>();
             };
@@ -295,7 +296,7 @@ public class JacksonJsonSupport implements JsonSupport {
     private final EventDeserializer eventDeserializer = new EventDeserializer();
     private final AckArgsDeserializer ackArgsDeserializer = new AckArgsDeserializer();
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
+    private static final Logger log = LoggerFactory.getLogger(JacksonJsonSupport.class);
 
     public JacksonJsonSupport() {
         this(new Module[] {});

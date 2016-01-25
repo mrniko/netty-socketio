@@ -20,8 +20,6 @@ import io.netty.buffer.Unpooled;
 import io.netty.util.CharsetUtil;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collections;
 
 import org.junit.Assert;
 import org.junit.Test;

@@ -28,7 +28,7 @@ import com.corundumstudio.socketio.namespace.Namespace;
 
 public class ScannerEngine {
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
+    private static final Logger log = LoggerFactory.getLogger(ScannerEngine.class);
 
     private static final List<? extends AnnotationScanner> annotations =
                     Arrays.asList(new OnConnectScanner(), new OnDisconnectScanner(), new OnEventScanner());
@@ -36,7 +36,7 @@ public class ScannerEngine {
     private Method findSimilarMethod(Class<?> objectClazz, Method method) {
         Method[] methods = objectClazz.getDeclaredMethods();
         for (Method m : methods) {
-            if (equals(m, method)) {
+            if (isEquals(m, method)) {
                 return m;
             }
         }
@@ -86,7 +86,7 @@ public class ScannerEngine {
 
     }
 
-    private boolean equals(Method method1, Method method2) {
+    private boolean isEquals(Method method1, Method method2) {
         if (!method1.getName().equals(method2.getName())
                 || !method1.getReturnType().equals(method2.getReturnType())) {
             return false;

@@ -15,15 +15,13 @@
  */
 package com.corundumstudio.socketio.parser;
 
-import com.corundumstudio.socketio.namespace.NamespacesHub;
-import org.junit.Before;
-
 import mockit.Mocked;
 
-import com.corundumstudio.socketio.Configuration;
+import org.junit.Before;
+
 import com.corundumstudio.socketio.ack.AckManager;
-import com.corundumstudio.socketio.protocol.PacketDecoder;
 import com.corundumstudio.socketio.protocol.JacksonJsonSupport;
+import com.corundumstudio.socketio.protocol.PacketDecoder;
 
 
 public class DecoderBaseTest {

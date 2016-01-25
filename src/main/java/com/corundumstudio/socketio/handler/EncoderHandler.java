@@ -73,7 +73,7 @@ public class EncoderHandler extends ChannelOutboundHandlerAdapter {
     public static final AttributeKey<Integer> JSONP_INDEX = AttributeKey.valueOf("jsonpIndex");
     public static final AttributeKey<Boolean> WRITE_ONCE = AttributeKey.valueOf("writeOnce");
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
+    private static final Logger log = LoggerFactory.getLogger(EncoderHandler.class);
 
     private final PacketEncoder encoder;
 

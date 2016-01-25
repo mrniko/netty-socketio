@@ -60,7 +60,7 @@ import com.corundumstudio.socketio.SocketIOChannelInitializer;
 @Sharable
 public class ResourceHandler extends ChannelInboundHandlerAdapter {
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
+    private static final Logger log = LoggerFactory.getLogger(ResourceHandler.class);
 
     public static final String HTTP_DATE_FORMAT = "EEE, dd MMM yyyy HH:mm:ss zzz";
     public static final String HTTP_DATE_GMT_TIMEZONE = "GMT";

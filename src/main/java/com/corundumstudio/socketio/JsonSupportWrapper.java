@@ -29,7 +29,7 @@ import com.corundumstudio.socketio.protocol.JsonSupport;
 
 class JsonSupportWrapper implements JsonSupport {
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
+    private static final Logger log = LoggerFactory.getLogger(JsonSupportWrapper.class);
 
     private final JsonSupport delegate;
 
@@ -37,6 +37,7 @@ class JsonSupportWrapper implements JsonSupport {
         this.delegate = delegate;
     }
 
+    @Override
     public AckArgs readAckArgs(ByteBufInputStream src, AckCallback<?> callback) throws IOException {
         try {
             return delegate.readAckArgs(src, callback);
@@ -47,6 +48,7 @@ class JsonSupportWrapper implements JsonSupport {
         }
     }
 
+    @Override
     public <T> T readValue(String namespaceName, ByteBufInputStream src, Class<T> valueType) throws IOException {
         try {
             return delegate.readValue(namespaceName, src, valueType);
@@ -57,6 +59,7 @@ class JsonSupportWrapper implements JsonSupport {
         }
     }
 
+    @Override
     public void writeValue(ByteBufOutputStream out, Object value) throws IOException {
         try {
             delegate.writeValue(out, value);
@@ -66,10 +69,12 @@ class JsonSupportWrapper implements JsonSupport {
         }
     }
 
+    @Override
     public void addEventMapping(String namespaceName, String eventName, Class<?> ... eventClass) {
         delegate.addEventMapping(namespaceName, eventName, eventClass);
     }
 
+    @Override
     public void removeEventMapping(String namespaceName, String eventName) {
         delegate.removeEventMapping(namespaceName, eventName);
     }
