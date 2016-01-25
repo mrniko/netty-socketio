@@ -20,6 +20,7 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
+import io.netty.handler.codec.http.HttpMessage;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpRequestDecoder;
 import io.netty.handler.codec.http.HttpResponseEncoder;
@@ -161,7 +162,14 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
      */
     protected void addSocketioHandlers(ChannelPipeline pipeline) {
         pipeline.addLast(HTTP_REQUEST_DECODER, new HttpRequestDecoder());
-        pipeline.addLast(HTTP_AGGREGATOR, new HttpObjectAggregator(configuration.getMaxHttpContentLength()));
+        pipeline.addLast(HTTP_AGGREGATOR, new HttpObjectAggregator(configuration.getMaxHttpContentLength()) {
+            @Override
+            protected Object newContinueResponse(HttpMessage start, int maxContentLength,
+                    ChannelPipeline pipeline) {
+                return null;
+            }
+
+        });
         pipeline.addLast(HTTP_ENCODER, new HttpResponseEncoder());
 
         pipeline.addLast(PACKET_HANDLER, packetHandler);
