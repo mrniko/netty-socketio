@@ -50,10 +50,13 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
+import io.netty.handler.codec.http.HttpContentCompressor;
 import io.netty.handler.codec.http.HttpMessage;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpRequestDecoder;
+import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseEncoder;
+import io.netty.handler.codec.http.HttpUtil;
 import io.netty.handler.codec.http.websocketx.extensions.compression.WebSocketServerCompressionHandler;
 import io.netty.handler.ssl.SslHandler;
 
@@ -67,6 +70,7 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
     public static final String AUTHORIZE_HANDLER = "authorizeHandler";
     public static final String PACKET_HANDLER = "packetHandler";
     public static final String HTTP_ENCODER = "httpEncoder";
+    public static final String HTTP_COMPRESSION = "httpCompression";
     public static final String HTTP_AGGREGATOR = "httpAggregator";
     public static final String HTTP_REQUEST_DECODER = "httpDecoder";
     public static final String SSL_HANDLER = "ssl";
@@ -173,6 +177,8 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
 
         });
         pipeline.addLast(HTTP_ENCODER, new HttpResponseEncoder());
+
+        pipeline.addLast(HTTP_COMPRESSION, new HttpContentCompressor());
 
         pipeline.addLast(PACKET_HANDLER, packetHandler);
 

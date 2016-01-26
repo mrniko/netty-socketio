@@ -17,7 +17,7 @@ package com.corundumstudio.socketio.messages;
 
 import java.util.UUID;
 
-public abstract class HttpMessage extends BaseMessage {
+public abstract class HttpMessage {
 
     private final String origin;
     private final UUID sessionId;
