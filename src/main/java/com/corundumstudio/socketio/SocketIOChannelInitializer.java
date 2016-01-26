@@ -15,16 +15,6 @@
  */
 package com.corundumstudio.socketio;
 
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelPipeline;
-import io.netty.handler.codec.http.HttpMessage;
-import io.netty.handler.codec.http.HttpObjectAggregator;
-import io.netty.handler.codec.http.HttpRequestDecoder;
-import io.netty.handler.codec.http.HttpResponseEncoder;
-import io.netty.handler.ssl.SslHandler;
-
 import java.security.KeyStore;
 
 import javax.net.ssl.KeyManagerFactory;
@@ -56,9 +46,21 @@ import com.corundumstudio.socketio.store.pubsub.PubSubStore;
 import com.corundumstudio.socketio.transport.PollingTransport;
 import com.corundumstudio.socketio.transport.WebSocketTransport;
 
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.ChannelPipeline;
+import io.netty.handler.codec.http.HttpMessage;
+import io.netty.handler.codec.http.HttpObjectAggregator;
+import io.netty.handler.codec.http.HttpRequestDecoder;
+import io.netty.handler.codec.http.HttpResponseEncoder;
+import io.netty.handler.codec.http.websocketx.extensions.compression.WebSocketServerCompressionHandler;
+import io.netty.handler.ssl.SslHandler;
+
 public class SocketIOChannelInitializer extends ChannelInitializer<Channel> implements DisconnectableHub {
 
     public static final String SOCKETIO_ENCODER = "socketioEncoder";
+    public static final String WEB_SOCKET_TRANSPORT_COMPRESSION = "webSocketTransportCompression";
     public static final String WEB_SOCKET_TRANSPORT = "webSocketTransport";
     public static final String WEB_SOCKET_AGGREGATOR = "webSocketAggregator";
     public static final String XHR_POLLING_TRANSPORT = "xhrPollingTransport";
@@ -80,6 +82,7 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
     private AuthorizeHandler authorizeHandler;
     private PollingTransport xhrPollingTransport;
     private WebSocketTransport webSocketTransport;
+    private WebSocketServerCompressionHandler webSocketTransportCompression = new WebSocketServerCompressionHandler();
     private EncoderHandler encoderHandler;
     private WrongUrlHandler wrongUrlHandler;
 
@@ -175,6 +178,8 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
 
         pipeline.addLast(AUTHORIZE_HANDLER, authorizeHandler);
         pipeline.addLast(XHR_POLLING_TRANSPORT, xhrPollingTransport);
+        // TODO use single instance when https://github.com/netty/netty/issues/4755 will be resolved
+        pipeline.addLast(WEB_SOCKET_TRANSPORT_COMPRESSION, new WebSocketServerCompressionHandler());
         pipeline.addLast(WEB_SOCKET_TRANSPORT, webSocketTransport);
 
         pipeline.addLast(SOCKETIO_ENCODER, encoderHandler);
