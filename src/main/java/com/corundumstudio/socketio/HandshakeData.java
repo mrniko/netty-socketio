@@ -28,12 +28,16 @@ public class HandshakeData implements Serializable {
 
     private static final long serialVersionUID = 1196350300161819978L;
 
-    private final HttpHeaders headers;
-    private final InetSocketAddress address;
-    private final Date time = new Date();
-    private final String url;
-    private final Map<String, List<String>> urlParams;
-    private final boolean xdomain;
+    private HttpHeaders headers;
+    private InetSocketAddress address;
+    private Date time = new Date();
+    private String url;
+    private Map<String, List<String>> urlParams;
+    private boolean xdomain;
+
+    // needed for correct deserialization
+    public HandshakeData() {
+    }
 
     public HandshakeData(HttpHeaders headers, Map<String, List<String>> urlParams, InetSocketAddress address, String url, boolean xdomain) {
         super();
