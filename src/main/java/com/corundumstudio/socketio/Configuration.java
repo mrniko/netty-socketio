@@ -78,6 +78,10 @@ public class Configuration {
 
     private String origin;
 
+    private boolean httpCompression = true;
+
+    private boolean websocketCompression = true;
+
     public Configuration() {
     }
 
@@ -139,6 +143,9 @@ public class Configuration {
         setAddVersionHeader(conf.isAddVersionHeader());
         setOrigin(conf.getOrigin());
         setSSLProtocol(conf.getSSLProtocol());
+
+        setHttpCompression(conf.isHttpCompression());
+        setWebsocketCompression(conf.isWebsocketCompression());
     }
 
     public JsonSupport getJsonSupport() {
@@ -463,6 +470,7 @@ public class Configuration {
 
     /**
      * Adds <b>Server</b> header with lib version to http response.
+     * <p/>
      * Default is <code>true</code>
      *
      * @param addVersionHeader
@@ -513,7 +521,7 @@ public class Configuration {
      * Timeout between channel opening and first data transfer
      * Helps to avoid 'silent channel' attack and prevents
      * 'Too many open files' problem in this case
-     * 
+     *
      * @param firstDataTimeout
      */
     public void setFirstDataTimeout(int firstDataTimeout) {
@@ -521,6 +529,36 @@ public class Configuration {
     }
     public int getFirstDataTimeout() {
         return firstDataTimeout;
+    }
+
+    /**
+     * Activate http protocol compression. Uses {@code gzip} or
+     * {@code deflate} encoding choice depends on the {@code "Accept-Encoding"} header value.
+     * <p/>
+     * Default is <code>true</code>
+     *
+     * @param httpCompression
+     */
+    public void setHttpCompression(boolean httpCompression) {
+        this.httpCompression = httpCompression;
+    }
+    public boolean isHttpCompression() {
+        return httpCompression;
+    }
+
+    /**
+     * Activate websocket protocol compression.
+     * Uses {@code permessage-deflate} encoding only.
+     * <p/>
+     * Default is <code>true</code>
+     *
+     * @param websocketCompression
+     */
+    public void setWebsocketCompression(boolean websocketCompression) {
+        this.websocketCompression = websocketCompression;
+    }
+    public boolean isWebsocketCompression() {
+        return websocketCompression;
     }
 
 }

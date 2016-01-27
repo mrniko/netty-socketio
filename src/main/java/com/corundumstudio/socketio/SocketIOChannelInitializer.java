@@ -178,14 +178,18 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
         });
         pipeline.addLast(HTTP_ENCODER, new HttpResponseEncoder());
 
-        pipeline.addLast(HTTP_COMPRESSION, new HttpContentCompressor());
+        if (configuration.isHttpCompression()) {
+            pipeline.addLast(HTTP_COMPRESSION, new HttpContentCompressor());
+        }
 
         pipeline.addLast(PACKET_HANDLER, packetHandler);
 
         pipeline.addLast(AUTHORIZE_HANDLER, authorizeHandler);
         pipeline.addLast(XHR_POLLING_TRANSPORT, xhrPollingTransport);
         // TODO use single instance when https://github.com/netty/netty/issues/4755 will be resolved
-        pipeline.addLast(WEB_SOCKET_TRANSPORT_COMPRESSION, new WebSocketServerCompressionHandler());
+        if (configuration.isWebsocketCompression()) {
+            pipeline.addLast(WEB_SOCKET_TRANSPORT_COMPRESSION, new WebSocketServerCompressionHandler());
+        }
         pipeline.addLast(WEB_SOCKET_TRANSPORT, webSocketTransport);
 
         pipeline.addLast(SOCKETIO_ENCODER, encoderHandler);
