@@ -48,7 +48,7 @@ public class OnConnectScanner implements AnnotationScanner  {
     }
 
     @Override
-    public void validate(Method method, Class clazz) {
+    public void validate(Method method, Class<?> clazz) {
         if (method.getParameterTypes().length != 1) {
             throw new IllegalArgumentException("Wrong OnConnect listener signature: " + clazz + "." + method.getName());
         }

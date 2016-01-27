@@ -152,7 +152,7 @@ public class Namespace implements SocketIONamespace {
         }
     }
 
-    private Object getEventData(List<Object> args, DataListener dataListener) {
+    private Object getEventData(List<Object> args, DataListener<?> dataListener) {
         if (dataListener instanceof MultiTypeEventListener) {
             return new MultiTypeArgs(args);
         } else {
@@ -242,7 +242,7 @@ public class Namespace implements SocketIONamespace {
     }
 
     @Override
-    public void addListeners(Object listeners, Class listenersClass) {
+    public void addListeners(Object listeners, Class<?> listenersClass) {
         engine.scan(this, listeners, listenersClass);
     }
 

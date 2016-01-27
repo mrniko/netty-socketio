@@ -48,7 +48,7 @@ public class OnEventScanner implements AnnotationScanner {
         final List<Integer> dataIndexes = dataIndexes(method);
 
         if (dataIndexes.size() > 1) {
-            List<Class> classes = new ArrayList<Class>();
+            List<Class<?>> classes = new ArrayList<Class<?>>();
             for (int index : dataIndexes) {
                 Class<?> param = method.getParameterTypes()[index];
                 classes.add(param);
@@ -113,7 +113,7 @@ public class OnEventScanner implements AnnotationScanner {
     private List<Integer> dataIndexes(Method method) {
         List<Integer> result = new ArrayList<Integer>();
         int index = 0;
-        for (Class type : method.getParameterTypes()) {
+        for (Class<?> type : method.getParameterTypes()) {
             if (!type.equals(AckRequest.class) && !type.equals(SocketIOClient.class)) {
                 result.add(index);
             }
@@ -122,9 +122,9 @@ public class OnEventScanner implements AnnotationScanner {
         return result;
     }
 
-    private int paramIndex(Method method, Class clazz) {
+    private int paramIndex(Method method, Class<?> clazz) {
         int index = 0;
-        for (Class type : method.getParameterTypes()) {
+        for (Class<?> type : method.getParameterTypes()) {
             if (type.equals(clazz)) {
                 return index;
             }
@@ -134,7 +134,7 @@ public class OnEventScanner implements AnnotationScanner {
     }
 
     @Override
-    public void validate(Method method, Class clazz) {
+    public void validate(Method method, Class<?> clazz) {
         int paramsCount = method.getParameterTypes().length;
         final int socketIOClientIndex = paramIndex(method, SocketIOClient.class);
         final int ackRequestIndex = paramIndex(method, AckRequest.class);

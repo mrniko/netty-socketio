@@ -47,7 +47,7 @@ import com.corundumstudio.socketio.transport.NamespaceClient;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
-import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.util.AttributeKey;
 import io.netty.util.internal.PlatformDependent;
 
@@ -106,7 +106,7 @@ public class ClientHead {
     }
 
     public String getOrigin() {
-        return handshakeData.getSingleHeader(HttpHeaders.Names.ORIGIN);
+        return handshakeData.getHttpHeaders().get(HttpHeaderNames.ORIGIN);
     }
 
     public ChannelFuture send(Packet packet) {

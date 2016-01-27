@@ -16,18 +16,6 @@
 package com.corundumstudio.socketio.transport;
 
 import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
-import io.netty.buffer.ByteBuf;
-import io.netty.channel.ChannelFutureListener;
-import io.netty.channel.ChannelHandler.Sharable;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.handler.codec.http.DefaultHttpResponse;
-import io.netty.handler.codec.http.FullHttpRequest;
-import io.netty.handler.codec.http.HttpHeaders;
-import io.netty.handler.codec.http.HttpMethod;
-import io.netty.handler.codec.http.HttpResponse;
-import io.netty.handler.codec.http.HttpResponseStatus;
-import io.netty.handler.codec.http.QueryStringDecoder;
 
 import java.io.IOException;
 import java.util.List;
@@ -45,6 +33,19 @@ import com.corundumstudio.socketio.messages.PacketsMessage;
 import com.corundumstudio.socketio.messages.XHROptionsMessage;
 import com.corundumstudio.socketio.messages.XHRPostMessage;
 import com.corundumstudio.socketio.protocol.PacketDecoder;
+
+import io.netty.buffer.ByteBuf;
+import io.netty.channel.ChannelFutureListener;
+import io.netty.channel.ChannelHandler.Sharable;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.handler.codec.http.DefaultHttpResponse;
+import io.netty.handler.codec.http.FullHttpRequest;
+import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.HttpMethod;
+import io.netty.handler.codec.http.HttpResponse;
+import io.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.handler.codec.http.QueryStringDecoder;
 
 @Sharable
 public class PollingTransport extends ChannelInboundHandlerAdapter {
@@ -67,7 +68,7 @@ public class PollingTransport extends ChannelInboundHandlerAdapter {
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         if (msg instanceof FullHttpRequest) {
             FullHttpRequest req = (FullHttpRequest) msg;
-            QueryStringDecoder queryDecoder = new QueryStringDecoder(req.getUri());
+            QueryStringDecoder queryDecoder = new QueryStringDecoder(req.uri());
 
             List<String> transport = queryDecoder.parameters().get("transport");
 
@@ -76,10 +77,10 @@ public class PollingTransport extends ChannelInboundHandlerAdapter {
                 List<String> j = queryDecoder.parameters().get("j");
                 List<String> b64 = queryDecoder.parameters().get("b64");
 
-                String origin = req.headers().get(HttpHeaders.Names.ORIGIN);
+                String origin = req.headers().get(HttpHeaderNames.ORIGIN);
                 ctx.channel().attr(EncoderHandler.ORIGIN).set(origin);
 
-                String userAgent = req.headers().get(HttpHeaders.Names.USER_AGENT);
+                String userAgent = req.headers().get(HttpHeaderNames.USER_AGENT);
                 ctx.channel().attr(EncoderHandler.USER_AGENT).set(userAgent);
 
                 if (j != null && j.get(0) != null) {
@@ -111,19 +112,19 @@ public class PollingTransport extends ChannelInboundHandlerAdapter {
 
     private void handleMessage(FullHttpRequest req, UUID sessionId, QueryStringDecoder queryDecoder, ChannelHandlerContext ctx)
                                                                                 throws IOException {
-            String origin = req.headers().get(HttpHeaders.Names.ORIGIN);
+            String origin = req.headers().get(HttpHeaderNames.ORIGIN);
             if (queryDecoder.parameters().containsKey("disconnect")) {
                 ClientHead client = clientsBox.get(sessionId);
                 client.onChannelDisconnect();
                 ctx.channel().writeAndFlush(new XHRPostMessage(origin, sessionId));
-            } else if (HttpMethod.POST.equals(req.getMethod())) {
+            } else if (HttpMethod.POST.equals(req.method())) {
                 onPost(sessionId, ctx, origin, req.content());
-            } else if (HttpMethod.GET.equals(req.getMethod())) {
+            } else if (HttpMethod.GET.equals(req.method())) {
                 onGet(sessionId, ctx, origin);
-            } else if (HttpMethod.OPTIONS.equals(req.getMethod())) {
+            } else if (HttpMethod.OPTIONS.equals(req.method())) {
                 onOptions(sessionId, ctx, origin);
             } else {
-                log.error("Wrong {} method invocation for {}", req.getMethod(), sessionId);
+                log.error("Wrong {} method invocation for {}", req.method(), sessionId);
                 sendError(ctx);
             }
     }

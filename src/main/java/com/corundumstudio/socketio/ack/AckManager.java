@@ -97,6 +97,7 @@ public class AckManager implements Disconnectable {
         return ackEntry;
     }
 
+    @SuppressWarnings("unchecked")
     public void onAck(SocketIOClient client, Packet packet) {
         AckSchedulerKey key = new AckSchedulerKey(Type.ACK_TIMEOUT, client.getSessionId(), packet.getAckId());
         scheduler.cancel(key);
@@ -121,7 +122,7 @@ public class AckManager implements Disconnectable {
         }
     }
 
-    private AckCallback removeCallback(UUID sessionId, long index) {
+    private AckCallback<?> removeCallback(UUID sessionId, long index) {
         AckEntry ackEntry = ackEntries.get(sessionId);
         // may be null if client disconnected
         // before timeout occurs
@@ -136,7 +137,7 @@ public class AckManager implements Disconnectable {
         return ackEntry.getAckCallback(index);
     }
 
-    public long registerAck(UUID sessionId, AckCallback callback) {
+    public long registerAck(UUID sessionId, AckCallback<?> callback) {
         AckEntry ackEntry = getAckEntry(sessionId);
         ackEntry.initAckIndex(0);
         long index = ackEntry.addAckCallback(callback);
@@ -150,7 +151,7 @@ public class AckManager implements Disconnectable {
         return index;
     }
 
-    private void scheduleTimeout(final long index, final UUID sessionId, AckCallback callback) {
+    private void scheduleTimeout(final long index, final UUID sessionId, AckCallback<?> callback) {
         if (callback.getTimeout() == -1) {
             return;
         }
@@ -158,7 +159,7 @@ public class AckManager implements Disconnectable {
         scheduler.scheduleCallback(key, new Runnable() {
             @Override
             public void run() {
-                AckCallback cb = removeCallback(sessionId, index);
+                AckCallback<?> cb = removeCallback(sessionId, index);
                 if (cb != null) {
                     cb.onTimeout();
                 }

@@ -15,12 +15,6 @@
  */
 package com.corundumstudio.socketio.handler;
 
-import static io.netty.handler.codec.http.HttpHeaders.Names.ACCESS_CONTROL_ALLOW_CREDENTIALS;
-import static io.netty.handler.codec.http.HttpHeaders.Names.ACCESS_CONTROL_ALLOW_HEADERS;
-import static io.netty.handler.codec.http.HttpHeaders.Names.ACCESS_CONTROL_ALLOW_ORIGIN;
-import static io.netty.handler.codec.http.HttpHeaders.Names.CONNECTION;
-import static io.netty.handler.codec.http.HttpHeaders.Names.CONTENT_TYPE;
-import static io.netty.handler.codec.http.HttpHeaders.Values.KEEP_ALIVE;
 import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 
 import java.io.IOException;
@@ -50,10 +44,10 @@ import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelOutboundHandlerAdapter;
 import io.netty.channel.ChannelPromise;
-import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.DefaultHttpContent;
 import io.netty.handler.codec.http.DefaultHttpResponse;
-import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.HttpHeaderValues;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpUtil;
@@ -115,9 +109,10 @@ public class EncoderHandler extends ChannelOutboundHandlerAdapter {
     private void write(XHROptionsMessage msg, ChannelHandlerContext ctx, ChannelPromise promise) {
         HttpResponse res = new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.OK);
 
-        HttpHeaders.addHeader(res, "Set-Cookie", "io=" + msg.getSessionId());
-        HttpHeaders.addHeader(res, CONNECTION, KEEP_ALIVE);
-        HttpHeaders.addHeader(res, ACCESS_CONTROL_ALLOW_HEADERS, CONTENT_TYPE);
+        res.headers().add(HttpHeaderNames.SET_COOKIE, "io=" + msg.getSessionId())
+                    .add(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE)
+                    .add(HttpHeaderNames.ACCESS_CONTROL_ALLOW_HEADERS, HttpHeaderNames.CONTENT_TYPE);
+
         addOriginHeaders(ctx.channel(), res);
 
         ByteBuf out = encoder.allocateBuffer(ctx.alloc());
@@ -133,11 +128,13 @@ public class EncoderHandler extends ChannelOutboundHandlerAdapter {
     private void sendMessage(HttpMessage msg, Channel channel, ByteBuf out, String type, ChannelPromise promise) {
         HttpResponse res = new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.OK);
 
-        res.headers().add(CONTENT_TYPE, type).add("Set-Cookie", "io=" + msg.getSessionId())
-                .add(CONNECTION, KEEP_ALIVE);
+        res.headers().add(HttpHeaderNames.CONTENT_TYPE, type)
+                    .add(HttpHeaderNames.SET_COOKIE, "io=" + msg.getSessionId())
+                    .add(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
 
         addOriginHeaders(channel, res);
-        HttpHeaders.setContentLength(res, out.readableBytes());
+
+        HttpUtil.setContentLength(res, out.readableBytes());
 
         // prevent XSS warnings on IE
         // https://github.com/LearnBoost/socket.io/pull/1333
@@ -167,19 +164,19 @@ public class EncoderHandler extends ChannelOutboundHandlerAdapter {
 
     private void addOriginHeaders(Channel channel, HttpResponse res) {
         if (version != null) {
-            res.headers().add(HttpHeaders.Names.SERVER, version);
+            res.headers().add(HttpHeaderNames.SERVER, version);
         }
 
         if (configuration.getOrigin() != null) {
-            HttpHeaders.addHeader(res, ACCESS_CONTROL_ALLOW_ORIGIN, configuration.getOrigin());
-            HttpHeaders.addHeader(res, ACCESS_CONTROL_ALLOW_CREDENTIALS, Boolean.TRUE);
+            res.headers().add(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN, configuration.getOrigin());
+            res.headers().add(HttpHeaderNames.ACCESS_CONTROL_ALLOW_CREDENTIALS, Boolean.TRUE);
         } else {
             String origin = channel.attr(ORIGIN).get();
             if (origin != null) {
-                HttpHeaders.addHeader(res, ACCESS_CONTROL_ALLOW_ORIGIN, origin);
-                HttpHeaders.addHeader(res, ACCESS_CONTROL_ALLOW_CREDENTIALS, Boolean.TRUE);
+                res.headers().add(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN, origin);
+                res.headers().add(HttpHeaderNames.ACCESS_CONTROL_ALLOW_CREDENTIALS, Boolean.TRUE);
             } else {
-                HttpHeaders.addHeader(res, ACCESS_CONTROL_ALLOW_ORIGIN, "*");
+                res.headers().add(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN, "*");
             }
         }
     }

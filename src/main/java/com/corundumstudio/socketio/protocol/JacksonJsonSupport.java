@@ -203,6 +203,8 @@ public class JacksonJsonSupport implements JsonSupport {
     public static class ByteArraySerializer extends StdSerializer<byte[]>
     {
 
+        private static final long serialVersionUID = 3420082888596468148L;
+
         private final ThreadLocal<List<byte[]>> arrays = new ThreadLocal<List<byte[]>>() {
             @Override
             protected List<byte[]> initialValue() {

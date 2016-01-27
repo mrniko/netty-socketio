@@ -26,6 +26,6 @@ public interface AnnotationScanner {
 
     void addListener(Namespace namespace, Object object, Method method, Annotation annotation);
 
-    void validate(Method method, Class clazz);
+    void validate(Method method, Class<?> clazz);
 
 }

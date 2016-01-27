@@ -16,17 +16,6 @@
 package com.corundumstudio.socketio.handler;
 
 import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelFutureListener;
-import io.netty.channel.ChannelHandler.Sharable;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.handler.codec.http.DefaultHttpResponse;
-import io.netty.handler.codec.http.FullHttpRequest;
-import io.netty.handler.codec.http.HttpHeaders;
-import io.netty.handler.codec.http.HttpResponse;
-import io.netty.handler.codec.http.HttpResponseStatus;
-import io.netty.handler.codec.http.QueryStringDecoder;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -57,6 +46,18 @@ import com.corundumstudio.socketio.scheduler.SchedulerKey.Type;
 import com.corundumstudio.socketio.store.StoreFactory;
 import com.corundumstudio.socketio.store.pubsub.ConnectMessage;
 import com.corundumstudio.socketio.store.pubsub.PubSubStore;
+
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFutureListener;
+import io.netty.channel.ChannelHandler.Sharable;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.handler.codec.http.DefaultHttpResponse;
+import io.netty.handler.codec.http.FullHttpRequest;
+import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.HttpResponse;
+import io.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.handler.codec.http.QueryStringDecoder;
 
 @Sharable
 public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Disconnectable {
@@ -107,7 +108,7 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
         if (msg instanceof FullHttpRequest) {
             FullHttpRequest req = (FullHttpRequest) msg;
             Channel channel = ctx.channel();
-            QueryStringDecoder queryDecoder = new QueryStringDecoder(req.getUri());
+            QueryStringDecoder queryDecoder = new QueryStringDecoder(req.uri());
 
             if (!configuration.isAllowCustomRequests()
                     && !queryDecoder.path().startsWith(connectPath)) {
@@ -121,7 +122,7 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
             List<String> sid = queryDecoder.parameters().get("sid");
             if (queryDecoder.path().equals(connectPath)
                     && sid == null) {
-                String origin = req.headers().get(HttpHeaders.Names.ORIGIN);
+                String origin = req.headers().get(HttpHeaderNames.ORIGIN);
                 if (!authorize(ctx, channel, origin, queryDecoder.parameters(), req)) {
                     req.release();
                     return;
@@ -140,9 +141,9 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
             headers.put(name, values);
         }
 
-        HandshakeData data = new HandshakeData(headers, params,
+        HandshakeData data = new HandshakeData(req.headers(), params,
                                                 (InetSocketAddress)channel.remoteAddress(),
-                                                    req.getUri(), origin != null && !origin.equalsIgnoreCase("null"));
+                                                    req.uri(), origin != null && !origin.equalsIgnoreCase("null"));
 
         boolean result = false;
         try {
@@ -163,7 +164,7 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
 
         List<String> transportValue = params.get("transport");
         if (transportValue == null) {
-            log.warn("Got no transports for request {}", req.getUri());
+            log.warn("Got no transports for request {}", req.uri());
 
             HttpResponse res = new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.UNAUTHORIZED);
             channel.writeAndFlush(res).addListener(ChannelFutureListener.CLOSE);
