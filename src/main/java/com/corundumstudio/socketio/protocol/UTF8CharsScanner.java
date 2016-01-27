@@ -23,7 +23,7 @@ public class UTF8CharsScanner {
      * Lookup table used for determining which input characters need special
      * handling when contained in text segment.
      */
-    final static int[] sInputCodes;
+    static final int[] sInputCodes;
     static {
         /*
          * 96 would do for most cases (backslash is ascii 94) but if we want to
@@ -43,7 +43,7 @@ public class UTF8CharsScanner {
     /**
      * Additionally we can combine UTF-8 decoding info into similar data table.
      */
-    final static int[] sInputCodesUtf8;
+    static final int[] sInputCodesUtf8;
     static {
         int[] table = new int[sInputCodes.length];
         System.arraycopy(sInputCodes, 0, table, 0, sInputCodes.length);
