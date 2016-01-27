@@ -55,6 +55,7 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.codec.http.DefaultHttpResponse;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.QueryStringDecoder;
@@ -160,7 +161,7 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
             return false;
         }
 
-        UUID sessionId = this.generateOrGetSessionIdFromRequest(headers);
+        UUID sessionId = this.generateOrGetSessionIdFromRequest(req.headers());
 
         List<String> transportValue = params.get("transport");
         if (transportValue == null) {
@@ -198,12 +199,13 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
         in the "io" cookie.  Failures to parse will cause a logging warning to be generated and a
         random uuid to be generated instead (same as not passing a cookie in the first place).
     */
-    private UUID generateOrGetSessionIdFromRequest(Map<String, List<String>> headers) {
-        if ( headers.containsKey("io") && headers.get("io").size() == 1 ) {
+    private UUID generateOrGetSessionIdFromRequest(HttpHeaders headers) {
+        List<String> values = headers.getAll("io");
+        if (values.size() == 1) {
             try {
-                return UUID.fromString(headers.get("io").get(0));
+                return UUID.fromString(values.get(0));
             } catch ( IllegalArgumentException iaex ) {
-                log.warn("Malformed UUID received for session! io=" + headers.get("io"));
+                log.warn("Malformed UUID received for session! io=" + values.get(0));
             }
         }
         return UUID.randomUUID();
