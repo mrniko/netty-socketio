@@ -44,10 +44,20 @@ public class HandshakeData implements Serializable {
         this.xdomain = xdomain;
     }
 
+    /**
+     * Client network address
+     *
+     * @return
+     */
     public InetSocketAddress getAddress() {
         return address;
     }
 
+    /**
+     * Http headers sent during first client request
+     *
+     * @return
+     */
     public HttpHeaders getHttpHeaders() {
         return headers;
     }
@@ -73,10 +83,20 @@ public class HandshakeData implements Serializable {
         return headers.get(name);
     }
 
+    /**
+     * Client connection date
+     *
+     * @return
+     */
     public Date getTime() {
         return time;
     }
 
+    /**
+     * Url used by client during first request
+     *
+     * @return
+     */
     public String getUrl() {
         return url;
     }
@@ -85,6 +105,11 @@ public class HandshakeData implements Serializable {
         return xdomain;
     }
 
+    /**
+     * Url params stored in url used by client during first request
+     *
+     * @return
+     */
     public Map<String, List<String>> getUrlParams() {
         return urlParams;
     }
