@@ -95,7 +95,7 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
             @Override
             public void run() {
                 ctx.channel().close();
-                log.debug("Client with ip {} opens channel but not sended any data! Channel closed!", ctx.channel().remoteAddress());
+                log.debug("Client with ip {} opened channel but doesn't send any data! Channel closed!", ctx.channel().remoteAddress());
             }
         }, configuration.getFirstDataTimeout(), TimeUnit.MILLISECONDS);
         super.channelActive(ctx);

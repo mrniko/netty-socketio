@@ -59,7 +59,7 @@ public class ClientHead {
 
     private final AtomicBoolean disconnected = new AtomicBoolean();
     private final Map<Namespace, NamespaceClient> namespaceClients = PlatformDependent.newConcurrentHashMap();
-    private final Map<Transport, TransportState> channels = new HashMap<Transport, TransportState>();
+    private final Map<Transport, TransportState> channels = new HashMap<Transport, TransportState>(2);
     private final HandshakeData handshakeData;
     private final UUID sessionId;
 
