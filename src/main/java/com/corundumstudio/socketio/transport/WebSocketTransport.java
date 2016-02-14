@@ -15,16 +15,7 @@
  */
 package com.corundumstudio.socketio.transport;
 
-<<<<<<< HEAD
-=======
-import java.util.List;
-import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
->>>>>>> remote/master
 import com.corundumstudio.socketio.Configuration;
 import com.corundumstudio.socketio.SocketIOChannelInitializer;
 import com.corundumstudio.socketio.Transport;
@@ -34,10 +25,6 @@ import com.corundumstudio.socketio.handler.ClientsBox;
 import com.corundumstudio.socketio.messages.PacketsMessage;
 import com.corundumstudio.socketio.scheduler.CancelableScheduler;
 import com.corundumstudio.socketio.scheduler.SchedulerKey;
-<<<<<<< HEAD
-=======
-
->>>>>>> remote/master
 import io.netty.buffer.ByteBufHolder;
 import io.netty.channel.*;
 import io.netty.channel.ChannelHandler.Sharable;
@@ -47,14 +34,11 @@ import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.QueryStringDecoder;
 import io.netty.handler.codec.http.websocketx.*;
 import io.netty.util.ReferenceCountUtil;
-<<<<<<< HEAD
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-=======
->>>>>>> remote/master
 
 @Sharable
 public class WebSocketTransport extends ChannelInboundHandlerAdapter {

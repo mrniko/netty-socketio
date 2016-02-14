@@ -535,7 +535,7 @@ public class Configuration {
         return firstDataTimeout;
     }
 
-<<<<<<< HEAD
+
     public int getNode() {
         return node;
     }
@@ -543,7 +543,6 @@ public class Configuration {
     public void setNode(int node) {
         this.node = node;
     }
-=======
     /**
      * Activate http protocol compression. Uses {@code gzip} or
      * {@code deflate} encoding choice depends on the {@code "Accept-Encoding"} header value.
@@ -573,6 +572,4 @@ public class Configuration {
     public boolean isWebsocketCompression() {
         return websocketCompression;
     }
-
->>>>>>> remote/master
 }

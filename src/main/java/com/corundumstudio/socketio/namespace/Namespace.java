@@ -323,12 +323,8 @@ public class Namespace implements SocketIONamespace {
         return jsonSupport;
     }
 
-<<<<<<< HEAD
-    public SocketIOClient getClient(Long uuid) {
-=======
     @Override
-    public SocketIOClient getClient(UUID uuid) {
->>>>>>> remote/master
+    public SocketIOClient getClient(Long uuid) {
         return allClients.get(uuid);
     }
 

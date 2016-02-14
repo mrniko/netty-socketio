@@ -115,11 +115,7 @@ public class AckManager implements Disconnectable {
         }
     }
 
-<<<<<<< HEAD
-    private AckCallback removeCallback(long sessionId, long index) {
-=======
-    private AckCallback<?> removeCallback(UUID sessionId, long index) {
->>>>>>> remote/master
+    private AckCallback<?> removeCallback(long sessionId, long index) {
         AckEntry ackEntry = ackEntries.get(sessionId);
         // may be null if client disconnected
         // before timeout occurs
@@ -134,11 +130,7 @@ public class AckManager implements Disconnectable {
         return ackEntry.getAckCallback(index);
     }
 
-<<<<<<< HEAD
-    public long registerAck(long sessionId, AckCallback callback) {
-=======
-    public long registerAck(UUID sessionId, AckCallback<?> callback) {
->>>>>>> remote/master
+    public long registerAck(long sessionId, AckCallback<?> callback) {
         AckEntry ackEntry = getAckEntry(sessionId);
         ackEntry.initAckIndex(0);
         long index = ackEntry.addAckCallback(callback);
@@ -152,11 +144,7 @@ public class AckManager implements Disconnectable {
         return index;
     }
 
-<<<<<<< HEAD
-    private void scheduleTimeout(final long index, final long sessionId, AckCallback callback) {
-=======
-    private void scheduleTimeout(final long index, final UUID sessionId, AckCallback<?> callback) {
->>>>>>> remote/master
+    private void scheduleTimeout(final long index, final long sessionId, AckCallback<?> callback) {
         if (callback.getTimeout() == -1) {
             return;
         }

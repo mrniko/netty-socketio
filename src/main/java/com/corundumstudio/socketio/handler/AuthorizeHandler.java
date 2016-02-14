@@ -15,7 +15,6 @@
  */
 package com.corundumstudio.socketio.handler;
 
-<<<<<<< HEAD
 import com.corundumstudio.socketio.*;
 import com.corundumstudio.socketio.ack.AckManager;
 import com.corundumstudio.socketio.namespace.Namespace;
@@ -37,9 +36,6 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.codec.http.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-=======
-import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
->>>>>>> remote/master
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -49,19 +45,6 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
-
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelFutureListener;
-import io.netty.channel.ChannelHandler.Sharable;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.handler.codec.http.DefaultHttpResponse;
-import io.netty.handler.codec.http.FullHttpRequest;
-import io.netty.handler.codec.http.HttpHeaderNames;
-import io.netty.handler.codec.http.HttpHeaders;
-import io.netty.handler.codec.http.HttpResponse;
-import io.netty.handler.codec.http.HttpResponseStatus;
-import io.netty.handler.codec.http.QueryStringDecoder;
 
 @Sharable
 public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Disconnectable {
@@ -163,12 +146,7 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
             log.debug("Handshake unauthorized, query params: {} headers: {}", params, headers);
             return false;
         }
-
-<<<<<<< HEAD
-        Long sessionId = this.generateOrGetSessionIdFromRequest(headers);
-=======
-        UUID sessionId = this.generateOrGetSessionIdFromRequest(req.headers());
->>>>>>> remote/master
+        Long sessionId = this.generateOrGetSessionIdFromRequest(req.headers());
 
         List<String> transportValue = params.get("transport");
         if (transportValue == null) {
@@ -206,22 +184,14 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
         in the "io" cookie.  Failures to parse will cause a logging warning to be generated and a
         random uuid to be generated instead (same as not passing a cookie in the first place).
     */
-<<<<<<< HEAD
-    private Long generateOrGetSessionIdFromRequest(Map<String, List<String>> headers) {
-        if (headers.containsKey("io") && headers.get("io").size() == 1) {
-            try {
-                return Long.valueOf(headers.get("io").get(0));
-            } catch (IllegalArgumentException iaex) {
-                log.warn("Malformed long received for session! io=" + headers.get("io"));
-=======
-    private UUID generateOrGetSessionIdFromRequest(HttpHeaders headers) {
+    private Long generateOrGetSessionIdFromRequest(HttpHeaders headers) {
+
         List<String> values = headers.getAll("io");
         if (values.size() == 1) {
             try {
-                return UUID.fromString(values.get(0));
-            } catch ( IllegalArgumentException iaex ) {
-                log.warn("Malformed UUID received for session! io=" + values.get(0));
->>>>>>> remote/master
+                return Long.valueOf(values.get(0));
+            } catch (IllegalArgumentException iaex) {
+                log.warn("Malformed long received for session! io=" + headers.get("io"));
             }
         }
 
