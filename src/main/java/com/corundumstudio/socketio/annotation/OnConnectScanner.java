@@ -26,10 +26,12 @@ import com.corundumstudio.socketio.namespace.Namespace;
 
 public class OnConnectScanner implements AnnotationScanner  {
 
+    @Override
     public Class<? extends Annotation> getScanAnnotation() {
         return OnConnect.class;
     }
 
+    @Override
     public void addListener(Namespace namespace, final Object object, final Method method, Annotation annotation) {
         namespace.addConnectListener(new ConnectListener() {
             @Override
@@ -45,7 +47,8 @@ public class OnConnectScanner implements AnnotationScanner  {
         });
     }
 
-    public void validate(Method method, Class clazz) {
+    @Override
+    public void validate(Method method, Class<?> clazz) {
         if (method.getParameterTypes().length != 1) {
             throw new IllegalArgumentException("Wrong OnConnect listener signature: " + clazz + "." + method.getName());
         }

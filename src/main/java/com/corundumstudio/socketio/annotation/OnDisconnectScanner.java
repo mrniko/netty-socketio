@@ -48,7 +48,7 @@ public class OnDisconnectScanner implements AnnotationScanner {
     }
 
     @Override
-    public void validate(Method method, Class clazz) {
+    public void validate(Method method, Class<?> clazz) {
         if (method.getParameterTypes().length != 1) {
             throw new IllegalArgumentException("Wrong OnDisconnect listener signature: " + clazz + "." + method.getName());
         }

@@ -18,24 +18,28 @@ package com.corundumstudio.socketio;
 import java.io.Serializable;
 import java.net.InetSocketAddress;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import io.netty.handler.codec.http.HttpHeaders;
 
 public class HandshakeData implements Serializable {
 
     private static final long serialVersionUID = 1196350300161819978L;
 
-    private Map<String, List<String>> headers;
+    private HttpHeaders headers;
     private InetSocketAddress address;
     private Date time = new Date();
     private String url;
     private Map<String, List<String>> urlParams;
     private boolean xdomain;
 
+    // needed for correct deserialization
     public HandshakeData() {
     }
 
-    public HandshakeData(Map<String, List<String>> headers, Map<String, List<String>> urlParams, InetSocketAddress address, String url, boolean xdomain) {
+    public HandshakeData(HttpHeaders headers, Map<String, List<String>> urlParams, InetSocketAddress address, String url, boolean xdomain) {
         super();
         this.headers = headers;
         this.urlParams = urlParams;
@@ -44,26 +48,59 @@ public class HandshakeData implements Serializable {
         this.xdomain = xdomain;
     }
 
+    /**
+     * Client network address
+     *
+     * @return
+     */
     public InetSocketAddress getAddress() {
         return address;
     }
 
-    public Map<String, List<String>> getHeaders() {
+    /**
+     * Http headers sent during first client request
+     *
+     * @return
+     */
+    public HttpHeaders getHttpHeaders() {
         return headers;
     }
 
-    public String getSingleHeader(String name) {
-        List<String> values = headers.get(name);
-        if (values != null && values.size() == 1) {
-            return values.iterator().next();
+    /**
+     * Use {@link #getHttpHeaders()}
+     */
+    @Deprecated
+    public Map<String, List<String>> getHeaders() {
+        Map<String, List<String>> result = new HashMap<String, List<String>>(headers.names().size());
+        for (String name : headers.names()) {
+            List<String> values = headers.getAll(name);
+            result.put(name, values);
         }
-        return null;
+        return result;
     }
 
+    /**
+     * Use {@link #getHttpHeaders().get()}
+     */
+    @Deprecated
+    public String getSingleHeader(String name) {
+        return headers.get(name);
+    }
+
+    /**
+     * Client connection date
+     *
+     * @return
+     */
     public Date getTime() {
         return time;
     }
 
+    /**
+     * Url used by client during first request
+     *
+     * @return
+     */
     public String getUrl() {
         return url;
     }
@@ -72,6 +109,11 @@ public class HandshakeData implements Serializable {
         return xdomain;
     }
 
+    /**
+     * Url params stored in url used by client during first request
+     *
+     * @return
+     */
     public Map<String, List<String>> getUrlParams() {
         return urlParams;
     }

@@ -22,6 +22,7 @@ import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.FixedRecvByteBufAllocator;
+import io.netty.channel.ServerChannel;
 import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.epoll.EpollServerSocketChannel;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -40,7 +41,7 @@ import java.util.Collection;
  */
 public class SocketIOServer implements ClientListeners {
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
+    private static final Logger log = LoggerFactory.getLogger(SocketIOServer.class);
 
     private final Configuration configCopy;
     private final Configuration configuration;
@@ -127,7 +128,7 @@ public class SocketIOServer implements ClientListeners {
 
         pipelineFactory.start(configCopy, namespacesHub);
 
-        Class channelClass = NioServerSocketChannel.class;
+        Class<? extends ServerChannel> channelClass = NioServerSocketChannel.class;
         if (configCopy.isUseLinuxNativeEpoll()) {
             channelClass = EpollServerSocketChannel.class;
         }
@@ -242,7 +243,7 @@ public class SocketIOServer implements ClientListeners {
     }
 
     @Override
-    public void addListeners(Object listeners, Class listenersClass) {
+    public void addListeners(Object listeners, Class<?> listenersClass) {
         mainNamespace.addListeners(listeners, listenersClass);
     }
 

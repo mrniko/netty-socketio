@@ -27,6 +27,6 @@ public interface ClientListeners {
 
     void addListeners(Object listeners);
 
-    void addListeners(Object listeners, Class listenersClass);
+    void addListeners(Object listeners, Class<?> listenersClass);
 
 }

@@ -15,16 +15,6 @@
  */
 package com.corundumstudio.socketio;
 
-import com.corundumstudio.socketio.scheduler.HashedWheelTimeoutScheduler;
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelPipeline;
-import io.netty.handler.codec.http.HttpObjectAggregator;
-import io.netty.handler.codec.http.HttpRequestDecoder;
-import io.netty.handler.codec.http.HttpResponseEncoder;
-import io.netty.handler.ssl.SslHandler;
-
 import java.security.KeyStore;
 
 import javax.net.ssl.KeyManagerFactory;
@@ -49,22 +39,38 @@ import com.corundumstudio.socketio.protocol.JsonSupport;
 import com.corundumstudio.socketio.protocol.PacketDecoder;
 import com.corundumstudio.socketio.protocol.PacketEncoder;
 import com.corundumstudio.socketio.scheduler.CancelableScheduler;
-import com.corundumstudio.socketio.scheduler.HashedWheelScheduler;
+import com.corundumstudio.socketio.scheduler.HashedWheelTimeoutScheduler;
 import com.corundumstudio.socketio.store.StoreFactory;
 import com.corundumstudio.socketio.store.pubsub.DisconnectMessage;
 import com.corundumstudio.socketio.store.pubsub.PubSubStore;
 import com.corundumstudio.socketio.transport.PollingTransport;
 import com.corundumstudio.socketio.transport.WebSocketTransport;
 
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.ChannelPipeline;
+import io.netty.handler.codec.http.HttpContentCompressor;
+import io.netty.handler.codec.http.HttpMessage;
+import io.netty.handler.codec.http.HttpObjectAggregator;
+import io.netty.handler.codec.http.HttpRequestDecoder;
+import io.netty.handler.codec.http.HttpResponse;
+import io.netty.handler.codec.http.HttpResponseEncoder;
+import io.netty.handler.codec.http.HttpUtil;
+import io.netty.handler.codec.http.websocketx.extensions.compression.WebSocketServerCompressionHandler;
+import io.netty.handler.ssl.SslHandler;
+
 public class SocketIOChannelInitializer extends ChannelInitializer<Channel> implements DisconnectableHub {
 
     public static final String SOCKETIO_ENCODER = "socketioEncoder";
+    public static final String WEB_SOCKET_TRANSPORT_COMPRESSION = "webSocketTransportCompression";
     public static final String WEB_SOCKET_TRANSPORT = "webSocketTransport";
     public static final String WEB_SOCKET_AGGREGATOR = "webSocketAggregator";
     public static final String XHR_POLLING_TRANSPORT = "xhrPollingTransport";
     public static final String AUTHORIZE_HANDLER = "authorizeHandler";
     public static final String PACKET_HANDLER = "packetHandler";
     public static final String HTTP_ENCODER = "httpEncoder";
+    public static final String HTTP_COMPRESSION = "httpCompression";
     public static final String HTTP_AGGREGATOR = "httpAggregator";
     public static final String HTTP_REQUEST_DECODER = "httpDecoder";
     public static final String SSL_HANDLER = "ssl";
@@ -72,7 +78,7 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
     public static final String RESOURCE_HANDLER = "resourceHandler";
     public static final String WRONG_URL_HANDLER = "wrongUrlBlocker";
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
+    private static final Logger log = LoggerFactory.getLogger(SocketIOChannelInitializer.class);
 
     private AckManager ackManager;
 
@@ -80,6 +86,7 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
     private AuthorizeHandler authorizeHandler;
     private PollingTransport xhrPollingTransport;
     private WebSocketTransport webSocketTransport;
+    private WebSocketServerCompressionHandler webSocketTransportCompression = new WebSocketServerCompressionHandler();
     private EncoderHandler encoderHandler;
     private WrongUrlHandler wrongUrlHandler;
 
@@ -161,13 +168,28 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
      */
     protected void addSocketioHandlers(ChannelPipeline pipeline) {
         pipeline.addLast(HTTP_REQUEST_DECODER, new HttpRequestDecoder());
-        pipeline.addLast(HTTP_AGGREGATOR, new HttpObjectAggregator(configuration.getMaxHttpContentLength()));
+        pipeline.addLast(HTTP_AGGREGATOR, new HttpObjectAggregator(configuration.getMaxHttpContentLength()) {
+            @Override
+            protected Object newContinueResponse(HttpMessage start, int maxContentLength,
+                    ChannelPipeline pipeline) {
+                return null;
+            }
+
+        });
         pipeline.addLast(HTTP_ENCODER, new HttpResponseEncoder());
+
+        if (configuration.isHttpCompression()) {
+            pipeline.addLast(HTTP_COMPRESSION, new HttpContentCompressor());
+        }
 
         pipeline.addLast(PACKET_HANDLER, packetHandler);
 
         pipeline.addLast(AUTHORIZE_HANDLER, authorizeHandler);
         pipeline.addLast(XHR_POLLING_TRANSPORT, xhrPollingTransport);
+        // TODO use single instance when https://github.com/netty/netty/issues/4755 will be resolved
+        if (configuration.isWebsocketCompression()) {
+            pipeline.addLast(WEB_SOCKET_TRANSPORT_COMPRESSION, new WebSocketServerCompressionHandler());
+        }
         pipeline.addLast(WEB_SOCKET_TRANSPORT, webSocketTransport);
 
         pipeline.addLast(SOCKETIO_ENCODER, encoderHandler);
@@ -196,6 +218,7 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
         return serverContext;
     }
 
+    @Override
     public void onDisconnect(ClientHead client) {
         ackManager.onDisconnect(client);
         authorizeHandler.onDisconnect(client);

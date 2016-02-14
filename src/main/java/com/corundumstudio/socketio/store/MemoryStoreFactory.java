@@ -20,6 +20,13 @@ import com.corundumstudio.socketio.store.pubsub.PubSubStore;
 import io.netty.util.internal.PlatformDependent;
 
 import java.util.Map;
+<<<<<<< HEAD
+=======
+import java.util.UUID;
+
+import com.corundumstudio.socketio.store.pubsub.BaseStoreFactory;
+import com.corundumstudio.socketio.store.pubsub.PubSubStore;
+>>>>>>> remote/master
 
 public class MemoryStoreFactory extends BaseStoreFactory {
 

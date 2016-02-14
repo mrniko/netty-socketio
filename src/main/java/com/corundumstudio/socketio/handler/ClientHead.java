@@ -33,7 +33,7 @@ import com.corundumstudio.socketio.transport.NamespaceClient;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
-import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.util.AttributeKey;
 import io.netty.util.internal.PlatformDependent;
 import org.slf4j.Logger;
@@ -50,13 +50,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ClientHead {
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
+    private static final Logger log = LoggerFactory.getLogger(ClientHead.class);
 
     public static final AttributeKey<ClientHead> CLIENT = AttributeKey.<ClientHead>valueOf("client");
 
     private final AtomicBoolean disconnected = new AtomicBoolean();
     private final Map<Namespace, NamespaceClient> namespaceClients = PlatformDependent.newConcurrentHashMap();
-    private final Map<Transport, TransportState> channels = new HashMap<Transport, TransportState>();
+    private final Map<Transport, TransportState> channels = new HashMap<Transport, TransportState>(2);
     private final HandshakeData handshakeData;
     private final long sessionId;
 
@@ -103,7 +103,7 @@ public class ClientHead {
     }
 
     public String getOrigin() {
-        return handshakeData.getSingleHeader(HttpHeaders.Names.ORIGIN);
+        return handshakeData.getHttpHeaders().get(HttpHeaderNames.ORIGIN);
     }
 
     public ChannelFuture send(Packet packet) {

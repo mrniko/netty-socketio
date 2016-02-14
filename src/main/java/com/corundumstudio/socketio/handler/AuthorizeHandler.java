@@ -15,6 +15,7 @@
  */
 package com.corundumstudio.socketio.handler;
 
+<<<<<<< HEAD
 import com.corundumstudio.socketio.*;
 import com.corundumstudio.socketio.ack.AckManager;
 import com.corundumstudio.socketio.namespace.Namespace;
@@ -36,6 +37,9 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.codec.http.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+=======
+import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
+>>>>>>> remote/master
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -46,10 +50,23 @@ import java.util.concurrent.TimeUnit;
 
 import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFutureListener;
+import io.netty.channel.ChannelHandler.Sharable;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.handler.codec.http.DefaultHttpResponse;
+import io.netty.handler.codec.http.FullHttpRequest;
+import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.HttpResponse;
+import io.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.handler.codec.http.QueryStringDecoder;
+
 @Sharable
 public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Disconnectable {
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
+    private static final Logger log = LoggerFactory.getLogger(AuthorizeHandler.class);
 
     private final CancelableScheduler disconnectScheduler;
 
@@ -81,7 +98,7 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
             @Override
             public void run() {
                 ctx.channel().close();
-                log.debug("Client with ip {} opens channel but not sended any data! Channel closed!", ctx.channel().remoteAddress());
+                log.debug("Client with ip {} opened channel but doesn't send any data! Channel closed!", ctx.channel().remoteAddress());
             }
         }, configuration.getFirstDataTimeout(), TimeUnit.MILLISECONDS);
         super.channelActive(ctx);
@@ -95,7 +112,7 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
         if (msg instanceof FullHttpRequest) {
             FullHttpRequest req = (FullHttpRequest) msg;
             Channel channel = ctx.channel();
-            QueryStringDecoder queryDecoder = new QueryStringDecoder(req.getUri());
+            QueryStringDecoder queryDecoder = new QueryStringDecoder(req.uri());
 
             if (!configuration.isAllowCustomRequests()
                     && !queryDecoder.path().startsWith(connectPath)) {
@@ -109,7 +126,7 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
             List<String> sid = queryDecoder.parameters().get("sid");
             if (queryDecoder.path().equals(connectPath)
                     && sid == null) {
-                String origin = req.headers().get(HttpHeaders.Names.ORIGIN);
+                String origin = req.headers().get(HttpHeaderNames.ORIGIN);
                 if (!authorize(ctx, channel, origin, queryDecoder.parameters(), req)) {
                     req.release();
                     return;
@@ -128,9 +145,9 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
             headers.put(name, values);
         }
 
-        HandshakeData data = new HandshakeData(headers, params,
+        HandshakeData data = new HandshakeData(req.headers(), params,
                                                 (InetSocketAddress)channel.remoteAddress(),
-                                                    req.getUri(), origin != null && !origin.equalsIgnoreCase("null"));
+                                                    req.uri(), origin != null && !origin.equalsIgnoreCase("null"));
 
         boolean result = false;
         try {
@@ -147,11 +164,15 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
             return false;
         }
 
+<<<<<<< HEAD
         Long sessionId = this.generateOrGetSessionIdFromRequest(headers);
+=======
+        UUID sessionId = this.generateOrGetSessionIdFromRequest(req.headers());
+>>>>>>> remote/master
 
         List<String> transportValue = params.get("transport");
         if (transportValue == null) {
-            log.warn("Got no transports for request {}", req.getUri());
+            log.warn("Got no transports for request {}", req.uri());
 
             HttpResponse res = new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.UNAUTHORIZED);
             channel.writeAndFlush(res).addListener(ChannelFutureListener.CLOSE);
@@ -185,12 +206,22 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
         in the "io" cookie.  Failures to parse will cause a logging warning to be generated and a
         random uuid to be generated instead (same as not passing a cookie in the first place).
     */
+<<<<<<< HEAD
     private Long generateOrGetSessionIdFromRequest(Map<String, List<String>> headers) {
         if (headers.containsKey("io") && headers.get("io").size() == 1) {
             try {
                 return Long.valueOf(headers.get("io").get(0));
             } catch (IllegalArgumentException iaex) {
                 log.warn("Malformed long received for session! io=" + headers.get("io"));
+=======
+    private UUID generateOrGetSessionIdFromRequest(HttpHeaders headers) {
+        List<String> values = headers.getAll("io");
+        if (values.size() == 1) {
+            try {
+                return UUID.fromString(values.get(0));
+            } catch ( IllegalArgumentException iaex ) {
+                log.warn("Malformed UUID received for session! io=" + values.get(0));
+>>>>>>> remote/master
             }
         }
 

@@ -15,6 +15,16 @@
  */
 package com.corundumstudio.socketio.transport;
 
+<<<<<<< HEAD
+=======
+import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+>>>>>>> remote/master
 import com.corundumstudio.socketio.Configuration;
 import com.corundumstudio.socketio.SocketIOChannelInitializer;
 import com.corundumstudio.socketio.Transport;
@@ -24,27 +34,34 @@ import com.corundumstudio.socketio.handler.ClientsBox;
 import com.corundumstudio.socketio.messages.PacketsMessage;
 import com.corundumstudio.socketio.scheduler.CancelableScheduler;
 import com.corundumstudio.socketio.scheduler.SchedulerKey;
+<<<<<<< HEAD
+=======
+
+>>>>>>> remote/master
 import io.netty.buffer.ByteBufHolder;
 import io.netty.channel.*;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.handler.codec.http.FullHttpRequest;
-import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.QueryStringDecoder;
 import io.netty.handler.codec.http.websocketx.*;
 import io.netty.util.ReferenceCountUtil;
+<<<<<<< HEAD
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+=======
+>>>>>>> remote/master
 
 @Sharable
 public class WebSocketTransport extends ChannelInboundHandlerAdapter {
 
     public static final String NAME = "websocket";
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
+    private static final Logger log = LoggerFactory.getLogger(WebSocketTransport.class);
 
     private final AuthorizeHandler authorizeHandler;
     private final CancelableScheduler scheduler;
@@ -83,7 +100,7 @@ public class WebSocketTransport extends ChannelInboundHandlerAdapter {
             frame.release();
         } else if (msg instanceof FullHttpRequest) {
             FullHttpRequest req = (FullHttpRequest) msg;
-            QueryStringDecoder queryDecoder = new QueryStringDecoder(req.getUri());
+            QueryStringDecoder queryDecoder = new QueryStringDecoder(req.uri());
             String path = queryDecoder.path();
             List<String> transport = queryDecoder.parameters().get("transport");
             List<String> sid = queryDecoder.parameters().get("sid");
@@ -198,7 +215,7 @@ public class WebSocketTransport extends ChannelInboundHandlerAdapter {
         if (isSsl) {
             protocol = "wss://";
         }
-        return protocol + req.headers().get(HttpHeaders.Names.HOST) + req.getUri();
+        return protocol + req.headers().get(HttpHeaderNames.HOST) + req.uri();
     }
 
 }

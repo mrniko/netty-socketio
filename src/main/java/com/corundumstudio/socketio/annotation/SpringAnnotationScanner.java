@@ -33,7 +33,7 @@ import com.corundumstudio.socketio.SocketIOServer;
 
 public class SpringAnnotationScanner implements BeanPostProcessor {
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
+    private static final Logger log = LoggerFactory.getLogger(SpringAnnotationScanner.class);
 
     private final List<Class<? extends Annotation>> annotations =
                     Arrays.asList(OnConnect.class, OnDisconnect.class, OnEvent.class);

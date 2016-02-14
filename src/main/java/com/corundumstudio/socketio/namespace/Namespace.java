@@ -68,6 +68,7 @@ public class Namespace implements SocketIONamespace {
         allClients.put(client.getSessionId(), client);
     }
 
+    @Override
     public String getName() {
         return name;
     }
@@ -133,7 +134,7 @@ public class Namespace implements SocketIONamespace {
         }
     }
 
-    private Object getEventData(List<Object> args, DataListener dataListener) {
+    private Object getEventData(List<Object> args, DataListener<?> dataListener) {
         if (dataListener instanceof MultiTypeEventListener) {
             return new MultiTypeArgs(args);
         } else {
@@ -223,7 +224,7 @@ public class Namespace implements SocketIONamespace {
     }
 
     @Override
-    public void addListeners(Object listeners, Class listenersClass) {
+    public void addListeners(Object listeners, Class<?> listenersClass) {
         engine.scan(this, listeners, listenersClass);
     }
 
@@ -313,6 +314,7 @@ public class Namespace implements SocketIONamespace {
         return result;
     }
 
+    @Override
     public Collection<SocketIOClient> getAllClients() {
         return Collections.unmodifiableCollection(allClients.values());
     }
@@ -321,7 +323,12 @@ public class Namespace implements SocketIONamespace {
         return jsonSupport;
     }
 
+<<<<<<< HEAD
     public SocketIOClient getClient(Long uuid) {
+=======
+    @Override
+    public SocketIOClient getClient(UUID uuid) {
+>>>>>>> remote/master
         return allClients.get(uuid);
     }
 

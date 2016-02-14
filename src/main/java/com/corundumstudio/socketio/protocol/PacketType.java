@@ -54,7 +54,7 @@ public enum PacketType {
                 return type;
             }
         }
-        throw new IllegalStateException();
+        throw new IllegalArgumentException("Can't parse " + value);
     }
 
 }
