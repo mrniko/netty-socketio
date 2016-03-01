@@ -252,7 +252,11 @@ public class PacketDecoder {
                     ByteBuf scanValue = Unpooled.copiedBuffer("{\"_placeholder\":true,\"num\":" + i + "}", CharsetUtil.UTF_8);
                     int pos = PacketEncoder.find(source, scanValue);
                     if (pos == -1) {
-                        throw new IllegalStateException("Can't find attachment by index: " + i + " in packet source");
+                        scanValue = Unpooled.copiedBuffer("{\"num\":" + i + ",\"_placeholder\":true}", CharsetUtil.UTF_8);
+                        pos = PacketEncoder.find(source, scanValue);
+                        if (pos == -1) {
+                            throw new IllegalStateException("Can't find attachment by index: " + i + " in packet source");
+                        }
                     }
 
                     ByteBuf prefixBuf = source.slice(source.readerIndex(), pos - source.readerIndex());
