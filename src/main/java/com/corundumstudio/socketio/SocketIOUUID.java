@@ -13,12 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.corundumstudio.socketio.messages;
+package com.corundumstudio.socketio;
 
-public class XHROptionsMessage extends XHRPostMessage {
+import com.relops.snowflake.Snowflake;
 
-    public XHROptionsMessage(String origin, Long sessionId) {
-        super(origin, sessionId);
+/**
+ * Created by jiayin on 16/1/4.
+ */
+public class SocketIOUUID {
+
+    public static int node = 1;
+
+    public static Snowflake s;
+
+    public static void init () {
+        s = new Snowflake(node);
     }
 
+    public static Long getId(){
+        return s.next();
+    }
 }

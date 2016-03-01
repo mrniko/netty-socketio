@@ -15,8 +15,6 @@
  */
 package com.corundumstudio.socketio.store;
 
-import java.util.UUID;
-
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IMap;
 
@@ -25,7 +23,7 @@ public class HazelcastStore implements Store {
 
     private final IMap<String, Object> map;
 
-    public HazelcastStore(UUID sessionId, HazelcastInstance hazelcastInstance) {
+    public HazelcastStore(Long sessionId, HazelcastInstance hazelcastInstance) {
         map = hazelcastInstance.getMap(sessionId.toString());
     }
 

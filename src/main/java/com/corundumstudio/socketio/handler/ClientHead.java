@@ -15,19 +15,6 @@
  */
 package com.corundumstudio.socketio.handler;
 
-import java.net.SocketAddress;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Queue;
-import java.util.Set;
-import java.util.UUID;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.corundumstudio.socketio.Configuration;
 import com.corundumstudio.socketio.DisconnectableHub;
 import com.corundumstudio.socketio.HandshakeData;
@@ -43,13 +30,23 @@ import com.corundumstudio.socketio.scheduler.SchedulerKey.Type;
 import com.corundumstudio.socketio.store.Store;
 import com.corundumstudio.socketio.store.StoreFactory;
 import com.corundumstudio.socketio.transport.NamespaceClient;
-
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.util.AttributeKey;
 import io.netty.util.internal.PlatformDependent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.net.SocketAddress;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Queue;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ClientHead {
 
@@ -61,7 +58,7 @@ public class ClientHead {
     private final Map<Namespace, NamespaceClient> namespaceClients = PlatformDependent.newConcurrentHashMap();
     private final Map<Transport, TransportState> channels = new HashMap<Transport, TransportState>(2);
     private final HandshakeData handshakeData;
-    private final UUID sessionId;
+    private final long sessionId;
 
     private final Store store;
     private final DisconnectableHub disconnectableHub;
@@ -75,7 +72,7 @@ public class ClientHead {
     // TODO use lazy set
     private volatile Transport currentTransport;
 
-    public ClientHead(UUID sessionId, AckManager ackManager, DisconnectableHub disconnectable,
+    public ClientHead(long sessionId, AckManager ackManager, DisconnectableHub disconnectable,
             StoreFactory storeFactory, HandshakeData handshakeData, ClientsBox clientsBox, Transport transport, CancelableScheduler disconnectScheduler,
             Configuration configuration) {
         this.sessionId = sessionId;
@@ -195,7 +192,7 @@ public class ClientHead {
         return ackManager;
     }
 
-    public UUID getSessionId() {
+    public Long getSessionId() {
         return sessionId;
     }
 

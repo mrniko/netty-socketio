@@ -15,23 +15,21 @@
  */
 package com.corundumstudio.socketio.store.pubsub;
 
-import java.util.UUID;
-
 public class DisconnectMessage extends PubSubMessage {
 
     private static final long serialVersionUID = -2763553673397520368L;
 
-    private UUID sessionId;
+    private Long sessionId;
 
     public DisconnectMessage() {
     }
 
-    public DisconnectMessage(UUID sessionId) {
+    public DisconnectMessage(Long sessionId) {
         super();
         this.sessionId = sessionId;
     }
 
-    public UUID getSessionId() {
+    public Long getSessionId() {
         return sessionId;
     }
 

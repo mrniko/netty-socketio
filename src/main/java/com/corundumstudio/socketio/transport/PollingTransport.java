@@ -15,15 +15,6 @@
  */
 package com.corundumstudio.socketio.transport;
 
-import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
-
-import java.io.IOException;
-import java.util.List;
-import java.util.UUID;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.corundumstudio.socketio.Transport;
 import com.corundumstudio.socketio.handler.AuthorizeHandler;
 import com.corundumstudio.socketio.handler.ClientHead;
@@ -33,19 +24,19 @@ import com.corundumstudio.socketio.messages.PacketsMessage;
 import com.corundumstudio.socketio.messages.XHROptionsMessage;
 import com.corundumstudio.socketio.messages.XHRPostMessage;
 import com.corundumstudio.socketio.protocol.PacketDecoder;
-
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.handler.codec.http.DefaultHttpResponse;
-import io.netty.handler.codec.http.FullHttpRequest;
-import io.netty.handler.codec.http.HttpHeaderNames;
-import io.netty.handler.codec.http.HttpMethod;
-import io.netty.handler.codec.http.HttpResponse;
-import io.netty.handler.codec.http.HttpResponseStatus;
-import io.netty.handler.codec.http.QueryStringDecoder;
+import io.netty.handler.codec.http.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.util.List;
+
+import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 
 @Sharable
 public class PollingTransport extends ChannelInboundHandlerAdapter {
@@ -71,7 +62,7 @@ public class PollingTransport extends ChannelInboundHandlerAdapter {
             QueryStringDecoder queryDecoder = new QueryStringDecoder(req.uri());
 
             List<String> transport = queryDecoder.parameters().get("transport");
-
+            
             if (transport != null && NAME.equals(transport.get(0))) {
                 List<String> sid = queryDecoder.parameters().get("sid");
                 List<String> j = queryDecoder.parameters().get("j");
@@ -94,7 +85,7 @@ public class PollingTransport extends ChannelInboundHandlerAdapter {
 
                 try {
                     if (sid != null && sid.get(0) != null) {
-                        final UUID sessionId = UUID.fromString(sid.get(0));
+                        final Long sessionId = Long.valueOf(sid.get(0));
                         handleMessage(req, sessionId, queryDecoder, ctx);
                     } else {
                         // first connection
@@ -110,7 +101,7 @@ public class PollingTransport extends ChannelInboundHandlerAdapter {
         ctx.fireChannelRead(msg);
     }
 
-    private void handleMessage(FullHttpRequest req, UUID sessionId, QueryStringDecoder queryDecoder, ChannelHandlerContext ctx)
+    private void handleMessage(FullHttpRequest req, Long sessionId, QueryStringDecoder queryDecoder, ChannelHandlerContext ctx)
                                                                                 throws IOException {
             String origin = req.headers().get(HttpHeaderNames.ORIGIN);
             if (queryDecoder.parameters().containsKey("disconnect")) {
@@ -129,7 +120,7 @@ public class PollingTransport extends ChannelInboundHandlerAdapter {
             }
     }
 
-    private void onOptions(UUID sessionId, ChannelHandlerContext ctx, String origin) {
+    private void onOptions(Long sessionId, ChannelHandlerContext ctx, String origin) {
         ClientHead client = clientsBox.get(sessionId);
         if (client == null) {
             log.error("{} is not registered. Closing connection", sessionId);
@@ -140,7 +131,7 @@ public class PollingTransport extends ChannelInboundHandlerAdapter {
         ctx.channel().writeAndFlush(new XHROptionsMessage(origin, sessionId));
     }
 
-    private void onPost(UUID sessionId, ChannelHandlerContext ctx, String origin, ByteBuf content)
+    private void onPost(Long sessionId, ChannelHandlerContext ctx, String origin, ByteBuf content)
                                                                                 throws IOException {
         ClientHead client = clientsBox.get(sessionId);
         if (client == null) {
@@ -162,7 +153,7 @@ public class PollingTransport extends ChannelInboundHandlerAdapter {
         ctx.pipeline().fireChannelRead(new PacketsMessage(client, content, Transport.POLLING));
     }
 
-    protected void onGet(UUID sessionId, ChannelHandlerContext ctx, String origin) {
+    protected void onGet(Long sessionId, ChannelHandlerContext ctx, String origin) {
         ClientHead client = clientsBox.get(sessionId);
         if (client == null) {
             log.error("{} is not registered. Closing connection", sessionId);

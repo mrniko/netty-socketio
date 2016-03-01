@@ -15,15 +15,6 @@
  */
 package com.corundumstudio.socketio.transport;
 
-import java.net.SocketAddress;
-import java.util.Arrays;
-import java.util.Set;
-import java.util.UUID;
-import java.util.concurrent.atomic.AtomicBoolean;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.corundumstudio.socketio.AckCallback;
 import com.corundumstudio.socketio.HandshakeData;
 import com.corundumstudio.socketio.SocketIOClient;
@@ -32,6 +23,15 @@ import com.corundumstudio.socketio.handler.ClientHead;
 import com.corundumstudio.socketio.namespace.Namespace;
 import com.corundumstudio.socketio.protocol.Packet;
 import com.corundumstudio.socketio.protocol.PacketType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.net.SocketAddress;
+import java.util.Arrays;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import static java.lang.Math.toIntExact;
 
 public class NamespaceClient implements SocketIOClient {
 
@@ -126,7 +126,7 @@ public class NamespaceClient implements SocketIOClient {
     }
 
     @Override
-    public UUID getSessionId() {
+    public Long getSessionId() {
         return baseClient.getSessionId();
     }
 
@@ -139,7 +139,7 @@ public class NamespaceClient implements SocketIOClient {
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result + ((getSessionId() == null) ? 0 : getSessionId().hashCode());
+        result = prime * result + ((getSessionId() == 0) ? 0 : toIntExact(getSessionId()));
         result = prime * result
                 + ((getNamespace().getName() == null) ? 0 : getNamespace().getName().hashCode());
         return result;

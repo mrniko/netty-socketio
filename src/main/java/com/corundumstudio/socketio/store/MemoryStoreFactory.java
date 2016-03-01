@@ -15,20 +15,18 @@
  */
 package com.corundumstudio.socketio.store;
 
+import com.corundumstudio.socketio.store.pubsub.BaseStoreFactory;
+import com.corundumstudio.socketio.store.pubsub.PubSubStore;
 import io.netty.util.internal.PlatformDependent;
 
 import java.util.Map;
-import java.util.UUID;
-
-import com.corundumstudio.socketio.store.pubsub.BaseStoreFactory;
-import com.corundumstudio.socketio.store.pubsub.PubSubStore;
 
 public class MemoryStoreFactory extends BaseStoreFactory {
 
     private final MemoryPubSubStore pubSubMemoryStore = new MemoryPubSubStore();
 
     @Override
-    public Store createStore(UUID sessionId) {
+    public Store createStore(Long sessionId) {
         return new MemoryStore();
     }
 
