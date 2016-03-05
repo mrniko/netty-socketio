@@ -50,6 +50,19 @@ Recent Releases
 ================================
 ####Please Note: trunk is current development branch.
 
+####4-Mar-2015 - version 1.7.10 released  
+Fixed - netty updated to 4.1.0.CR3 version  
+Fixed - binary packet parsing (thanks to Winston Li)  
+
+####6-Feb-2015 - version 1.7.9 released  
+Feature - Compression support  
+Fixed - DotNET client request handling  
+Fixed - Packet length format parsing  
+Fixed - skipping 'd=' in packet  
+Fixed - Polling clients sporatically get prematurely disconnected (thanks to lpage30)  
+Fixed - connections stay open forever if server sent `close` packet  
+Fixed - compatibility with Redisson latest version  
+
 ####30-Nov-2015 - version 1.7.8 released  
 Improvement - `WebSocketServerHandshaker.allowExtensions` is `true` now  
 Improvement - SessionID cookie implementation (thanks to @ryandietrich)  
