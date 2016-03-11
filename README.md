@@ -17,8 +17,8 @@ Features
 * Supports namespaces and rooms  
 * Supports ack (acknowledgment of received data)  
 * Supports SSL  
-* Supports client store (Memory, [Redisson](https://github.com/mrniko/redisson), [Hazelcast](http://www.hazelcast.com/))  
-* Supports distributed broadcast across netty-socketio nodes ([Redisson](https://github.com/mrniko/redisson), [Hazelcast](http://www.hazelcast.com/))  
+* Supports client store (Memory, [Redisson](http://redisson.org), [Hazelcast](http://www.hazelcast.com/))  
+* Supports distributed broadcast across netty-socketio nodes ([Redisson](http://redisson.org), [Hazelcast](http://www.hazelcast.com/))  
 * Supports OSGi  
 * Supports Spring  
 * Lock-free and thread-safe implementation  
