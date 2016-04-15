@@ -54,7 +54,7 @@ public class HazelcastPubSubStore implements PubSubStore {
     @Override
     public <T extends PubSubMessage> void subscribe(PubSubType type, final PubSubListener<T> listener, Class<T> clazz) {
         String name = type.toString();
-    	ITopic<T> topic = hazelcastSub.getTopic(name);
+        ITopic<T> topic = hazelcastSub.getTopic(name);
         String regId = topic.addMessageListener(new MessageListener<T>() {
             @Override
             public void onMessage(Message<T> message) {
@@ -78,7 +78,7 @@ public class HazelcastPubSubStore implements PubSubStore {
 
     @Override
     public void unsubscribe(PubSubType type) {
-    	String name = type.toString();
+        String name = type.toString();
         Queue<String> regIds = map.remove(name);
         ITopic<Object> topic = hazelcastSub.getTopic(name);
         for (String id : regIds) {
