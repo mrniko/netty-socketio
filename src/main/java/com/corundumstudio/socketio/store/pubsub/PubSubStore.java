@@ -22,7 +22,7 @@ public interface PubSubStore {
 
     <T extends PubSubMessage> void subscribe(PubSubType type, PubSubListener<T> listener, Class<T> clazz);
 
-    void unsubscribe(String name);
+    void unsubscribe(PubSubType type);
 
     void shutdown();
 

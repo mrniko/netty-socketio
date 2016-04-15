@@ -44,14 +44,15 @@ public class RedissonPubSubStore implements PubSubStore {
     }
 
     @Override
-    public void publish(String name, PubSubMessage msg) {
+    public void publish(com.corundumstudio.socketio.store.pubsub.PubSubType type, PubSubMessage msg) {
         msg.setNodeId(nodeId);
-        redissonPub.getTopic(name).publish(msg);
+        redissonPub.getTopic(type.toString()).publish(msg);
     }
 
     @Override
-    public <T extends PubSubMessage> void subscribe(String name, final PubSubListener<T> listener, Class<T> clazz) {
-        RTopic<T> topic = redissonSub.getTopic(name);
+    public <T extends PubSubMessage> void subscribe(com.corundumstudio.socketio.store.pubsub.PubSubType type, final PubSubListener<T> listener, Class<T> clazz) {
+        String name = type.toString();
+    	RTopic<T> topic = redissonSub.getTopic(name);
         int regId = topic.addListener(new MessageListener<T>() {
             @Override
             public void onMessage(String channel, T msg) {
@@ -73,7 +74,8 @@ public class RedissonPubSubStore implements PubSubStore {
     }
 
     @Override
-    public void unsubscribe(String name) {
+    public void unsubscribe(com.corundumstudio.socketio.store.pubsub.PubSubType type) {
+    	String name = type.toString();
         Queue<Integer> regIds = map.remove(name);
         RTopic<Object> topic = redissonSub.getTopic(name);
         for (Integer id : regIds) {
