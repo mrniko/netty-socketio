@@ -45,7 +45,7 @@ import com.corundumstudio.socketio.scheduler.SchedulerKey;
 import com.corundumstudio.socketio.scheduler.SchedulerKey.Type;
 import com.corundumstudio.socketio.store.StoreFactory;
 import com.corundumstudio.socketio.store.pubsub.ConnectMessage;
-import com.corundumstudio.socketio.store.pubsub.PubSubStore;
+import com.corundumstudio.socketio.store.pubsub.PubSubType;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFutureListener;
@@ -223,7 +223,7 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
             packet.setSubType(PacketType.CONNECT);
             client.send(packet);
 
-            configuration.getStoreFactory().pubSubStore().publish(PubSubStore.CONNECT, new ConnectMessage(client.getSessionId()));
+            configuration.getStoreFactory().pubSubStore().publish(PubSubType.CONNECT, new ConnectMessage(client.getSessionId()));
 
             SocketIOClient nsClient = client.addNamespaceClient(ns);
             ns.onConnect(nsClient);
