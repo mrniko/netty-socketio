@@ -291,14 +291,14 @@ public class JacksonJsonSupport implements JsonSupport {
 
     }
 
-    private final ExBeanSerializerModifier modifier = new ExBeanSerializerModifier();
-    private final ThreadLocal<String> namespaceClass = new ThreadLocal<String>();
-    private final ThreadLocal<AckCallback<?>> currentAckClass = new ThreadLocal<AckCallback<?>>();
-    private final ObjectMapper objectMapper = new ObjectMapper();
-    private final EventDeserializer eventDeserializer = new EventDeserializer();
-    private final AckArgsDeserializer ackArgsDeserializer = new AckArgsDeserializer();
+    protected final ExBeanSerializerModifier modifier = new ExBeanSerializerModifier();
+    protected final ThreadLocal<String> namespaceClass = new ThreadLocal<String>();
+    protected final ThreadLocal<AckCallback<?>> currentAckClass = new ThreadLocal<AckCallback<?>>();
+    protected final ObjectMapper objectMapper = new ObjectMapper();
+    protected final EventDeserializer eventDeserializer = new EventDeserializer();
+    protected final AckArgsDeserializer ackArgsDeserializer = new AckArgsDeserializer();
 
-    private static final Logger log = LoggerFactory.getLogger(JacksonJsonSupport.class);
+    protected static final Logger log = LoggerFactory.getLogger(JacksonJsonSupport.class);
 
     public JacksonJsonSupport() {
         this(new Module[] {});
