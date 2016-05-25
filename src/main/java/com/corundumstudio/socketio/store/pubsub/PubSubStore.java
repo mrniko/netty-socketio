@@ -18,23 +18,11 @@ package com.corundumstudio.socketio.store.pubsub;
 
 public interface PubSubStore {
 
-    // TODO refactor to enum
-    String CONNECT = "connect";
+    void publish(PubSubType type, PubSubMessage msg);
 
-    String DISCONNECT = "disconnect";
+    <T extends PubSubMessage> void subscribe(PubSubType type, PubSubListener<T> listener, Class<T> clazz);
 
-    String JOIN = "join";
-
-    String LEAVE = "leave";
-
-    String DISPATCH = "dispatch";
-
-
-    void publish(String name, PubSubMessage msg);
-
-    <T extends PubSubMessage> void subscribe(String name, PubSubListener<T> listener, Class<T> clazz);
-
-    void unsubscribe(String name);
+    void unsubscribe(PubSubType type);
 
     void shutdown();
 

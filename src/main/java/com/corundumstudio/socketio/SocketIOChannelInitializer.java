@@ -42,7 +42,7 @@ import com.corundumstudio.socketio.scheduler.CancelableScheduler;
 import com.corundumstudio.socketio.scheduler.HashedWheelTimeoutScheduler;
 import com.corundumstudio.socketio.store.StoreFactory;
 import com.corundumstudio.socketio.store.pubsub.DisconnectMessage;
-import com.corundumstudio.socketio.store.pubsub.PubSubStore;
+import com.corundumstudio.socketio.store.pubsub.PubSubType;
 import com.corundumstudio.socketio.transport.PollingTransport;
 import com.corundumstudio.socketio.transport.WebSocketTransport;
 
@@ -54,9 +54,7 @@ import io.netty.handler.codec.http.HttpContentCompressor;
 import io.netty.handler.codec.http.HttpMessage;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpRequestDecoder;
-import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseEncoder;
-import io.netty.handler.codec.http.HttpUtil;
 import io.netty.handler.codec.http.websocketx.extensions.compression.WebSocketServerCompressionHandler;
 import io.netty.handler.ssl.SslHandler;
 
@@ -224,7 +222,7 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
         authorizeHandler.onDisconnect(client);
         configuration.getStoreFactory().onDisconnect(client);
 
-        configuration.getStoreFactory().pubSubStore().publish(PubSubStore.DISCONNECT, new DisconnectMessage(client.getSessionId()));
+        configuration.getStoreFactory().pubSubStore().publish(PubSubType.DISCONNECT, new DisconnectMessage(client.getSessionId()));
 
         log.debug("Client with sessionId: {} disconnected", client.getSessionId());
     }

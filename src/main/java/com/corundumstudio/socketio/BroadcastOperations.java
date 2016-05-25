@@ -30,7 +30,7 @@ import com.corundumstudio.socketio.protocol.Packet;
 import com.corundumstudio.socketio.protocol.PacketType;
 import com.corundumstudio.socketio.store.StoreFactory;
 import com.corundumstudio.socketio.store.pubsub.DispatchMessage;
-import com.corundumstudio.socketio.store.pubsub.PubSubStore;
+import com.corundumstudio.socketio.store.pubsub.PubSubType;
 
 /**
  * Fully thread-safe.
@@ -62,7 +62,7 @@ public class BroadcastOperations implements ClientOperations {
     private void dispatch(Packet packet) {
         for (Entry<String, List<String>> entry : namespaceRooms.entrySet()) {
             for (String room : entry.getValue()) {
-                storeFactory.pubSubStore().publish(PubSubStore.DISPATCH, new DispatchMessage(room, packet, entry.getKey()));
+                storeFactory.pubSubStore().publish(PubSubType.DISPATCH, new DispatchMessage(room, packet, entry.getKey()));
             }
         }
     }

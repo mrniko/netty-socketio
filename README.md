@@ -17,8 +17,8 @@ Features
 * Supports namespaces and rooms  
 * Supports ack (acknowledgment of received data)  
 * Supports SSL  
-* Supports client store (Memory, [Redisson](https://github.com/mrniko/redisson), [Hazelcast](http://www.hazelcast.com/))  
-* Supports distributed broadcast across netty-socketio nodes ([Redisson](https://github.com/mrniko/redisson), [Hazelcast](http://www.hazelcast.com/))  
+* Supports client store (Memory, [Redisson](http://redisson.org), [Hazelcast](http://www.hazelcast.com/))  
+* Supports distributed broadcast across netty-socketio nodes ([Redisson](http://redisson.org), [Hazelcast](http://www.hazelcast.com/))  
 * Supports OSGi  
 * Supports Spring  
 * Lock-free and thread-safe implementation  
@@ -48,13 +48,13 @@ Zipwhip: [zipwhip.com](https://zipwhip.com/)
 
 Recent Releases
 ================================
-####Please Note: trunk is current development branch.
+#### Please Note: trunk is current development branch.
 
-####4-Mar-2015 - version 1.7.10 released  
+#### 4-Mar-2015 - version 1.7.10 released  
 Fixed - netty updated to 4.1.0.CR3 version  
 Fixed - binary packet parsing (thanks to Winston Li)  
 
-####6-Feb-2015 - version 1.7.9 released  
+#### 6-Feb-2015 - version 1.7.9 released  
 Feature - Compression support  
 Fixed - DotNET client request handling  
 Fixed - Packet length format parsing  
@@ -63,46 +63,46 @@ Fixed - Polling clients sporatically get prematurely disconnected (thanks to lpa
 Fixed - connections stay open forever if server sent `close` packet  
 Fixed - compatibility with Redisson latest version  
 
-####30-Nov-2015 - version 1.7.8 released  
+#### 30-Nov-2015 - version 1.7.8 released  
 Improvement - `WebSocketServerHandshaker.allowExtensions` is `true` now  
 Improvement - SessionID cookie implementation (thanks to @ryandietrich)  
 Fixed - clientRooms leak (thanks to @andreaspalm)  
 Fixed - ExceptionListener not used for errors in JSON parsing  
 Fixed - "silent channel" attack    
 
-####26-Mar-2015 - version 1.6.7 released  
+#### 26-Mar-2015 - version 1.6.7 released  
 Improvement - `useStrictOrdering` param added for websocket packets strict ordering  
 Improvement - `FAIL_ON_EMPTY_BEANS = false` option setted in json decoder  
 
-####18-Feb-2015 - version 1.7.7 released  
+#### 18-Feb-2015 - version 1.7.7 released  
 Improvement - no need to add jackson lib if you use own JsonSupport impl    
 Fixed - SocketIO client 1.3.x support  
 Fixed - Charset encoding handling (thanks to  alim-akbashev)  
 
-####17-Jan-2015 - version 1.7.6 released  
+#### 17-Jan-2015 - version 1.7.6 released  
 Improvement - `SocketIONamespace.getName()` added  
 Fixed - WebSocket frames aggregation  
 Fixed - WebSocket buffer release  
 Fixed - `Unexpected end-of-input in VALUE_STRING` error  
 Fixed - Access-Control-Allow-Credentials is TRUE for requests with origin header  
 
-####05-Dec-2014 - version 1.7.5 released  
+#### 05-Dec-2014 - version 1.7.5 released  
 Feature - `Configuration.sslProtocol` param added  
 Fixed - BinaryEvent ack handling  
 Fixed - BinaryEvent non b64 encoding/decoding  
 Fixed - buffer leak during packet encoding  
 
-####15-Nov-2014 - version 1.7.4 released  
+#### 15-Nov-2014 - version 1.7.4 released  
 Fixed - packet encoding  
 Fixed - BinaryEvent encoding/decoding  
 Fixed - unchallenged connections handling  
 
-####29-Sep-2014 - version 1.6.6 released  
+#### 29-Sep-2014 - version 1.6.6 released  
 Feature - `origin` setting added  
 Feature - `crossDomainPolicy` setting added  
 Feature - `SocketIOServer.startAsync` method added  
 
-####24-Sep-2014 - version 1.7.3 released  
+#### 24-Sep-2014 - version 1.7.3 released  
 Feature - Epoll support  
 Improvement - BinaryEvent support  
 Fixed - SocketIOClient disconnect handling  
@@ -111,23 +111,23 @@ Fixed - NPE then no transport defined during auth
 Fixed - ping timeout for polling transport  
 Fixed - buffer leak in PacketEncoder  
 
-####22-Aug-2014 - version 1.7.2 released  
+#### 22-Aug-2014 - version 1.7.2 released  
 Fixed - wrong outgoing message encoding using websocket transport  
 Fixed - NPE in websocket transport  
 Fixed - multiple packet decoding in polling transport  
 Fixed - buffer leak  
 
-####07-Jul-2014 - version 1.7.1 released  
+#### 07-Jul-2014 - version 1.7.1 released  
 Feature - ability to set custom `Access-Control-Allow-Origin` via Configuration.origin  
 Fixed - connection via CLI socket.io-client  
 
-####28-Jun-2014 - version 1.7.0 released
+#### 28-Jun-2014 - version 1.7.0 released
 Feature - Socket.IO 1.0 protocol support. Thanks to the new protocol decoding/encoding has speedup  
 __Dropped__ - `SocketIOClient.sendMessage`, `SocketIOClient.sendJsonObject` methods and corresponding listeners  
 __Dropped__ - Flashsocket transport support  
 __Dropped__ - protocol version 0.7 ... 0.9.16  
 
-####13-May-2014 - version 1.6.5 released
+#### 13-May-2014 - version 1.6.5 released
 Improvement - single packet encoding optimized, used mostly in WebSocket transport. Encoding time reduced up to 40% (thanks to Viktor Endersz)  
 Improvement - rooms handling optimized  
 Improvement - ExceptionListener.exceptionCaught method added  
@@ -137,7 +137,7 @@ Feature - maxFramePayloadLength setting added
 Feature - getAllClients and getClient methods added to SocketIONamespace  
 Fixed - SocketIOServer.getAllClients returns wrong clients amount  
 
-####25-Mar-2014 - version 1.6.4 released
+#### 25-Mar-2014 - version 1.6.4 released
 Fixed - message release problem  
 Fixed - problem with exception listener configuration redefinition  
 __Breaking api change__ - DataListener.onData now throws Exception  
@@ -145,7 +145,7 @@ Improvement - data parameter added to exception listener
 Improvement - ability to setup socket configuration  
 Improvement - Configuration.autoAck parameter added  
 
-####06-Mar-2014 - version 1.6.3 released
+#### 06-Mar-2014 - version 1.6.3 released
 Fixed - AckCallback handling during client disconnect  
 Fixed - unauthorized handshake HTTP code changed to 401  
 __Breaking api change__ - Configuration.heartbeatThreadPoolSize setting removed  
@@ -153,7 +153,7 @@ Feature - annotated Spring beans support via _SpringAnnotationScanner_
 Feature - common exception listener  
 Improvement - _ScheduledExecutorService_ replaced with _HashedWheelTimer_  
 
-####08-Feb-2014 - version 1.6.2 released
+#### 08-Feb-2014 - version 1.6.2 released
 Fixed - wrong namespace client disconnect handling  
 Fixed - exception in onConnect/onDisconnect/isAuthorized methods leads to server hang  
 __Breaking api change__ - SocketIOClient.sendEvent methods signature changed  
@@ -162,11 +162,11 @@ Improvement - multi type events ack support via _MultiTypeAckCallback_
 Improvement - SocketIOClient.getHandshakeData method added  
 Improvement - Jedis replaced with [Redisson](https://github.com/mrniko/redisson)  
 
-####14-Jan-2014 - version 1.6.1 released
+#### 14-Jan-2014 - version 1.6.1 released
 Fixed - JDK 1.6+ compatibility  
 Feature - authorization support  
 
-####19-Dec-2013 - version 1.6.0 released
+#### 19-Dec-2013 - version 1.6.0 released
 Fixed - XHR-pooling transport regression  
 Fixed - Websocket transport regression  
 Fixed - namespace NPE in PacketHandler  
@@ -177,33 +177,33 @@ Feature - OSGi support (thanks to rdevera)
 Improvement - XHR-pooling optimization  
 Improvement - SocketIOClient.getAllRooms method added
 
-####07-Dec-2013 - version 1.5.4 released
+#### 07-Dec-2013 - version 1.5.4 released
 Fixed - flash policy "request leak" after page reload (thanks to ntrp)  
 Fixed - websocket swf loading (thanks to ntrp)  
 Fixed - wrong urls causes a potential DDoS  
 Fixed - Event.class package visibility changed to avoid direct usage  
 Improvement - Simplified Jackson modules registration
 
-####24-Oct-2013 - version 1.5.2 released
+#### 24-Oct-2013 - version 1.5.2 released
 Fixed - NPE during shutdown  
 Improvement - isEmpty method added to Namespace
 
-####13-Oct-2013 - version 1.5.1 released
+#### 13-Oct-2013 - version 1.5.1 released
 Fixed - wrong ack timeout callback invocation  
 Fixed - bigdecimal serialization for JSON  
 Fixed - infinity loop during packet handling exception  
 Fixed - 'client not found' handling  
 
-####27-Aug-2013 - version 1.5.0 released
+#### 27-Aug-2013 - version 1.5.0 released
 Improvement - encoding buffers allocation optimization.  
 Improvement - encoding buffers now pooled in memory to reduce GC pressure (netty 4.x feature).  
 
-####03-Aug-2013 - version 1.0.1 released
+#### 03-Aug-2013 - version 1.0.1 released
 Fixed - error on unknown property during deserialization.  
 Fixed - memory leak in long polling transport.  
 Improvement - logging error info with inbound data.
  
-####07-Jun-2013 - version 1.0.0 released
+#### 07-Jun-2013 - version 1.0.0 released
 First stable release.
 
 
