@@ -46,6 +46,10 @@ public class PacketEncoder {
         this.configuration = configuration;
     }
 
+    public JsonSupport getJsonSupport() {
+        return jsonSupport;
+    }
+    
     public ByteBuf allocateBuffer(ByteBufAllocator allocator) {
         if (configuration.isPreferDirectBuffer()) {
             return allocator.ioBuffer();

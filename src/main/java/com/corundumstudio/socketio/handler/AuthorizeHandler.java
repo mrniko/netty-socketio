@@ -35,6 +35,7 @@ import com.corundumstudio.socketio.HandshakeData;
 import com.corundumstudio.socketio.SocketIOClient;
 import com.corundumstudio.socketio.Transport;
 import com.corundumstudio.socketio.ack.AckManager;
+import com.corundumstudio.socketio.messages.HttpErrorMessage;
 import com.corundumstudio.socketio.namespace.Namespace;
 import com.corundumstudio.socketio.namespace.NamespacesHub;
 import com.corundumstudio.socketio.protocol.AuthPacket;
@@ -164,7 +165,7 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
 
         List<String> transportValue = params.get("transport");
         if (transportValue == null) {
-            log.warn("Got no transports for request {}", req.uri());
+            log.error("Got no transports for request {}", req.uri());
 
             HttpResponse res = new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.UNAUTHORIZED);
             channel.writeAndFlush(res).addListener(ChannelFutureListener.CLOSE);
@@ -172,10 +173,19 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
         }
 
         Transport transport = Transport.byName(transportValue.get(0));
+        if (!configuration.getTransports().contains(transport)) {
+            Map<String, Object> errorData = new HashMap<String, Object>();
+            errorData.put("code", 0);
+            errorData.put("message", "Transport unknown");
+            
+            channel.attr(EncoderHandler.ORIGIN).set(origin);
+            channel.writeAndFlush(new HttpErrorMessage(errorData));
+            return false;
+        }
+        
         ClientHead client = new ClientHead(sessionId, ackManager, disconnectable, storeFactory, data, clientsBox, transport, disconnectScheduler, configuration);
         channel.attr(ClientHead.CLIENT).set(client);
         clientsBox.addClient(client);
-
 
         String[] transports = {};
         if (configuration.getTransports().contains(Transport.WEBSOCKET)) {
