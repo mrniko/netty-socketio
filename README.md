@@ -50,11 +50,11 @@ Recent Releases
 ================================
 #### Please Note: trunk is current development branch.
 
-#### 4-Mar-2015 - version 1.7.10 released  
+#### 4-Mar-2016 - version 1.7.10 released  
 Fixed - netty updated to 4.1.0.CR3 version  
 Fixed - binary packet parsing (thanks to Winston Li)  
 
-#### 6-Feb-2015 - version 1.7.9 released  
+#### 6-Feb-2016 - version 1.7.9 released  
 Feature - Compression support  
 Fixed - DotNET client request handling  
 Fixed - Packet length format parsing  
