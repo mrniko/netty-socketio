@@ -301,7 +301,7 @@ public class Namespace implements SocketIONamespace {
 
     public void leave(String room, UUID sessionId) {
         leave(roomClients, room, sessionId);
-        clientRooms.remove(sessionId);
+        leave(clientRooms, sessionId, room);
     }
 
     public Set<String> getRooms(SocketIOClient client) {
