@@ -62,7 +62,7 @@ public class BroadcastOperations implements ClientOperations {
     private void dispatch(Packet packet) {
         for (Entry<String, List<String>> entry : namespaceRooms.entrySet()) {
             for (String room : entry.getValue()) {
-                storeFactory.pubSubStore().publish(PubSubType.DISPATCH, new DispatchMessage(room, packet, entry.getKey()));
+                storeFactory.pubSubStore().publish(PubSubType.DISPATCH.toString(), new DispatchMessage(room, packet, entry.getKey()));
             }
         }
     }

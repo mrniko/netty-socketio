@@ -18,11 +18,11 @@ package com.corundumstudio.socketio.store.pubsub;
 
 public interface PubSubStore {
 
-    void publish(PubSubType type, PubSubMessage msg);
+    void publish(String name, PubSubMessage msg);
 
-    <T extends PubSubMessage> void subscribe(PubSubType type, PubSubListener<T> listener, Class<T> clazz);
+    <T extends PubSubMessage> void subscribe(String name, PubSubListener<T> listener, Class<T> clazz);
 
-    void unsubscribe(PubSubType type);
+    void unsubscribe(String name);
 
     void shutdown();
 

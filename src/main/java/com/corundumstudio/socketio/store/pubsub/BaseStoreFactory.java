@@ -36,14 +36,14 @@ public abstract class BaseStoreFactory implements StoreFactory {
 
     @Override
     public void init(final NamespacesHub namespacesHub, final AuthorizeHandler authorizeHandler, JsonSupport jsonSupport) {
-        pubSubStore().subscribe(PubSubType.DISCONNECT, new PubSubListener<DisconnectMessage>() {
+        pubSubStore().subscribe(PubSubType.DISCONNECT.toString(), new PubSubListener<DisconnectMessage>() {
             @Override
             public void onMessage(DisconnectMessage msg) {
                 log.debug("{} sessionId: {}", PubSubType.DISCONNECT, msg.getSessionId());
             }
         }, DisconnectMessage.class);
 
-        pubSubStore().subscribe(PubSubType.CONNECT, new PubSubListener<ConnectMessage>() {
+        pubSubStore().subscribe(PubSubType.CONNECT.toString(), new PubSubListener<ConnectMessage>() {
             @Override
             public void onMessage(ConnectMessage msg) {
                 authorizeHandler.connect(msg.getSessionId());
@@ -51,7 +51,7 @@ public abstract class BaseStoreFactory implements StoreFactory {
             }
         }, ConnectMessage.class);
 
-        pubSubStore().subscribe(PubSubType.DISPATCH, new PubSubListener<DispatchMessage>() {
+        pubSubStore().subscribe(PubSubType.DISPATCH.toString(), new PubSubListener<DispatchMessage>() {
             @Override
             public void onMessage(DispatchMessage msg) {
                 String name = msg.getRoom();
@@ -61,7 +61,7 @@ public abstract class BaseStoreFactory implements StoreFactory {
             }
         }, DispatchMessage.class);
 
-        pubSubStore().subscribe(PubSubType.JOIN, new PubSubListener<JoinLeaveMessage>() {
+        pubSubStore().subscribe(PubSubType.JOIN.toString(), new PubSubListener<JoinLeaveMessage>() {
             @Override
             public void onMessage(JoinLeaveMessage msg) {
                 String name = msg.getRoom();
@@ -71,7 +71,7 @@ public abstract class BaseStoreFactory implements StoreFactory {
             }
         }, JoinLeaveMessage.class);
 
-        pubSubStore().subscribe(PubSubType.LEAVE, new PubSubListener<JoinLeaveMessage>() {
+        pubSubStore().subscribe(PubSubType.LEAVE.toString(), new PubSubListener<JoinLeaveMessage>() {
             @Override
             public void onMessage(JoinLeaveMessage msg) {
                 String name = msg.getRoom();

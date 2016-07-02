@@ -18,20 +18,19 @@ package com.corundumstudio.socketio.store;
 import com.corundumstudio.socketio.store.pubsub.PubSubListener;
 import com.corundumstudio.socketio.store.pubsub.PubSubMessage;
 import com.corundumstudio.socketio.store.pubsub.PubSubStore;
-import com.corundumstudio.socketio.store.pubsub.PubSubType;
 
 public class MemoryPubSubStore implements PubSubStore {
 
     @Override
-    public void publish(PubSubType type, PubSubMessage msg) {
+    public void publish(String name, PubSubMessage msg) {
     }
 
     @Override
-    public <T extends PubSubMessage> void subscribe(PubSubType type, PubSubListener<T> listener, Class<T> clazz) {
+    public <T extends PubSubMessage> void subscribe(String name, PubSubListener<T> listener, Class<T> clazz) {
     }
 
     @Override
-    public void unsubscribe(PubSubType type) {
+    public void unsubscribe(String name) {
     }
 
     @Override

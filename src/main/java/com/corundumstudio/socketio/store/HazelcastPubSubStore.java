@@ -15,8 +15,6 @@
  */
 package com.corundumstudio.socketio.store;
 
-import io.netty.util.internal.PlatformDependent;
-
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentMap;
@@ -24,11 +22,12 @@ import java.util.concurrent.ConcurrentMap;
 import com.corundumstudio.socketio.store.pubsub.PubSubListener;
 import com.corundumstudio.socketio.store.pubsub.PubSubMessage;
 import com.corundumstudio.socketio.store.pubsub.PubSubStore;
-import com.corundumstudio.socketio.store.pubsub.PubSubType;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.ITopic;
 import com.hazelcast.core.Message;
 import com.hazelcast.core.MessageListener;
+
+import io.netty.util.internal.PlatformDependent;
 
 
 public class HazelcastPubSubStore implements PubSubStore {
@@ -46,14 +45,13 @@ public class HazelcastPubSubStore implements PubSubStore {
     }
 
     @Override
-    public void publish(PubSubType type, PubSubMessage msg) {
+    public void publish(String name, PubSubMessage msg) {
         msg.setNodeId(nodeId);
-        hazelcastPub.getTopic(type.toString()).publish(msg);
+        hazelcastPub.getTopic(name).publish(msg);
     }
 
     @Override
-    public <T extends PubSubMessage> void subscribe(PubSubType type, final PubSubListener<T> listener, Class<T> clazz) {
-        String name = type.toString();
+    public <T extends PubSubMessage> void subscribe(String name, final PubSubListener<T> listener, Class<T> clazz) {
         ITopic<T> topic = hazelcastSub.getTopic(name);
         String regId = topic.addMessageListener(new MessageListener<T>() {
             @Override
@@ -77,8 +75,7 @@ public class HazelcastPubSubStore implements PubSubStore {
     }
 
     @Override
-    public void unsubscribe(PubSubType type) {
-        String name = type.toString();
+    public void unsubscribe(String name) {
         Queue<String> regIds = map.remove(name);
         ITopic<Object> topic = hazelcastSub.getTopic(name);
         for (String id : regIds) {
