@@ -80,6 +80,7 @@ public class PacketListener {
 
             if (packet.getSubType() == PacketType.DISCONNECT) {
                 client.onDisconnect();
+                break;
             }
 
             if (packet.getSubType() == PacketType.CONNECT) {
@@ -87,10 +88,12 @@ public class PacketListener {
                 namespace.onConnect(client);
                 // send connect handshake packet back to client
                 client.getBaseClient().send(packet, transport);
+                break;
             }
 
             if (packet.getSubType() == PacketType.ACK) {
                 ackManager.onAck(client, packet);
+                break;
             }
 
             if (packet.getSubType() == PacketType.EVENT
@@ -101,6 +104,7 @@ public class PacketListener {
                     args = packet.getData();
                 }
                 namespace.onEvent(client, packet.getName(), args, ackRequest);
+                break;
             }
             break;
         }
