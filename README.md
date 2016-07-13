@@ -50,6 +50,10 @@ Recent Releases
 ================================
 #### Please Note: trunk is current development branch.
 
+#### 13-Jul-2016 - version 1.7.11 released  
+Fixed - Throw error if transport not supported  
+Fixed - Client disconnecting when using Polling - IndexOutOfBoundsException  
+
 #### 4-Mar-2016 - version 1.7.10 released  
 Fixed - netty updated to 4.1.0.CR3 version  
 Fixed - binary packet parsing (thanks to Winston Li)  
