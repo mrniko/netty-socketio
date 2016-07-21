@@ -50,6 +50,7 @@ public class WrongUrlHandler extends ChannelInboundHandlerAdapter {
             req.release();
             log.warn("Blocked wrong socket.io-context request! url: {}, params: {}, ip: {}", queryDecoder.path(), queryDecoder.parameters(), channel.remoteAddress());
         }
+        ReferenceCountUtil.release(msg);
     }
 
 }
