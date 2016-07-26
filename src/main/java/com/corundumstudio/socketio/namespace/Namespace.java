@@ -170,6 +170,7 @@ public class Namespace implements SocketIONamespace {
     }
 
     public void onDisconnect(SocketIOClient client) {
+        Set<String> joinedRooms = client.getAllRooms();        
         allClients.remove(client.getSessionId());
 
         leave(getName(), client.getSessionId());
