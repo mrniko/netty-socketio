@@ -15,6 +15,21 @@
  */
 package com.corundumstudio.socketio;
 
+import com.corundumstudio.socketio.listener.ClientListeners;
+import com.corundumstudio.socketio.listener.ConnectListener;
+import com.corundumstudio.socketio.listener.DataListener;
+import com.corundumstudio.socketio.listener.DisconnectListener;
+import com.corundumstudio.socketio.listener.MultiTypeEventListener;
+import com.corundumstudio.socketio.namespace.Namespace;
+import com.corundumstudio.socketio.namespace.NamespacesHub;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.net.InetSocketAddress;
+import java.util.Collection;
+import java.util.UUID;
+
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
@@ -26,21 +41,6 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.FutureListener;
-
-import java.net.InetSocketAddress;
-import java.util.Collection;
-import java.util.UUID;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.corundumstudio.socketio.listener.ClientListeners;
-import com.corundumstudio.socketio.listener.ConnectListener;
-import com.corundumstudio.socketio.listener.DataListener;
-import com.corundumstudio.socketio.listener.DisconnectListener;
-import com.corundumstudio.socketio.listener.MultiTypeEventListener;
-import com.corundumstudio.socketio.namespace.Namespace;
-import com.corundumstudio.socketio.namespace.NamespacesHub;
 
 /**
  * Fully thread-safe.
@@ -179,11 +179,11 @@ public class SocketIOServer implements ClientListeners {
 
     protected void initGroups() {
         if (configCopy.isUseLinuxNativeEpoll()) {
-            bossGroup = new EpollEventLoopGroup(configCopy.getBossThreads());
-            workerGroup = new EpollEventLoopGroup(configCopy.getWorkerThreads());
+            bossGroup = new EpollEventLoopGroup(configCopy.getBossThreads(), configCopy.getExecutor());
+            workerGroup = new EpollEventLoopGroup(configCopy.getWorkerThreads(), configCopy.getExecutor());
         } else {
-            bossGroup = new NioEventLoopGroup(configCopy.getBossThreads());
-            workerGroup = new NioEventLoopGroup(configCopy.getWorkerThreads());
+            bossGroup = new NioEventLoopGroup(configCopy.getBossThreads(), configCopy.getExecutor());
+            workerGroup = new NioEventLoopGroup(configCopy.getWorkerThreads(), configCopy.getExecutor());
         }
     }
 

@@ -18,6 +18,7 @@ package com.corundumstudio.socketio;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.Executor;
 
 import com.corundumstudio.socketio.handler.SuccessAuthorizationListener;
 import com.corundumstudio.socketio.listener.DefaultExceptionListener;
@@ -81,6 +82,8 @@ public class Configuration {
     private boolean httpCompression = true;
 
     private boolean websocketCompression = true;
+
+    private Executor executor = null;
 
     public Configuration() {
     }
@@ -146,6 +149,8 @@ public class Configuration {
 
         setHttpCompression(conf.isHttpCompression());
         setWebsocketCompression(conf.isWebsocketCompression());
+
+        setExecutor(conf.getExecutor());
     }
 
     public JsonSupport getJsonSupport() {
@@ -561,4 +566,11 @@ public class Configuration {
         return websocketCompression;
     }
 
+    public Executor getExecutor() {
+        return executor;
+    }
+
+    public void setExecutor(Executor executor) {
+        this.executor = executor;
+    }
 }
