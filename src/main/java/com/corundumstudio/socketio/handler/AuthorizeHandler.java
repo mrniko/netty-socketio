@@ -30,7 +30,6 @@ import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.QueryStringDecoder;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -129,7 +128,7 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
         }
 
         HandshakeData data = new HandshakeData(headers, params,
-                                                (InetSocketAddress)channel.remoteAddress(),
+                                                channel.remoteAddress(),
                                                     req.getUri(), origin != null && !origin.equalsIgnoreCase("null"));
 
         boolean result = false;
