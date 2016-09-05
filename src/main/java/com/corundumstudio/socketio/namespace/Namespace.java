@@ -15,8 +15,6 @@
  */
 package com.corundumstudio.socketio.namespace;
 
-import io.netty.util.internal.PlatformDependent;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -45,9 +43,10 @@ import com.corundumstudio.socketio.protocol.JsonSupport;
 import com.corundumstudio.socketio.protocol.Packet;
 import com.corundumstudio.socketio.store.StoreFactory;
 import com.corundumstudio.socketio.store.pubsub.JoinLeaveMessage;
-import com.corundumstudio.socketio.store.pubsub.PubSubStore;
 import com.corundumstudio.socketio.store.pubsub.PubSubType;
 import com.corundumstudio.socketio.transport.NamespaceClient;
+
+import io.netty.util.internal.PlatformDependent;
 
 /**
  * Hub object for all clients in one namespace.
@@ -105,6 +104,14 @@ public class Namespace implements SocketIONamespace {
         }
         entry.addListener(listener);
         jsonSupport.addEventMapping(name, eventName, eventClass);
+    }
+    
+    @Override
+    public void removeAllListeners(String eventName) {
+        EventEntry<?> entry = eventListeners.remove(eventName);
+        if (entry != null) {
+            jsonSupport.removeEventMapping(name, eventName);
+        }
     }
 
     @Override

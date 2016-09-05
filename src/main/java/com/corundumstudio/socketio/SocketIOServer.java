@@ -232,6 +232,11 @@ public class SocketIOServer implements ClientListeners {
     }
 
     @Override
+    public void removeAllListeners(String eventName) {
+        mainNamespace.removeAllListeners(eventName);
+    }
+
+    @Override
     public void addDisconnectListener(DisconnectListener listener) {
         mainNamespace.addDisconnectListener(listener);
     }
@@ -245,7 +250,7 @@ public class SocketIOServer implements ClientListeners {
     public void addListeners(Object listeners) {
         mainNamespace.addListeners(listeners);
     }
-
+    
     @Override
     public void addListeners(Object listeners, Class<?> listenersClass) {
         mainNamespace.addListeners(listeners, listenersClass);
