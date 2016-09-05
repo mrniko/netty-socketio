@@ -18,7 +18,7 @@ package com.corundumstudio.socketio.store;
 import java.util.Map;
 import java.util.UUID;
 
-import org.redisson.RedissonClient;
+import org.redisson.api.RedissonClient;
 
 public class RedissonStore implements Store {
 
