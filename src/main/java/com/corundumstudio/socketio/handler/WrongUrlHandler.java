@@ -23,15 +23,14 @@ import org.slf4j.LoggerFactory;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
+import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.handler.codec.http.DefaultHttpResponse;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.QueryStringDecoder;
-import io.netty.util.ReferenceCountUtil;
 
 @Sharable
 public class WrongUrlHandler extends ChannelInboundHandlerAdapter {
@@ -50,8 +49,9 @@ public class WrongUrlHandler extends ChannelInboundHandlerAdapter {
             f.addListener(ChannelFutureListener.CLOSE);
             req.release();
             log.warn("Blocked wrong socket.io-context request! url: {}, params: {}, ip: {}", queryDecoder.path(), queryDecoder.parameters(), channel.remoteAddress());
+            return;
         }
-        ReferenceCountUtil.release(msg);
+        super.channelRead(ctx, msg);
     }
 
 }
