@@ -15,11 +15,10 @@
  */
 package com.corundumstudio.socketio;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -39,28 +38,28 @@ import com.corundumstudio.socketio.store.pubsub.PubSubType;
 public class BroadcastOperations implements ClientOperations {
 
     private final Iterable<SocketIOClient> clients;
-    private final Map<String, List<String>> namespaceRooms = new HashMap<String, List<String>>();
     private final StoreFactory storeFactory;
 
     public BroadcastOperations(Iterable<SocketIOClient> clients, StoreFactory storeFactory) {
         super();
         this.clients = clients;
-        for (SocketIOClient socketIOClient : clients) {
-            Namespace namespace = (Namespace)socketIOClient.getNamespace();
-            Set<String> rooms = namespace.getRooms(socketIOClient);
-
-            List<String> roomsList = namespaceRooms.get(namespace.getName());
-            if (roomsList == null) {
-                roomsList = new ArrayList<String>();
-                namespaceRooms.put(namespace.getName(), roomsList);
-            }
-            roomsList.addAll(rooms);
-        }
         this.storeFactory = storeFactory;
     }
 
     private void dispatch(Packet packet) {
-        for (Entry<String, List<String>> entry : namespaceRooms.entrySet()) {
+        Map<String, Set<String>> namespaceRooms = new HashMap<String, Set<String>>();
+        for (SocketIOClient socketIOClient : clients) {
+            Namespace namespace = (Namespace)socketIOClient.getNamespace();
+            Set<String> rooms = namespace.getRooms(socketIOClient);
+            
+            Set<String> roomsList = namespaceRooms.get(namespace.getName());
+            if (roomsList == null) {
+                roomsList = new HashSet<String>();
+                namespaceRooms.put(namespace.getName(), roomsList);
+            }
+            roomsList.addAll(rooms);
+        }
+        for (Entry<String, Set<String>> entry : namespaceRooms.entrySet()) {
             for (String room : entry.getValue()) {
                 storeFactory.pubSubStore().publish(PubSubType.DISPATCH, new DispatchMessage(room, packet, entry.getKey()));
             }
@@ -93,6 +92,21 @@ public class BroadcastOperations implements ClientOperations {
         }
     }
 
+    public void sendEvent(String name, SocketIOClient excludedClient, Object... data) {
+        Packet packet = new Packet(PacketType.MESSAGE);
+        packet.setSubType(PacketType.EVENT);
+        packet.setName(name);
+        packet.setData(Arrays.asList(data));
+
+        for (SocketIOClient client : clients) {
+            if (client.getSessionId().equals(excludedClient.getSessionId())) {
+                continue;
+            }
+            client.send(packet);
+        }
+        dispatch(packet);
+    }
+    
     @Override
     public void sendEvent(String name, Object... data) {
         Packet packet = new Packet(PacketType.MESSAGE);
@@ -108,5 +122,16 @@ public class BroadcastOperations implements ClientOperations {
         }
         ackCallback.loopFinished();
     }
+    
+    public <T> void sendEvent(String name, Object data, SocketIOClient excludedClient, BroadcastAckCallback<T> ackCallback) {
+        for (SocketIOClient client : clients) {
+            if (client.getSessionId().equals(excludedClient.getSessionId())) {
+                continue;
+            }
+            client.sendEvent(name, ackCallback.createClientCallback(client), data);
+        }
+        ackCallback.loopFinished();
+    }
+
 
 }
