@@ -50,6 +50,13 @@ Recent Releases
 ================================
 #### Please Note: trunk is current development branch.
 
+#### 27-Aug-2016 - version 1.7.12 released  
+Feature - `SocketIOServer.removeAllListeners` method added
+Feature - `BroadcastOperations.sendEvent` method with `excludedClient` param added
+Improvement - Redisson updated to 2.4.0
+Fixed - memory leak in Namespace object (thanks to @CrazyIvan007)
+
+
 #### 13-Jul-2016 - version 1.7.11 released  
 Fixed - Throw error if transport not supported  
 Fixed - Client disconnecting when using Polling - IndexOutOfBoundsException  
