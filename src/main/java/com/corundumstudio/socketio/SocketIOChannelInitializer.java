@@ -208,7 +208,7 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
         KeyStore ks = KeyStore.getInstance(configuration.getKeyStoreFormat());
         ks.load(configuration.getKeyStore(), configuration.getKeyStorePassword().toCharArray());
 
-        KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+        KeyManagerFactory kmf = KeyManagerFactory.getInstance(configuration.getKeyManagerFactoryAlgorithm());
         kmf.init(ks, configuration.getKeyStorePassword().toCharArray());
 
         SSLContext serverContext = SSLContext.getInstance(configuration.getSSLProtocol());
