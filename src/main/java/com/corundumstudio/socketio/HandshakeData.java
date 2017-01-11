@@ -17,6 +17,7 @@ package com.corundumstudio.socketio;
 
 import java.io.Serializable;
 import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -26,7 +27,7 @@ public class HandshakeData implements Serializable {
     private static final long serialVersionUID = 1196350300161819978L;
 
     private Map<String, List<String>> headers;
-    private InetSocketAddress address;
+    private SocketAddress address;
     private Date time = new Date();
     private String url;
     private Map<String, List<String>> urlParams;
@@ -35,7 +36,7 @@ public class HandshakeData implements Serializable {
     public HandshakeData() {
     }
 
-    public HandshakeData(Map<String, List<String>> headers, Map<String, List<String>> urlParams, InetSocketAddress address, String url, boolean xdomain) {
+    public HandshakeData(Map<String, List<String>> headers, Map<String, List<String>> urlParams, SocketAddress address, String url, boolean xdomain) {
         super();
         this.headers = headers;
         this.urlParams = urlParams;
@@ -44,9 +45,17 @@ public class HandshakeData implements Serializable {
         this.xdomain = xdomain;
     }
 
-    public InetSocketAddress getAddress() {
-        return address;
-    }
+	/**
+	 * @deprecated use {@link #getSocketAddress()} instead
+	 */
+	@Deprecated
+	public InetSocketAddress getAddress() {
+		return (InetSocketAddress) address;
+	}
+
+	public SocketAddress getSocketAddress() {
+		return address;
+	}
 
     public Map<String, List<String>> getHeaders() {
         return headers;
