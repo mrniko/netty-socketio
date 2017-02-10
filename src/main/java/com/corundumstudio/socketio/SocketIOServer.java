@@ -139,8 +139,8 @@ public class SocketIOServer implements ClientListeners {
 
         ServerBootstrap b = new ServerBootstrap();
         b.group(bossGroup, workerGroup)
-        .channel(channelClass)
-        .childHandler(pipelineFactory);
+                .channel(channelClass)
+                .childHandler(pipelineFactory);
         applyConnectionOptions(b);
 
         InetSocketAddress addr = new InetSocketAddress(configCopy.getPort());
@@ -170,6 +170,7 @@ public class SocketIOServer implements ClientListeners {
             bootstrap.childOption(ChannelOption.SO_RCVBUF, config.getTcpReceiveBufferSize());
             bootstrap.childOption(ChannelOption.RCVBUF_ALLOCATOR, new FixedRecvByteBufAllocator(config.getTcpReceiveBufferSize()));
         }
+        bootstrap.childOption(ChannelOption.SO_TIMEOUT, (2 * (configCopy.getPingTimeout())));
         bootstrap.childOption(ChannelOption.SO_KEEPALIVE, config.isTcpKeepAlive());
 
         bootstrap.option(ChannelOption.SO_LINGER, config.getSoLinger());
@@ -250,7 +251,7 @@ public class SocketIOServer implements ClientListeners {
     public void addListeners(Object listeners) {
         mainNamespace.addListeners(listeners);
     }
-    
+
     @Override
     public void addListeners(Object listeners, Class<?> listenersClass) {
         mainNamespace.addListeners(listeners, listenersClass);
