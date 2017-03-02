@@ -25,7 +25,7 @@ import com.corundumstudio.socketio.store.pubsub.PubSubStore;
 
 public class MemoryStoreFactory extends BaseStoreFactory {
 
-    private final MemoryPubSubStore pubSubMemoryStore = new MemoryPubSubStore();
+    private final MemoryPubSubStore pubSubMemoryStore = new MemoryPubSubStore(getNodeId());
 
     @Override
     public Store createStore(UUID sessionId) {
