@@ -280,7 +280,8 @@ public class PacketEncoder {
                             for (byte[] array : jsonSupport.getArrays()) {
                                 packet.addAttachment(Unpooled.wrappedBuffer(array));
                             }
-                            packet.setSubType(PacketType.BINARY_EVENT);
+                            packet.setSubType(packet.getSubType() == PacketType.ACK
+                                    ? PacketType.BINARY_ACK : PacketType.BINARY_EVENT);
                         }
                     }
 
