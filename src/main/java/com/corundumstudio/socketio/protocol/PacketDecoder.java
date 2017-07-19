@@ -15,6 +15,9 @@
  */
 package com.corundumstudio.socketio.protocol;
 
+import com.corundumstudio.socketio.AckCallback;
+import com.corundumstudio.socketio.ack.AckManager;
+import com.corundumstudio.socketio.handler.ClientHead;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufInputStream;
 import io.netty.buffer.Unpooled;
@@ -25,10 +28,6 @@ import java.io.IOException;
 import java.net.URLDecoder;
 import java.util.LinkedList;
 import java.util.UUID;
-
-import com.corundumstudio.socketio.AckCallback;
-import com.corundumstudio.socketio.ack.AckManager;
-import com.corundumstudio.socketio.handler.ClientHead;
 
 public class PacketDecoder {
 
@@ -190,7 +189,8 @@ public class PacketDecoder {
 
         int attachmentsDividerIndex = frame.bytesBefore(endIndex, (byte)'-');
         boolean hasAttachments = attachmentsDividerIndex != -1;
-        if (hasAttachments && PacketType.BINARY_EVENT.equals(innerType)) {
+        if (hasAttachments && (PacketType.BINARY_EVENT.equals(innerType)
+                || PacketType.BINARY_ACK.equals(innerType))) {
             int attachments = (int) readLong(frame, attachmentsDividerIndex);
             packet.initAttachments(attachments);
             frame.readerIndex(frame.readerIndex() + 1);
@@ -286,7 +286,14 @@ public class PacketDecoder {
                 packet.setNsp(readString(frame));
             }
 
-            if (packet.getSubType() == PacketType.ACK) {
+            if (packet.hasAttachments() && !packet.isAttachmentsLoaded()) {
+                packet.setDataSource(Unpooled.copiedBuffer(frame));
+                frame.readerIndex(frame.readableBytes());
+                head.setLastBinaryPacket(packet);
+            }
+
+            if (packet.getSubType() == PacketType.ACK
+                    || packet.getSubType() == PacketType.BINARY_ACK) {
                 ByteBufInputStream in = new ByteBufInputStream(frame);
                 AckCallback<?> callback = ackManager.getCallback(head.getSessionId(), packet.getAckId());
                 AckArgs args = jsonSupport.readAckArgs(in, callback);
@@ -295,16 +302,10 @@ public class PacketDecoder {
 
             if (packet.getSubType() == PacketType.EVENT
                     || packet.getSubType() == PacketType.BINARY_EVENT) {
-                if (packet.hasAttachments() && !packet.isAttachmentsLoaded()) {
-                    packet.setDataSource(Unpooled.copiedBuffer(frame));
-                    frame.readerIndex(frame.readableBytes());
-                    head.setLastBinaryPacket(packet);
-                } else {
-                    ByteBufInputStream in = new ByteBufInputStream(frame);
-                    Event event = jsonSupport.readValue(packet.getNsp(), in, Event.class);
-                    packet.setName(event.getName());
-                    packet.setData(event.getArgs());
-                }
+                ByteBufInputStream in = new ByteBufInputStream(frame);
+                Event event = jsonSupport.readValue(packet.getNsp(), in, Event.class);
+                packet.setName(event.getName());
+                packet.setData(event.getArgs());
             }
         }
     }

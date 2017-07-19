@@ -89,7 +89,8 @@ public class PacketListener {
                 client.getBaseClient().send(packet, transport);
             }
 
-            if (packet.getSubType() == PacketType.ACK) {
+            if (packet.getSubType() == PacketType.ACK
+                    || packet.getSubType() == PacketType.BINARY_ACK) {
                 ackManager.onAck(client, packet);
             }
 
