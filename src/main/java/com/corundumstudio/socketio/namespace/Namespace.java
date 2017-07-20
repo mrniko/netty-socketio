@@ -37,6 +37,7 @@ import com.corundumstudio.socketio.annotation.ScannerEngine;
 import com.corundumstudio.socketio.listener.ConnectListener;
 import com.corundumstudio.socketio.listener.DataListener;
 import com.corundumstudio.socketio.listener.DisconnectListener;
+import com.corundumstudio.socketio.listener.EventInterceptor;
 import com.corundumstudio.socketio.listener.ExceptionListener;
 import com.corundumstudio.socketio.listener.MultiTypeEventListener;
 import com.corundumstudio.socketio.protocol.JsonSupport;
@@ -72,6 +73,7 @@ public class Namespace implements SocketIONamespace {
     private final JsonSupport jsonSupport;
     private final StoreFactory storeFactory;
     private final ExceptionListener exceptionListener;
+    private final List<EventInterceptor> eventInterceptors;
 
     public Namespace(String name, Configuration configuration) {
         super();
@@ -80,6 +82,7 @@ public class Namespace implements SocketIONamespace {
         this.storeFactory = configuration.getStoreFactory();
         this.exceptionListener = configuration.getExceptionListener();
         this.ackMode = configuration.getAckMode();
+        this.eventInterceptors = configuration.getEventInterceptors();
     }
 
     public void addClient(SocketIOClient client) {
@@ -137,6 +140,7 @@ public class Namespace implements SocketIONamespace {
         }
 
         try {
+        		runEventInterceptors(client, eventName, args, ackRequest);
             Queue<DataListener> listeners = entry.getListeners();
             for (DataListener dataListener : listeners) {
                 Object data = getEventData(args, dataListener);
@@ -360,4 +364,13 @@ public class Namespace implements SocketIONamespace {
         return allClients.get(uuid);
     }
 
+    private void runEventInterceptors(NamespaceClient client, String eventName, List<Object> args, AckRequest ackRequest){
+    		for(EventInterceptor interceptor:eventInterceptors){
+    			try{
+	    			interceptor.onEvent(client, eventName, args, ackRequest);
+    			}catch(Exception e){
+    				e.printStackTrace();
+    			}
+    		}
+    }
 }
