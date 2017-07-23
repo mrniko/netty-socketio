@@ -292,6 +292,10 @@ public class PacketDecoder {
                 head.setLastBinaryPacket(packet);
             }
 
+            if (packet.hasAttachments() && !packet.isAttachmentsLoaded()) {
+                return;
+            }
+
             if (packet.getSubType() == PacketType.ACK
                     || packet.getSubType() == PacketType.BINARY_ACK) {
                 ByteBufInputStream in = new ByteBufInputStream(frame);
@@ -302,12 +306,10 @@ public class PacketDecoder {
 
             if (packet.getSubType() == PacketType.EVENT
                     || packet.getSubType() == PacketType.BINARY_EVENT) {
-                if (!packet.hasAttachments() || packet.isAttachmentsLoaded()) {
-                    ByteBufInputStream in = new ByteBufInputStream(frame);
-                    Event event = jsonSupport.readValue(packet.getNsp(), in, Event.class);
-                    packet.setName(event.getName());
-                    packet.setData(event.getArgs());
-                }
+                ByteBufInputStream in = new ByteBufInputStream(frame);
+                Event event = jsonSupport.readValue(packet.getNsp(), in, Event.class);
+                packet.setName(event.getName());
+                packet.setData(event.getArgs());
             }
         }
     }
