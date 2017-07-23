@@ -302,10 +302,12 @@ public class PacketDecoder {
 
             if (packet.getSubType() == PacketType.EVENT
                     || packet.getSubType() == PacketType.BINARY_EVENT) {
-                ByteBufInputStream in = new ByteBufInputStream(frame);
-                Event event = jsonSupport.readValue(packet.getNsp(), in, Event.class);
-                packet.setName(event.getName());
-                packet.setData(event.getArgs());
+                if (!packet.hasAttachments() || packet.isAttachmentsLoaded()) {
+                    ByteBufInputStream in = new ByteBufInputStream(frame);
+                    Event event = jsonSupport.readValue(packet.getNsp(), in, Event.class);
+                    packet.setName(event.getName());
+                    packet.setData(event.getArgs());
+                }
             }
         }
     }
