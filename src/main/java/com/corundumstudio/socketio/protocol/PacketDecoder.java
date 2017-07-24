@@ -292,6 +292,10 @@ public class PacketDecoder {
                 head.setLastBinaryPacket(packet);
             }
 
+            if (packet.hasAttachments() && !packet.isAttachmentsLoaded()) {
+                return;
+            }
+
             if (packet.getSubType() == PacketType.ACK
                     || packet.getSubType() == PacketType.BINARY_ACK) {
                 ByteBufInputStream in = new ByteBufInputStream(frame);
