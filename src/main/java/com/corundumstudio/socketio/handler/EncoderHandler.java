@@ -26,7 +26,6 @@ import java.util.Queue;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 
-import io.netty.channel.*;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
 import org.slf4j.Logger;
@@ -45,7 +44,13 @@ import com.corundumstudio.socketio.protocol.PacketEncoder;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufOutputStream;
 import io.netty.buffer.ByteBufUtil;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler.Sharable;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelOutboundHandlerAdapter;
+import io.netty.channel.ChannelPromise;
 import io.netty.handler.codec.http.DefaultHttpContent;
 import io.netty.handler.codec.http.DefaultHttpResponse;
 import io.netty.handler.codec.http.HttpHeaderNames;
@@ -229,7 +234,7 @@ public class EncoderHandler extends ChannelOutboundHandlerAdapter {
             Queue<Packet> queue = msg.getClientHead().getPacketsQueue(msg.getTransport());
             Packet packet = queue.poll();
             if (packet == null) {
-                writeFutureList.setChannnelPromise(promise);
+                writeFutureList.setChannelPromise(promise);
                 break;
             }
 
@@ -328,7 +333,7 @@ public class EncoderHandler extends ChannelOutboundHandlerAdapter {
             f.addListener(this);
         }
 
-        public void setChannnelPromise(ChannelPromise p) {
+        public void setChannelPromise(ChannelPromise p) {
             promise = p;
             validate();
         }
