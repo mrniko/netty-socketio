@@ -19,6 +19,8 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
+import io.netty.handler.timeout.IdleState;
+import io.netty.handler.timeout.IdleStateEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -66,8 +68,8 @@ public class WebSocketTransport extends ChannelInboundHandlerAdapter {
     private final boolean isSsl;
 
     public WebSocketTransport(boolean isSsl,
-            AuthorizeHandler authorizeHandler, Configuration configuration,
-            CancelableScheduler scheduler, ClientsBox clientsBox) {
+                              AuthorizeHandler authorizeHandler, Configuration configuration,
+                              CancelableScheduler scheduler, ClientsBox clientsBox) {
         this.isSsl = isSsl;
         this.authorizeHandler = authorizeHandler;
         this.configuration = configuration;
@@ -75,13 +77,14 @@ public class WebSocketTransport extends ChannelInboundHandlerAdapter {
         this.clientsBox = clientsBox;
     }
 
+
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         if (msg instanceof CloseWebSocketFrame) {
             ctx.channel().close();
             ReferenceCountUtil.release(msg);
         } else if (msg instanceof BinaryWebSocketFrame
-                    || msg instanceof TextWebSocketFrame) {
+                || msg instanceof TextWebSocketFrame) {
             ByteBufHolder frame = (ByteBufHolder) msg;
             ClientHead client = clientsBox.get(ctx.channel());
             if (client == null) {
@@ -136,6 +139,30 @@ public class WebSocketTransport extends ChannelInboundHandlerAdapter {
         }
     }
 
+    /**
+     * Override this methods, to allow the previous channel to trigger the connection idle event.
+     *
+     * //TODO: remove the manual pingtimeout checker.
+     *
+     * @param ctx The context
+     * @param evt The event that tirggered.
+     * @throws Exception
+     */
+    @Override
+    public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
+        if (evt instanceof IdleStateEvent) {
+            IdleStateEvent e = (IdleStateEvent) evt;
+            if (e.state() == IdleState.ALL_IDLE) {
+                if (configuration.getCloseOnPingTimeout()) {
+                    ClientHead client = clientsBox.get(ctx.channel());
+                    log.debug("Client {} connection is idle. forcing disconnected and close.");
+                    client.disconnect();
+                    ctx.close();
+                }
+            }
+        }
+    }
+
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         ClientHead client = clientsBox.get(ctx.channel());
@@ -176,7 +203,7 @@ public class WebSocketTransport extends ChannelInboundHandlerAdapter {
         ClientHead client = clientsBox.get(sessionId);
         if (client == null) {
             log.warn("Unauthorized client with sessionId: {} with ip: {}. Channel closed!",
-                        sessionId, channel.remoteAddress());
+                    sessionId, channel.remoteAddress());
             channel.close();
             return;
         }

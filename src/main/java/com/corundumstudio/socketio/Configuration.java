@@ -46,6 +46,7 @@ public class Configuration {
     private int pingTimeout = 60000;
     private int pingInterval = 25000;
     private int firstDataTimeout = 5000;
+    private boolean closeOnPingTimeout = false;
 
     private int maxHttpContentLength = 64 * 1024;
     private int maxFramePayloadLength = 64 * 1024;
@@ -101,6 +102,7 @@ public class Configuration {
 
         setPingInterval(conf.getPingInterval());
         setPingTimeout(conf.getPingTimeout());
+        setCloseOnPingTimeout(conf.getCloseOnPingTimeout());
 
         setHostname(conf.getHostname());
         setPort(conf.getPort());
@@ -162,7 +164,6 @@ public class Configuration {
      * JSON serialization/deserialization
      *
      * @param jsonSupport
-     *
      * @see JsonSupport
      */
     public void setJsonSupport(JsonSupport jsonSupport) {
@@ -186,6 +187,7 @@ public class Configuration {
     public int getPort() {
         return port;
     }
+
     public void setPort(int port) {
         this.port = port;
     }
@@ -193,6 +195,7 @@ public class Configuration {
     public int getBossThreads() {
         return bossThreads;
     }
+
     public void setBossThreads(int bossThreads) {
         this.bossThreads = bossThreads;
     }
@@ -200,6 +203,7 @@ public class Configuration {
     public int getWorkerThreads() {
         return workerThreads;
     }
+
     public void setWorkerThreads(int workerThreads) {
         this.workerThreads = workerThreads;
     }
@@ -212,8 +216,24 @@ public class Configuration {
     public void setPingInterval(int heartbeatIntervalSecs) {
         this.pingInterval = heartbeatIntervalSecs;
     }
+
     public int getPingInterval() {
         return pingInterval;
+    }
+
+
+    public boolean getCloseOnPingTimeout() {
+        return closeOnPingTimeout;
+    }
+
+    /**
+     * Sets a boolean indicator which forces the engine to close the client socket should a ping/pong timeout occur.
+     * TODO: Might be worth while to add a counter threshold to breach before attempting to close a socket channel.
+     *
+     * @param closeOnPingTimeout - close channel on pingTimeout.
+     */
+    public void setCloseOnPingTimeout(boolean closeOnPingTimeout) {
+        this.closeOnPingTimeout = closeOnPingTimeout;
     }
 
     /**
@@ -225,9 +245,11 @@ public class Configuration {
     public void setPingTimeout(int heartbeatTimeoutSecs) {
         this.pingTimeout = heartbeatTimeoutSecs;
     }
+
     public int getPingTimeout() {
         return pingTimeout;
     }
+
     public boolean isHeartbeatsEnabled() {
         return pingTimeout > 0;
     }
@@ -235,6 +257,7 @@ public class Configuration {
     public String getContext() {
         return context;
     }
+
     public void setContext(String context) {
         this.context = context;
     }
@@ -263,6 +286,7 @@ public class Configuration {
     public void setKeyStorePassword(String keyStorePassword) {
         this.keyStorePassword = keyStorePassword;
     }
+
     public String getKeyStorePassword() {
         return keyStorePassword;
     }
@@ -275,6 +299,7 @@ public class Configuration {
     public void setKeyStore(InputStream keyStore) {
         this.keyStore = keyStore;
     }
+
     public InputStream getKeyStore() {
         return keyStore;
     }
@@ -287,6 +312,7 @@ public class Configuration {
     public void setKeyStoreFormat(String keyStoreFormat) {
         this.keyStoreFormat = keyStoreFormat;
     }
+
     public String getKeyStoreFormat() {
         return keyStoreFormat;
     }
@@ -294,12 +320,12 @@ public class Configuration {
     /**
      * Set maximum http content length limit
      *
-     * @param value
-     *        the maximum length of the aggregated http content.
+     * @param value the maximum length of the aggregated http content.
      */
     public void setMaxHttpContentLength(int value) {
         this.maxHttpContentLength = value;
     }
+
     public int getMaxHttpContentLength() {
         return maxHttpContentLength;
     }
@@ -309,12 +335,13 @@ public class Configuration {
      *
      * @param transports - list of transports
      */
-    public void setTransports(Transport ... transports) {
+    public void setTransports(Transport... transports) {
         if (transports.length == 0) {
             throw new IllegalArgumentException("Transports list can't be empty");
         }
         this.transports = Arrays.asList(transports);
     }
+
     public List<Transport> getTransports() {
         return transports;
     }
@@ -322,17 +349,17 @@ public class Configuration {
     /**
      * Package prefix for sending json-object from client
      * without full class name.
-     *
+     * <p>
      * With defined package prefix socket.io client
      * just need to define '@class: 'SomeType'' in json object
      * instead of '@class: 'com.full.package.name.SomeType''
      *
      * @param packagePrefix - prefix string
-     *
      */
     public void setPackagePrefix(String packagePrefix) {
         this.packagePrefix = packagePrefix;
     }
+
     public String getPackagePrefix() {
         return packagePrefix;
     }
@@ -341,13 +368,14 @@ public class Configuration {
      * Buffer allocation method used during packet encoding.
      * Default is {@code true}
      *
-     * @param preferDirectBuffer    {@code true} if a direct buffer should be tried to be used as target for
-     *                              the encoded messages. If {@code false} is used it will allocate a heap
-     *                              buffer, which is backed by an byte array.
+     * @param preferDirectBuffer {@code true} if a direct buffer should be tried to be used as target for
+     *                           the encoded messages. If {@code false} is used it will allocate a heap
+     *                           buffer, which is backed by an byte array.
      */
     public void setPreferDirectBuffer(boolean preferDirectBuffer) {
         this.preferDirectBuffer = preferDirectBuffer;
     }
+
     public boolean isPreferDirectBuffer() {
         return preferDirectBuffer;
     }
@@ -357,7 +385,6 @@ public class Configuration {
      * Default is {@code MemoryStoreFactory}
      *
      * @param clientStoreFactory - implements StoreFactory
-     *
      * @see com.corundumstudio.socketio.store.MemoryStoreFactory
      * @see com.corundumstudio.socketio.store.RedissonStoreFactory
      * @see com.corundumstudio.socketio.store.HazelcastStoreFactory
@@ -365,6 +392,7 @@ public class Configuration {
     public void setStoreFactory(StoreFactory clientStoreFactory) {
         this.storeFactory = clientStoreFactory;
     }
+
     public StoreFactory getStoreFactory() {
         return storeFactory;
     }
@@ -375,12 +403,12 @@ public class Configuration {
      * <b>Accepts</b> all clients by default.
      *
      * @param authorizationListener - authorization listener itself
-     *
      * @see com.corundumstudio.socketio.AuthorizationListener
      */
     public void setAuthorizationListener(AuthorizationListener authorizationListener) {
         this.authorizationListener = authorizationListener;
     }
+
     public AuthorizationListener getAuthorizationListener() {
         return authorizationListener;
     }
@@ -390,12 +418,12 @@ public class Configuration {
      * SocketIO listener
      *
      * @param exceptionListener
-     *
      * @see com.corundumstudio.socketio.listener.ExceptionListener
      */
     public void setExceptionListener(ExceptionListener exceptionListener) {
         this.exceptionListener = exceptionListener;
     }
+
     public ExceptionListener getExceptionListener() {
         return exceptionListener;
     }
@@ -403,6 +431,7 @@ public class Configuration {
     public SocketConfig getSocketConfig() {
         return socketConfig;
     }
+
     /**
      * TCP socket configuration
      *
@@ -416,13 +445,13 @@ public class Configuration {
      * Auto ack-response mode
      * Default is {@code AckMode.AUTO_SUCCESS_ONLY}
      *
-     * @see AckMode
-     *
      * @param ackMode
+     * @see AckMode
      */
     public void setAckMode(AckMode ackMode) {
         this.ackMode = ackMode;
     }
+
     public AckMode getAckMode() {
         return ackMode;
     }
@@ -431,6 +460,7 @@ public class Configuration {
     public String getTrustStoreFormat() {
         return trustStoreFormat;
     }
+
     public void setTrustStoreFormat(String trustStoreFormat) {
         this.trustStoreFormat = trustStoreFormat;
     }
@@ -438,6 +468,7 @@ public class Configuration {
     public InputStream getTrustStore() {
         return trustStore;
     }
+
     public void setTrustStore(InputStream trustStore) {
         this.trustStore = trustStore;
     }
@@ -445,6 +476,7 @@ public class Configuration {
     public String getTrustStorePassword() {
         return trustStorePassword;
     }
+
     public void setTrustStorePassword(String trustStorePassword) {
         this.trustStorePassword = trustStorePassword;
     }
@@ -452,6 +484,7 @@ public class Configuration {
     public String getKeyManagerFactoryAlgorithm() {
         return keyManagerFactoryAlgorithm;
     }
+
     public void setKeyManagerFactoryAlgorithm(String keyManagerFactoryAlgorithm) {
         this.keyManagerFactoryAlgorithm = keyManagerFactoryAlgorithm;
     }
@@ -465,6 +498,7 @@ public class Configuration {
     public void setMaxFramePayloadLength(int maxFramePayloadLength) {
         this.maxFramePayloadLength = maxFramePayloadLength;
     }
+
     public int getMaxFramePayloadLength() {
         return maxFramePayloadLength;
     }
@@ -477,13 +511,14 @@ public class Configuration {
     public void setUpgradeTimeout(int upgradeTimeout) {
         this.upgradeTimeout = upgradeTimeout;
     }
+
     public int getUpgradeTimeout() {
         return upgradeTimeout;
     }
 
     /**
      * Adds <b>Server</b> header with lib version to http response.
-     * <p/>
+     * <p>
      * Default is <code>true</code>
      *
      * @param addVersionHeader
@@ -491,6 +526,7 @@ public class Configuration {
     public void setAddVersionHeader(boolean addVersionHeader) {
         this.addVersionHeader = addVersionHeader;
     }
+
     public boolean isAddVersionHeader() {
         return addVersionHeader;
     }
@@ -499,7 +535,7 @@ public class Configuration {
      * Set <b>Access-Control-Allow-Origin</b> header value for http each
      * response.
      * Default is <code>null</code>
-     *
+     * <p>
      * If value is <code>null</code> then request <b>ORIGIN</b> header value used.
      *
      * @param origin
@@ -507,6 +543,7 @@ public class Configuration {
     public void setOrigin(String origin) {
         this.origin = origin;
     }
+
     public String getOrigin() {
         return origin;
     }
@@ -514,6 +551,7 @@ public class Configuration {
     public boolean isUseLinuxNativeEpoll() {
         return useLinuxNativeEpoll;
     }
+
     public void setUseLinuxNativeEpoll(boolean useLinuxNativeEpoll) {
         this.useLinuxNativeEpoll = useLinuxNativeEpoll;
     }
@@ -526,6 +564,7 @@ public class Configuration {
     public void setSSLProtocol(String sslProtocol) {
         this.sslProtocol = sslProtocol;
     }
+
     public String getSSLProtocol() {
         return sslProtocol;
     }
@@ -540,6 +579,7 @@ public class Configuration {
     public void setFirstDataTimeout(int firstDataTimeout) {
         this.firstDataTimeout = firstDataTimeout;
     }
+
     public int getFirstDataTimeout() {
         return firstDataTimeout;
     }
@@ -547,7 +587,7 @@ public class Configuration {
     /**
      * Activate http protocol compression. Uses {@code gzip} or
      * {@code deflate} encoding choice depends on the {@code "Accept-Encoding"} header value.
-     * <p/>
+     * <p>
      * Default is <code>true</code>
      *
      * @param httpCompression
@@ -555,6 +595,7 @@ public class Configuration {
     public void setHttpCompression(boolean httpCompression) {
         this.httpCompression = httpCompression;
     }
+
     public boolean isHttpCompression() {
         return httpCompression;
     }
@@ -562,7 +603,7 @@ public class Configuration {
     /**
      * Activate websocket protocol compression.
      * Uses {@code permessage-deflate} encoding only.
-     * <p/>
+     * <p>
      * Default is <code>true</code>
      *
      * @param websocketCompression
@@ -570,6 +611,7 @@ public class Configuration {
     public void setWebsocketCompression(boolean websocketCompression) {
         this.websocketCompression = websocketCompression;
     }
+
     public boolean isWebsocketCompression() {
         return websocketCompression;
     }

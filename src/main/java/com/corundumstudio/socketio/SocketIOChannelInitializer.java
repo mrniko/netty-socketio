@@ -23,6 +23,10 @@ import javax.net.ssl.SSLEngine;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 
+import io.netty.channel.*;
+import io.netty.handler.timeout.IdleState;
+import io.netty.handler.timeout.IdleStateEvent;
+import io.netty.handler.timeout.IdleStateHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,10 +50,6 @@ import com.corundumstudio.socketio.store.pubsub.PubSubType;
 import com.corundumstudio.socketio.transport.PollingTransport;
 import com.corundumstudio.socketio.transport.WebSocketTransport;
 
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelPipeline;
 import io.netty.handler.codec.http.HttpContentCompressor;
 import io.netty.handler.codec.http.HttpMessage;
 import io.netty.handler.codec.http.HttpObjectAggregator;
@@ -75,6 +75,7 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
 
     public static final String RESOURCE_HANDLER = "resourceHandler";
     public static final String WRONG_URL_HANDLER = "wrongUrlBlocker";
+    public static final String IDLE_CONNECTION_HANDLER = "idleConnectionHandler";
 
     private static final Logger log = LoggerFactory.getLogger(SocketIOChannelInitializer.class);
 
@@ -169,7 +170,7 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
         pipeline.addLast(HTTP_AGGREGATOR, new HttpObjectAggregator(configuration.getMaxHttpContentLength()) {
             @Override
             protected Object newContinueResponse(HttpMessage start, int maxContentLength,
-                    ChannelPipeline pipeline) {
+                                                 ChannelPipeline pipeline) {
                 return null;
             }
 
@@ -188,6 +189,10 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
         if (configuration.isWebsocketCompression()) {
             pipeline.addLast(WEB_SOCKET_TRANSPORT_COMPRESSION, new WebSocketServerCompressionHandler());
         }
+
+        final int totalWaitTime = (configuration.getPingInterval() + configuration.getPingTimeout()) / 1000;
+        pipeline.addLast(IDLE_CONNECTION_HANDLER, new IdleStateHandler(0, 0, totalWaitTime));
+
         pipeline.addLast(WEB_SOCKET_TRANSPORT, webSocketTransport);
 
         pipeline.addLast(SOCKETIO_ENCODER, encoderHandler);

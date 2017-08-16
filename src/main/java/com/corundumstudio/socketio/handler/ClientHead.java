@@ -76,8 +76,8 @@ public class ClientHead {
     private volatile Transport currentTransport;
 
     public ClientHead(UUID sessionId, AckManager ackManager, DisconnectableHub disconnectable,
-            StoreFactory storeFactory, HandshakeData handshakeData, ClientsBox clientsBox, Transport transport, CancelableScheduler disconnectScheduler,
-            Configuration configuration) {
+                      StoreFactory storeFactory, HandshakeData handshakeData, ClientsBox clientsBox, Transport transport, CancelableScheduler disconnectScheduler,
+                      Configuration configuration) {
         this.sessionId = sessionId;
         this.ackManager = ackManager;
         this.disconnectableHub = disconnectable;
@@ -180,9 +180,20 @@ public class ClientHead {
         for (NamespaceClient client : namespaceClients.values()) {
             client.onDisconnect();
         }
+        this.closeChannels();
+    }
+
+    /**
+     * Closes the open channels associated to the current client header.
+     */
+    protected void closeChannels() {
         for (TransportState state : channels.values()) {
             if (state.getChannel() != null) {
                 clientsBox.remove(state.getChannel());
+                if (configuration.getCloseOnPingTimeout()) {
+                    log.debug("Forcing close of channel. client should reconnect.");
+                    state.getChannel().disconnect().addListener(ChannelFutureListener.CLOSE);
+                }
             }
         }
     }
@@ -260,6 +271,7 @@ public class ClientHead {
     public void setLastBinaryPacket(Packet lastBinaryPacket) {
         this.lastBinaryPacket = lastBinaryPacket;
     }
+
     public Packet getLastBinaryPacket() {
         return lastBinaryPacket;
     }
