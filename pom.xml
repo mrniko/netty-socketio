@@ -3,7 +3,7 @@
 
  <groupId>com.corundumstudio.socketio</groupId>
  <artifactId>netty-socketio</artifactId>
- <version>1.7.13</version>
+ <version>1.7.14-SNAPSHOT</version>
  <packaging>bundle</packaging>
  <name>NettySocketIO</name>
  <description>Socket.IO server implemented on Java</description>
@@ -14,7 +14,7 @@
     <url>scm:git:git@github.com:mrniko/netty-socketio.git</url>
     <connection>scm:git:git@github.com:mrniko/netty-socketio.git</connection>
     <developerConnection>scm:git:git@github.com:mrniko/netty-socketio.git</developerConnection>
-   <tag>netty-socketio-1.7.13</tag>
+   <tag>HEAD</tag>
   </scm>
 
  <licenses>
