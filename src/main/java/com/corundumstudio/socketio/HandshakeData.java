@@ -31,6 +31,7 @@ public class HandshakeData implements Serializable {
     private HttpHeaders headers;
     private InetSocketAddress address;
     private Date time = new Date();
+    private InetSocketAddress local;
     private String url;
     private Map<String, List<String>> urlParams;
     private boolean xdomain;
@@ -40,10 +41,15 @@ public class HandshakeData implements Serializable {
     }
 
     public HandshakeData(HttpHeaders headers, Map<String, List<String>> urlParams, InetSocketAddress address, String url, boolean xdomain) {
+        this(headers, urlParams, address, null, url, xdomain);
+    }
+
+    public HandshakeData(HttpHeaders headers, Map<String, List<String>> urlParams, InetSocketAddress address, InetSocketAddress local, String url, boolean xdomain) {
         super();
         this.headers = headers;
         this.urlParams = urlParams;
         this.address = address;
+        this.local = local;
         this.url = url;
         this.xdomain = xdomain;
     }
@@ -55,6 +61,15 @@ public class HandshakeData implements Serializable {
      */
     public InetSocketAddress getAddress() {
         return address;
+    }
+
+    /**
+     * Connection local address
+     *
+     * @return
+     */
+    public InetSocketAddress getLocal() {
+        return local;
     }
 
     /**

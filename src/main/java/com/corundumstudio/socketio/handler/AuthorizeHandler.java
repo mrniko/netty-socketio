@@ -144,6 +144,7 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
 
         HandshakeData data = new HandshakeData(req.headers(), params,
                                                 (InetSocketAddress)channel.remoteAddress(),
+                                                (InetSocketAddress)channel.localAddress(),
                                                     req.uri(), origin != null && !origin.equalsIgnoreCase("null"));
 
         boolean result = false;
