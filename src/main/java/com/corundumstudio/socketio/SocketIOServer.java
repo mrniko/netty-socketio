@@ -171,8 +171,8 @@ public class SocketIOServer implements ClientListeners {
             bootstrap.childOption(ChannelOption.RCVBUF_ALLOCATOR, new FixedRecvByteBufAllocator(config.getTcpReceiveBufferSize()));
         }
         bootstrap.childOption(ChannelOption.SO_KEEPALIVE, config.isTcpKeepAlive());
+        bootstrap.childOption(ChannelOption.SO_LINGER, config.getSoLinger());
 
-        bootstrap.option(ChannelOption.SO_LINGER, config.getSoLinger());
         bootstrap.option(ChannelOption.SO_REUSEADDR, config.isReuseAddress());
         bootstrap.option(ChannelOption.SO_BACKLOG, config.getAcceptBackLog());
     }
