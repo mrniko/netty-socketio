@@ -50,7 +50,7 @@ Recent Releases
 ================================
 #### Please Note: trunk is current development branch.
 
-#### 20-Sep-2917 - version 1.7.13 released  
+#### 20-Sep-2017 - version 1.7.13 released  
 Feature - Added option to change the SSL KeyFactoryAlgorithm using Configuration (thanks to @robymus)  
 Improvement - Binary ack handling improvements (thanks to Sergey Bushik)  
 Fixed - Failed to mark a promise as success because it has succeeded already (thanks to @robymus)
