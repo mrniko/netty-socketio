@@ -236,13 +236,13 @@ public class PacketDecoder {
 
         Packet binaryPacket = head.getLastBinaryPacket();
         if (binaryPacket != null) {
-            ByteBuf attachBuf;
             if (frame.getByte(0) == 'b' && frame.getByte(1) == '4') {
-                attachBuf = frame;
+                binaryPacket.addAttachment(Unpooled.copiedBuffer(frame));
             } else {
-                attachBuf = Base64.encode(frame);
+                ByteBuf attachBuf = Base64.encode(frame);
+                binaryPacket.addAttachment(Unpooled.copiedBuffer(attachBuf));
+                attachBuf.release();
             }
-            binaryPacket.addAttachment(Unpooled.copiedBuffer(attachBuf));
             frame.readerIndex(frame.readerIndex() + frame.readableBytes());
 
             if (binaryPacket.isAttachmentsLoaded()) {
