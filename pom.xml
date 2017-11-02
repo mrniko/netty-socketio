@@ -108,7 +108,7 @@
   <dependency>
   	<groupId>io.netty</groupId>
   	<artifactId>netty-transport</artifactId>
-  	<version>4.1.5.Final</version>
+       <version>4.1.15.Final</version>
   </dependency>
   <dependency>
   	<groupId>io.netty</groupId>
