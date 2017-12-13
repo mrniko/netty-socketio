@@ -22,6 +22,7 @@ import java.net.InetSocketAddress;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -60,6 +61,8 @@ import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.QueryStringDecoder;
+import io.netty.handler.codec.http.cookie.Cookie;
+import io.netty.handler.codec.http.cookie.ServerCookieDecoder;
 
 @Sharable
 public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Disconnectable {
@@ -178,12 +181,12 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
             Map<String, Object> errorData = new HashMap<String, Object>();
             errorData.put("code", 0);
             errorData.put("message", "Transport unknown");
-            
+
             channel.attr(EncoderHandler.ORIGIN).set(origin);
             channel.writeAndFlush(new HttpErrorMessage(errorData));
             return false;
         }
-        
+
         ClientHead client = new ClientHead(sessionId, ackManager, disconnectable, storeFactory, data, clientsBox, transport, disconnectScheduler, configuration);
         channel.attr(ClientHead.CLIENT).set(client);
         clientsBox.addClient(client);
@@ -210,12 +213,17 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
         random uuid to be generated instead (same as not passing a cookie in the first place).
     */
     private UUID generateOrGetSessionIdFromRequest(HttpHeaders headers) {
-        List<String> values = headers.getAll("io");
-        if (values.size() == 1) {
-            try {
-                return UUID.fromString(values.get(0));
-            } catch ( IllegalArgumentException iaex ) {
-                log.warn("Malformed UUID received for session! io=" + values.get(0));
+        for (String cookieHeader: headers.getAll(HttpHeaderNames.COOKIE)) {
+            Set<Cookie> cookies = ServerCookieDecoder.LAX.decode(cookieHeader);
+
+            for (Cookie cookie : cookies) {
+                if (cookie.name().equals("io")) {
+                    try {
+                        return UUID.fromString(cookie.value());
+                    } catch ( IllegalArgumentException iaex ) {
+                        log.warn("Malformed UUID received for session! io=" + cookie.value());
+                    }
+                }
             }
         }
         return UUID.randomUUID();
