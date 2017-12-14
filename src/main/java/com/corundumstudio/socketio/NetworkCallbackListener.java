@@ -15,34 +15,12 @@
  */
 package com.corundumstudio.socketio;
 
-import com.corundumstudio.socketio.protocol.Packet;
+import java.util.concurrent.Future;
+import java.util.EventListener;
 
 /**
- * Available client operations
- *
+ * Listener for {@link NetworkCallback}.
  */
-public interface ClientOperations {
-
-    /**
-     * Send custom packet.
-     * But {@link ClientOperations#sendEvent} method
-     * usage is enough for most cases.
-     *
-     * @param packet - packet to send
-     */
-    NetworkCallback<? extends Void> send(Packet packet);
-
-    /**
-     * Disconnect client
-     *
-     */
-    void disconnect();
-
-    /**
-     * Send event
-     *
-     * @param name - event name
-     * @param data - event data
-     */
-    NetworkCallback<? extends Void> sendEvent(String name, Object ... data);
+public interface NetworkCallbackListener<F extends Future<?>> extends EventListener {
+    void operationComplete(F var1) throws Exception;
 }

@@ -109,4 +109,9 @@ public interface SocketIOClient extends ClientOperations, Store {
      */
     Set<String> getAllRooms();
 
+    /**
+     * Check is network buffer is empty and client is ready to read a data.
+     * @return true in case channel is ready to consume a bit of data.
+     */
+    boolean isWritable();
 }

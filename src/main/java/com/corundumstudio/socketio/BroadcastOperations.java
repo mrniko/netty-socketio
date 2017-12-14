@@ -22,6 +22,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import com.corundumstudio.socketio.misc.IterableCollection;
 import com.corundumstudio.socketio.namespace.Namespace;
@@ -71,11 +72,13 @@ public class BroadcastOperations implements ClientOperations {
     }
 
     @Override
-    public void send(Packet packet) {
+    public NetworkCallback<? extends Void> send(Packet packet) {
         for (SocketIOClient client : clients) {
             client.send(packet);
         }
         dispatch(packet);
+
+        return NetworkCallbacks.success(null);
     }
 
     public <T> void send(Packet packet, BroadcastAckCallback<T> ackCallback) {
@@ -106,14 +109,14 @@ public class BroadcastOperations implements ClientOperations {
         }
         dispatch(packet);
     }
-    
+
     @Override
-    public void sendEvent(String name, Object... data) {
+    public NetworkCallback<? extends Void> sendEvent(String name, Object... data) {
         Packet packet = new Packet(PacketType.MESSAGE);
         packet.setSubType(PacketType.EVENT);
         packet.setName(name);
         packet.setData(Arrays.asList(data));
-        send(packet);
+        return send(packet);
     }
 
     public <T> void sendEvent(String name, Object data, BroadcastAckCallback<T> ackCallback) {
