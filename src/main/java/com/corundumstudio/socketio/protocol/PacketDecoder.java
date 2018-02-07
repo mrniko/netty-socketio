@@ -64,13 +64,6 @@ public class PacketDecoder {
             packet = packet.substring(2);
         }
 
-	/**
-	 * this line will convert some utf-8 characters to "?"
-	 *
-	 * @see https://github.com/mrniko/netty-socketio/issues/515
-	 */
-        // packet = new String(packet.getBytes(CharsetUtil.ISO_8859_1), CharsetUtil.UTF_8);
-
         return Unpooled.wrappedBuffer(packet.getBytes(CharsetUtil.UTF_8));
     }
 
