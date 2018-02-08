@@ -25,7 +25,7 @@ public interface ClientListeners {
 
     void addConnectListener(ConnectListener listener);
 
-    void addPingListeners(PingListener pingListener);
+    void addPingListener(PingListener listener);
 
     void addListeners(Object listeners);
 

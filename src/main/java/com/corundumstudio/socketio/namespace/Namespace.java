@@ -213,8 +213,8 @@ public class Namespace implements SocketIONamespace {
     }
 
     @Override
-    public void addPingListeners(PingListener pingListener) {
-        pingListeners.add(pingListener);
+    public void addPingListener(PingListener listener) {
+        pingListeners.add(listener);
     }
 
     public void onPing(SocketIOClient client) {

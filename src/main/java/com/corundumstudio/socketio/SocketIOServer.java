@@ -243,8 +243,8 @@ public class SocketIOServer implements ClientListeners {
     }
 
     @Override
-    public void addPingListeners(PingListener pingListener) {
-        mainNamespace.addPingListeners(pingListener);
+    public void addPingListener(PingListener listener) {
+        mainNamespace.addPingListener(listener);
     }
 
     @Override
