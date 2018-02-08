@@ -34,11 +34,7 @@ import com.corundumstudio.socketio.MultiTypeArgs;
 import com.corundumstudio.socketio.SocketIOClient;
 import com.corundumstudio.socketio.SocketIONamespace;
 import com.corundumstudio.socketio.annotation.ScannerEngine;
-import com.corundumstudio.socketio.listener.ConnectListener;
-import com.corundumstudio.socketio.listener.DataListener;
-import com.corundumstudio.socketio.listener.DisconnectListener;
-import com.corundumstudio.socketio.listener.ExceptionListener;
-import com.corundumstudio.socketio.listener.MultiTypeEventListener;
+import com.corundumstudio.socketio.listener.*;
 import com.corundumstudio.socketio.protocol.JsonSupport;
 import com.corundumstudio.socketio.protocol.Packet;
 import com.corundumstudio.socketio.store.StoreFactory;
@@ -62,6 +58,7 @@ public class Namespace implements SocketIONamespace {
     private final ConcurrentMap<String, EventEntry<?>> eventListeners = PlatformDependent.newConcurrentHashMap();
     private final Queue<ConnectListener> connectListeners = new ConcurrentLinkedQueue<ConnectListener>();
     private final Queue<DisconnectListener> disconnectListeners = new ConcurrentLinkedQueue<DisconnectListener>();
+    private final Queue<PingListener> pingListeners = new ConcurrentLinkedQueue<PingListener>();
 
     private final Map<UUID, SocketIOClient> allClients = PlatformDependent.newConcurrentHashMap();
     private final ConcurrentMap<String, Set<UUID>> roomClients = PlatformDependent.newConcurrentHashMap();
@@ -212,6 +209,21 @@ public class Namespace implements SocketIONamespace {
             }
         } catch (Exception e) {
             exceptionListener.onConnectException(e, client);
+        }
+    }
+
+    @Override
+    public void addPingListeners(PingListener pingListener) {
+        pingListeners.add(pingListener);
+    }
+
+    public void onPing(SocketIOClient client) {
+        try {
+            for (PingListener listener : pingListeners) {
+                listener.onPing(client);
+            }
+        } catch (Exception e) {
+            exceptionListener.onPingException(e, client);
         }
     }
 
