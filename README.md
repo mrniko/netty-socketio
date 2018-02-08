@@ -50,11 +50,16 @@ Recent Releases
 ================================
 #### Please Note: trunk is current development branch.
 
+#### 20-Sep-2017 - version 1.7.13 released  
+Feature - Added option to change the SSL KeyFactoryAlgorithm using Configuration (thanks to @robymus)  
+Improvement - Binary ack handling improvements (thanks to Sergey Bushik)  
+Fixed - Failed to mark a promise as success because it has succeeded already (thanks to @robymus)
+
 #### 27-Aug-2016 - version 1.7.12 released  
-Feature - `SocketIOServer.removeAllListeners` method added
-Feature - `BroadcastOperations.sendEvent` method with `excludedClient` param added
-Improvement - Redisson updated to 2.4.0
-Fixed - memory leak in Namespace object (thanks to @CrazyIvan007)
+Feature - `SocketIOServer.removeAllListeners` method added  
+Feature - `BroadcastOperations.sendEvent` method with `excludedClient` param added  
+Improvement - Redisson updated to 2.4.0  
+Fixed - memory leak in Namespace object (thanks to @CrazyIvan007)  
 
 
 #### 13-Jul-2016 - version 1.7.11 released  

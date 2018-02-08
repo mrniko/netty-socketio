@@ -88,7 +88,13 @@ public class PollingTransport extends ChannelInboundHandlerAdapter {
                     ctx.channel().attr(EncoderHandler.JSONP_INDEX).set(index);
                 }
                 if (b64 != null && b64.get(0) != null) {
-                    Integer enable = Integer.valueOf(b64.get(0));
+                    String flag = b64.get(0);
+                    if ("true".equals(flag)) {
+                        flag = "1";
+                    } else if ("false".equals(flag)) {
+                        flag = "0";
+                    }
+                    Integer enable = Integer.valueOf(flag);
                     ctx.channel().attr(EncoderHandler.B64).set(enable == 1);
                 }
 
