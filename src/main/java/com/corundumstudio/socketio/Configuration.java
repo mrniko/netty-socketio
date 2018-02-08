@@ -16,17 +16,19 @@
 package com.corundumstudio.socketio;
 
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import javax.net.ssl.KeyManagerFactory;
+
 import com.corundumstudio.socketio.handler.SuccessAuthorizationListener;
 import com.corundumstudio.socketio.listener.DefaultExceptionListener;
+import com.corundumstudio.socketio.listener.EventInterceptor;
 import com.corundumstudio.socketio.listener.ExceptionListener;
 import com.corundumstudio.socketio.protocol.JsonSupport;
 import com.corundumstudio.socketio.store.MemoryStoreFactory;
 import com.corundumstudio.socketio.store.StoreFactory;
-
-import javax.net.ssl.KeyManagerFactory;
 
 public class Configuration {
 
@@ -85,6 +87,8 @@ public class Configuration {
     private boolean httpCompression = true;
 
     private boolean websocketCompression = true;
+    
+    private List<EventInterceptor> eventInterceptors = new ArrayList<EventInterceptor>();
 
     public Configuration() {
     }
@@ -151,6 +155,7 @@ public class Configuration {
 
         setHttpCompression(conf.isHttpCompression());
         setWebsocketCompression(conf.isWebsocketCompression());
+        setEventInterceptors(conf.getEventInterceptors());
     }
 
     public JsonSupport getJsonSupport() {
@@ -572,6 +577,21 @@ public class Configuration {
     }
     public boolean isWebsocketCompression() {
         return websocketCompression;
+    }
+    
+    /**
+     * Add interceptor will run when onEvent.  
+     * @param eventInterceptor
+     */
+    public void addEventInterceptor(EventInterceptor eventInterceptor){
+    		this.eventInterceptors.add(eventInterceptor);
+    }
+    public List<EventInterceptor> getEventInterceptors(){
+    		List<EventInterceptor> interceptors = new ArrayList<EventInterceptor>(eventInterceptors);
+    		return interceptors;
+    }
+    private void setEventInterceptors(List<EventInterceptor> eventInterceptors){
+    		this.eventInterceptors = eventInterceptors;
     }
 
 }
