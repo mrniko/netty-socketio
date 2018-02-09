@@ -15,22 +15,10 @@
  */
 package com.corundumstudio.socketio.listener;
 
-public interface ClientListeners {
+import com.corundumstudio.socketio.SocketIOClient;
 
-    void addMultiTypeEventListener(String eventName, MultiTypeEventListener listener, Class<?> ... eventClass);
+public interface PingListener {
 
-    <T> void addEventListener(String eventName, Class<T> eventClass, DataListener<T> listener);
+    void onPing(SocketIOClient client);
 
-    void addDisconnectListener(DisconnectListener listener);
-
-    void addConnectListener(ConnectListener listener);
-
-    void addPingListener(PingListener listener);
-
-    void addListeners(Object listeners);
-
-    void addListeners(Object listeners, Class<?> listenersClass);
-
-    void removeAllListeners(String eventName);
-    
 }

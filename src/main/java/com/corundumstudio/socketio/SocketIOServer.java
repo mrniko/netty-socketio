@@ -15,6 +15,7 @@
  */
 package com.corundumstudio.socketio;
 
+import com.corundumstudio.socketio.listener.*;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
@@ -34,11 +35,6 @@ import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.corundumstudio.socketio.listener.ClientListeners;
-import com.corundumstudio.socketio.listener.ConnectListener;
-import com.corundumstudio.socketio.listener.DataListener;
-import com.corundumstudio.socketio.listener.DisconnectListener;
-import com.corundumstudio.socketio.listener.MultiTypeEventListener;
 import com.corundumstudio.socketio.namespace.Namespace;
 import com.corundumstudio.socketio.namespace.NamespacesHub;
 
@@ -244,6 +240,11 @@ public class SocketIOServer implements ClientListeners {
     @Override
     public void addConnectListener(ConnectListener listener) {
         mainNamespace.addConnectListener(listener);
+    }
+
+    @Override
+    public void addPingListener(PingListener listener) {
+        mainNamespace.addPingListener(listener);
     }
 
     @Override

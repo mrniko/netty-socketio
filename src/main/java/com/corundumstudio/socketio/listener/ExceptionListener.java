@@ -29,6 +29,8 @@ public interface ExceptionListener {
 
     void onConnectException(Exception e, SocketIOClient client);
 
+    void onPingException(Exception e, SocketIOClient client);
+
     boolean exceptionCaught(ChannelHandlerContext ctx, Throwable e) throws Exception;
 
 }
