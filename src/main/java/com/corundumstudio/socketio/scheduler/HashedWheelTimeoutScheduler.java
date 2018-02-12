@@ -31,14 +31,23 @@ import io.netty.util.TimerTask;
 import io.netty.util.internal.PlatformDependent;
 
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
 public class HashedWheelTimeoutScheduler implements CancelableScheduler {
 
     private final ConcurrentMap<SchedulerKey, Timeout> scheduledFutures = PlatformDependent.newConcurrentHashMap();
-    private final HashedWheelTimer executorService = new HashedWheelTimer();
+    private final HashedWheelTimer executorService;
 
     private volatile ChannelHandlerContext ctx;
+    
+    public HashedWheelTimeoutScheduler() {
+        executorService = new HashedWheelTimer();
+    }
+    
+    public HashedWheelTimeoutScheduler(ThreadFactory threadFactory) {
+        executorService = new HashedWheelTimer(threadFactory);
+    }
 
     @Override
     public void update(ChannelHandlerContext ctx) {
