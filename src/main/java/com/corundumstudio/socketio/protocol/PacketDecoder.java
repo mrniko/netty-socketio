@@ -135,9 +135,6 @@ public class PacketDecoder {
             int len = utf8scanner.getActualLength(buffer, lenHeader);
 
             ByteBuf frame = buffer.slice(buffer.readerIndex() + 1, len);
-            if (lenHeader != len) {
-                frame = Unpooled.wrappedBuffer(frame.toString(CharsetUtil.UTF_8).getBytes(CharsetUtil.ISO_8859_1));
-            }
             // skip this frame
             buffer.readerIndex(buffer.readerIndex() + 1 + len);
             return decode(client, frame);
