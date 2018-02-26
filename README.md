@@ -50,6 +50,16 @@ Recent Releases
 ================================
 #### Please Note: trunk is current development branch.
 
+#### 26-Feb-2018 - version 1.7.14 released  
+Feature - added local socket address for the connection (thanks to @SergeyGrigorev)  
+Feature - `addPingListener` method added (thanks to @lovebing)  
+Feature - add ThreadFactory for HashedWheelTimer (thanks to @hand515)  
+Fixed - changed SO_LINGER to be handled as child channel (not server channel) option (thanks to @robymus)  
+Fixed - ByteBuf leak if binary attachments are used  
+Fixed - restore session from Cookie (thanks to @wuxudong)  
+Fixed - NumberFormatException when b64 is bool value (thanks to @vonway)  
+Fixed - data encoding for polling transport  
+
 #### 20-Sep-2017 - version 1.7.13 released  
 Feature - Added option to change the SSL KeyFactoryAlgorithm using Configuration (thanks to @robymus)  
 Improvement - Binary ack handling improvements (thanks to Sergey Bushik)  
