@@ -161,7 +161,7 @@ public class Configuration {
      * Allows to setup custom implementation of
      * JSON serialization/deserialization
      *
-     * @param jsonSupport
+     * @param jsonSupport - json mapper
      *
      * @see JsonSupport
      */
@@ -177,7 +177,7 @@ public class Configuration {
      * Optional parameter. If not set then bind address
      * will be 0.0.0.0 or ::0
      *
-     * @param hostname
+     * @param hostname - name of host
      */
     public void setHostname(String hostname) {
         this.hostname = hostname;
@@ -258,7 +258,7 @@ public class Configuration {
     /**
      * SSL key store password
      *
-     * @param keyStorePassword
+     * @param keyStorePassword - password of key store
      */
     public void setKeyStorePassword(String keyStorePassword) {
         this.keyStorePassword = keyStorePassword;
@@ -270,7 +270,7 @@ public class Configuration {
     /**
      * SSL key store stream, maybe appointed to any source
      *
-     * @param keyStore
+     * @param keyStore - key store input stream
      */
     public void setKeyStore(InputStream keyStore) {
         this.keyStore = keyStore;
@@ -282,7 +282,7 @@ public class Configuration {
     /**
      * Key store format
      *
-     * @param keyStoreFormat
+     * @param keyStoreFormat - key store format
      */
     public void setKeyStoreFormat(String keyStoreFormat) {
         this.keyStoreFormat = keyStoreFormat;
@@ -389,7 +389,7 @@ public class Configuration {
      * Exception listener invoked on any exception in
      * SocketIO listener
      *
-     * @param exceptionListener
+     * @param exceptionListener - listener
      *
      * @see com.corundumstudio.socketio.listener.ExceptionListener
      */
@@ -406,7 +406,7 @@ public class Configuration {
     /**
      * TCP socket configuration
      *
-     * @param socketConfig
+     * @param socketConfig - config
      */
     public void setSocketConfig(SocketConfig socketConfig) {
         this.socketConfig = socketConfig;
@@ -418,7 +418,7 @@ public class Configuration {
      *
      * @see AckMode
      *
-     * @param ackMode
+     * @param ackMode - ack mode
      */
     public void setAckMode(AckMode ackMode) {
         this.ackMode = ackMode;
@@ -460,7 +460,7 @@ public class Configuration {
     /**
      * Set maximum websocket frame content length limit
      *
-     * @param maxContentLength
+     * @param maxFramePayloadLength - length
      */
     public void setMaxFramePayloadLength(int maxFramePayloadLength) {
         this.maxFramePayloadLength = maxFramePayloadLength;
@@ -472,7 +472,7 @@ public class Configuration {
     /**
      * Transport upgrade timeout in milliseconds
      *
-     * @param upgradeTimeout
+     * @param upgradeTimeout - upgrade timeout
      */
     public void setUpgradeTimeout(int upgradeTimeout) {
         this.upgradeTimeout = upgradeTimeout;
@@ -483,10 +483,10 @@ public class Configuration {
 
     /**
      * Adds <b>Server</b> header with lib version to http response.
-     * <p/>
+     * <p>
      * Default is <code>true</code>
      *
-     * @param addVersionHeader
+     * @param addVersionHeader - <code>true</code> to add header
      */
     public void setAddVersionHeader(boolean addVersionHeader) {
         this.addVersionHeader = addVersionHeader;
@@ -502,7 +502,7 @@ public class Configuration {
      *
      * If value is <code>null</code> then request <b>ORIGIN</b> header value used.
      *
-     * @param origin
+     * @param origin - origin
      */
     public void setOrigin(String origin) {
         this.origin = origin;
@@ -521,7 +521,7 @@ public class Configuration {
     /**
      * Set the name of the requested SSL protocol
      *
-     * @param sslProtocol
+     * @param sslProtocol - name of protocol
      */
     public void setSSLProtocol(String sslProtocol) {
         this.sslProtocol = sslProtocol;
@@ -535,7 +535,7 @@ public class Configuration {
      * Helps to avoid 'silent channel' attack and prevents
      * 'Too many open files' problem in this case
      *
-     * @param firstDataTimeout
+     * @param firstDataTimeout - timeout value
      */
     public void setFirstDataTimeout(int firstDataTimeout) {
         this.firstDataTimeout = firstDataTimeout;
@@ -547,10 +547,10 @@ public class Configuration {
     /**
      * Activate http protocol compression. Uses {@code gzip} or
      * {@code deflate} encoding choice depends on the {@code "Accept-Encoding"} header value.
-     * <p/>
+     * <p>
      * Default is <code>true</code>
      *
-     * @param httpCompression
+     * @param httpCompression - <code>true</code> to use http compression
      */
     public void setHttpCompression(boolean httpCompression) {
         this.httpCompression = httpCompression;
@@ -562,10 +562,10 @@ public class Configuration {
     /**
      * Activate websocket protocol compression.
      * Uses {@code permessage-deflate} encoding only.
-     * <p/>
+     * <p>
      * Default is <code>true</code>
      *
-     * @param websocketCompression
+     * @param websocketCompression - <code>true</code> to use websocket compression
      */
     public void setWebsocketCompression(boolean websocketCompression) {
         this.websocketCompression = websocketCompression;

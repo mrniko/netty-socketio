@@ -80,8 +80,8 @@ public class SocketIOServer implements ClientListeners {
     /**
      * Get client by uuid from default namespace
      *
-     * @param uuid
-     * @return
+     * @param uuid - id of client
+     * @return client
      */
     public SocketIOClient getClient(UUID uuid) {
         return namespacesHub.get(Namespace.DEFAULT_NAME).getClient(uuid);
@@ -104,8 +104,8 @@ public class SocketIOServer implements ClientListeners {
      * Get broadcast operations for clients within
      * room by <code>room</code> name
      *
-     * @param room
-     * @return
+     * @param room - name of room
+     * @return broadcast operations
      */
     public BroadcastOperations getRoomOperations(String room) {
         Iterable<SocketIOClient> clients = namespacesHub.getRoomClients(room);
@@ -121,6 +121,8 @@ public class SocketIOServer implements ClientListeners {
 
     /**
      * Start server asynchronously
+     * 
+     * @return void
      */
     public Future<Void> startAsync() {
         log.info("Session store / pubsub factory used: {}", configCopy.getStoreFactory());

@@ -25,7 +25,7 @@ import com.corundumstudio.socketio.protocol.PacketType;
 
 /**
  * Ack request received from Socket.IO client.
- * You can always check is it <code>true<code> through
+ * You can always check is it <code>true</code> through
  * {@link #isAckRequested()} method.
  *
  * You can call {@link #sendAckData} methods only during

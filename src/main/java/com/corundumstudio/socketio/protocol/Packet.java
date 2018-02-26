@@ -65,9 +65,12 @@ public class Packet implements Serializable {
 
     /**
      * Get packet data
+     * 
+     * @param <T> the type data
+     * 
      * <pre>
-     * @return <b>json object</b> for {@link PacketType.JSON} type
-     * <b>message</b> for {@link PacketType.MESSAGE} type
+     * @return <b>json object</b> for PacketType.JSON type
+     * <b>message</b> for PacketType.MESSAGE type
      * </pre>
      */
     public <T> T getData() {

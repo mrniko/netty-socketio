@@ -149,7 +149,7 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
     /**
      * Adds the ssl handler
      *
-     * @return
+     * @param pipeline - channel pipeline
      */
     protected void addSslHandler(ChannelPipeline pipeline) {
         if (sslContext != null) {
@@ -162,7 +162,7 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
     /**
      * Adds the socketio channel handlers
      *
-     * @param pipeline
+     * @param pipeline - channel pipeline
      */
     protected void addSocketioHandlers(ChannelPipeline pipeline) {
         pipeline.addLast(HTTP_REQUEST_DECODER, new HttpRequestDecoder());
