@@ -15,123 +15,24 @@
  */
 package com.corundumstudio.socketio;
 
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
 
-import com.corundumstudio.socketio.misc.IterableCollection;
-import com.corundumstudio.socketio.namespace.Namespace;
 import com.corundumstudio.socketio.protocol.Packet;
-import com.corundumstudio.socketio.protocol.PacketType;
-import com.corundumstudio.socketio.store.StoreFactory;
-import com.corundumstudio.socketio.store.pubsub.DispatchMessage;
-import com.corundumstudio.socketio.store.pubsub.PubSubType;
 
 /**
- * Fully thread-safe.
+ * broadcast interface
  *
  */
-public class BroadcastOperations implements ClientOperations {
+public interface BroadcastOperations extends ClientOperations {
 
-    private final Iterable<SocketIOClient> clients;
-    private final StoreFactory storeFactory;
+	public Collection<SocketIOClient> getClients();
+	
+	public <T> void send(Packet packet, BroadcastAckCallback<T> ackCallback);
 
-    public BroadcastOperations(Iterable<SocketIOClient> clients, StoreFactory storeFactory) {
-        super();
-        this.clients = clients;
-        this.storeFactory = storeFactory;
-    }
-
-    private void dispatch(Packet packet) {
-        Map<String, Set<String>> namespaceRooms = new HashMap<String, Set<String>>();
-        for (SocketIOClient socketIOClient : clients) {
-            Namespace namespace = (Namespace)socketIOClient.getNamespace();
-            Set<String> rooms = namespace.getRooms(socketIOClient);
-            
-            Set<String> roomsList = namespaceRooms.get(namespace.getName());
-            if (roomsList == null) {
-                roomsList = new HashSet<String>();
-                namespaceRooms.put(namespace.getName(), roomsList);
-            }
-            roomsList.addAll(rooms);
-        }
-        for (Entry<String, Set<String>> entry : namespaceRooms.entrySet()) {
-            for (String room : entry.getValue()) {
-                storeFactory.pubSubStore().publish(PubSubType.DISPATCH, new DispatchMessage(room, packet, entry.getKey()));
-            }
-        }
-    }
-
-    public Collection<SocketIOClient> getClients() {
-        return new IterableCollection<SocketIOClient>(clients);
-    }
-
-    @Override
-    public void send(Packet packet) {
-        for (SocketIOClient client : clients) {
-            client.send(packet);
-        }
-        dispatch(packet);
-    }
-
-    public <T> void send(Packet packet, BroadcastAckCallback<T> ackCallback) {
-        for (SocketIOClient client : clients) {
-            client.send(packet, ackCallback.createClientCallback(client));
-        }
-        ackCallback.loopFinished();
-    }
-
-    @Override
-    public void disconnect() {
-        for (SocketIOClient client : clients) {
-            client.disconnect();
-        }
-    }
-
-    public void sendEvent(String name, SocketIOClient excludedClient, Object... data) {
-        Packet packet = new Packet(PacketType.MESSAGE);
-        packet.setSubType(PacketType.EVENT);
-        packet.setName(name);
-        packet.setData(Arrays.asList(data));
-
-        for (SocketIOClient client : clients) {
-            if (client.getSessionId().equals(excludedClient.getSessionId())) {
-                continue;
-            }
-            client.send(packet);
-        }
-        dispatch(packet);
-    }
-    
-    @Override
-    public void sendEvent(String name, Object... data) {
-        Packet packet = new Packet(PacketType.MESSAGE);
-        packet.setSubType(PacketType.EVENT);
-        packet.setName(name);
-        packet.setData(Arrays.asList(data));
-        send(packet);
-    }
-
-    public <T> void sendEvent(String name, Object data, BroadcastAckCallback<T> ackCallback) {
-        for (SocketIOClient client : clients) {
-            client.sendEvent(name, ackCallback.createClientCallback(client), data);
-        }
-        ackCallback.loopFinished();
-    }
-    
-    public <T> void sendEvent(String name, Object data, SocketIOClient excludedClient, BroadcastAckCallback<T> ackCallback) {
-        for (SocketIOClient client : clients) {
-            if (client.getSessionId().equals(excludedClient.getSessionId())) {
-                continue;
-            }
-            client.sendEvent(name, ackCallback.createClientCallback(client), data);
-        }
-        ackCallback.loopFinished();
-    }
-
-
+	public void sendEvent(String name, SocketIOClient excludedClient, Object... data);
+	
+	public <T> void sendEvent(String name, Object data, BroadcastAckCallback<T> ackCallback);
+	
+	public <T> void sendEvent(String name, Object data, SocketIOClient excludedClient, BroadcastAckCallback<T> ackCallback);
+	
 }

@@ -3,19 +3,19 @@
 
  <groupId>com.corundumstudio.socketio</groupId>
  <artifactId>netty-socketio</artifactId>
- <version>1.7.15-SNAPSHOT</version>
+ <version>1.7.15-crs-SNAPSHOT</version>
  <packaging>bundle</packaging>
  <name>NettySocketIO</name>
  <description>Socket.IO server implemented on Java</description>
  <inceptionYear>2012</inceptionYear>
  <url>https://github.com/mrniko/netty-socketio</url>
 
- <scm>
+ <!-- <scm>
     <url>scm:git:git@github.com:mrniko/netty-socketio.git</url>
     <connection>scm:git:git@github.com:mrniko/netty-socketio.git</connection>
     <developerConnection>scm:git:git@github.com:mrniko/netty-socketio.git</developerConnection>
    <tag>HEAD</tag>
-  </scm>
+  </scm> -->
 
  <licenses>
      <license>
