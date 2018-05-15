@@ -125,7 +125,7 @@ public class ClientHead {
             public void run() {
                 ClientHead client = clientsBox.get(sessionId);
                 if (client != null) {
-                    client.onChannelDisconnect();
+                    client.disconnect();
                     log.debug("{} removed due to ping timeout", sessionId);
                 }
             }
@@ -205,7 +205,9 @@ public class ClientHead {
 
     public void disconnect() {
         ChannelFuture future = send(new Packet(PacketType.DISCONNECT));
-        future.addListener(ChannelFutureListener.CLOSE);
+		if(future != null) {
+			future.addListener(ChannelFutureListener.CLOSE);
+		}
 
         onChannelDisconnect();
     }
