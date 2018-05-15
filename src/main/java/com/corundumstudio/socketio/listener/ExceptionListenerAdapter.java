@@ -45,4 +45,9 @@ public abstract class ExceptionListenerAdapter implements ExceptionListener {
         return false;
     }
 
+    @Override
+    public void onPingException(Exception e, SocketIOClient client) {
+        
+    }
+
 }
