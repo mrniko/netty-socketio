@@ -50,6 +50,12 @@ Recent Releases
 ================================
 #### Please Note: trunk is current development branch.
 
+#### 15-May-2018 - version 1.7.15 released  
+
+Fixed - Session ID is not unique anymore  
+Fixed - fixed underlying connection not closing on ping timeout  
+Fixed - the "fin_close" problem  
+
 #### 26-Feb-2018 - version 1.7.14 released  
 Feature - added local socket address for the connection (thanks to @SergeyGrigorev)  
 Feature - `addPingListener` method added (thanks to @lovebing)  
