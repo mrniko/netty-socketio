@@ -148,7 +148,9 @@ public class WebSocketTransport extends ChannelInboundHandlerAdapter {
             client.onChannelDisconnect();
         }
         super.channelInactive(ctx);
-        client.send(packet);
+        if (client != null) {
+            client.send(packet);
+        }
         channel.close();
         ctx.close();
     }
