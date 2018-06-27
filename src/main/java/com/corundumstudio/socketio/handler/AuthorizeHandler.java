@@ -213,6 +213,15 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
         random uuid to be generated instead (same as not passing a cookie in the first place).
     */
     private UUID generateOrGetSessionIdFromRequest(HttpHeaders headers) {
+        List<String> values = headers.getAll("io");
+        if (values.size() == 1) {
+            try {
+                return UUID.fromString(values.get(0));
+            } catch ( IllegalArgumentException iaex ) {
+                log.warn("Malformed UUID received for session! io=" + values.get(0));
+            }
+        }
+        
         for (String cookieHeader: headers.getAll(HttpHeaderNames.COOKIE)) {
             Set<Cookie> cookies = ServerCookieDecoder.LAX.decode(cookieHeader);
 
@@ -226,6 +235,7 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
                 }
             }
         }
+        
         return UUID.randomUUID();
     }
 

@@ -50,8 +50,9 @@ public class MultiTypeArgs implements Iterable<Object> {
     /**
      * "index out of bounds"-safe method for getting elements
      *
-     * @param index
-     * @return
+     * @param <T> type of argument
+     * @param index to get
+     * @return argument
      */
     public <T> T get(int index) {
         if (size() <= index) {

@@ -37,6 +37,8 @@ public @interface OnEvent {
 
     /**
      * Event name
+     * 
+     * @return value
      */
     String value();
 

@@ -35,15 +35,15 @@ public interface SocketIONamespace extends ClientListeners {
     /**
      * Get all clients connected to namespace
      *
-     * @return
+     * @return collection of clients
      */
     Collection<SocketIOClient> getAllClients();
 
     /**
      * Get client by uuid connected to namespace
      *
-     * @param uuid
-     * @return
+     * @param uuid - id of client
+     * @return client
      */
     SocketIOClient getClient(UUID uuid);
 
