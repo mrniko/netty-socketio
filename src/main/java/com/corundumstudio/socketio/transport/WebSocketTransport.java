@@ -80,8 +80,7 @@ public class WebSocketTransport extends ChannelInboundHandlerAdapter {
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         if (msg instanceof CloseWebSocketFrame) {
-            ctx.channel().close();
-            ReferenceCountUtil.release(msg);
+          ctx.channel().writeAndFlush(msg).addListener(ChannelFutureListener.CLOSE);
         } else if (msg instanceof BinaryWebSocketFrame
                     || msg instanceof TextWebSocketFrame) {
             ByteBufHolder frame = (ByteBufHolder) msg;
