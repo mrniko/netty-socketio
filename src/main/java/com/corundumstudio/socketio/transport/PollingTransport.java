@@ -15,15 +15,6 @@
  */
 package com.corundumstudio.socketio.transport;
 
-import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
-
-import java.io.IOException;
-import java.util.List;
-import java.util.UUID;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.corundumstudio.socketio.Transport;
 import com.corundumstudio.socketio.handler.AuthorizeHandler;
 import com.corundumstudio.socketio.handler.ClientHead;
@@ -33,19 +24,21 @@ import com.corundumstudio.socketio.messages.PacketsMessage;
 import com.corundumstudio.socketio.messages.XHROptionsMessage;
 import com.corundumstudio.socketio.messages.XHRPostMessage;
 import com.corundumstudio.socketio.protocol.PacketDecoder;
-
 import io.netty.buffer.ByteBuf;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.handler.codec.http.DefaultHttpResponse;
-import io.netty.handler.codec.http.FullHttpRequest;
-import io.netty.handler.codec.http.HttpHeaderNames;
-import io.netty.handler.codec.http.HttpMethod;
-import io.netty.handler.codec.http.HttpResponse;
-import io.netty.handler.codec.http.HttpResponseStatus;
-import io.netty.handler.codec.http.QueryStringDecoder;
+import io.netty.handler.codec.http.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.UUID;
+
+import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 
 @Sharable
 public class PollingTransport extends ChannelInboundHandlerAdapter {
@@ -184,6 +177,17 @@ public class PollingTransport extends ChannelInboundHandlerAdapter {
     private void sendError(ChannelHandlerContext ctx) {
         HttpResponse res = new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.INTERNAL_SERVER_ERROR);
         ctx.channel().writeAndFlush(res).addListener(ChannelFutureListener.CLOSE);
+    }
+
+    @Override
+    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+        final Channel channel = ctx.channel();
+        ClientHead client = clientsBox.get(channel);
+        if (client != null && client.isTransportChannel(ctx.channel(), Transport.POLLING)) {
+            log.debug("channel inactive {}", client.getSessionId());
+            client.releasePollingChannel(channel);
+        }
+        super.channelInactive(ctx);
     }
 
 }
