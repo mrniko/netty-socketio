@@ -2,8 +2,6 @@ fork from mrniko/netty-socketio
 
 Netty-socketio Overview
 ===
-[![Maven Central](https://img.shields.io/maven-central/v/com.corundumstudio.socketio/netty-socketio.svg?style=flat-square)](https://maven-badges.herokuapp.com/maven-central/com.corundumstudio.socketio/netty-socketio/)
-
 This project is an open-source Java implementation of [Socket.IO](http://socket.io/) server. Based on [Netty](http://netty.io/) server framework.  
 
 Checkout [Demo project](https://github.com/mrniko/netty-socketio-demo)
@@ -51,6 +49,18 @@ Zipwhip: [zipwhip.com](https://zipwhip.com/)
 Recent Releases
 ================================
 #### Please Note: trunk is current development branch.
+
+#### 06-Jul-2018 - version 1.7.16 released  
+Fixed - non thread-safe ACK handling (thanks to dawnbreaks)  
+Fixed - inactive long-polling channels cause memory leak (thanks to dawnbreaks)  
+Fixed - websocket CloseFrame processing (thanks to hangsu.cho)  
+Fixed - WebSocketTransport NPE  
+
+#### 15-May-2018 - version 1.7.15 released  
+
+Fixed - Session ID is not unique anymore  
+Fixed - fixed underlying connection not closing on ping timeout  
+Fixed - the "fin_close" problem  
 
 #### 26-Feb-2018 - version 1.7.14 released  
 Feature - added local socket address for the connection (thanks to @SergeyGrigorev)  

@@ -19,6 +19,8 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
+import com.corundumstudio.socketio.protocol.Packet;
+import com.corundumstudio.socketio.protocol.PacketType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -78,8 +80,7 @@ public class WebSocketTransport extends ChannelInboundHandlerAdapter {
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         if (msg instanceof CloseWebSocketFrame) {
-            ctx.channel().close();
-            ReferenceCountUtil.release(msg);
+          ctx.channel().writeAndFlush(msg).addListener(ChannelFutureListener.CLOSE);
         } else if (msg instanceof BinaryWebSocketFrame
                     || msg instanceof TextWebSocketFrame) {
             ByteBufHolder frame = (ByteBufHolder) msg;
@@ -138,12 +139,19 @@ public class WebSocketTransport extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-        ClientHead client = clientsBox.get(ctx.channel());
+        final  Channel channel = ctx.channel();
+        ClientHead client = clientsBox.get(channel);
+        Packet packet = new Packet(PacketType.MESSAGE);
         if (client != null && client.isTransportChannel(ctx.channel(), Transport.WEBSOCKET)) {
             log.debug("channel inactive {}", client.getSessionId());
             client.onChannelDisconnect();
         }
         super.channelInactive(ctx);
+        if (client != null) {
+            client.send(packet);
+        }
+        channel.close();
+        ctx.close();
     }
 
     private void handshake(ChannelHandlerContext ctx, final UUID sessionId, String path, FullHttpRequest req) {

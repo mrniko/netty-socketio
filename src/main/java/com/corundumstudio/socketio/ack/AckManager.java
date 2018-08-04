@@ -15,28 +15,23 @@
  */
 package com.corundumstudio.socketio.ack;
 
-import io.netty.util.internal.PlatformDependent;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicLong;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.corundumstudio.socketio.AckCallback;
-import com.corundumstudio.socketio.Disconnectable;
-import com.corundumstudio.socketio.MultiTypeAckCallback;
-import com.corundumstudio.socketio.MultiTypeArgs;
-import com.corundumstudio.socketio.SocketIOClient;
+import com.corundumstudio.socketio.*;
 import com.corundumstudio.socketio.handler.ClientHead;
 import com.corundumstudio.socketio.protocol.Packet;
 import com.corundumstudio.socketio.scheduler.CancelableScheduler;
 import com.corundumstudio.socketio.scheduler.SchedulerKey;
 import com.corundumstudio.socketio.scheduler.SchedulerKey.Type;
+import io.netty.util.internal.PlatformDependent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class AckManager implements Disconnectable {
 
@@ -71,7 +66,7 @@ public class AckManager implements Disconnectable {
 
     private static final Logger log = LoggerFactory.getLogger(AckManager.class);
 
-    private final Map<UUID, AckEntry> ackEntries = PlatformDependent.newConcurrentHashMap();
+    private final ConcurrentMap<UUID, AckEntry> ackEntries = PlatformDependent.newConcurrentHashMap();
 
     private final CancelableScheduler scheduler;
 
@@ -89,7 +84,7 @@ public class AckManager implements Disconnectable {
         AckEntry ackEntry = ackEntries.get(sessionId);
         if (ackEntry == null) {
             ackEntry = new AckEntry();
-            AckEntry oldAckEntry = ackEntries.put(sessionId, ackEntry);
+            AckEntry oldAckEntry = ackEntries.putIfAbsent(sessionId, ackEntry);
             if (oldAckEntry != null) {
                 ackEntry = oldAckEntry;
             }
