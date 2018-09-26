@@ -142,6 +142,7 @@ public class WebSocketTransport extends ChannelInboundHandlerAdapter {
         final  Channel channel = ctx.channel();
         ClientHead client = clientsBox.get(channel);
         Packet packet = new Packet(PacketType.MESSAGE);
+        packet.setSubType(PacketType.MESSAGE);
         if (client != null && client.isTransportChannel(ctx.channel(), Transport.WEBSOCKET)) {
             log.debug("channel inactive {}", client.getSessionId());
             client.onChannelDisconnect();
