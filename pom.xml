@@ -85,37 +85,37 @@
   <dependency>
   	<groupId>io.netty</groupId>
   	<artifactId>netty-buffer</artifactId>
-  	<version>4.1.25.Final</version>
+  	<version>4.1.30.Final</version>
   </dependency>
   <dependency>
   	<groupId>io.netty</groupId>
   	<artifactId>netty-common</artifactId>
-  	<version>4.1.25.Final</version>
+  	<version>4.1.30.Final</version>
   </dependency>
   <dependency>
   	<groupId>io.netty</groupId>
   	<artifactId>netty-transport</artifactId>
-       <version>4.1.25.Final</version>
+       <version>4.1.30.Final</version>
   </dependency>
   <dependency>
   	<groupId>io.netty</groupId>
   	<artifactId>netty-handler</artifactId>
-  	<version>4.1.25.Final</version>
+  	<version>4.1.30.Final</version>
   </dependency>
   <dependency>
   	<groupId>io.netty</groupId>
   	<artifactId>netty-codec-http</artifactId>
-  	<version>4.1.25.Final</version>
+  	<version>4.1.30.Final</version>
   </dependency>
   <dependency>
   	<groupId>io.netty</groupId>
   	<artifactId>netty-codec</artifactId>
-  	<version>4.1.25.Final</version>
+  	<version>4.1.30.Final</version>
   </dependency>
   <dependency>
         <groupId>io.netty</groupId>
         <artifactId>netty-transport-native-epoll</artifactId>
-        <version>4.1.25.Final</version>
+        <version>4.1.30.Final</version>
   </dependency>
   
   <dependency>
@@ -172,7 +172,7 @@
     <dependency>
         <groupId>org.redisson</groupId>
         <artifactId>redisson</artifactId>
-        <version>2.12.0</version>
+        <version>3.8.2</version>
         <scope>provided</scope>
     </dependency>
     <dependency>

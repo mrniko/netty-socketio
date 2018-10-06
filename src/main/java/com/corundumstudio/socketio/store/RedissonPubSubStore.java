@@ -56,7 +56,7 @@ public class RedissonPubSubStore implements PubSubStore {
         RTopic<T> topic = redissonSub.getTopic(name);
         int regId = topic.addListener(new MessageListener<T>() {
             @Override
-            public void onMessage(String channel, T msg) {
+            public void onMessage(CharSequence channel, T msg) {
                 if (!nodeId.equals(msg.getNodeId())) {
                     listener.onMessage(msg);
                 }
