@@ -18,11 +18,12 @@ package com.corundumstudio.socketio.handler;
 import com.corundumstudio.socketio.AuthorizationListener;
 import com.corundumstudio.socketio.HandshakeData;
 
+import java.util.Map;
+
 public class SuccessAuthorizationListener implements AuthorizationListener {
 
     @Override
-    public boolean isAuthorized(HandshakeData data) {
+    public boolean isAuthorized(HandshakeData data, Map<String, Object> saveData) {
         return true;
     }
-
 }

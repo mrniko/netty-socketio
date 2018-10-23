@@ -15,14 +15,17 @@
  */
 package com.corundumstudio.socketio;
 
+import java.util.Map;
+
 public interface AuthorizationListener {
 
     /**
      * Checks is client with handshake data is authorized
      *
      * @param data - handshake data
+     * @param saveData - data need to save to store
      * @return - <b>true</b> if client is authorized of <b>false</b> otherwise
      */
-    boolean isAuthorized(HandshakeData data);
+    boolean isAuthorized(HandshakeData data, Map<String, Object> saveData);
 
 }
