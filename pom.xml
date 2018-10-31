@@ -172,7 +172,7 @@
     <dependency>
         <groupId>org.redisson</groupId>
         <artifactId>redisson</artifactId>
-        <version>2.12.0</version>
+        <version>3.8.2</version>
         <scope>provided</scope>
     </dependency>
     <dependency>
