@@ -326,7 +326,7 @@ public class Namespace implements SocketIONamespace {
         clients.remove(sessionId);
 
         if (clients.isEmpty()) {
-            map.remove(room, Collections.emptySet());
+            map.remove(room, clients);
         }
     }
 
