@@ -146,14 +146,29 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
                                                 (InetSocketAddress)channel.remoteAddress(),
                                                     req.uri(), origin != null && !origin.equalsIgnoreCase("null"));
 
-        boolean result = false;
+        String redirectUrl = null;
         try {
-            result = configuration.getAuthorizationListener().isAuthorized(data);
+            redirectUrl = configuration.getAuthorizationListener().isRedirected(data);
+        } catch (Exception ignore) {
+        }
+
+        if (redirectUrl != null) {
+            HttpResponse res = new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.TEMPORARY_REDIRECT);
+            res.headers().add("Location", redirectUrl);
+            channel.writeAndFlush(res)
+                    .addListener(ChannelFutureListener.CLOSE);
+            log.debug("Handshake redirected, query params: {} headers: {}", params, headers);
+            return false;
+        }
+
+        boolean isAuthorized = false;
+        try {
+            isAuthorized = configuration.getAuthorizationListener().isAuthorized(data);
         } catch (Exception e) {
             log.error("Authorization error", e);
         }
 
-        if (!result) {
+        if (!isAuthorized) {
             HttpResponse res = new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.UNAUTHORIZED);
             channel.writeAndFlush(res)
                     .addListener(ChannelFutureListener.CLOSE);
