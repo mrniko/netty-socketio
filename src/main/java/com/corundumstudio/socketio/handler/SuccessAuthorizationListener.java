@@ -16,18 +16,14 @@
 package com.corundumstudio.socketio.handler;
 
 import com.corundumstudio.socketio.AuthorizationListener;
+import com.corundumstudio.socketio.AuthorizationResponse;
 import com.corundumstudio.socketio.HandshakeData;
 
 public class SuccessAuthorizationListener implements AuthorizationListener {
 
     @Override
-    public String isRedirected(HandshakeData data) {
-        return null;
-    }
-
-    @Override
-    public boolean isAuthorized(HandshakeData data) {
-        return true;
+    public AuthorizationResponse authorize(HandshakeData data) {
+        return AuthorizationResponse.connect();
     }
 
 }

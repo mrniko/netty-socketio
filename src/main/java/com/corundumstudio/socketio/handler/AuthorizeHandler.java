@@ -25,15 +25,10 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
+import com.corundumstudio.socketio.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.corundumstudio.socketio.Configuration;
-import com.corundumstudio.socketio.Disconnectable;
-import com.corundumstudio.socketio.DisconnectableHub;
-import com.corundumstudio.socketio.HandshakeData;
-import com.corundumstudio.socketio.SocketIOClient;
-import com.corundumstudio.socketio.Transport;
 import com.corundumstudio.socketio.ack.AckManager;
 import com.corundumstudio.socketio.messages.HttpErrorMessage;
 import com.corundumstudio.socketio.namespace.Namespace;
@@ -146,29 +141,15 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
                                                 (InetSocketAddress)channel.remoteAddress(),
                                                     req.uri(), origin != null && !origin.equalsIgnoreCase("null"));
 
-        String redirectUrl = null;
+        AuthorizationResponse authorizationResponse = null;
         try {
-            redirectUrl = configuration.getAuthorizationListener().isRedirected(data);
+            authorizationResponse = configuration.getAuthorizationListener().authorize(data);
         } catch (Exception ignore) {
         }
 
-        if (redirectUrl != null) {
-            HttpResponse res = new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.TEMPORARY_REDIRECT);
-            res.headers().add("Location", redirectUrl);
-            channel.writeAndFlush(res)
-                    .addListener(ChannelFutureListener.CLOSE);
-            log.debug("Handshake redirected, query params: {} headers: {}", params, headers);
-            return false;
-        }
-
-        boolean isAuthorized = false;
-        try {
-            isAuthorized = configuration.getAuthorizationListener().isAuthorized(data);
-        } catch (Exception e) {
-            log.error("Authorization error", e);
-        }
-
-        if (!isAuthorized) {
+        // disconnect
+        if (authorizationResponse == null
+                || AuthorizationResponse.Action.DISCONNECT.equals(authorizationResponse.getAction())) {
             HttpResponse res = new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.UNAUTHORIZED);
             channel.writeAndFlush(res)
                     .addListener(ChannelFutureListener.CLOSE);
@@ -176,6 +157,20 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
             return false;
         }
 
+        // redirect
+        if (AuthorizationResponse.Action.REDIRECT.equals(authorizationResponse.getAction())
+                && authorizationResponse.getData() == null) {
+            HttpResponse res = new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.TEMPORARY_REDIRECT);
+            res.headers().add("Location", authorizationResponse.getData());
+            channel.writeAndFlush(res)
+                    .addListener(ChannelFutureListener.CLOSE);
+            log.debug("Handshake redirected, query params: {} headers: {}", params, headers);
+            return false;
+
+        }
+
+        // connect
+        String authorizationResponseData = authorizationResponse.getData();
         UUID sessionId = this.generateOrGetSessionIdFromRequest(req.headers());
 
         List<String> transportValue = params.get("transport");
@@ -198,7 +193,7 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
             return false;
         }
         
-        ClientHead client = new ClientHead(sessionId, ackManager, disconnectable, storeFactory, data, clientsBox, transport, disconnectScheduler, configuration);
+        ClientHead client = new ClientHead(sessionId, ackManager, disconnectable, storeFactory, data, clientsBox, transport, disconnectScheduler, configuration, authorizationResponseData);
         channel.attr(ClientHead.CLIENT).set(client);
         clientsBox.addClient(client);
 

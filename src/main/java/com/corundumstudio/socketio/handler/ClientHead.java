@@ -15,23 +15,7 @@
  */
 package com.corundumstudio.socketio.handler;
 
-import java.net.SocketAddress;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Queue;
-import java.util.Set;
-import java.util.UUID;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.corundumstudio.socketio.Configuration;
-import com.corundumstudio.socketio.DisconnectableHub;
-import com.corundumstudio.socketio.HandshakeData;
-import com.corundumstudio.socketio.Transport;
+import com.corundumstudio.socketio.*;
 import com.corundumstudio.socketio.ack.AckManager;
 import com.corundumstudio.socketio.messages.OutPacketMessage;
 import com.corundumstudio.socketio.namespace.Namespace;
@@ -43,13 +27,20 @@ import com.corundumstudio.socketio.scheduler.SchedulerKey.Type;
 import com.corundumstudio.socketio.store.Store;
 import com.corundumstudio.socketio.store.StoreFactory;
 import com.corundumstudio.socketio.transport.NamespaceClient;
-
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.util.AttributeKey;
 import io.netty.util.internal.PlatformDependent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.net.SocketAddress;
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ClientHead {
 
@@ -69,6 +60,7 @@ public class ClientHead {
     private ClientsBox clientsBox;
     private final CancelableScheduler disconnectScheduler;
     private final Configuration configuration;
+    private String authorizationResponseData;
 
     private Packet lastBinaryPacket;
 
@@ -76,8 +68,8 @@ public class ClientHead {
     private volatile Transport currentTransport;
 
     public ClientHead(UUID sessionId, AckManager ackManager, DisconnectableHub disconnectable,
-            StoreFactory storeFactory, HandshakeData handshakeData, ClientsBox clientsBox, Transport transport, CancelableScheduler disconnectScheduler,
-            Configuration configuration) {
+                      StoreFactory storeFactory, HandshakeData handshakeData, ClientsBox clientsBox, Transport transport, CancelableScheduler disconnectScheduler,
+                      Configuration configuration, String authorizationResponseData) {
         this.sessionId = sessionId;
         this.ackManager = ackManager;
         this.disconnectableHub = disconnectable;
@@ -87,6 +79,7 @@ public class ClientHead {
         this.currentTransport = transport;
         this.disconnectScheduler = disconnectScheduler;
         this.configuration = configuration;
+        this.authorizationResponseData = authorizationResponseData;
 
         channels.put(Transport.POLLING, new TransportState());
         channels.put(Transport.WEBSOCKET, new TransportState());
@@ -264,4 +257,9 @@ public class ClientHead {
         return lastBinaryPacket;
     }
 
+    public String getAuthorizationResponse() {
+        String data = authorizationResponseData;
+        authorizationResponseData = null;
+        return data;
+    }
 }
