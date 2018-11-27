@@ -15,6 +15,9 @@
  */
 package com.corundumstudio.socketio;
 
+import java.util.Collections;
+import java.util.Map;
+
 public class AuthorizationResponse {
     public enum Action {
         CONNECT,
@@ -23,9 +26,13 @@ public class AuthorizationResponse {
     }
 
     private final Action action;
-    private final String data;
+    private final Map<String, Object> data;
 
-    private AuthorizationResponse(Action action, String data) {
+    private AuthorizationResponse(Action action, Map<String, Object> data) {
+        if (data == null) {
+            data = Collections.emptyMap();
+        }
+
         this.action = action;
         this.data = data;
     }
@@ -34,12 +41,16 @@ public class AuthorizationResponse {
         return new AuthorizationResponse(Action.CONNECT, null);
     }
 
-    public static AuthorizationResponse connect(String data) {
+    public static AuthorizationResponse connect(String key, Object value) {
+        return new AuthorizationResponse(Action.CONNECT, Collections.singletonMap(key, value));
+    }
+
+    public static AuthorizationResponse connect(Map<String, Object> data) {
         return new AuthorizationResponse(Action.CONNECT, data);
     }
 
     public static AuthorizationResponse redirect(String locationUrl) {
-        return new AuthorizationResponse(Action.REDIRECT, locationUrl);
+        return new AuthorizationResponse(Action.REDIRECT, Collections.singletonMap("Location", (Object) locationUrl));
     }
 
     public static AuthorizationResponse disconnect() {
@@ -50,7 +61,7 @@ public class AuthorizationResponse {
         return action;
     }
 
-    public String getData() {
+    public Map<String, Object> getData() {
         return data;
     }
 }

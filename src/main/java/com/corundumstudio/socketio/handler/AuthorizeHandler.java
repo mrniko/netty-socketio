@@ -161,7 +161,7 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
         if (AuthorizationResponse.Action.REDIRECT.equals(authorizationResponse.getAction())
                 && authorizationResponse.getData() == null) {
             HttpResponse res = new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.TEMPORARY_REDIRECT);
-            res.headers().add("Location", authorizationResponse.getData());
+            res.headers().add("Location", authorizationResponse.getData().get("Location"));
             channel.writeAndFlush(res)
                     .addListener(ChannelFutureListener.CLOSE);
             log.debug("Handshake redirected, query params: {} headers: {}", params, headers);
@@ -170,7 +170,8 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
         }
 
         // connect
-        String authorizationResponseData = authorizationResponse.getData();
+        Map<String, Object> storeData = authorizationResponse.getData();
+
         UUID sessionId = this.generateOrGetSessionIdFromRequest(req.headers());
 
         List<String> transportValue = params.get("transport");
@@ -193,7 +194,7 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
             return false;
         }
         
-        ClientHead client = new ClientHead(sessionId, ackManager, disconnectable, storeFactory, data, clientsBox, transport, disconnectScheduler, configuration, authorizationResponseData);
+        ClientHead client = new ClientHead(sessionId, ackManager, disconnectable, storeFactory, storeData, data, clientsBox, transport, disconnectScheduler, configuration);
         channel.attr(ClientHead.CLIENT).set(client);
         clientsBox.addClient(client);
 

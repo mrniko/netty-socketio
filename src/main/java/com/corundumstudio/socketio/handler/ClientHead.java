@@ -60,7 +60,6 @@ public class ClientHead {
     private ClientsBox clientsBox;
     private final CancelableScheduler disconnectScheduler;
     private final Configuration configuration;
-    private String authorizationResponseData;
 
     private Packet lastBinaryPacket;
 
@@ -68,8 +67,8 @@ public class ClientHead {
     private volatile Transport currentTransport;
 
     public ClientHead(UUID sessionId, AckManager ackManager, DisconnectableHub disconnectable,
-                      StoreFactory storeFactory, HandshakeData handshakeData, ClientsBox clientsBox, Transport transport, CancelableScheduler disconnectScheduler,
-                      Configuration configuration, String authorizationResponseData) {
+                      StoreFactory storeFactory, Map<String, Object> storeData, HandshakeData handshakeData, ClientsBox clientsBox, Transport transport, CancelableScheduler disconnectScheduler,
+                      Configuration configuration) {
         this.sessionId = sessionId;
         this.ackManager = ackManager;
         this.disconnectableHub = disconnectable;
@@ -79,7 +78,10 @@ public class ClientHead {
         this.currentTransport = transport;
         this.disconnectScheduler = disconnectScheduler;
         this.configuration = configuration;
-        this.authorizationResponseData = authorizationResponseData;
+
+        for (Map.Entry<String, Object> entry : storeData.entrySet()) {
+            this.store.set(entry.getKey(), entry.getValue());
+        }
 
         channels.put(Transport.POLLING, new TransportState());
         channels.put(Transport.WEBSOCKET, new TransportState());
@@ -255,11 +257,5 @@ public class ClientHead {
     }
     public Packet getLastBinaryPacket() {
         return lastBinaryPacket;
-    }
-
-    public String getAuthorizationResponse() {
-        String data = authorizationResponseData;
-        authorizationResponseData = null;
-        return data;
     }
 }
