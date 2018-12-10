@@ -15,74 +15,62 @@
  */
 package com.corundumstudio.socketio;
 
+import io.netty.handler.codec.http.HttpResponseStatus;
+
 import java.util.Collections;
 import java.util.Map;
 
+/*
+ * Used to return a result from <b>AuthorizationListener</b>
+ *
+ * connect - authorizes and connects the socket, puts data in the client store
+ * redirect - returns <b>307</b> with the <b>Location</b> header set to the new location, then disconnects
+ * disconnect - returns the indicated HttpResponseStatus with headers, or <b>401 Unauthorized</b> if not set
+ */
 public class AuthorizationResponse {
-    public enum Action {
-        CONNECT,
-        TEMPORARY_REDIRECT,
-        BAD_REQUEST,
-        NOT_FOUND,
-        CONFLICT,
-        SERVICE_UNAVAILABLE,
-        DISCONNECT
-    }
 
-    private final Action action;
+    private final HttpResponseStatus httpResponseStatus;
     private final Map<String, Object> data;
 
-    private AuthorizationResponse(Action action, Map<String, Object> data) {
-        if (data == null) {
-            data = Collections.emptyMap();
-        }
-
-        this.action = action;
+    private AuthorizationResponse(HttpResponseStatus httpResponseStatus, Map<String, Object> data) {
+        this.httpResponseStatus = httpResponseStatus;
         this.data = data;
     }
 
     public static AuthorizationResponse connect() {
-        return new AuthorizationResponse(Action.CONNECT, null);
+        return new AuthorizationResponse(HttpResponseStatus.OK, null);
     }
 
     public static AuthorizationResponse connect(String key, Object value) {
-        return new AuthorizationResponse(Action.CONNECT, Collections.singletonMap(key, value));
+        return new AuthorizationResponse(HttpResponseStatus.OK, Collections.singletonMap(key, value));
     }
 
     public static AuthorizationResponse connect(Map<String, Object> data) {
-        return new AuthorizationResponse(Action.CONNECT, data);
+        return new AuthorizationResponse(HttpResponseStatus.OK, data);
     }
 
     public static AuthorizationResponse redirect(String locationUrl) {
-        return new AuthorizationResponse(Action.TEMPORARY_REDIRECT, Collections.singletonMap("Location", (Object) locationUrl));
-    }
-
-    public static AuthorizationResponse badRequest() {
-        return new AuthorizationResponse(Action.BAD_REQUEST, null);
-    }
-
-    public static AuthorizationResponse badRequest(String statusMessage) {
-        return new AuthorizationResponse(Action.BAD_REQUEST, Collections.singletonMap("X-Error-Message", (Object) statusMessage));
-    }
-
-    public static AuthorizationResponse notFound() {
-        return new AuthorizationResponse(Action.NOT_FOUND, null);
-    }
-
-    public static AuthorizationResponse conflict() {
-        return new AuthorizationResponse(Action.CONFLICT, null);
-    }
-
-    public static AuthorizationResponse serviceUnavailable() {
-        return new AuthorizationResponse(Action.SERVICE_UNAVAILABLE, null);
+        return new AuthorizationResponse(HttpResponseStatus.PERMANENT_REDIRECT, Collections.singletonMap("Location", (Object) locationUrl));
     }
 
     public static AuthorizationResponse disconnect() {
-        return new AuthorizationResponse(Action.DISCONNECT, null);
+        return new AuthorizationResponse(HttpResponseStatus.UNAUTHORIZED, null);
     }
 
-    public Action getAction() {
-        return action;
+    public static AuthorizationResponse disconnect(HttpResponseStatus httpResponseStatus) {
+        return new AuthorizationResponse(httpResponseStatus, null);
+    }
+
+    public static AuthorizationResponse disconnect(HttpResponseStatus httpResponseStatus, String header, String value) {
+        return new AuthorizationResponse(httpResponseStatus, Collections.singletonMap(header, (Object) value));
+    }
+
+    public static AuthorizationResponse disconnect(HttpResponseStatus httpResponseStatus, Map<String, String> headers) {
+        return new AuthorizationResponse(httpResponseStatus, Collections.<String, Object>unmodifiableMap(headers));
+    }
+
+    public HttpResponseStatus getHttpResponseStatus() {
+        return httpResponseStatus;
     }
 
     public Map<String, Object> getData() {

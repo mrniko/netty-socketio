@@ -146,49 +146,21 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
             authorizationResponse = configuration.getAuthorizationListener().authorize(data);
         } catch (Exception ignore) {
         }
-
-        HttpResponse res;
-
-        // disconnect
-        if (authorizationResponse == null
-                || AuthorizationResponse.Action.DISCONNECT.equals(authorizationResponse.getAction())) {
-            res = new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.UNAUTHORIZED);
-            channel.writeAndFlush(res).addListener(ChannelFutureListener.CLOSE);
-            log.debug("Handshake unauthorized, query params: {} headers: {}", params, headers);
-            return false;
+        if (authorizationResponse == null) {
+            authorizationResponse = AuthorizationResponse.disconnect();
         }
 
-        // other than connect
-        switch (authorizationResponse.getAction()) {
-            case TEMPORARY_REDIRECT:
-                res = new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.TEMPORARY_REDIRECT);
-                res.headers().add("Location", authorizationResponse.getData().get("Location"));
-                channel.writeAndFlush(res).addListener(ChannelFutureListener.CLOSE);
-                log.debug("Handshake redirected, query params: {} headers: {}", params, headers);
-                return false;
-            case BAD_REQUEST:
-                res = new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.BAD_REQUEST);
-                if (authorizationResponse.getData() != null) {
-                    res.headers().add("X-Error-Message", authorizationResponse.getData().get("X-Error-Message"));
+        // disconnect
+        if (!HttpResponseStatus.OK.equals(authorizationResponse.getHttpResponseStatus())) {
+            HttpResponse res = new DefaultHttpResponse(HTTP_1_1, authorizationResponse.getHttpResponseStatus());
+            if (authorizationResponse.getData() != null) {
+                for (Map.Entry<String, Object> header : authorizationResponse.getData().entrySet()) {
+                    res.headers().add(header.getKey(), header.getValue());
                 }
-                channel.writeAndFlush(res).addListener(ChannelFutureListener.CLOSE);
-                log.debug("Handshake badRequest, query params: {} headers: {}", params, headers);
-                return false;
-            case NOT_FOUND:
-                res = new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.NOT_FOUND);
-                channel.writeAndFlush(res).addListener(ChannelFutureListener.CLOSE);
-                log.debug("Handshake badRequest, query params: {} headers: {}", params, headers);
-                return false;
-            case CONFLICT:
-                res = new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.CONFLICT);
-                channel.writeAndFlush(res).addListener(ChannelFutureListener.CLOSE);
-                log.debug("Handshake badRequest, query params: {} headers: {}", params, headers);
-                return false;
-            case SERVICE_UNAVAILABLE:
-                res = new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.SERVICE_UNAVAILABLE);
-                channel.writeAndFlush(res).addListener(ChannelFutureListener.CLOSE);
-                log.debug("Handshake badRequest, query params: {} headers: {}", params, headers);
-                return false;
+            }
+            channel.writeAndFlush(res).addListener(ChannelFutureListener.CLOSE);
+            log.debug("Handshake unauthorized, response status: {} query params: {} headers: {}", authorizationResponse.getHttpResponseStatus(), params, headers);
+            return false;
         }
 
         // connect
@@ -200,7 +172,7 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
         if (transportValue == null) {
             log.error("Got no transports for request {}", req.uri());
 
-            res = new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.UNAUTHORIZED);
+            HttpResponse res = new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.UNAUTHORIZED);
             channel.writeAndFlush(res).addListener(ChannelFutureListener.CLOSE);
             return false;
         }
@@ -225,8 +197,7 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
             transports = new String[] {"websocket"};
         }
 
-        AuthPacket authPacket = new AuthPacket(sessionId, transports, configuration.getPingInterval(),
-                                                                            configuration.getPingTimeout());
+        AuthPacket authPacket = new AuthPacket(sessionId, transports, configuration.getPingInterval(), configuration.getPingTimeout());
         Packet packet = new Packet(PacketType.OPEN);
         packet.setData(authPacket);
         client.send(packet);
