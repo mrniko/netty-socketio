@@ -15,65 +15,71 @@
  */
 package com.corundumstudio.socketio;
 
+import io.netty.handler.codec.http.DefaultHttpHeaders;
+import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpResponseStatus;
 
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 /*
  * Used to return a result from <b>AuthorizationListener</b>
  *
- * connect - authorizes and connects the socket, puts data in the client store
+ * connect - authorizes and connects the socket, puts storeData in the client store
  * redirect - returns <b>307</b> with the <b>Location</b> header set to the new location, then disconnects
  * disconnect - returns the indicated HttpResponseStatus with headers, or <b>401 Unauthorized</b> if not set
  */
 public class AuthorizationResponse {
 
     private final HttpResponseStatus httpResponseStatus;
-    private final Map<String, Object> data;
+    private final HttpHeaders httpHeaders = new DefaultHttpHeaders();
+    private final Map<String, Object> storeData = new HashMap<String, Object>();
 
-    private AuthorizationResponse(HttpResponseStatus httpResponseStatus, Map<String, Object> data) {
+    private AuthorizationResponse(HttpResponseStatus httpResponseStatus) {
         this.httpResponseStatus = httpResponseStatus;
-        this.data = data;
     }
 
     public static AuthorizationResponse connect() {
-        return new AuthorizationResponse(HttpResponseStatus.OK, null);
-    }
-
-    public static AuthorizationResponse connect(String key, Object value) {
-        return new AuthorizationResponse(HttpResponseStatus.OK, Collections.singletonMap(key, value));
-    }
-
-    public static AuthorizationResponse connect(Map<String, Object> data) {
-        return new AuthorizationResponse(HttpResponseStatus.OK, data);
+        return new AuthorizationResponse(HttpResponseStatus.OK);
     }
 
     public static AuthorizationResponse redirect(String locationUrl) {
-        return new AuthorizationResponse(HttpResponseStatus.PERMANENT_REDIRECT, Collections.singletonMap("Location", (Object) locationUrl));
+        AuthorizationResponse authorizationResponse = new AuthorizationResponse(HttpResponseStatus.PERMANENT_REDIRECT);
+        authorizationResponse.getHttpHeaders().add("Location", locationUrl);
+        return authorizationResponse;
     }
 
     public static AuthorizationResponse disconnect() {
-        return new AuthorizationResponse(HttpResponseStatus.UNAUTHORIZED, null);
+        return new AuthorizationResponse(HttpResponseStatus.UNAUTHORIZED);
     }
 
     public static AuthorizationResponse disconnect(HttpResponseStatus httpResponseStatus) {
-        return new AuthorizationResponse(httpResponseStatus, null);
+        return new AuthorizationResponse(httpResponseStatus);
     }
 
-    public static AuthorizationResponse disconnect(HttpResponseStatus httpResponseStatus, String header, String value) {
-        return new AuthorizationResponse(httpResponseStatus, Collections.singletonMap(header, (Object) value));
+    public AuthorizationResponse addHttpHeader(String name, String value) {
+        httpHeaders.add(name, value);
+        return this;
     }
 
-    public static AuthorizationResponse disconnect(HttpResponseStatus httpResponseStatus, Map<String, String> headers) {
-        return new AuthorizationResponse(httpResponseStatus, Collections.<String, Object>unmodifiableMap(headers));
+    public AuthorizationResponse addStoreData(String key, String value) {
+        if (!HttpResponseStatus.OK.equals(httpResponseStatus)) {
+            throw new UnsupportedOperationException("`storeData` only allowed for 'connect'.");
+        }
+
+        storeData.put(key, value);
+        return this;
     }
 
     public HttpResponseStatus getHttpResponseStatus() {
         return httpResponseStatus;
     }
 
-    public Map<String, Object> getData() {
-        return data;
+    public HttpHeaders getHttpHeaders() {
+        return httpHeaders;
+    }
+
+    public Map<String, Object> getStoreData() {
+        return storeData;
     }
 }

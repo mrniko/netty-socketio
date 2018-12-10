@@ -153,18 +153,16 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
         // disconnect
         if (!HttpResponseStatus.OK.equals(authorizationResponse.getHttpResponseStatus())) {
             HttpResponse res = new DefaultHttpResponse(HTTP_1_1, authorizationResponse.getHttpResponseStatus());
-            if (authorizationResponse.getData() != null) {
-                for (Map.Entry<String, Object> header : authorizationResponse.getData().entrySet()) {
-                    res.headers().add(header.getKey(), header.getValue());
-                }
+            if (authorizationResponse.getHttpHeaders() != null) {
+                res.headers().add(authorizationResponse.getHttpHeaders());
             }
             channel.writeAndFlush(res).addListener(ChannelFutureListener.CLOSE);
-            log.debug("Handshake unauthorized, response status: {} query params: {} headers: {}", authorizationResponse.getHttpResponseStatus(), params, headers);
+            log.debug("Handshake unauthorized, query params: {} headers: {}", params, headers);
             return false;
         }
 
         // connect
-        Map<String, Object> storeData = authorizationResponse.getData();
+        Map<String, Object> storeData = authorizationResponse.getStoreData();
 
         UUID sessionId = this.generateOrGetSessionIdFromRequest(req.headers());
 
