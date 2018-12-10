@@ -21,7 +21,8 @@ import java.util.Map;
 public class AuthorizationResponse {
     public enum Action {
         CONNECT,
-        REDIRECT,
+        TEMPORARY_REDIRECT,
+        BAD_REQUEST,
         DISCONNECT
     }
 
@@ -50,7 +51,15 @@ public class AuthorizationResponse {
     }
 
     public static AuthorizationResponse redirect(String locationUrl) {
-        return new AuthorizationResponse(Action.REDIRECT, Collections.singletonMap("Location", (Object) locationUrl));
+        return new AuthorizationResponse(Action.TEMPORARY_REDIRECT, Collections.singletonMap("Location", (Object) locationUrl));
+    }
+
+    public static AuthorizationResponse error() {
+        return new AuthorizationResponse(Action.BAD_REQUEST, null);
+    }
+
+    public static AuthorizationResponse error(String statusMessage) {
+        return new AuthorizationResponse(Action.BAD_REQUEST, Collections.singletonMap("X-Error-Message", (Object) statusMessage));
     }
 
     public static AuthorizationResponse disconnect() {

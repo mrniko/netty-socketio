@@ -151,22 +151,30 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
         if (authorizationResponse == null
                 || AuthorizationResponse.Action.DISCONNECT.equals(authorizationResponse.getAction())) {
             HttpResponse res = new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.UNAUTHORIZED);
-            channel.writeAndFlush(res)
-                    .addListener(ChannelFutureListener.CLOSE);
+            channel.writeAndFlush(res).addListener(ChannelFutureListener.CLOSE);
             log.debug("Handshake unauthorized, query params: {} headers: {}", params, headers);
             return false;
         }
 
         // redirect
-        if (AuthorizationResponse.Action.REDIRECT.equals(authorizationResponse.getAction())
-                && authorizationResponse.getData() == null) {
+        if (AuthorizationResponse.Action.TEMPORARY_REDIRECT.equals(authorizationResponse.getAction())
+                && authorizationResponse.getData() != null) {
             HttpResponse res = new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.TEMPORARY_REDIRECT);
             res.headers().add("Location", authorizationResponse.getData().get("Location"));
-            channel.writeAndFlush(res)
-                    .addListener(ChannelFutureListener.CLOSE);
+            channel.writeAndFlush(res).addListener(ChannelFutureListener.CLOSE);
             log.debug("Handshake redirected, query params: {} headers: {}", params, headers);
             return false;
+        }
 
+        // error
+        if (AuthorizationResponse.Action.BAD_REQUEST.equals(authorizationResponse.getAction())) {
+            HttpResponse res = new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.BAD_REQUEST);
+            if (authorizationResponse.getData() != null) {
+                res.headers().add("X-Error-Message", authorizationResponse.getData().get("X-Error-Message"));
+            }
+            channel.writeAndFlush(res).addListener(ChannelFutureListener.CLOSE);
+            log.debug("Handshake error, query params: {} headers: {}", params, headers);
+            return false;
         }
 
         // connect
