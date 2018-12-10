@@ -147,34 +147,48 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
         } catch (Exception ignore) {
         }
 
+        HttpResponse res;
+
         // disconnect
         if (authorizationResponse == null
                 || AuthorizationResponse.Action.DISCONNECT.equals(authorizationResponse.getAction())) {
-            HttpResponse res = new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.UNAUTHORIZED);
+            res = new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.UNAUTHORIZED);
             channel.writeAndFlush(res).addListener(ChannelFutureListener.CLOSE);
             log.debug("Handshake unauthorized, query params: {} headers: {}", params, headers);
             return false;
         }
 
-        // redirect
-        if (AuthorizationResponse.Action.TEMPORARY_REDIRECT.equals(authorizationResponse.getAction())
-                && authorizationResponse.getData() != null) {
-            HttpResponse res = new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.TEMPORARY_REDIRECT);
-            res.headers().add("Location", authorizationResponse.getData().get("Location"));
-            channel.writeAndFlush(res).addListener(ChannelFutureListener.CLOSE);
-            log.debug("Handshake redirected, query params: {} headers: {}", params, headers);
-            return false;
-        }
-
-        // error
-        if (AuthorizationResponse.Action.BAD_REQUEST.equals(authorizationResponse.getAction())) {
-            HttpResponse res = new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.BAD_REQUEST);
-            if (authorizationResponse.getData() != null) {
-                res.headers().add("X-Error-Message", authorizationResponse.getData().get("X-Error-Message"));
-            }
-            channel.writeAndFlush(res).addListener(ChannelFutureListener.CLOSE);
-            log.debug("Handshake error, query params: {} headers: {}", params, headers);
-            return false;
+        // other than connect
+        switch (authorizationResponse.getAction()) {
+            case TEMPORARY_REDIRECT:
+                res = new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.TEMPORARY_REDIRECT);
+                res.headers().add("Location", authorizationResponse.getData().get("Location"));
+                channel.writeAndFlush(res).addListener(ChannelFutureListener.CLOSE);
+                log.debug("Handshake redirected, query params: {} headers: {}", params, headers);
+                return false;
+            case BAD_REQUEST:
+                res = new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.BAD_REQUEST);
+                if (authorizationResponse.getData() != null) {
+                    res.headers().add("X-Error-Message", authorizationResponse.getData().get("X-Error-Message"));
+                }
+                channel.writeAndFlush(res).addListener(ChannelFutureListener.CLOSE);
+                log.debug("Handshake badRequest, query params: {} headers: {}", params, headers);
+                return false;
+            case NOT_FOUND:
+                res = new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.NOT_FOUND);
+                channel.writeAndFlush(res).addListener(ChannelFutureListener.CLOSE);
+                log.debug("Handshake badRequest, query params: {} headers: {}", params, headers);
+                return false;
+            case CONFLICT:
+                res = new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.CONFLICT);
+                channel.writeAndFlush(res).addListener(ChannelFutureListener.CLOSE);
+                log.debug("Handshake badRequest, query params: {} headers: {}", params, headers);
+                return false;
+            case SERVICE_UNAVAILABLE:
+                res = new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.SERVICE_UNAVAILABLE);
+                channel.writeAndFlush(res).addListener(ChannelFutureListener.CLOSE);
+                log.debug("Handshake badRequest, query params: {} headers: {}", params, headers);
+                return false;
         }
 
         // connect
@@ -186,7 +200,7 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
         if (transportValue == null) {
             log.error("Got no transports for request {}", req.uri());
 
-            HttpResponse res = new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.UNAUTHORIZED);
+            res = new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.UNAUTHORIZED);
             channel.writeAndFlush(res).addListener(ChannelFutureListener.CLOSE);
             return false;
         }

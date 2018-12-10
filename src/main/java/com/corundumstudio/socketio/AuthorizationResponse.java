@@ -23,6 +23,9 @@ public class AuthorizationResponse {
         CONNECT,
         TEMPORARY_REDIRECT,
         BAD_REQUEST,
+        NOT_FOUND,
+        CONFLICT,
+        SERVICE_UNAVAILABLE,
         DISCONNECT
     }
 
@@ -54,12 +57,24 @@ public class AuthorizationResponse {
         return new AuthorizationResponse(Action.TEMPORARY_REDIRECT, Collections.singletonMap("Location", (Object) locationUrl));
     }
 
-    public static AuthorizationResponse error() {
+    public static AuthorizationResponse badRequest() {
         return new AuthorizationResponse(Action.BAD_REQUEST, null);
     }
 
-    public static AuthorizationResponse error(String statusMessage) {
+    public static AuthorizationResponse badRequest(String statusMessage) {
         return new AuthorizationResponse(Action.BAD_REQUEST, Collections.singletonMap("X-Error-Message", (Object) statusMessage));
+    }
+
+    public static AuthorizationResponse notFound() {
+        return new AuthorizationResponse(Action.NOT_FOUND, null);
+    }
+
+    public static AuthorizationResponse conflict() {
+        return new AuthorizationResponse(Action.CONFLICT, null);
+    }
+
+    public static AuthorizationResponse serviceUnavailable() {
+        return new AuthorizationResponse(Action.SERVICE_UNAVAILABLE, null);
     }
 
     public static AuthorizationResponse disconnect() {
