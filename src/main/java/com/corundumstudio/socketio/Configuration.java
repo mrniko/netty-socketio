@@ -16,6 +16,7 @@
 package com.corundumstudio.socketio;
 
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -39,8 +40,6 @@ public class Configuration {
     private int bossThreads = 0; // 0 = current_processors_amount * 2
     private int workerThreads = 0; // 0 = current_processors_amount * 2
     private boolean useLinuxNativeEpoll;
-
-    private boolean allowCustomRequests = false;
 
     private int upgradeTimeout = 10000;
     private int pingTimeout = 60000;
@@ -75,6 +74,8 @@ public class Configuration {
     private JsonSupport jsonSupport;
 
     private AuthorizationListener authorizationListener = new SuccessAuthorizationListener();
+
+    private List<CustomRequestListener> customRequestListeners = new ArrayList<CustomRequestListener>();
 
     private AckMode ackMode = AckMode.AUTO_SUCCESS_ONLY;
 
@@ -122,7 +123,6 @@ public class Configuration {
 
         setJsonSupport(new JsonSupportWrapper(conf.getJsonSupport()));
         setContext(conf.getContext());
-        setAllowCustomRequests(conf.isAllowCustomRequests());
 
         setKeyStorePassword(conf.getKeyStorePassword());
         setKeyStore(conf.getKeyStore());
@@ -139,6 +139,9 @@ public class Configuration {
         setPreferDirectBuffer(conf.isPreferDirectBuffer());
         setStoreFactory(conf.getStoreFactory());
         setAuthorizationListener(conf.getAuthorizationListener());
+        for (CustomRequestListener customRequestListener : conf.getCustomRequestListeners()) {
+            addCustomRequestListener(customRequestListener);
+        }
         setExceptionListener(conf.getExceptionListener());
         setSocketConfig(conf.getSocketConfig());
         setAckMode(conf.getAckMode());
@@ -237,22 +240,6 @@ public class Configuration {
     }
     public void setContext(String context) {
         this.context = context;
-    }
-
-    public boolean isAllowCustomRequests() {
-        return allowCustomRequests;
-    }
-
-    /**
-     * Allow to service custom requests differs from socket.io protocol.
-     * In this case it's necessary to add own handler which handle them
-     * to avoid hang connections.
-     * Default is {@code false}
-     *
-     * @param allowCustomRequests - {@code true} to allow
-     */
-    public void setAllowCustomRequests(boolean allowCustomRequests) {
-        this.allowCustomRequests = allowCustomRequests;
     }
 
     /**
@@ -385,6 +372,15 @@ public class Configuration {
         return authorizationListener;
     }
 
+    public List<CustomRequestListener> getCustomRequestListeners() {
+        return customRequestListeners;
+    }
+
+    public Configuration addCustomRequestListener(CustomRequestListener customRequestListener) {
+        this.customRequestListeners.add(customRequestListener);
+        return this;
+    }
+
     /**
      * Exception listener invoked on any exception in
      * SocketIO listener
@@ -460,7 +456,7 @@ public class Configuration {
     /**
      * Set maximum websocket frame content length limit
      *
-     * @param maxContentLength
+     * @param maxFramePayloadLength
      */
     public void setMaxFramePayloadLength(int maxFramePayloadLength) {
         this.maxFramePayloadLength = maxFramePayloadLength;

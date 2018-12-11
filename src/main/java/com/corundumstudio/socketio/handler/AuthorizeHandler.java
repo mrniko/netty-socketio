@@ -107,7 +107,7 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
             Channel channel = ctx.channel();
             QueryStringDecoder queryDecoder = new QueryStringDecoder(req.uri());
 
-            if (!configuration.isAllowCustomRequests()
+            if (configuration.getCustomRequestListeners().isEmpty()
                     && !queryDecoder.path().startsWith(connectPath)) {
                 HttpResponse res = new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.BAD_REQUEST);
                 channel.writeAndFlush(res).addListener(ChannelFutureListener.CLOSE);
