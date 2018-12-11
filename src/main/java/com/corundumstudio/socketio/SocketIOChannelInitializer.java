@@ -68,7 +68,7 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
     public static final String SSL_HANDLER = "ssl";
 
     public static final String RESOURCE_HANDLER = "resourceHandler";
-    public static final String CUSTOM_REQUEST_HANDLER = "customRequestHandler";
+    public static final String HTTP_REQUEST_HANDLER = "httpRequestHandler";
     public static final String WRONG_URL_HANDLER = "wrongUrlBlocker";
 
     private static final Logger log = LoggerFactory.getLogger(SocketIOChannelInitializer.class);
@@ -77,7 +77,7 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
 
     private ClientsBox clientsBox = new ClientsBox();
     private AuthorizeHandler authorizeHandler;
-    private CustomRequestHandler customRequestHandler;
+    private HttpRequestHandler httpRequestHandler;
     private PollingTransport xhrPollingTransport;
     private WebSocketTransport webSocketTransport;
     private WebSocketServerCompressionHandler webSocketTransportCompression = new WebSocketServerCompressionHandler();
@@ -117,7 +117,7 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
 
         StoreFactory factory = configuration.getStoreFactory();
         authorizeHandler = new AuthorizeHandler(connectPath, scheduler, configuration, namespacesHub, factory, this, ackManager, clientsBox);
-        customRequestHandler = new CustomRequestHandler(configuration);
+        httpRequestHandler = new HttpRequestHandler(configuration);
         factory.init(namespacesHub, authorizeHandler, jsonSupport);
         xhrPollingTransport = new PollingTransport(decoder, authorizeHandler, clientsBox);
         webSocketTransport = new WebSocketTransport(isSsl, authorizeHandler, configuration, scheduler, clientsBox);
@@ -189,8 +189,8 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
 
         pipeline.addLast(SOCKETIO_ENCODER, encoderHandler);
 
-        if (!configuration.getCustomRequestListeners().isEmpty()) {
-            pipeline.addLast(CUSTOM_REQUEST_HANDLER, customRequestHandler);
+        if (!configuration.getHttpRequestListeners().isEmpty()) {
+            pipeline.addLast(HTTP_REQUEST_HANDLER, httpRequestHandler);
         }
 
         pipeline.addLast(WRONG_URL_HANDLER, wrongUrlHandler);

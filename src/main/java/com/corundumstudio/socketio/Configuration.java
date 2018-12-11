@@ -75,7 +75,7 @@ public class Configuration {
 
     private AuthorizationListener authorizationListener = new SuccessAuthorizationListener();
 
-    private List<CustomRequestListener> customRequestListeners = new ArrayList<CustomRequestListener>();
+    private List<HttpRequestListener> httpRequestListeners = new ArrayList<HttpRequestListener>();
 
     private AckMode ackMode = AckMode.AUTO_SUCCESS_ONLY;
 
@@ -139,8 +139,8 @@ public class Configuration {
         setPreferDirectBuffer(conf.isPreferDirectBuffer());
         setStoreFactory(conf.getStoreFactory());
         setAuthorizationListener(conf.getAuthorizationListener());
-        for (CustomRequestListener customRequestListener : conf.getCustomRequestListeners()) {
-            addCustomRequestListener(customRequestListener);
+        for (HttpRequestListener httpRequestListener : conf.getHttpRequestListeners()) {
+            addHttpRequestListener(httpRequestListener);
         }
         setExceptionListener(conf.getExceptionListener());
         setSocketConfig(conf.getSocketConfig());
@@ -372,12 +372,12 @@ public class Configuration {
         return authorizationListener;
     }
 
-    public List<CustomRequestListener> getCustomRequestListeners() {
-        return customRequestListeners;
+    public List<HttpRequestListener> getHttpRequestListeners() {
+        return httpRequestListeners;
     }
 
-    public Configuration addCustomRequestListener(CustomRequestListener customRequestListener) {
-        this.customRequestListeners.add(customRequestListener);
+    public Configuration addHttpRequestListener(HttpRequestListener httpRequestListener) {
+        this.httpRequestListeners.add(httpRequestListener);
         return this;
     }
 

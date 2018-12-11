@@ -15,32 +15,28 @@
  */
 package com.corundumstudio.socketio.handler;
 
-import com.corundumstudio.socketio.Configuration;
-import com.corundumstudio.socketio.CustomRequestListener;
-import com.corundumstudio.socketio.RequestBody;
-import com.corundumstudio.socketio.RequestSignature;
-import io.netty.buffer.ByteBuf;
+import com.corundumstudio.socketio.*;
+import com.corundumstudio.socketio.HttpResponse;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.handler.codec.http.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Map;
 
 import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 
 @Sharable
-public class CustomRequestHandler extends ChannelInboundHandlerAdapter {
+public class HttpRequestHandler extends ChannelInboundHandlerAdapter {
 
-    private static final Logger log = LoggerFactory.getLogger(CustomRequestHandler.class);
+    private static final Logger log = LoggerFactory.getLogger(HttpRequestHandler.class);
 
     private final Configuration configuration;
 
-    public CustomRequestHandler(Configuration configuration) {
+    public HttpRequestHandler(Configuration configuration) {
         this.configuration = configuration;
     }
 
@@ -55,25 +51,26 @@ public class CustomRequestHandler extends ChannelInboundHandlerAdapter {
             String path = queryDecoder.path();
             Map<String, List<String>> params = queryDecoder.parameters();
             HttpHeaders headers = req.headers();
-            RequestBody body = new RequestBody(req);
+            HttpRequestBody body = new HttpRequestBody(req);
 
-            RequestSignature requestSignature = new RequestSignature(method, path);
-            HttpResponse res = null;
-            for (CustomRequestListener customRequestListener : configuration.getCustomRequestListeners()) {
-                if (requestSignature.equals(customRequestListener.signature())) {
+            HttpRequestSignature httpRequestSignature = new HttpRequestSignature(method, path);
+            for (HttpRequestListener httpRequestListener : configuration.getHttpRequestListeners()) {
+                if (httpRequestSignature.equals(httpRequestListener.signature())) {
                     try {
-                        res = customRequestListener.handle(params, headers, body);
+                        HttpResponse httpResponse = httpRequestListener.handle(params, headers, body);
+                        io.netty.handler.codec.http.HttpResponse res = new DefaultHttpResponse(HTTP_1_1, httpResponse.getHttpResponseStatus());
+                        if (httpResponse.getHttpHeaders() != null) {
+                            res.headers().add(httpResponse.getHttpHeaders());
+                        }
+                        if (httpResponse.getBody() != null) {
+                            Unpooled.copiedBuffer(httpResponse.getBody(), httpResponse.getCharset());
+                        }
+                        channel.writeAndFlush(res).addListener(ChannelFutureListener.CLOSE);
+                        log.debug("Http response, query params: {} headers: {}", params, headers);
+                        return;
                     } catch (Exception ignore) {
                     }
-                    // process one request only
-                    if (res != null) break;
                 }
-            }
-            if (res != null) {
-                channel.writeAndFlush(res).addListener(ChannelFutureListener.CLOSE);
-                req.release();
-                log.warn("Blocked wrong socket.io-context request! url: {}, params: {}, ip: {}", queryDecoder.path(), queryDecoder.parameters(), channel.remoteAddress());
-                return;
             }
         }
         super.channelRead(ctx, msg);

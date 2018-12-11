@@ -16,14 +16,13 @@
 package com.corundumstudio.socketio;
 
 import io.netty.handler.codec.http.HttpHeaders;
-import io.netty.handler.codec.http.HttpResponse;
 
 import java.util.List;
 import java.util.Map;
 
-public interface CustomRequestListener {
+public interface HttpRequestListener {
 
-    RequestSignature signature();
-    HttpResponse handle(Map<String, List<String>> params, HttpHeaders headers, RequestBody body);
+    HttpRequestSignature signature();
+    HttpResponse handle(Map<String, List<String>> params, HttpHeaders headers, HttpRequestBody body);
 
 }

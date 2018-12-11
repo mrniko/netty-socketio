@@ -26,6 +26,7 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import com.corundumstudio.socketio.*;
+import io.netty.buffer.Unpooled;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,7 +53,6 @@ import io.netty.handler.codec.http.DefaultHttpResponse;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpHeaders;
-import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.QueryStringDecoder;
 
@@ -107,9 +107,9 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
             Channel channel = ctx.channel();
             QueryStringDecoder queryDecoder = new QueryStringDecoder(req.uri());
 
-            if (configuration.getCustomRequestListeners().isEmpty()
+            if (configuration.getHttpRequestListeners().isEmpty()
                     && !queryDecoder.path().startsWith(connectPath)) {
-                HttpResponse res = new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.BAD_REQUEST);
+                io.netty.handler.codec.http.HttpResponse res = new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.BAD_REQUEST);
                 channel.writeAndFlush(res).addListener(ChannelFutureListener.CLOSE);
                 req.release();
                 return;
@@ -141,28 +141,32 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
                                                 (InetSocketAddress)channel.remoteAddress(),
                                                     req.uri(), origin != null && !origin.equalsIgnoreCase("null"));
 
-        AuthorizationResponse authorizationResponse = null;
+        HttpResponse httpResponse = null;
         try {
-            authorizationResponse = configuration.getAuthorizationListener().authorize(data);
+            httpResponse = configuration.getAuthorizationListener().authorize(data);
         } catch (Exception ignore) {
         }
-        if (authorizationResponse == null) {
-            authorizationResponse = AuthorizationResponse.disconnect();
+        if (httpResponse == null) {
+            httpResponse = HttpResponse.UNAUTHORIZED();
         }
 
-        // disconnect
-        if (!HttpResponseStatus.OK.equals(authorizationResponse.getHttpResponseStatus())) {
-            HttpResponse res = new DefaultHttpResponse(HTTP_1_1, authorizationResponse.getHttpResponseStatus());
-            if (authorizationResponse.getHttpHeaders() != null) {
-                res.headers().add(authorizationResponse.getHttpHeaders());
+        // UNAUTHORIZED
+        if (!HttpResponseStatus.OK.equals(httpResponse.getHttpResponseStatus())) {
+            io.netty.handler.codec.http.HttpResponse res = new DefaultHttpResponse(HTTP_1_1, httpResponse.getHttpResponseStatus());
+            if (httpResponse.getHttpHeaders() != null) {
+                res.headers().add(httpResponse.getHttpHeaders());
+            }
+            if (httpResponse.getBody() != null) {
+                Unpooled.copiedBuffer(httpResponse.getBody(), httpResponse.getCharset());
+
             }
             channel.writeAndFlush(res).addListener(ChannelFutureListener.CLOSE);
-            log.debug("Handshake unauthorized, query params: {} headers: {}", params, headers);
+            log.debug("Handshake UNAUTHORIZED, query params: {} headers: {}", params, headers);
             return false;
         }
 
-        // connect
-        Map<String, Object> storeData = authorizationResponse.getStoreData();
+        // OK
+        Map<String, Object> storeData = httpResponse.getStoreData();
 
         UUID sessionId = this.generateOrGetSessionIdFromRequest(req.headers());
 
@@ -170,7 +174,7 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
         if (transportValue == null) {
             log.error("Got no transports for request {}", req.uri());
 
-            HttpResponse res = new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.UNAUTHORIZED);
+            io.netty.handler.codec.http.HttpResponse res = new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.UNAUTHORIZED);
             channel.writeAndFlush(res).addListener(ChannelFutureListener.CLOSE);
             return false;
         }

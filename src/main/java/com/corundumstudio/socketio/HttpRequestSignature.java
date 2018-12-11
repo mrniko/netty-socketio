@@ -2,11 +2,11 @@ package com.corundumstudio.socketio;
 
 import io.netty.handler.codec.http.HttpMethod;
 
-public class RequestSignature {
+public class HttpRequestSignature {
     private final HttpMethod httpMethod;
     private final String path;
 
-    public RequestSignature(HttpMethod httpMethod, String path) {
+    public HttpRequestSignature(HttpMethod httpMethod, String path) {
         this.httpMethod = httpMethod;
         this.path = path;
     }
@@ -22,9 +22,9 @@ public class RequestSignature {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof RequestSignature)) return false;
+        if (!(o instanceof HttpRequestSignature)) return false;
 
-        RequestSignature that = (RequestSignature) o;
+        HttpRequestSignature that = (HttpRequestSignature) o;
 
         if (!httpMethod.equals(that.httpMethod)) return false;
         return path.equals(that.path);

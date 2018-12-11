@@ -23,6 +23,6 @@ public interface AuthorizationListener {
      * @param data - handshake data
      * @return - <b>AuthorizationResponse</b>
      */
-    AuthorizationResponse authorize(HandshakeData data);
+    HttpResponse authorize(HandshakeData data);
 
 }

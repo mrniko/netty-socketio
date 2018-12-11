@@ -5,11 +5,11 @@ import io.netty.handler.codec.http.FullHttpRequest;
 
 import java.nio.charset.Charset;
 
-public class RequestBody {
+public class HttpRequestBody {
 
     private final FullHttpRequest req;
 
-    public RequestBody(FullHttpRequest req) {
+    public HttpRequestBody(FullHttpRequest req) {
         this.req = req;
     }
 
