@@ -20,11 +20,8 @@ import com.corundumstudio.socketio.HttpRequestSignature;
 import com.corundumstudio.socketio.HttpResponse;
 import com.corundumstudio.socketio.namespace.HttpNamespace;
 import io.netty.buffer.Unpooled;
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelFutureListener;
+import io.netty.channel.*;
 import io.netty.channel.ChannelHandler.Sharable;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.codec.http.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,14 +58,16 @@ public class HttpRequestHandler extends ChannelInboundHandlerAdapter {
             HttpRequestSignature httpRequestSignature = new HttpRequestSignature(method, path);
             HttpResponse httpResponse = httpNamespace.onRequest(httpRequestSignature, params, headers, body);
 
-            io.netty.handler.codec.http.HttpResponse res = new DefaultHttpResponse(HTTP_1_1, httpResponse.getHttpResponseStatus());
+            io.netty.handler.codec.http.HttpResponse res = httpResponse.getBody() == null
+                    ? new DefaultHttpResponse(HTTP_1_1, httpResponse.getHttpResponseStatus())
+                    : new DefaultFullHttpResponse(HTTP_1_1, httpResponse.getHttpResponseStatus(),
+                    Unpooled.copiedBuffer(httpResponse.getBody(), httpResponse.getCharset()));
             if (httpResponse.getHeaders() != null) {
                 res.headers().add(httpResponse.getHeaders());
             }
-            if (httpResponse.getBody() != null) {
-                ctx.write(Unpooled.copiedBuffer(httpResponse.getBody(), httpResponse.getCharset()));
-            }
+
             channel.writeAndFlush(res).addListener(ChannelFutureListener.CLOSE);
+
             log.debug("Http response, query params: {} headers: {}", params, headers);
             return;
         }
