@@ -19,6 +19,7 @@ import com.corundumstudio.socketio.HttpRequestBody;
 import com.corundumstudio.socketio.HttpRequestSignature;
 import com.corundumstudio.socketio.HttpResponse;
 import com.corundumstudio.socketio.namespace.HttpNamespace;
+import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 import io.netty.channel.ChannelHandler.Sharable;
@@ -58,10 +59,13 @@ public class HttpRequestHandler extends ChannelInboundHandlerAdapter {
             HttpRequestSignature httpRequestSignature = new HttpRequestSignature(method, path);
             HttpResponse httpResponse = httpNamespace.onRequest(httpRequestSignature, params, headers, body);
 
-            io.netty.handler.codec.http.HttpResponse res = httpResponse.getBody() == null
-                    ? new DefaultHttpResponse(HTTP_1_1, httpResponse.getHttpResponseStatus())
-                    : new DefaultFullHttpResponse(HTTP_1_1, httpResponse.getHttpResponseStatus(),
-                    Unpooled.copiedBuffer(httpResponse.getBody(), httpResponse.getCharset()));
+            DefaultFullHttpResponse res = new DefaultFullHttpResponse(HTTP_1_1, httpResponse.getHttpResponseStatus());
+            if (httpResponse.getBody() != null) {
+                ByteBuf buf = Unpooled.copiedBuffer(httpResponse.getBody(), httpResponse.getCharset());
+                res.content().writeBytes(buf);
+                buf.release();
+                res.headers().set("Content-Length", res.content().readableBytes());
+            }
             if (httpResponse.getHeaders() != null) {
                 res.headers().add(httpResponse.getHeaders());
             }
