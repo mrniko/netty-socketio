@@ -63,7 +63,7 @@ public class HttpRequestHandler extends ChannelInboundHandlerAdapter {
                             res.headers().add(httpResponse.getHttpHeaders());
                         }
                         if (httpResponse.getBody() != null) {
-                            Unpooled.copiedBuffer(httpResponse.getBody(), httpResponse.getCharset());
+                            ctx.write(Unpooled.copiedBuffer(httpResponse.getBody(), httpResponse.getCharset()));
                         }
                         channel.writeAndFlush(res).addListener(ChannelFutureListener.CLOSE);
                         log.debug("Http response, query params: {} headers: {}", params, headers);
