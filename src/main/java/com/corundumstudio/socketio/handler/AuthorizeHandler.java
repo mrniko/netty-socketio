@@ -146,7 +146,7 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
             authorizationResponse = AuthorizationResponse.UNAUTHORIZED();
         }
 
-        // UNAUTHORIZED
+        // not OK
         if (!HttpResponseStatus.OK.equals(authorizationResponse.getHttpResponseStatus())) {
             DefaultFullHttpResponse res = new DefaultFullHttpResponse(HTTP_1_1, authorizationResponse.getHttpResponseStatus());
             if (authorizationResponse.getBody() != null) {
