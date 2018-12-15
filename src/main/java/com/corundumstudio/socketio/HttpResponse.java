@@ -18,6 +18,7 @@ package com.corundumstudio.socketio;
 import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.util.CharsetUtil;
 
 import java.nio.charset.Charset;
 import java.util.HashMap;
@@ -35,7 +36,7 @@ public class HttpResponse {
     private final HttpResponseStatus httpResponseStatus;
     private final HttpHeaders httpHeaders = new DefaultHttpHeaders();
     private String body;
-    private Charset charset = Charset.defaultCharset();
+    private Charset charset = CharsetUtil.UTF_8;
     private final Map<String, Object> storeData = new HashMap<String, Object>();
 
     private HttpResponse(HttpResponseStatus httpResponseStatus) {

@@ -2,6 +2,7 @@ package com.corundumstudio.socketio;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.FullHttpRequest;
+import io.netty.util.CharsetUtil;
 
 import java.nio.charset.Charset;
 
@@ -14,7 +15,7 @@ public class HttpRequestBody {
     }
 
     public String toString() {
-        return toString(Charset.defaultCharset());
+        return toString(CharsetUtil.UTF_8);
     }
 
     public String toString(Charset charset) {
