@@ -40,7 +40,7 @@ public class HttpNamespace implements HttpListeners {
             return httpListener.onRequest(params, headers, body);
         } catch (Exception e) {
             exceptionListener.onHttpException(e, httpRequestSignature);
-            return null;
+            return HttpResponse.INTERNAL_SERVER_ERROR();
         }
     }
 

@@ -124,8 +124,6 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
         webSocketTransport = new WebSocketTransport(isSsl, authorizeHandler, configuration, scheduler, clientsBox);
 
         PacketListener packetListener = new PacketListener(ackManager, namespacesHub, xhrPollingTransport, scheduler);
-
-
         packetHandler = new InPacketHandler(packetListener, decoder, namespacesHub, configuration.getExceptionListener());
 
         try {

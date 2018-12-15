@@ -15,24 +15,30 @@
  */
 package com.corundumstudio.socketio;
 
+import io.netty.handler.codec.http.DefaultHttpHeaders;
+import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.util.CharsetUtil;
 
+import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
 
 /*
  * Used to return a result from <b>AuthorizationListener</b>
- *
- * OK - authorizes and connects the socket, puts storeData in the client store
- * TEMPORARY_REDIRECT - returns <b>307</b> with the <b>Location</b> header set to the new location, then disconnects
- * UNAUTHORIZED - returns the indicated HttpResponseStatus with headers, or <b>401 Unauthorized</b> if not set
+ * Used to add data to the client store
  */
-public class AuthorizationResponse extends HttpResponse {
+public class AuthorizationResponse {
 
-    private final Map<String, Object> storeData = new HashMap<String, Object>();
+    private final HttpResponseStatus httpResponseStatus;
+    private final HttpHeaders httpHeaders = new DefaultHttpHeaders();
+    private String body;
+    private Charset charset = CharsetUtil.UTF_8;
+    // data for the client store
+    private final Map<String, Object> clientData = new HashMap<String, Object>();
 
     public AuthorizationResponse(HttpResponseStatus httpResponseStatus) {
-        super(httpResponseStatus);
+        this.httpResponseStatus = httpResponseStatus;
     }
 
     public static AuthorizationResponse OK() {
@@ -40,21 +46,66 @@ public class AuthorizationResponse extends HttpResponse {
     }
 
     public static AuthorizationResponse TEMPORARY_REDIRECT(String locationUrl) {
-        AuthorizationResponse httpResponse = new AuthorizationResponse(HttpResponseStatus.TEMPORARY_REDIRECT);
-        httpResponse.getHeaders().add("Location", locationUrl);
-        return httpResponse;
+        AuthorizationResponse authorizationResponse = new AuthorizationResponse(HttpResponseStatus.TEMPORARY_REDIRECT);
+        authorizationResponse.getHeaders().add("Location", locationUrl);
+        return authorizationResponse;
     }
 
     public static AuthorizationResponse UNAUTHORIZED() {
         return new AuthorizationResponse(HttpResponseStatus.UNAUTHORIZED);
     }
 
-    public AuthorizationResponse addStoreData(String key, Object value) {
-        storeData.put(key, value);
+    public static AuthorizationResponse INTERNAL_SERVER_ERROR() {
+        return new AuthorizationResponse(HttpResponseStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    public AuthorizationResponse setHeader(String name, String value) {
+        httpHeaders.add(name, value);
         return this;
     }
 
-    public Map<String, Object> getStoreData() {
-        return storeData;
+    public AuthorizationResponse setHeaders(HttpHeaders headers) {
+        httpHeaders.setAll(headers);
+        return this;
     }
+
+    public HttpHeaders getHeaders() {
+        return httpHeaders;
+    }
+
+    public AuthorizationResponse setBody(String body) {
+        this.body = body;
+        return this;
+    }
+
+    public AuthorizationResponse setBody(String body, Charset charset) {
+        this.body = body;
+        this.charset = charset;
+        return this;
+    }
+
+    public HttpResponseStatus getHttpResponseStatus() {
+        return httpResponseStatus;
+    }
+
+    public String getBody() {
+        return body;
+    }
+
+    public Charset getCharset() {
+        return charset;
+    }
+
+    /*
+     * Adds
+     */
+    public AuthorizationResponse setClientData(String key, Object value) {
+        clientData.put(key, value);
+        return this;
+    }
+
+    public Map<String, Object> getClientData() {
+        return clientData;
+    }
+
 }

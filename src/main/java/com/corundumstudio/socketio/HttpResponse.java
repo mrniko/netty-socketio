@@ -24,10 +24,6 @@ import java.nio.charset.Charset;
 
 /*
  * Used to return a result from <b>HttpListener</b>
- *
- * OK - returns <b>200</b>
- * TEMPORARY_REDIRECT - returns <b>307</b> with the <b>Location</b> header set to the new location, then disconnects
- * UNAUTHORIZED - returns the indicated HttpResponseStatus with headers, or <b>401 Unauthorized</b> if not set
  */
 public class HttpResponse {
 
@@ -45,18 +41,31 @@ public class HttpResponse {
     }
 
     public static HttpResponse TEMPORARY_REDIRECT(String locationUrl) {
-        HttpResponse httpResponse = new HttpResponse(HttpResponseStatus.TEMPORARY_REDIRECT);
-        httpResponse.getHeaders().add("Location", locationUrl);
-        return httpResponse;
+        HttpResponse authorizationResponse = new HttpResponse(HttpResponseStatus.TEMPORARY_REDIRECT);
+        authorizationResponse.getHeaders().add("Location", locationUrl);
+        return authorizationResponse;
     }
 
     public static HttpResponse UNAUTHORIZED() {
         return new HttpResponse(HttpResponseStatus.UNAUTHORIZED);
     }
 
-    public HttpResponse addHeader(String name, String value) {
+    public static HttpResponse INTERNAL_SERVER_ERROR() {
+        return new HttpResponse(HttpResponseStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    public HttpResponse setHeader(String name, String value) {
         httpHeaders.add(name, value);
         return this;
+    }
+
+    public HttpResponse setHeaders(HttpHeaders headers) {
+        httpHeaders.setAll(headers);
+        return this;
+    }
+
+    public HttpHeaders getHeaders() {
+        return httpHeaders;
     }
 
     public HttpResponse setBody(String body) {
@@ -72,10 +81,6 @@ public class HttpResponse {
 
     public HttpResponseStatus getHttpResponseStatus() {
         return httpResponseStatus;
-    }
-
-    public HttpHeaders getHeaders() {
-        return httpHeaders;
     }
 
     public String getBody() {

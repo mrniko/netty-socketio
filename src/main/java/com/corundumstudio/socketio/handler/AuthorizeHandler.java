@@ -132,13 +132,13 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
             headers.put(name, values);
         }
 
-        HandshakeData data = new HandshakeData(req.headers(), params,
+        HandshakeData handshakeData = new HandshakeData(req.headers(), params,
                                                 (InetSocketAddress)channel.remoteAddress(),
                                                     req.uri(), origin != null && !origin.equalsIgnoreCase("null"));
 
         AuthorizationResponse authorizationResponse = null;
         try {
-            authorizationResponse = configuration.getAuthorizationListener().authorize(data);
+            authorizationResponse = configuration.getAuthorizationListener().authorize(handshakeData);
         } catch (Exception ignore) {
         }
         if (authorizationResponse == null) {
@@ -161,7 +161,7 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
         }
 
         // OK
-        Map<String, Object> storeData = authorizationResponse.getStoreData();
+        Map<String, Object> storeData = authorizationResponse.getClientData();
 
         UUID sessionId = this.generateOrGetSessionIdFromRequest(req.headers());
 
@@ -185,7 +185,8 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
             return false;
         }
         
-        ClientHead client = new ClientHead(sessionId, ackManager, disconnectable, storeFactory, storeData, data, clientsBox, transport, disconnectScheduler, configuration);
+        ClientHead client = new ClientHead(sessionId, ackManager, disconnectable, storeFactory, storeData,
+                handshakeData, clientsBox, transport, disconnectScheduler, configuration);
         channel.attr(ClientHead.CLIENT).set(client);
         clientsBox.addClient(client);
 
