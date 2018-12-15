@@ -16,6 +16,7 @@
 package com.corundumstudio.socketio;
 
 import io.netty.handler.codec.http.DefaultHttpHeaders;
+import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.util.CharsetUtil;
@@ -31,6 +32,7 @@ public class HttpResponse {
     private final HttpHeaders httpHeaders = new DefaultHttpHeaders();
     private String body;
     private Charset charset = CharsetUtil.UTF_8;
+    private String contentType = "text/plain";
 
     public HttpResponse(HttpResponseStatus httpResponseStatus) {
         this.httpResponseStatus = httpResponseStatus;
@@ -42,7 +44,7 @@ public class HttpResponse {
 
     public static HttpResponse TEMPORARY_REDIRECT(String locationUrl) {
         HttpResponse authorizationResponse = new HttpResponse(HttpResponseStatus.TEMPORARY_REDIRECT);
-        authorizationResponse.getHeaders().add("Location", locationUrl);
+        authorizationResponse.getHeaders().add(HttpHeaderNames.LOCATION, locationUrl);
         return authorizationResponse;
     }
 
@@ -73,9 +75,22 @@ public class HttpResponse {
         return this;
     }
 
+    public HttpResponse setBody(String body, String contentType) {
+        this.body = body;
+        this.contentType = contentType;
+        return this;
+    }
+
     public HttpResponse setBody(String body, Charset charset) {
         this.body = body;
         this.charset = charset;
+        return this;
+    }
+
+    public HttpResponse setBody(String body, Charset charset, String contentType) {
+        this.body = body;
+        this.charset = charset;
+        this.contentType = contentType;
         return this;
     }
 
@@ -91,4 +106,7 @@ public class HttpResponse {
         return charset;
     }
 
+    public String getContentType() {
+        return contentType;
+    }
 }

@@ -64,7 +64,8 @@ public class HttpRequestHandler extends ChannelInboundHandlerAdapter {
                 ByteBuf buf = Unpooled.copiedBuffer(httpResponse.getBody(), httpResponse.getCharset());
                 res.content().writeBytes(buf);
                 buf.release();
-                res.headers().set("Content-Length", res.content().readableBytes());
+                res.headers().set(HttpHeaderNames.CONTENT_LENGTH, httpResponse.getContentType() + "; charset=" + httpResponse.getCharset().displayName().toLowerCase());
+                res.headers().set(HttpHeaderNames.CONTENT_LENGTH, res.content().readableBytes());
             }
             if (httpResponse.getHeaders() != null) {
                 res.headers().add(httpResponse.getHeaders());

@@ -30,6 +30,7 @@ import com.corundumstudio.socketio.scheduler.SchedulerKey.Type;
 import com.corundumstudio.socketio.store.StoreFactory;
 import com.corundumstudio.socketio.store.pubsub.ConnectMessage;
 import com.corundumstudio.socketio.store.pubsub.PubSubType;
+import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFutureListener;
@@ -147,14 +148,18 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
 
         // UNAUTHORIZED
         if (!HttpResponseStatus.OK.equals(authorizationResponse.getHttpResponseStatus())) {
-            io.netty.handler.codec.http.HttpResponse res = new DefaultHttpResponse(HTTP_1_1, authorizationResponse.getHttpResponseStatus());
+            DefaultFullHttpResponse res = new DefaultFullHttpResponse(HTTP_1_1, authorizationResponse.getHttpResponseStatus());
+            if (authorizationResponse.getBody() != null) {
+                ByteBuf buf = Unpooled.copiedBuffer(authorizationResponse.getBody(), authorizationResponse.getCharset());
+                res.content().writeBytes(buf);
+                buf.release();
+                res.headers().set(HttpHeaderNames.CONTENT_LENGTH, authorizationResponse.getContentType() + "; charset=" + authorizationResponse.getCharset().displayName().toLowerCase());
+                res.headers().set(HttpHeaderNames.CONTENT_LENGTH, res.content().readableBytes());
+            }
             if (authorizationResponse.getHeaders() != null) {
                 res.headers().add(authorizationResponse.getHeaders());
             }
-            if (authorizationResponse.getBody() != null) {
-                Unpooled.copiedBuffer(authorizationResponse.getBody(), authorizationResponse.getCharset());
 
-            }
             channel.writeAndFlush(res).addListener(ChannelFutureListener.CLOSE);
             log.debug("Handshake UNAUTHORIZED, query params: {} headers: {}", params, headers);
             return false;
