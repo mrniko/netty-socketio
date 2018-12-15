@@ -21,13 +21,11 @@ import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.util.CharsetUtil;
 
 import java.nio.charset.Charset;
-import java.util.HashMap;
-import java.util.Map;
 
 /*
- * Used to return a result from <b>AuthorizationListener</b>
+ * Used to return a result from <b>HttpListener</b>
  *
- * OK - authorizes and connects the socket, puts storeData in the client store
+ * OK - returns <b>200</b>
  * TEMPORARY_REDIRECT - returns <b>307</b> with the <b>Location</b> header set to the new location, then disconnects
  * UNAUTHORIZED - returns the indicated HttpResponseStatus with headers, or <b>401 Unauthorized</b> if not set
  */
@@ -37,9 +35,8 @@ public class HttpResponse {
     private final HttpHeaders httpHeaders = new DefaultHttpHeaders();
     private String body;
     private Charset charset = CharsetUtil.UTF_8;
-    private final Map<String, Object> storeData = new HashMap<String, Object>();
 
-    private HttpResponse(HttpResponseStatus httpResponseStatus) {
+    public HttpResponse(HttpResponseStatus httpResponseStatus) {
         this.httpResponseStatus = httpResponseStatus;
     }
 
@@ -49,7 +46,7 @@ public class HttpResponse {
 
     public static HttpResponse TEMPORARY_REDIRECT(String locationUrl) {
         HttpResponse httpResponse = new HttpResponse(HttpResponseStatus.TEMPORARY_REDIRECT);
-        httpResponse.getHttpHeaders().add("Location", locationUrl);
+        httpResponse.getHeaders().add("Location", locationUrl);
         return httpResponse;
     }
 
@@ -57,11 +54,7 @@ public class HttpResponse {
         return new HttpResponse(HttpResponseStatus.UNAUTHORIZED);
     }
 
-    public static HttpResponse responseStatus(HttpResponseStatus httpResponseStatus) {
-        return new HttpResponse(httpResponseStatus);
-    }
-
-    public HttpResponse addHttpHeader(String name, String value) {
+    public HttpResponse addHeader(String name, String value) {
         httpHeaders.add(name, value);
         return this;
     }
@@ -77,16 +70,11 @@ public class HttpResponse {
         return this;
     }
 
-    public HttpResponse addStoreData(String key, String value) {
-        storeData.put(key, value);
-        return this;
-    }
-
     public HttpResponseStatus getHttpResponseStatus() {
         return httpResponseStatus;
     }
 
-    public HttpHeaders getHttpHeaders() {
+    public HttpHeaders getHeaders() {
         return httpHeaders;
     }
 
@@ -98,7 +86,4 @@ public class HttpResponse {
         return charset;
     }
 
-    public Map<String, Object> getStoreData() {
-        return storeData;
-    }
 }

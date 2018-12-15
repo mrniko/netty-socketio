@@ -15,11 +15,16 @@
  */
 package com.corundumstudio.socketio.handler;
 
-import com.corundumstudio.socketio.*;
+import com.corundumstudio.socketio.HttpRequestBody;
+import com.corundumstudio.socketio.HttpRequestSignature;
 import com.corundumstudio.socketio.HttpResponse;
+import com.corundumstudio.socketio.namespace.HttpNamespace;
 import io.netty.buffer.Unpooled;
-import io.netty.channel.*;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler.Sharable;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.codec.http.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,15 +39,15 @@ public class HttpRequestHandler extends ChannelInboundHandlerAdapter {
 
     private static final Logger log = LoggerFactory.getLogger(HttpRequestHandler.class);
 
-    private final Configuration configuration;
+    private final HttpNamespace httpNamespace;
 
-    public HttpRequestHandler(Configuration configuration) {
-        this.configuration = configuration;
+    public HttpRequestHandler(HttpNamespace httpNamespace) {
+        this.httpNamespace = httpNamespace;
     }
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        if (msg instanceof FullHttpRequest) {
+        if (msg instanceof FullHttpRequest && httpNamespace.hasListeners()) {
             FullHttpRequest req = (FullHttpRequest) msg;
             Channel channel = ctx.channel();
             QueryStringDecoder queryDecoder = new QueryStringDecoder(req.uri());
@@ -54,24 +59,18 @@ public class HttpRequestHandler extends ChannelInboundHandlerAdapter {
             HttpRequestBody body = new HttpRequestBody(req);
 
             HttpRequestSignature httpRequestSignature = new HttpRequestSignature(method, path);
-            for (HttpRequestListener httpRequestListener : configuration.getHttpRequestListeners()) {
-                if (httpRequestSignature.equals(httpRequestListener.signature())) {
-                    try {
-                        HttpResponse httpResponse = httpRequestListener.handle(params, headers, body);
-                        io.netty.handler.codec.http.HttpResponse res = new DefaultHttpResponse(HTTP_1_1, httpResponse.getHttpResponseStatus());
-                        if (httpResponse.getHttpHeaders() != null) {
-                            res.headers().add(httpResponse.getHttpHeaders());
-                        }
-                        if (httpResponse.getBody() != null) {
-                            ctx.write(Unpooled.copiedBuffer(httpResponse.getBody(), httpResponse.getCharset()));
-                        }
-                        channel.writeAndFlush(res).addListener(ChannelFutureListener.CLOSE);
-                        log.debug("Http response, query params: {} headers: {}", params, headers);
-                        return;
-                    } catch (Exception ignore) {
-                    }
-                }
+            HttpResponse httpResponse = httpNamespace.onRequest(httpRequestSignature, params, headers, body);
+
+            io.netty.handler.codec.http.HttpResponse res = new DefaultHttpResponse(HTTP_1_1, httpResponse.getHttpResponseStatus());
+            if (httpResponse.getHeaders() != null) {
+                res.headers().add(httpResponse.getHeaders());
             }
+            if (httpResponse.getBody() != null) {
+                ctx.write(Unpooled.copiedBuffer(httpResponse.getBody(), httpResponse.getCharset()));
+            }
+            channel.writeAndFlush(res).addListener(ChannelFutureListener.CLOSE);
+            log.debug("Http response, query params: {} headers: {}", params, headers);
+            return;
         }
         super.channelRead(ctx, msg);
     }

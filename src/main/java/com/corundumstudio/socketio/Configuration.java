@@ -15,11 +15,6 @@
  */
 package com.corundumstudio.socketio;
 
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
 import com.corundumstudio.socketio.handler.SuccessAuthorizationListener;
 import com.corundumstudio.socketio.listener.DefaultExceptionListener;
 import com.corundumstudio.socketio.listener.ExceptionListener;
@@ -28,6 +23,9 @@ import com.corundumstudio.socketio.store.MemoryStoreFactory;
 import com.corundumstudio.socketio.store.StoreFactory;
 
 import javax.net.ssl.KeyManagerFactory;
+import java.io.InputStream;
+import java.util.Arrays;
+import java.util.List;
 
 public class Configuration {
 
@@ -74,8 +72,6 @@ public class Configuration {
     private JsonSupport jsonSupport;
 
     private AuthorizationListener authorizationListener = new SuccessAuthorizationListener();
-
-    private List<HttpRequestListener> httpRequestListeners = new ArrayList<HttpRequestListener>();
 
     private AckMode ackMode = AckMode.AUTO_SUCCESS_ONLY;
 
@@ -139,9 +135,6 @@ public class Configuration {
         setPreferDirectBuffer(conf.isPreferDirectBuffer());
         setStoreFactory(conf.getStoreFactory());
         setAuthorizationListener(conf.getAuthorizationListener());
-        for (HttpRequestListener httpRequestListener : conf.getHttpRequestListeners()) {
-            addHttpRequestListener(httpRequestListener);
-        }
         setExceptionListener(conf.getExceptionListener());
         setSocketConfig(conf.getSocketConfig());
         setAckMode(conf.getAckMode());
@@ -370,15 +363,6 @@ public class Configuration {
     }
     public AuthorizationListener getAuthorizationListener() {
         return authorizationListener;
-    }
-
-    public List<HttpRequestListener> getHttpRequestListeners() {
-        return httpRequestListeners;
-    }
-
-    public Configuration addHttpRequestListener(HttpRequestListener httpRequestListener) {
-        this.httpRequestListeners.add(httpRequestListener);
-        return this;
     }
 
     /**

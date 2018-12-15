@@ -15,23 +15,10 @@
  */
 package com.corundumstudio.socketio.handler;
 
-import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
-
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.TimeUnit;
-
 import com.corundumstudio.socketio.*;
-import io.netty.buffer.Unpooled;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.corundumstudio.socketio.ack.AckManager;
 import com.corundumstudio.socketio.messages.HttpErrorMessage;
+import com.corundumstudio.socketio.namespace.HttpNamespace;
 import com.corundumstudio.socketio.namespace.Namespace;
 import com.corundumstudio.socketio.namespace.NamespacesHub;
 import com.corundumstudio.socketio.protocol.AuthPacket;
@@ -43,18 +30,25 @@ import com.corundumstudio.socketio.scheduler.SchedulerKey.Type;
 import com.corundumstudio.socketio.store.StoreFactory;
 import com.corundumstudio.socketio.store.pubsub.ConnectMessage;
 import com.corundumstudio.socketio.store.pubsub.PubSubType;
-
+import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.handler.codec.http.DefaultHttpResponse;
-import io.netty.handler.codec.http.FullHttpRequest;
-import io.netty.handler.codec.http.HttpHeaderNames;
-import io.netty.handler.codec.http.HttpHeaders;
-import io.netty.handler.codec.http.HttpResponseStatus;
-import io.netty.handler.codec.http.QueryStringDecoder;
+import io.netty.handler.codec.http.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
+
+import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 
 @Sharable
 public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Disconnectable {
@@ -66,18 +60,20 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
     private final String connectPath;
     private final Configuration configuration;
     private final NamespacesHub namespacesHub;
+    private final HttpNamespace httpNamespace;
     private final StoreFactory storeFactory;
     private final DisconnectableHub disconnectable;
     private final AckManager ackManager;
     private final ClientsBox clientsBox;
 
-    public AuthorizeHandler(String connectPath, CancelableScheduler scheduler, Configuration configuration, NamespacesHub namespacesHub, StoreFactory storeFactory,
+    public AuthorizeHandler(String connectPath, CancelableScheduler scheduler, Configuration configuration, NamespacesHub namespacesHub, HttpNamespace httpNamespace, StoreFactory storeFactory,
             DisconnectableHub disconnectable, AckManager ackManager, ClientsBox clientsBox) {
         super();
         this.connectPath = connectPath;
         this.configuration = configuration;
         this.disconnectScheduler = scheduler;
         this.namespacesHub = namespacesHub;
+        this.httpNamespace = httpNamespace;
         this.storeFactory = storeFactory;
         this.disconnectable = disconnectable;
         this.ackManager = ackManager;
@@ -107,8 +103,7 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
             Channel channel = ctx.channel();
             QueryStringDecoder queryDecoder = new QueryStringDecoder(req.uri());
 
-            if (configuration.getHttpRequestListeners().isEmpty()
-                    && !queryDecoder.path().startsWith(connectPath)) {
+            if (!httpNamespace.hasListeners() && !queryDecoder.path().startsWith(connectPath)) {
                 io.netty.handler.codec.http.HttpResponse res = new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.BAD_REQUEST);
                 channel.writeAndFlush(res).addListener(ChannelFutureListener.CLOSE);
                 req.release();
@@ -141,23 +136,23 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
                                                 (InetSocketAddress)channel.remoteAddress(),
                                                     req.uri(), origin != null && !origin.equalsIgnoreCase("null"));
 
-        HttpResponse httpResponse = null;
+        AuthorizationResponse authorizationResponse = null;
         try {
-            httpResponse = configuration.getAuthorizationListener().authorize(data);
+            authorizationResponse = configuration.getAuthorizationListener().authorize(data);
         } catch (Exception ignore) {
         }
-        if (httpResponse == null) {
-            httpResponse = HttpResponse.UNAUTHORIZED();
+        if (authorizationResponse == null) {
+            authorizationResponse = AuthorizationResponse.UNAUTHORIZED();
         }
 
         // UNAUTHORIZED
-        if (!HttpResponseStatus.OK.equals(httpResponse.getHttpResponseStatus())) {
-            io.netty.handler.codec.http.HttpResponse res = new DefaultHttpResponse(HTTP_1_1, httpResponse.getHttpResponseStatus());
-            if (httpResponse.getHttpHeaders() != null) {
-                res.headers().add(httpResponse.getHttpHeaders());
+        if (!HttpResponseStatus.OK.equals(authorizationResponse.getHttpResponseStatus())) {
+            io.netty.handler.codec.http.HttpResponse res = new DefaultHttpResponse(HTTP_1_1, authorizationResponse.getHttpResponseStatus());
+            if (authorizationResponse.getHeaders() != null) {
+                res.headers().add(authorizationResponse.getHeaders());
             }
-            if (httpResponse.getBody() != null) {
-                Unpooled.copiedBuffer(httpResponse.getBody(), httpResponse.getCharset());
+            if (authorizationResponse.getBody() != null) {
+                Unpooled.copiedBuffer(authorizationResponse.getBody(), authorizationResponse.getCharset());
 
             }
             channel.writeAndFlush(res).addListener(ChannelFutureListener.CLOSE);
@@ -166,7 +161,7 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
         }
 
         // OK
-        Map<String, Object> storeData = httpResponse.getStoreData();
+        Map<String, Object> storeData = authorizationResponse.getStoreData();
 
         UUID sessionId = this.generateOrGetSessionIdFromRequest(req.headers());
 

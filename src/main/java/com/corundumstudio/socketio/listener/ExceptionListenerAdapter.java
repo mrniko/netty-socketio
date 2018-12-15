@@ -15,11 +15,11 @@
  */
 package com.corundumstudio.socketio.listener;
 
+import com.corundumstudio.socketio.HttpRequestSignature;
+import com.corundumstudio.socketio.SocketIOClient;
 import io.netty.channel.ChannelHandlerContext;
 
 import java.util.List;
-
-import com.corundumstudio.socketio.SocketIOClient;
 
 /**
  * Base callback exceptions listener
@@ -30,6 +30,10 @@ public abstract class ExceptionListenerAdapter implements ExceptionListener {
 
     @Override
     public void onEventException(Exception e, List<Object> data, SocketIOClient client) {
+    }
+
+    @Override
+    public void onHttpException(Exception e, HttpRequestSignature signature) {
     }
 
     @Override

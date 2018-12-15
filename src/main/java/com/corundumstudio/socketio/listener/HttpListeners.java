@@ -13,16 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.corundumstudio.socketio;
+package com.corundumstudio.socketio.listener;
 
-import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.HttpMethod;
 
-import java.util.List;
-import java.util.Map;
+public interface HttpListeners {
 
-public interface HttpRequestListener {
-
-    HttpRequestSignature signature();
-    HttpResponse handle(Map<String, List<String>> params, HttpHeaders headers, HttpRequestBody body);
-
+    void addHttpListener(HttpMethod method, String path, HttpListener listener);
+    
 }
