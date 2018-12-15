@@ -24,6 +24,7 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 
 import com.corundumstudio.socketio.handler.*;
+import com.corundumstudio.socketio.namespace.HttpNamespace;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -95,7 +96,7 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
         scheduler.update(ctx);
     }
 
-    public void start(Configuration configuration, NamespacesHub namespacesHub) {
+    public void start(Configuration configuration, NamespacesHub namespacesHub, HttpNamespace httpNamespace) {
         this.configuration = configuration;
 
         ackManager = new AckManager(scheduler);
@@ -116,8 +117,8 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
         }
 
         StoreFactory factory = configuration.getStoreFactory();
-        authorizeHandler = new AuthorizeHandler(connectPath, scheduler, configuration, namespacesHub, factory, this, ackManager, clientsBox);
-        httpRequestHandler = new HttpRequestHandler(configuration);
+        authorizeHandler = new AuthorizeHandler(connectPath, scheduler, configuration, namespacesHub, httpNamespace, factory, this, ackManager, clientsBox);
+        httpRequestHandler = new HttpRequestHandler(httpNamespace);
         factory.init(namespacesHub, authorizeHandler, jsonSupport);
         xhrPollingTransport = new PollingTransport(decoder, authorizeHandler, clientsBox);
         webSocketTransport = new WebSocketTransport(isSsl, authorizeHandler, configuration, scheduler, clientsBox);
@@ -189,9 +190,7 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
 
         pipeline.addLast(SOCKETIO_ENCODER, encoderHandler);
 
-        if (!configuration.getHttpRequestListeners().isEmpty()) {
-            pipeline.addLast(HTTP_REQUEST_HANDLER, httpRequestHandler);
-        }
+        pipeline.addLast(HTTP_REQUEST_HANDLER, httpRequestHandler);
 
         pipeline.addLast(WRONG_URL_HANDLER, wrongUrlHandler);
     }
