@@ -5,3 +5,14 @@
 /target
 
 /gnupg
+
+# Intellij IDEA (see https://intellij-support.jetbrains.com/entries/23393067)
+.idea/
+release.properties
+.navigation/
+captures/
+*.iws
+*.iml
+*.ipr
+*~
+*.swp
