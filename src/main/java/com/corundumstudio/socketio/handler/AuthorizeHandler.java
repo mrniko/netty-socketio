@@ -153,7 +153,7 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
                 ByteBuf buf = Unpooled.copiedBuffer(authorizationResponse.getBody(), authorizationResponse.getCharset());
                 res.content().writeBytes(buf);
                 buf.release();
-                res.headers().set(HttpHeaderNames.CONTENT_TYPE, authorizationResponse.getContentType() + "; charset=" + authorizationResponse.getCharset().displayName().toLowerCase());
+                res.headers().set(HttpHeaderNames.CONTENT_TYPE, authorizationResponse.getContentType() + ";charset=" + authorizationResponse.getCharset().displayName().toLowerCase());
                 res.headers().set(HttpHeaderNames.CONTENT_LENGTH, res.content().readableBytes());
             }
             if (authorizationResponse.getHeaders() != null) {
