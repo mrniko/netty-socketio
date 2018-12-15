@@ -31,8 +31,8 @@ public class HttpResponse {
     private final HttpResponseStatus httpResponseStatus;
     private final HttpHeaders httpHeaders = new DefaultHttpHeaders();
     private String body;
-    private Charset charset = CharsetUtil.UTF_8;
     private String contentType = "text/plain";
+    private Charset charset = CharsetUtil.UTF_8;
 
     public HttpResponse(HttpResponseStatus httpResponseStatus) {
         this.httpResponseStatus = httpResponseStatus;
@@ -81,16 +81,10 @@ public class HttpResponse {
         return this;
     }
 
-    public HttpResponse setBody(String body, Charset charset) {
+    public HttpResponse setBody(String body, String contentType, Charset charset) {
         this.body = body;
-        this.charset = charset;
-        return this;
-    }
-
-    public HttpResponse setBody(String body, Charset charset, String contentType) {
-        this.body = body;
-        this.charset = charset;
         this.contentType = contentType;
+        this.charset = charset;
         return this;
     }
 
@@ -102,11 +96,11 @@ public class HttpResponse {
         return body;
     }
 
-    public Charset getCharset() {
-        return charset;
-    }
-
     public String getContentType() {
         return contentType;
+    }
+
+    public Charset getCharset() {
+        return charset;
     }
 }

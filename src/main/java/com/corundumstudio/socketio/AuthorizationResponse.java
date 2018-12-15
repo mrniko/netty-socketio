@@ -34,8 +34,9 @@ public class AuthorizationResponse {
     private final HttpResponseStatus httpResponseStatus;
     private final HttpHeaders httpHeaders = new DefaultHttpHeaders();
     private String body;
-    private Charset charset = CharsetUtil.UTF_8;
     private String contentType = "text/plain";
+    private Charset charset = CharsetUtil.UTF_8;
+
     // data for the client store
     private final Map<String, Object> clientData = new HashMap<String, Object>();
 
@@ -86,16 +87,10 @@ public class AuthorizationResponse {
         return this;
     }
 
-    public AuthorizationResponse setBody(String body, Charset charset) {
+    public AuthorizationResponse setBody(String body, String contentType, Charset charset) {
         this.body = body;
-        this.charset = charset;
-        return this;
-    }
-
-    public AuthorizationResponse setBody(String body, Charset charset, String contentType) {
-        this.body = body;
-        this.charset = charset;
         this.contentType = contentType;
+        this.charset = charset;
         return this;
     }
 
@@ -107,12 +102,12 @@ public class AuthorizationResponse {
         return body;
     }
 
-    public Charset getCharset() {
-        return charset;
-    }
-
     public String getContentType() {
         return contentType;
+    }
+    
+    public Charset getCharset() {
+        return charset;
     }
 
     /*
