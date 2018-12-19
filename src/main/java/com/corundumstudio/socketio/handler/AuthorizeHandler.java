@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -146,9 +146,9 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
         }
 
         HandshakeData data = new HandshakeData(req.headers(), params,
-                                                (InetSocketAddress)channel.remoteAddress(),
-                                                (InetSocketAddress)channel.localAddress(),
-                                                    req.uri(), origin != null && !origin.equalsIgnoreCase("null"));
+                (InetSocketAddress)channel.remoteAddress(),
+                (InetSocketAddress)channel.localAddress(),
+                req.uri(), origin != null && !origin.equalsIgnoreCase("null"));
 
         boolean result = false;
         try {
@@ -165,7 +165,12 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
             return false;
         }
 
-        UUID sessionId = this.generateOrGetSessionIdFromRequest(req.headers());
+        UUID sessionId = null;
+        if (configuration.isRandomSession()) {
+            sessionId = UUID.randomUUID();
+        } else {
+            sessionId = this.generateOrGetSessionIdFromRequest(req.headers());
+        }
 
         List<String> transportValue = params.get("transport");
         if (transportValue == null) {
@@ -193,11 +198,11 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
 
         String[] transports = {};
         if (configuration.getTransports().contains(Transport.WEBSOCKET)) {
-            transports = new String[] {"websocket"};
+            transports = new String[]{"websocket"};
         }
 
         AuthPacket authPacket = new AuthPacket(sessionId, transports, configuration.getPingInterval(),
-                                                                            configuration.getPingTimeout());
+                configuration.getPingTimeout());
         Packet packet = new Packet(PacketType.OPEN);
         packet.setData(authPacket);
         client.send(packet);
@@ -208,34 +213,34 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
     }
 
     /**
-        This method will either generate a new random sessionId or will retrieve the value stored
-        in the "io" cookie.  Failures to parse will cause a logging warning to be generated and a
-        random uuid to be generated instead (same as not passing a cookie in the first place).
-    */
+     * This method will either generate a new random sessionId or will retrieve the value stored
+     * in the "io" cookie.  Failures to parse will cause a logging warning to be generated and a
+     * random uuid to be generated instead (same as not passing a cookie in the first place).
+     */
     private UUID generateOrGetSessionIdFromRequest(HttpHeaders headers) {
         List<String> values = headers.getAll("io");
         if (values.size() == 1) {
             try {
                 return UUID.fromString(values.get(0));
-            } catch ( IllegalArgumentException iaex ) {
+            } catch (IllegalArgumentException iaex) {
                 log.warn("Malformed UUID received for session! io=" + values.get(0));
             }
         }
-        
-        for (String cookieHeader: headers.getAll(HttpHeaderNames.COOKIE)) {
+
+        for (String cookieHeader : headers.getAll(HttpHeaderNames.COOKIE)) {
             Set<Cookie> cookies = ServerCookieDecoder.LAX.decode(cookieHeader);
 
             for (Cookie cookie : cookies) {
                 if (cookie.name().equals("io")) {
                     try {
                         return UUID.fromString(cookie.value());
-                    } catch ( IllegalArgumentException iaex ) {
+                    } catch (IllegalArgumentException iaex) {
                         log.warn("Malformed UUID received for session! io=" + cookie.value());
                     }
                 }
             }
         }
-        
+
         return UUID.randomUUID();
     }
 
