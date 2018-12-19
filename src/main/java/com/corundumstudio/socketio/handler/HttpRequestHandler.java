@@ -15,6 +15,7 @@
  */
 package com.corundumstudio.socketio.handler;
 
+import com.corundumstudio.socketio.HttpParams;
 import com.corundumstudio.socketio.HttpRequestBody;
 import com.corundumstudio.socketio.HttpRequestSignature;
 import com.corundumstudio.socketio.HttpResponse;
@@ -52,7 +53,7 @@ public class HttpRequestHandler extends ChannelInboundHandlerAdapter {
 
             HttpMethod method = req.method();
             String path = queryDecoder.path();
-            Map<String, List<String>> params = queryDecoder.parameters();
+            HttpParams params = new HttpParams(queryDecoder.parameters());
             HttpHeaders headers = req.headers();
             HttpRequestBody body = new HttpRequestBody(req);
 
@@ -61,10 +62,10 @@ public class HttpRequestHandler extends ChannelInboundHandlerAdapter {
 
             DefaultFullHttpResponse res = new DefaultFullHttpResponse(HTTP_1_1, httpResponse.getHttpResponseStatus());
             if (httpResponse.getBody() != null) {
-                ByteBuf buf = Unpooled.copiedBuffer(httpResponse.getBody(), httpResponse.getCharset());
+                ByteBuf buf = Unpooled.wrappedBuffer(httpResponse.getBody().getBytes(httpResponse.getCharset()));
                 res.content().writeBytes(buf);
                 buf.release();
-                res.headers().set(HttpHeaderNames.CONTENT_TYPE, httpResponse.getContentType() + ";charset=" + httpResponse.getCharset().displayName().toLowerCase());
+                res.headers().set(HttpHeaderNames.CONTENT_TYPE, httpResponse.getContentType() + "; charset=" + httpResponse.getCharset().displayName().toLowerCase());
                 res.headers().set(HttpHeaderNames.CONTENT_LENGTH, res.content().readableBytes());
             }
             if (httpResponse.getHeaders() != null) {

@@ -1,9 +1,6 @@
 package com.corundumstudio.socketio.namespace;
 
-import com.corundumstudio.socketio.Configuration;
-import com.corundumstudio.socketio.HttpRequestBody;
-import com.corundumstudio.socketio.HttpRequestSignature;
-import com.corundumstudio.socketio.HttpResponse;
+import com.corundumstudio.socketio.*;
 import com.corundumstudio.socketio.listener.ExceptionListener;
 import com.corundumstudio.socketio.listener.HttpListener;
 import com.corundumstudio.socketio.listener.HttpListeners;
@@ -11,8 +8,6 @@ import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.util.internal.PlatformDependent;
 
-import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
 
 public class HttpNamespace implements HttpListeners {
@@ -33,7 +28,7 @@ public class HttpNamespace implements HttpListeners {
         return !httpListeners.isEmpty();
     }
 
-    public HttpResponse onRequest(HttpRequestSignature httpRequestSignature, Map<String, List<String>> params, HttpHeaders headers, HttpRequestBody body) {
+    public HttpResponse onRequest(HttpRequestSignature httpRequestSignature, HttpParams params, HttpHeaders headers, HttpRequestBody body) {
         HttpListener httpListener = httpListeners.get(httpRequestSignature);
 
         try {
