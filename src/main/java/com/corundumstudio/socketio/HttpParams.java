@@ -12,12 +12,17 @@ public class HttpParams {
 
     public String get(String header) {
         List<String> values = getAll(header);
-        if (values.isEmpty()) return null;
+        if (values == null || values.isEmpty()) return null;
 
         return values.get(0);
     }
 
     public List<String> getAll(String header) {
         return params.get(header);
+    }
+
+    @Override
+    public String toString() {
+        return params.toString();
     }
 }
