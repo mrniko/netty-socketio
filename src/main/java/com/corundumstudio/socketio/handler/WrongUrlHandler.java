@@ -44,11 +44,11 @@ public class WrongUrlHandler extends ChannelInboundHandlerAdapter {
             Channel channel = ctx.channel();
             QueryStringDecoder queryDecoder = new QueryStringDecoder(req.uri());
 
-            HttpResponse res = new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.BAD_REQUEST);
+            HttpResponse res = new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.NOT_FOUND);
             ChannelFuture f = channel.writeAndFlush(res);
             f.addListener(ChannelFutureListener.CLOSE);
             req.release();
-            log.warn("Blocked wrong socket.io-context request! url: {}, params: {}, ip: {}", queryDecoder.path(), queryDecoder.parameters(), channel.remoteAddress());
+            log.warn("Blocked wrong path url: {}, params: {}, ip: {}", queryDecoder.path(), queryDecoder.parameters(), channel.remoteAddress());
             return;
         }
         super.channelRead(ctx, msg);
