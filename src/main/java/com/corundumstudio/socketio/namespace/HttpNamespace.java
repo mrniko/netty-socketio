@@ -30,6 +30,7 @@ public class HttpNamespace implements HttpListeners {
 
     public HttpResponse onRequest(HttpRequestSignature httpRequestSignature, HttpParams params, HttpHeaders headers, HttpRequestBody body) {
         HttpListener httpListener = httpListeners.get(httpRequestSignature);
+        if (httpListener == null) return null;
 
         try {
             return httpListener.onRequest(params, headers, body);

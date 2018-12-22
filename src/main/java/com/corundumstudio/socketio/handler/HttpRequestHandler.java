@@ -59,23 +59,24 @@ public class HttpRequestHandler extends ChannelInboundHandlerAdapter {
 
             HttpRequestSignature httpRequestSignature = new HttpRequestSignature(method, path);
             HttpResponse httpResponse = httpNamespace.onRequest(httpRequestSignature, params, headers, body);
+            if (httpResponse != null) {
+                DefaultFullHttpResponse res = new DefaultFullHttpResponse(HTTP_1_1, httpResponse.getHttpResponseStatus());
+                if (httpResponse.getBody() != null) {
+                    ByteBuf buf = Unpooled.wrappedBuffer(httpResponse.getBody().getBytes(httpResponse.getCharset()));
+                    res.content().writeBytes(buf);
+                    buf.release();
+                    res.headers().set(HttpHeaderNames.CONTENT_TYPE, httpResponse.getContentType() + "; charset=" + httpResponse.getCharset().displayName().toLowerCase());
+                    res.headers().set(HttpHeaderNames.CONTENT_LENGTH, res.content().readableBytes());
+                }
+                if (httpResponse.getHeaders() != null) {
+                    res.headers().add(httpResponse.getHeaders());
+                }
 
-            DefaultFullHttpResponse res = new DefaultFullHttpResponse(HTTP_1_1, httpResponse.getHttpResponseStatus());
-            if (httpResponse.getBody() != null) {
-                ByteBuf buf = Unpooled.wrappedBuffer(httpResponse.getBody().getBytes(httpResponse.getCharset()));
-                res.content().writeBytes(buf);
-                buf.release();
-                res.headers().set(HttpHeaderNames.CONTENT_TYPE, httpResponse.getContentType() + "; charset=" + httpResponse.getCharset().displayName().toLowerCase());
-                res.headers().set(HttpHeaderNames.CONTENT_LENGTH, res.content().readableBytes());
+                channel.writeAndFlush(res).addListener(ChannelFutureListener.CLOSE);
+
+                log.debug("Http response, query params: {} headers: {}", params, headers);
+                return;
             }
-            if (httpResponse.getHeaders() != null) {
-                res.headers().add(httpResponse.getHeaders());
-            }
-
-            channel.writeAndFlush(res).addListener(ChannelFutureListener.CLOSE);
-
-            log.debug("Http response, query params: {} headers: {}", params, headers);
-            return;
         }
         super.channelRead(ctx, msg);
     }
