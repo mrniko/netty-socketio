@@ -120,8 +120,8 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
         authorizeHandler = new AuthorizeHandler(connectPath, scheduler, configuration, namespacesHub, httpNamespace, factory, this, ackManager, clientsBox);
         httpRequestHandler = new HttpRequestHandler(httpNamespace);
         factory.init(namespacesHub, authorizeHandler, jsonSupport);
-        xhrPollingTransport = new PollingTransport(decoder, authorizeHandler, clientsBox);
-        webSocketTransport = new WebSocketTransport(isSsl, authorizeHandler, configuration, scheduler, clientsBox);
+        xhrPollingTransport = new PollingTransport(connectPath, decoder, authorizeHandler, clientsBox);
+        webSocketTransport = new WebSocketTransport(connectPath, isSsl, authorizeHandler, configuration, scheduler, clientsBox);
 
         PacketListener packetListener = new PacketListener(ackManager, namespacesHub, xhrPollingTransport, scheduler);
         packetHandler = new InPacketHandler(packetListener, decoder, namespacesHub, configuration.getExceptionListener());

@@ -63,11 +63,13 @@ public class WebSocketTransport extends ChannelInboundHandlerAdapter {
     private final Configuration configuration;
     private final ClientsBox clientsBox;
 
+    private final String connectPath;
     private final boolean isSsl;
 
-    public WebSocketTransport(boolean isSsl,
+    public WebSocketTransport(String connectPath, boolean isSsl,
             AuthorizeHandler authorizeHandler, Configuration configuration,
             CancelableScheduler scheduler, ClientsBox clientsBox) {
+        this.connectPath = connectPath;
         this.isSsl = isSsl;
         this.authorizeHandler = authorizeHandler;
         this.configuration = configuration;
@@ -100,7 +102,7 @@ public class WebSocketTransport extends ChannelInboundHandlerAdapter {
             List<String> transport = queryDecoder.parameters().get("transport");
             List<String> sid = queryDecoder.parameters().get("sid");
 
-            if (transport != null && NAME.equals(transport.get(0))) {
+            if (transport != null && NAME.equals(transport.get(0)) && path.startsWith(connectPath)) {
                 try {
                     if (!configuration.getTransports().contains(Transport.WEBSOCKET)) {
                         log.debug("{} transport not supported by configuration.", Transport.WEBSOCKET);
