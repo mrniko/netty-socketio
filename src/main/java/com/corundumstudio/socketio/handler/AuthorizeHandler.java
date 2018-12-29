@@ -30,6 +30,8 @@ import com.corundumstudio.socketio.scheduler.SchedulerKey.Type;
 import com.corundumstudio.socketio.store.StoreFactory;
 import com.corundumstudio.socketio.store.pubsub.ConnectMessage;
 import com.corundumstudio.socketio.store.pubsub.PubSubType;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler.Sharable;
@@ -141,14 +143,23 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
         } catch (Exception ignore) {
         }
         if (authorizationResponse == null) {
-            authorizationResponse = AuthorizationResponse.UNAUTHORIZED();
+            authorizationResponse = UnauthorizedResponse.UNAUTHORIZED();
         }
 
-        // not OK
-        if (!HttpResponseStatus.OK.equals(authorizationResponse.getHttpResponseStatus())) {
-            DefaultHttpResponse res = new DefaultHttpResponse(HTTP_1_1, authorizationResponse.getHttpResponseStatus());
-            if (authorizationResponse.getHeaders() != null) {
-                res.headers().add(authorizationResponse.getHeaders());
+        if (authorizationResponse instanceof UnauthorizedResponse) {
+            // unauthorized
+            UnauthorizedResponse unauthorizedResponse = (UnauthorizedResponse) authorizationResponse;
+
+            DefaultFullHttpResponse res = new DefaultFullHttpResponse(HTTP_1_1, unauthorizedResponse.getHttpResponseStatus());
+            if (unauthorizedResponse.getBody() != null) {
+                ByteBuf buf = Unpooled.copiedBuffer(unauthorizedResponse.getBody(), unauthorizedResponse.getCharset());
+                res.content().writeBytes(buf);
+                buf.release();
+                res.headers().set(HttpHeaderNames.CONTENT_TYPE, unauthorizedResponse.getContentType() + "; charset=" + unauthorizedResponse.getCharset().displayName().toLowerCase());
+                res.headers().set(HttpHeaderNames.CONTENT_LENGTH, res.content().readableBytes());
+            }
+            if (unauthorizedResponse.getHeaders() != null) {
+                res.headers().add(unauthorizedResponse.getHeaders());
             }
 
             channel.writeAndFlush(res).addListener(ChannelFutureListener.CLOSE);
@@ -156,8 +167,9 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
             return false;
         }
 
-        // OK
-        Map<String, Object> storeData = authorizationResponse.getClientData();
+        // authorized
+        AuthorizedResponse authorizedResponse = (AuthorizedResponse) authorizationResponse;
+        Map<String, Object> storeData = authorizedResponse.getClientData();
 
         UUID sessionId = this.generateOrGetSessionIdFromRequest(req.headers());
 

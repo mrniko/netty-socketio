@@ -17,13 +17,14 @@ package com.corundumstudio.socketio.handler;
 
 import com.corundumstudio.socketio.AuthorizationListener;
 import com.corundumstudio.socketio.AuthorizationResponse;
+import com.corundumstudio.socketio.AuthorizedResponse;
 import com.corundumstudio.socketio.HandshakeData;
 
 public class SuccessAuthorizationListener implements AuthorizationListener {
 
     @Override
     public AuthorizationResponse authorize(HandshakeData data) {
-        return AuthorizationResponse.OK();
+        return AuthorizedResponse.OK();
     }
 
 }
