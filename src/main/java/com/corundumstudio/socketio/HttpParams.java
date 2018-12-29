@@ -26,7 +26,7 @@ public class HttpParams {
         return params.get(name);
     }
 
-    public Map<String, List<String>> getParams() {
+    public Map<String, List<String>> asMap() {
         return params;
     }
 
