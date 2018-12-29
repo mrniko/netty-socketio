@@ -186,9 +186,9 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
         }
         pipeline.addLast(WEB_SOCKET_TRANSPORT, webSocketTransport);
 
-        pipeline.addLast(SOCKETIO_ENCODER, encoderHandler);
-
         pipeline.addLast(HTTP_REQUEST_HANDLER, httpRequestHandler);
+
+        pipeline.addLast(SOCKETIO_ENCODER, encoderHandler);
 
         pipeline.addLast(WRONG_URL_HANDLER, wrongUrlHandler);
     }
