@@ -26,6 +26,10 @@ public class HttpParams {
         return params.get(name);
     }
 
+    public Map<String, List<String>> getParams() {
+        return params;
+    }
+
     @Override
     public String toString() {
         return params.toString();
