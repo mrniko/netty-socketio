@@ -33,7 +33,7 @@ public class HttpNamespace implements HttpListeners {
         if (httpListener == null) return null;
 
         try {
-            return httpListener.onRequest(params, headers, body);
+            return httpListener.onRequest(httpRequestSignature, params, headers, body);
         } catch (Exception e) {
             exceptionListener.onHttpException(e, httpRequestSignature);
             return HttpResponse.INTERNAL_SERVER_ERROR();
