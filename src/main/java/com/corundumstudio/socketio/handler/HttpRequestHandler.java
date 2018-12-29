@@ -58,7 +58,12 @@ public class HttpRequestHandler extends ChannelInboundHandlerAdapter {
             HttpRequestBody body = new HttpRequestBody(req);
 
             HttpRequestSignature httpRequestSignature = new HttpRequestSignature(method, path);
-            HttpResponse httpResponse = httpNamespace.onRequest(httpRequestSignature, params, headers, body);
+            HttpResponse httpResponse = null;
+            try {
+                httpResponse = httpNamespace.onRequest(httpRequestSignature, params, headers, body);
+            } catch (Exception e) {
+                log.warn("HttpListener threw exception.", e);
+            }
             if (httpResponse != null) {
                 DefaultFullHttpResponse res = new DefaultFullHttpResponse(HTTP_1_1, httpResponse.getHttpResponseStatus());
                 if (httpResponse.getBody() != null) {

@@ -140,7 +140,8 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
         AuthorizationResponse authorizationResponse = null;
         try {
             authorizationResponse = configuration.getAuthorizationListener().authorize(handshakeData);
-        } catch (Exception ignore) {
+        } catch (Exception e) {
+            log.warn("AuthorizationListener threw exception.", e);
         }
         if (authorizationResponse == null) {
             authorizationResponse = UnauthorizedResponse.UNAUTHORIZED();

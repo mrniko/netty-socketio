@@ -8,6 +8,6 @@ import io.netty.handler.codec.http.HttpHeaders;
 
 public interface HttpListener {
 
-    HttpResponse onRequest(HttpRequestSignature signature, HttpParams params, HttpHeaders headers, HttpRequestBody body) throws Exception;
+    HttpResponse onRequest(HttpRequestSignature signature, HttpParams params, HttpHeaders headers, HttpRequestBody body);
 
 }
