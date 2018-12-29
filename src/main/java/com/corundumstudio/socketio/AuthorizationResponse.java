@@ -19,25 +19,18 @@ import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpResponseStatus;
-import io.netty.util.CharsetUtil;
+import io.netty.util.AsciiString;
 
-import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
 
 /*
- * Used to return a result from <b>AuthorizationListener</b>
  * Used to add data to the client store
  */
 public class AuthorizationResponse {
 
     private final HttpResponseStatus httpResponseStatus;
     private final HttpHeaders httpHeaders = new DefaultHttpHeaders();
-    private String body;
-    private String contentType = "text/plain";
-    private Charset charset = CharsetUtil.UTF_8;
-
-    // data for the client store
     private final Map<String, Object> clientData = new HashMap<String, Object>();
 
     public AuthorizationResponse(HttpResponseStatus httpResponseStatus) {
@@ -62,7 +55,7 @@ public class AuthorizationResponse {
         return new AuthorizationResponse(HttpResponseStatus.INTERNAL_SERVER_ERROR);
     }
 
-    public AuthorizationResponse setHeader(String name, String value) {
+    public AuthorizationResponse setHeader(AsciiString name, String value) {
         httpHeaders.add(name, value);
         return this;
     }
@@ -76,47 +69,20 @@ public class AuthorizationResponse {
         return httpHeaders;
     }
 
-    public AuthorizationResponse setBody(String body) {
-        this.body = body;
-        return this;
-    }
-
-    public AuthorizationResponse setBody(String body, String contentType) {
-        this.body = body;
-        this.contentType = contentType;
-        return this;
-    }
-
-    public AuthorizationResponse setBody(String body, String contentType, Charset charset) {
-        this.body = body;
-        this.contentType = contentType;
-        this.charset = charset;
-        return this;
-    }
-
     public HttpResponseStatus getHttpResponseStatus() {
         return httpResponseStatus;
     }
 
-    public String getBody() {
-        return body;
-    }
-
-    public String getContentType() {
-        return contentType;
-    }
-    
-    public Charset getCharset() {
-        return charset;
-    }
-
-    /*
-     * Adds
-     */
     public AuthorizationResponse setClientData(String key, Object value) {
         clientData.put(key, value);
         return this;
     }
+
+    public AuthorizationResponse setClientData(Map<String, Object> map) {
+        clientData.putAll(map);
+        return this;
+    }
+
 
     public Map<String, Object> getClientData() {
         return clientData;

@@ -19,6 +19,7 @@ import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.util.AsciiString;
 import io.netty.util.CharsetUtil;
 
 import java.nio.charset.Charset;
@@ -56,7 +57,7 @@ public class HttpResponse {
         return new HttpResponse(HttpResponseStatus.INTERNAL_SERVER_ERROR);
     }
 
-    public HttpResponse setHeader(String name, String value) {
+    public HttpResponse setHeader(AsciiString name, String value) {
         httpHeaders.add(name, value);
         return this;
     }
