@@ -337,19 +337,19 @@ public class JacksonJsonSupport implements JsonSupport {
     @Override
     public <T> T readValue(String namespaceName, ByteBufInputStream src, Class<T> valueType) throws IOException {
         namespaceClass.set(namespaceName);
-        return objectMapper.readValue(src, valueType);
+        return objectMapper.readValue((java.io.InputStream) src, valueType);
     }
 
     @Override
     public AckArgs readAckArgs(ByteBufInputStream src, AckCallback<?> callback) throws IOException {
         currentAckClass.set(callback);
-        return objectMapper.readValue(src, AckArgs.class);
+        return objectMapper.readValue((java.io.InputStream) src, AckArgs.class);
     }
 
     @Override
     public void writeValue(ByteBufOutputStream out, Object value) throws IOException {
         modifier.getSerializer().clear();
-        objectMapper.writeValue(out, value);
+        objectMapper.writeValue((java.io.OutputStream) out, value);
     }
 
     @Override
