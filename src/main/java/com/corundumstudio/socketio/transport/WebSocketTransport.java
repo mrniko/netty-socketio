@@ -203,7 +203,7 @@ public class WebSocketTransport extends ChannelInboundHandlerAdapter {
             }, configuration.getUpgradeTimeout(), TimeUnit.MILLISECONDS);
         }
 
-        log.debug("сlient {} handshake completed", sessionId);
+        log.debug("client {} handshake completed", sessionId);
     }
 
     private String getWebSocketLocation(HttpRequest req) {
