@@ -15,11 +15,9 @@
  */
 package com.corundumstudio.socketio.protocol;
 
-import io.netty.buffer.ByteBufInputStream;
-import io.netty.buffer.ByteBufOutputStream;
-import io.netty.util.internal.PlatformDependent;
-
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -63,6 +61,10 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.ser.BeanSerializerModifier;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import com.fasterxml.jackson.databind.type.ArrayType;
+
+import io.netty.buffer.ByteBufInputStream;
+import io.netty.buffer.ByteBufOutputStream;
+import io.netty.util.internal.PlatformDependent;
 
 public class JacksonJsonSupport implements JsonSupport {
 
@@ -337,19 +339,19 @@ public class JacksonJsonSupport implements JsonSupport {
     @Override
     public <T> T readValue(String namespaceName, ByteBufInputStream src, Class<T> valueType) throws IOException {
         namespaceClass.set(namespaceName);
-        return objectMapper.readValue(src, valueType);
+        return objectMapper.readValue((InputStream)src, valueType);
     }
 
     @Override
     public AckArgs readAckArgs(ByteBufInputStream src, AckCallback<?> callback) throws IOException {
         currentAckClass.set(callback);
-        return objectMapper.readValue(src, AckArgs.class);
+        return objectMapper.readValue((InputStream)src, AckArgs.class);
     }
 
     @Override
     public void writeValue(ByteBufOutputStream out, Object value) throws IOException {
         modifier.getSerializer().clear();
-        objectMapper.writeValue(out, value);
+        objectMapper.writeValue((OutputStream)out, value);
     }
 
     @Override
