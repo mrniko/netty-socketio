@@ -48,6 +48,13 @@ Recent Releases
 ================================
 #### Please Note: trunk is current development branch.
 
+#### 11-Jan-2019 - version 1.7.17 released  
+Feature - randomSession setting added to Config object (thanks to yuanxiangz)  
+Fixed - NPE in WebSocketTransport  
+Fixed - NPE & memory leak (thanks to zhaolianwang)  
+Fixed - namespace parsing (thanks to Redliver)  
+Fixed - Redisson 3.9+ compatibility  
+
 #### 06-Jul-2018 - version 1.7.16 released  
 Fixed - non thread-safe ACK handling (thanks to dawnbreaks)  
 Fixed - inactive long-polling channels cause memory leak (thanks to dawnbreaks)  
