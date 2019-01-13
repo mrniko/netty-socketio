@@ -23,6 +23,7 @@ import io.netty.util.AsciiString;
 import io.netty.util.CharsetUtil;
 
 import java.nio.charset.Charset;
+import java.util.List;
 import java.util.Map;
 
 /*
@@ -67,6 +68,17 @@ public class UnauthorizedResponse extends AuthorizationResponse {
 
     public UnauthorizedResponse setHeaders(HttpHeaders headers) {
         httpHeaders.setAll(headers);
+        return this;
+    }
+
+    public UnauthorizedResponse setHeaders(Map<AsciiString, List<String>> headers) {
+        for (Map.Entry<AsciiString, List<String>> header : headers.entrySet()) {
+            AsciiString name = header.getKey();
+            List<String> values = header.getValue();
+            for (String value : values) {
+                httpHeaders.set(name, value);
+            }
+        }
         return this;
     }
 
