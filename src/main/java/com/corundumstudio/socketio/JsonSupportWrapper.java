@@ -43,7 +43,7 @@ class JsonSupportWrapper implements JsonSupport {
             return delegate.readAckArgs(src, callback);
         } catch (Exception e) {
             src.reset();
-            log.error("Can't read ack args: " + src.readLine() + " for type: " + callback.getResultClass(), e);
+            log.error("Can't read ack args: " + src.readLine() + " for type: " + (callback != null ? callback.getResultClass() : "null"), e);
             throw new IOException(e);
         }
     }
