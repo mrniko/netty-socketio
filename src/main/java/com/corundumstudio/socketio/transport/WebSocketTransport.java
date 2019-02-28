@@ -1,5 +1,5 @@
 /**
- * Copyright 2012 Nikita Koksharov
+ * Copyright (c) 2012-2019 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -80,8 +80,7 @@ public class WebSocketTransport extends ChannelInboundHandlerAdapter {
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         if (msg instanceof CloseWebSocketFrame) {
-            ctx.channel().close();
-            ReferenceCountUtil.release(msg);
+          ctx.channel().writeAndFlush(msg).addListener(ChannelFutureListener.CLOSE);
         } else if (msg instanceof BinaryWebSocketFrame
                     || msg instanceof TextWebSocketFrame) {
             ByteBufHolder frame = (ByteBufHolder) msg;
@@ -143,6 +142,7 @@ public class WebSocketTransport extends ChannelInboundHandlerAdapter {
         final  Channel channel = ctx.channel();
         ClientHead client = clientsBox.get(channel);
         Packet packet = new Packet(PacketType.MESSAGE);
+        packet.setSubType(PacketType.DISCONNECT);
         if (client != null && client.isTransportChannel(ctx.channel(), Transport.WEBSOCKET)) {
             log.debug("channel inactive {}", client.getSessionId());
             client.onChannelDisconnect();
