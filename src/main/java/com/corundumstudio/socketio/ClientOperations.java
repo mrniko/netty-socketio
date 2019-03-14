@@ -30,7 +30,7 @@ public interface ClientOperations {
      *
      * @param packet - packet to send
      */
-    void send(Packet packet);
+    NetworkCallback<? extends Void> send(Packet packet);
 
     /**
      * Disconnect client
@@ -44,6 +44,5 @@ public interface ClientOperations {
      * @param name - event name
      * @param data - event data
      */
-    void sendEvent(String name, Object ... data);
-
+    NetworkCallback<? extends Void> sendEvent(String name, Object ... data);
 }

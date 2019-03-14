@@ -33,6 +33,7 @@ import com.corundumstudio.socketio.transport.NamespaceClient;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
+import io.netty.channel.EventLoop;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.util.AttributeKey;
 import io.netty.util.internal.PlatformDependent;
@@ -70,8 +71,8 @@ public class ClientHead {
     private volatile Transport currentTransport;
 
     public ClientHead(UUID sessionId, AckManager ackManager, DisconnectableHub disconnectable,
-            StoreFactory storeFactory, HandshakeData handshakeData, ClientsBox clientsBox, Transport transport, CancelableScheduler disconnectScheduler,
-            Configuration configuration) {
+                      StoreFactory storeFactory, HandshakeData handshakeData, ClientsBox clientsBox, Transport transport, CancelableScheduler disconnectScheduler,
+                      Configuration configuration) {
         this.sessionId = sessionId;
         this.ackManager = ackManager;
         this.disconnectableHub = disconnectable;
@@ -132,6 +133,22 @@ public class ClientHead {
                 }
             }
         }, configuration.getPingTimeout() + configuration.getPingInterval(), TimeUnit.MILLISECONDS);
+    }
+
+    public boolean isWritable() {
+        TransportState state = channels.get(getCurrentTransport());
+        Channel channel = state.getChannel();
+        return channel != null && channel.isWritable();
+    }
+
+    public EventLoop eventLoop() {
+        TransportState state = channels.get(getCurrentTransport());
+        Channel channel = state.getChannel();
+        if (channel != null) {
+            return channel.eventLoop();
+        } else {
+            return null;
+        }
     }
 
     public ChannelFuture send(Packet packet, Transport transport) {
@@ -264,6 +281,7 @@ public class ClientHead {
     public void setLastBinaryPacket(Packet lastBinaryPacket) {
         this.lastBinaryPacket = lastBinaryPacket;
     }
+
     public Packet getLastBinaryPacket() {
         return lastBinaryPacket;
     }

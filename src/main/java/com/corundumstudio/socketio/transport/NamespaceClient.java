@@ -21,13 +21,13 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import com.corundumstudio.socketio.*;
+import com.corundumstudio.socketio.concurrent.DefaultNetworkPromise;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.corundumstudio.socketio.AckCallback;
-import com.corundumstudio.socketio.HandshakeData;
-import com.corundumstudio.socketio.SocketIOClient;
-import com.corundumstudio.socketio.Transport;
 import com.corundumstudio.socketio.handler.ClientHead;
 import com.corundumstudio.socketio.namespace.Namespace;
 import com.corundumstudio.socketio.protocol.Packet;
@@ -67,12 +67,12 @@ public class NamespaceClient implements SocketIOClient {
     }
 
     @Override
-    public void sendEvent(String name, Object ... data) {
+    public NetworkCallback<? extends Void> sendEvent(String name, Object ... data) {
         Packet packet = new Packet(PacketType.MESSAGE);
         packet.setSubType(PacketType.EVENT);
         packet.setName(name);
         packet.setData(Arrays.asList(data));
-        send(packet);
+        return send(packet);
     }
 
     @Override
@@ -100,12 +100,22 @@ public class NamespaceClient implements SocketIOClient {
     }
 
     @Override
-    public void send(Packet packet) {
+    public NetworkCallback<? extends Void> send(Packet packet) {
         if (!isConnected()) {
-            return;
+            return NetworkCallbacks.channelClosed();
         }
         packet.setNsp(namespace.getName());
-        baseClient.send(packet);
+
+        final DefaultNetworkPromise<Void> promise = new DefaultNetworkPromise<Void>(baseClient.eventLoop());
+        baseClient.send(packet).addListener(new ChannelFutureListener() {
+            @Override
+            public void operationComplete(ChannelFuture channelFuture) throws Exception {
+                if(channelFuture.isSuccess()) promise.setSuccess(null);
+                else promise.setFailure(channelFuture.cause());
+            }
+        });
+
+        return promise;
     }
 
     public void onDisconnect() {
@@ -207,4 +217,8 @@ public class NamespaceClient implements SocketIOClient {
         return baseClient.getHandshakeData();
     }
 
+    @Override
+    public boolean isWritable() {
+        return isConnected() && this.baseClient.isWritable();
+    }
 }
