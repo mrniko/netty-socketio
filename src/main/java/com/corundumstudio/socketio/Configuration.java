@@ -1,5 +1,5 @@
 /**
- * Copyright 2012 Nikita Koksharov
+ * Copyright (c) 2012-2019 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -86,6 +86,8 @@ public class Configuration {
 
     private boolean websocketCompression = true;
 
+    private boolean randomSession = false;
+
     public Configuration() {
     }
 
@@ -151,6 +153,7 @@ public class Configuration {
 
         setHttpCompression(conf.isHttpCompression());
         setWebsocketCompression(conf.isWebsocketCompression());
+        setRandomSession(conf.randomSession);
     }
 
     public JsonSupport getJsonSupport() {
@@ -574,4 +577,11 @@ public class Configuration {
         return websocketCompression;
     }
 
+    public boolean isRandomSession() {
+        return randomSession;
+    }
+
+    public void setRandomSession(boolean randomSession) {
+        this.randomSession = randomSession;
+    }
 }

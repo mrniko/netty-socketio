@@ -50,6 +50,13 @@ Recent Releases
 ================================
 #### Please Note: trunk is current development branch.
 
+#### 11-Jan-2019 - version 1.7.17 released  
+Feature - randomSession setting added to Config object (thanks to yuanxiangz)  
+Fixed - NPE in WebSocketTransport  
+Fixed - NPE & memory leak (thanks to zhaolianwang)  
+Fixed - namespace parsing (thanks to Redliver)  
+Fixed - Redisson 3.9+ compatibility  
+
 #### 06-Jul-2018 - version 1.7.16 released  
 Fixed - non thread-safe ACK handling (thanks to dawnbreaks)  
 Fixed - inactive long-polling channels cause memory leak (thanks to dawnbreaks)  
@@ -97,7 +104,7 @@ Feature - Compression support
 Fixed - DotNET client request handling  
 Fixed - Packet length format parsing  
 Fixed - skipping 'd=' in packet  
-Fixed - Polling clients sporatically get prematurely disconnected (thanks to lpage30)  
+Fixed - Polling clients sporadically get prematurely disconnected (thanks to lpage30)  
 Fixed - connections stay open forever if server sent `close` packet  
 Fixed - compatibility with Redisson latest version  
 

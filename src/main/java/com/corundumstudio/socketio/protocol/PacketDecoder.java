@@ -1,5 +1,5 @@
 /**
- * Copyright 2012 Nikita Koksharov
+ * Copyright (c) 2012-2019 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -279,7 +279,7 @@ public class PacketDecoder {
         if (packet.getType() == PacketType.MESSAGE) {
             if (packet.getSubType() == PacketType.CONNECT
                     || packet.getSubType() == PacketType.DISCONNECT) {
-                packet.setNsp(readString(frame));
+                packet.setNsp(readNamespace(frame));
             }
 
             if (packet.hasAttachments() && !packet.isAttachmentsLoaded()) {
@@ -308,6 +308,23 @@ public class PacketDecoder {
                 packet.setData(event.getArgs());
             }
         }
+    }
+    
+    private String readNamespace(ByteBuf frame){
+        /**
+         * namespace post request with url queryString, like
+         *  /message?a=1,
+         *  /message,
+         */
+        int endIndex = frame.bytesBefore((byte)'?');
+        if(endIndex > 0){
+            return readString(frame,endIndex);
+        }
+        endIndex = frame.bytesBefore((byte)',');
+        if(endIndex > 0){
+            return readString(frame,endIndex);
+        }
+        return readString(frame);
     }
 
 }
