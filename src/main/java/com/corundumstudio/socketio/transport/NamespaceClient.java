@@ -104,8 +104,8 @@ public class NamespaceClient implements SocketIOClient {
         if (!isConnected()) {
             return;
         }
-        packet.setNsp(namespace.getName());
-        baseClient.send(packet);
+
+        baseClient.send(packet.withNsp(namespace.getName()));
     }
 
     public void onDisconnect() {
