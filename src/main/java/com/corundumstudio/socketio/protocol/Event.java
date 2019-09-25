@@ -17,7 +17,7 @@ package com.corundumstudio.socketio.protocol;
 
 import java.util.List;
 
-class Event {
+public class Event {
 
     private String name;
     private List<Object> args;

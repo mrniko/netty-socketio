@@ -59,6 +59,7 @@ public class Namespace implements SocketIONamespace {
     private final Queue<ConnectListener> connectListeners = new ConcurrentLinkedQueue<ConnectListener>();
     private final Queue<DisconnectListener> disconnectListeners = new ConcurrentLinkedQueue<DisconnectListener>();
     private final Queue<PingListener> pingListeners = new ConcurrentLinkedQueue<PingListener>();
+    private final Queue<EventInterceptor> eventInterceptors = new ConcurrentLinkedQueue<EventInterceptor>();
 
     private final Map<UUID, SocketIOClient> allClients = PlatformDependent.newConcurrentHashMap();
     private final ConcurrentMap<String, Set<UUID>> roomClients = PlatformDependent.newConcurrentHashMap();
@@ -126,6 +127,11 @@ public class Namespace implements SocketIONamespace {
         jsonSupport.addEventMapping(name, eventName, eventClass);
     }
 
+    @Override
+    public void addEventInterceptor(EventInterceptor eventInterceptor) {
+        eventInterceptors.add(eventInterceptor);
+    }
+
     @SuppressWarnings({"rawtypes", "unchecked"})
     public void onEvent(NamespaceClient client, String eventName, List<Object> args, AckRequest ackRequest) {
         EventEntry entry = eventListeners.get(eventName);
@@ -138,6 +144,10 @@ public class Namespace implements SocketIONamespace {
             for (DataListener dataListener : listeners) {
                 Object data = getEventData(args, dataListener);
                 dataListener.onData(client, data, ackRequest);
+            }
+
+            for (EventInterceptor eventInterceptor : eventInterceptors) {
+                eventInterceptor.onEvent(client, eventName, args, ackRequest);
             }
         } catch (Exception e) {
             exceptionListener.onEventException(e, args, client);

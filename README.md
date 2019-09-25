@@ -102,7 +102,7 @@ Feature - Compression support
 Fixed - DotNET client request handling  
 Fixed - Packet length format parsing  
 Fixed - skipping 'd=' in packet  
-Fixed - Polling clients sporatically get prematurely disconnected (thanks to lpage30)  
+Fixed - Polling clients sporadically get prematurely disconnected (thanks to lpage30)  
 Fixed - connections stay open forever if server sent `close` packet  
 Fixed - compatibility with Redisson latest version  
 
