@@ -48,6 +48,10 @@ Recent Releases
 ================================
 #### Please Note: trunk is current development branch.
 
+#### 17-Jan-2020 - version 1.7.18 released  
+Feature - support for event interceptors which catch all events (thanks to yosiat)  
+Fixed - namespace event broadcasting (thanks to Volodymyr Masliy)  
+
 #### 11-Jan-2019 - version 1.7.17 released  
 Feature - randomSession setting added to Config object (thanks to yuanxiangz)  
 Fixed - NPE in WebSocketTransport  
