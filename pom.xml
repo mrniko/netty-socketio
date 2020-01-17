@@ -3,7 +3,7 @@
 
  <groupId>com.corundumstudio.socketio</groupId>
  <artifactId>netty-socketio</artifactId>
- <version>1.7.19-SNAPSHOT</version>
+ <version>1.7.18-SNAPSHOT</version>
  <packaging>bundle</packaging>
  <name>NettySocketIO</name>
  <description>Socket.IO server implemented on Java</description>
