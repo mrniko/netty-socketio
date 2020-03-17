@@ -21,6 +21,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import com.corundumstudio.socketio.listener.ClientListeners;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
@@ -41,6 +42,7 @@ public class SpringAnnotationScanner implements BeanPostProcessor {
     private final SocketIOServer socketIOServer;
 
     private Class originalBeanClass;
+    private Namespace namespaceAnnotation;
 
     public SpringAnnotationScanner(SocketIOServer socketIOServer) {
         super();
@@ -49,11 +51,27 @@ public class SpringAnnotationScanner implements BeanPostProcessor {
 
     @Override
     public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
-        if (originalBeanClass != null) {
-            socketIOServer.addListeners(bean, originalBeanClass);
-            log.info("{} bean listeners added", beanName);
-            originalBeanClass = null;
+        if (originalBeanClass == null) {
+            return bean;
         }
+
+        ClientListeners listeners;
+        if (namespaceAnnotation == null) {
+            listeners = socketIOServer;
+        } else {
+            ClientListeners namespace = socketIOServer.getNamespace(namespaceAnnotation.value());
+            if (namespace == null) {
+                namespace = socketIOServer.addNamespace(namespaceAnnotation.value());
+                log.info("{} namespace created", namespaceAnnotation.value());
+            }
+            listeners = namespace;
+            namespaceAnnotation = null;
+        }
+
+        listeners.addListeners(bean, originalBeanClass);
+        log.info("{} bean listeners added", beanName);
+        originalBeanClass = null;
+
         return bean;
     }
 
@@ -82,7 +100,11 @@ public class SpringAnnotationScanner implements BeanPostProcessor {
 
         if (add.get()) {
             originalBeanClass = bean.getClass();
+            if (bean.getClass().isAnnotationPresent(Namespace.class)) {
+                namespaceAnnotation = bean.getClass().getAnnotation(Namespace.class);
+            }
         }
+
         return bean;
     }
 
