@@ -37,6 +37,10 @@ public class SocketConfig {
 
     private int acceptBackLog = 1024;
 
+    private int writeBufferWaterMarkLow = -1;
+
+    private int writeBufferWaterMarkHigh = -1;
+
     public boolean isTcpNoDelay() {
         return tcpNoDelay;
     }
@@ -86,4 +90,19 @@ public class SocketConfig {
         this.acceptBackLog = acceptBackLog;
     }
 
+    public int getWriteBufferWaterMarkLow() {
+        return writeBufferWaterMarkLow;
+    }
+
+    public void setWriteBufferWaterMarkLow(int writeBufferWaterMarkLow) {
+        this.writeBufferWaterMarkLow = writeBufferWaterMarkLow;
+    }
+
+    public int getWriteBufferWaterMarkHigh() {
+        return writeBufferWaterMarkHigh;
+    }
+
+    public void setWriteBufferWaterMarkHigh(int writeBufferWaterMarkHigh) {
+        this.writeBufferWaterMarkHigh = writeBufferWaterMarkHigh;
+    }
 }
