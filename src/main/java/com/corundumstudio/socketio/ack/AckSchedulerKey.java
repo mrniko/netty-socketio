@@ -23,7 +23,7 @@ public class AckSchedulerKey extends SchedulerKey {
 
     private final long index;
 
-    public AckSchedulerKey(Type type, UUID sessionId, long index) {
+    AckSchedulerKey(Type type, UUID sessionId, long index) {
         super(type, sessionId);
         this.index = index;
     }
@@ -42,15 +42,14 @@ public class AckSchedulerKey extends SchedulerKey {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (!super.equals(obj))
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
+        boolean isObjectEqual = (this == obj);
+        boolean isObjectNotEqualSuper = (!super.equals(obj));
+        boolean isClassNotEqual = (getClass() != obj.getClass());
         AckSchedulerKey other = (AckSchedulerKey) obj;
-        if (index != other.index)
-            return false;
+        boolean isIndexNotEqual = (index != other.index);
+
+        if ( isObjectEqual ) return true;
+        if ( isObjectNotEqualSuper || isClassNotEqual || isIndexNotEqual ) return false;
         return true;
     }
 
