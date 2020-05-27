@@ -40,25 +40,25 @@ public class AckManager implements Disconnectable {
         final Map<Long, AckCallback<?>> ackCallbacks = PlatformDependent.newConcurrentHashMap();
         final AtomicLong ackIndex = new AtomicLong(-1);
 
-        public long addAckCallback(AckCallback<?> callback) {
+        long addAckCallback(AckCallback<?> callback) {
             long index = ackIndex.incrementAndGet();
             ackCallbacks.put(index, callback);
             return index;
         }
 
-        public Set<Long> getAckIndexes() {
+        Set<Long> getAckIndexes() {
             return ackCallbacks.keySet();
         }
 
-        public AckCallback<?> getAckCallback(long index) {
+        AckCallback<?> getAckCallback(long index) {
             return ackCallbacks.get(index);
         }
 
-        public AckCallback<?> removeCallback(long index) {
+        AckCallback<?> removeCallback(long index) {
             return ackCallbacks.remove(index);
         }
 
-        public void initAckIndex(long index) {
+        void initAckIndex(long index) {
             ackIndex.compareAndSet(-1, index);
         }
 
@@ -123,8 +123,9 @@ public class AckManager implements Disconnectable {
         // before timeout occurs
         if (ackEntry != null) {
             return ackEntry.removeCallback(index);
+        } else {
+            return null;
         }
-        return null;
     }
 
     public AckCallback<?> getCallback(UUID sessionId, long index) {
@@ -137,13 +138,15 @@ public class AckManager implements Disconnectable {
         ackEntry.initAckIndex(0);
         long index = ackEntry.addAckCallback(callback);
 
-        if (log.isDebugEnabled()) {
-            log.debug("AckCallback registered with id: {} for client: {}", index, sessionId);
-        }
+        checkDebugEnabled(sessionId, index);
 
         scheduleTimeout(index, sessionId, callback);
 
         return index;
+    }
+
+    private void checkDebugEnabled(UUID sessionId, long index) {
+        if (log.isDebugEnabled()) log.debug("AckCallback registered with id: {} for client: {}", index, sessionId);
     }
 
     private void scheduleTimeout(final long index, final UUID sessionId, AckCallback<?> callback) {
