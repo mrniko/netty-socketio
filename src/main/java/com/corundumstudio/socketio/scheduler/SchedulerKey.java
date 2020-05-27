@@ -23,31 +23,29 @@ public class SchedulerKey {
     private final Type type;
     private final Object sessionId;
 
-    public SchedulerKey(final Type type, final Object sessionId) {
+    public SchedulerKey(Type type, Object sessionId) {
         this.type = type;
         this.sessionId = sessionId;
     }
 
     @Override
     public int hashCode() {
-        final int PRIME = 31;
+        final int prime = 31;
         int result = 1;
-        result = PRIME * result
+        result = prime * result
                 + ((sessionId == null) ? 0 : sessionId.hashCode());
-        result = PRIME * result + ((type == null) ? 0 : type.hashCode());
+        result = prime * result + ((type == null) ? 0 : type.hashCode());
         return result;
     }
 
     @Override
     public boolean equals(Object obj) {
-       
-    	if (this == obj)
+        if (this == obj)
             return true;
         if (obj == null)
             return false;
         if (getClass() != obj.getClass())
             return false;
-        
         SchedulerKey other = (SchedulerKey) obj;
         if (sessionId == null) {
             if (other.sessionId != null)
