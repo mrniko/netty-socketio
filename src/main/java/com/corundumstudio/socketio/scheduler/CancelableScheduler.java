@@ -60,7 +60,7 @@ public abstract class CancelableScheduler {
         }, delay, unit);
     }
     
-    abstract void schedule(SchedulerKey key, Runnable runnable, long delay, TimeUnit unit);
+    public abstract void schedule(SchedulerKey key, Runnable runnable, long delay, TimeUnit unit);
 
     public abstract void scheduleCallback(SchedulerKey key, Runnable runnable, long delay, TimeUnit unit);
 
