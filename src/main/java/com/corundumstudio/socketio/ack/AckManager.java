@@ -167,14 +167,14 @@ public class AckManager implements Disconnectable {
 
     @Override
     public void onDisconnect(ClientHead client) {
-        AckEntry e = ackEntries.remove(client.getSessionId());
-        if (e == null) {
+        AckEntry ackEntry = ackEntries.remove(client.getSessionId());
+        if (ackEntry == null) {
             return;
         }
 
-        Set<Long> indexes = e.getAckIndexes();
+        Set<Long> indexes = ackEntry.getAckIndexes();
         for (Long index : indexes) {
-            AckCallback<?> callback = e.getAckCallback(index);
+            AckCallback<?> callback = ackEntry.getAckCallback(index);
             if (callback != null) {
                 callback.onTimeout();
             }
