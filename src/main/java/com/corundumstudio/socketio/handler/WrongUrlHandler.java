@@ -39,19 +39,25 @@ public class WrongUrlHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        if (msg instanceof FullHttpRequest) {
-            FullHttpRequest req = (FullHttpRequest) msg;
-            Channel channel = ctx.channel();
-            QueryStringDecoder queryDecoder = new QueryStringDecoder(req.uri());
+        boolean wrongRequest = msg instanceof FullHttpRequest;
 
-            HttpResponse res = new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.BAD_REQUEST);
-            ChannelFuture f = channel.writeAndFlush(res);
-            f.addListener(ChannelFutureListener.CLOSE);
-            req.release();
-            log.warn("Blocked wrong socket.io-context request! url: {}, params: {}, ip: {}", queryDecoder.path(), queryDecoder.parameters(), channel.remoteAddress());
-            return;
+        if ( wrongRequest ) {
+            wrongRequest(ctx, (FullHttpRequest) msg);
+        } else {
+            super.channelRead(ctx, msg);
         }
-        super.channelRead(ctx, msg);
+    }
+
+    private void wrongRequest(ChannelHandlerContext ctx, FullHttpRequest msg) {
+        FullHttpRequest req = msg;
+        Channel channel = ctx.channel();
+        QueryStringDecoder queryDecoder = new QueryStringDecoder(req.uri());
+
+        HttpResponse res = new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.BAD_REQUEST);
+        ChannelFuture f = channel.writeAndFlush(res);
+        f.addListener(ChannelFutureListener.CLOSE);
+        req.release();
+        log.warn("Blocked wrong socket.io-context request! url: {}, params: {}, ip: {}", queryDecoder.path(), queryDecoder.parameters(), channel.remoteAddress());
     }
 
 }
