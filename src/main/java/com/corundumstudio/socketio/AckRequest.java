@@ -77,14 +77,24 @@ public class AckRequest {
      * @param objs - ack data object list
      */
     public void sendAckData(List<Object> objs) {
-        if (!isAckRequested() || !sended.compareAndSet(false, true)) {
-            return;
-        }
+        if (checkSendAckDataNotOK()) return;
+        Packet ackPacket = makePacket(objs);
+        client.send(ackPacket);
+    }
+
+    private Packet makePacket(List<Object> objs) {
         Packet ackPacket = new Packet(PacketType.MESSAGE);
         ackPacket.setSubType(PacketType.ACK);
         ackPacket.setAckId(originalPacket.getAckId());
         ackPacket.setData(objs);
-        client.send(ackPacket);
+        return ackPacket;
+    }
+
+    private boolean checkSendAckDataNotOK() {
+        if (!isAckRequested() || !sended.compareAndSet(false, true)) {
+            return true;
+        }
+        return false;
     }
 
 }
