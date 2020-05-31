@@ -31,11 +31,7 @@ public class ClientsBox {
     // TODO use storeFactory
     public HandshakeData getHandshakeData(UUID sessionId) {
         ClientHead client = uuid2clients.get(sessionId);
-        if (client == null) {
-            return null;
-        }
-
-        return client.getHandshakeData();
+        return client == null ? null : client.getHandshakeData();
     }
 
     public void addClient(ClientHead clientHead) {

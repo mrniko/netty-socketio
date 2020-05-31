@@ -66,21 +66,19 @@ public class InPacketHandler extends SimpleChannelInboundHandler<PacketsMessage>
                 if (packet.hasAttachments() && !packet.isAttachmentsLoaded()) {
                     return;
                 }
+
                 Namespace ns = namespacesHub.get(packet.getNsp());
                 if (ns == null) {
-                    if (packet.getSubType() == PacketType.CONNECT) {
-                        Packet p = new Packet(PacketType.MESSAGE);
-                        p.setSubType(PacketType.ERROR);
-                        p.setNsp(packet.getNsp());
-                        p.setData("Invalid namespace");
+                    if ( isConnected(packet) ) {
+                        Packet p = makePacket(packet);
                         client.send(p);
-                        return;
+                    } else {
+                        log.debug("Can't find namespace for endpoint: {}, sessionId: {} probably it was removed.", packet.getNsp(), client.getSessionId());
                     }
-                    log.debug("Can't find namespace for endpoint: {}, sessionId: {} probably it was removed.", packet.getNsp(), client.getSessionId());
                     return;
                 }
 
-                if (packet.getSubType() == PacketType.CONNECT) {
+                if ( isConnected(packet) ) {
                     client.addNamespaceClient(ns);
                 }
 
@@ -96,6 +94,18 @@ public class InPacketHandler extends SimpleChannelInboundHandler<PacketsMessage>
                 throw ex;
             }
         }
+    }
+
+    private boolean isConnected(Packet packet) {
+        return packet.getSubType() == PacketType.CONNECT;
+    }
+
+    private Packet makePacket(Packet packet) {
+        Packet p = new Packet(PacketType.MESSAGE);
+        p.setSubType(PacketType.ERROR);
+        p.setNsp(packet.getNsp());
+        p.setData("Invalid namespace");
+        return p;
     }
 
     @Override
