@@ -29,6 +29,10 @@ import com.corundumstudio.socketio.store.StoreFactory;
 import javax.net.ssl.KeyManagerFactory;
 
 public class Configuration {
+    private static final String OBJECT_MAPPER_PATH = "com.fasterxml.jackson.databind.ObjectMapper";
+    private static final String JACKSON_JSON_SUPPORT_PATH = "com.corundumstudio.socketio.protocol.JacksonJsonSupport";
+    private static final String NOT_FOUND_JACKSON_LIB_MSG = "Can't find jackson lib in classpath";
+    private static final String TRANSPORT_LIST_ERROR_MSG = "Transports list can't be empty";
 
     private ExceptionListener exceptionListener = new DefaultExceptionListener();
 
@@ -109,16 +113,16 @@ public class Configuration {
 
         if (conf.getJsonSupport() == null) {
             try {
-                getClass().getClassLoader().loadClass("com.fasterxml.jackson.databind.ObjectMapper");
+                getClass().getClassLoader().loadClass(OBJECT_MAPPER_PATH);
                 try {
-                    Class<?> jjs = getClass().getClassLoader().loadClass("com.corundumstudio.socketio.protocol.JacksonJsonSupport");
+                    Class<?> jjs = getClass().getClassLoader().loadClass(JACKSON_JSON_SUPPORT_PATH);
                     JsonSupport js = (JsonSupport) jjs.getConstructor().newInstance();
                     conf.setJsonSupport(js);
                 } catch (Exception e) {
                     throw new IllegalArgumentException(e);
                 }
             } catch (ClassNotFoundException e) {
-                throw new IllegalArgumentException("Can't find jackson lib in classpath", e);
+                throw new IllegalArgumentException(NOT_FOUND_JACKSON_LIB_MSG, e);
             }
         }
 
@@ -314,7 +318,7 @@ public class Configuration {
      */
     public void setTransports(Transport ... transports) {
         if (transports.length == 0) {
-            throw new IllegalArgumentException("Transports list can't be empty");
+            throw new IllegalArgumentException(TRANSPORT_LIST_ERROR_MSG);
         }
         this.transports = Arrays.asList(transports);
     }
