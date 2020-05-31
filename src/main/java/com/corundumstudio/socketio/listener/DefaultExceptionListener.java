@@ -24,7 +24,8 @@ import org.slf4j.LoggerFactory;
 
 import com.corundumstudio.socketio.SocketIOClient;
 
-public class DefaultExceptionListener extends ExceptionListenerAdapter {
+// public class DefaultExceptionListener extends ExceptionListenerAdapter {
+public class DefaultExceptionListener implements ExceptionListener {
 
     private static final Logger log = LoggerFactory.getLogger(DefaultExceptionListener.class);
 

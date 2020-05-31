@@ -15,6 +15,7 @@
  */
 package com.corundumstudio.socketio.transport;
 
+import com.corundumstudio.socketio.ReqMethodHandler;
 import com.corundumstudio.socketio.Transport;
 import com.corundumstudio.socketio.handler.AuthorizeHandler;
 import com.corundumstudio.socketio.handler.ClientHead;
@@ -25,6 +26,7 @@ import com.corundumstudio.socketio.messages.XHROptionsMessage;
 import com.corundumstudio.socketio.messages.XHRPostMessage;
 import com.corundumstudio.socketio.protocol.PacketDecoder;
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufHolder;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler.Sharable;
@@ -36,6 +38,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
@@ -62,13 +65,14 @@ public class PollingTransport extends ChannelInboundHandlerAdapter {
         if (msg instanceof FullHttpRequest) {
             FullHttpRequest req = (FullHttpRequest) msg;
             QueryStringDecoder queryDecoder = new QueryStringDecoder(req.uri());
+            Map<String, List<String>> parameters = queryDecoder.parameters();
+          
+            List<String> transport = parameters.get("transport");
 
-            List<String> transport = queryDecoder.parameters().get("transport");
-
-            if (transport != null && NAME.equals(transport.get(0))) {
-                List<String> sid = queryDecoder.parameters().get("sid");
-                List<String> j = queryDecoder.parameters().get("j");
-                List<String> b64 = queryDecoder.parameters().get("b64");
+            if (isPolling(transport)) {
+                List<String> sid = parameters.get("sid");
+                List<String> j = parameters.get("j");
+                List<String> b64 = parameters.get("b64");
 
                 String origin = req.headers().get(HttpHeaderNames.ORIGIN);
                 ctx.channel().attr(EncoderHandler.ORIGIN).set(origin);
@@ -76,11 +80,11 @@ public class PollingTransport extends ChannelInboundHandlerAdapter {
                 String userAgent = req.headers().get(HttpHeaderNames.USER_AGENT);
                 ctx.channel().attr(EncoderHandler.USER_AGENT).set(userAgent);
 
-                if (j != null && j.get(0) != null) {
+                if (isNotNull(j)) {
                     Integer index = Integer.valueOf(j.get(0));
                     ctx.channel().attr(EncoderHandler.JSONP_INDEX).set(index);
                 }
-                if (b64 != null && b64.get(0) != null) {
+                if (isNotNull(b64)) {
                     String flag = b64.get(0);
                     if ("true".equals(flag)) {
                         flag = "1";
@@ -92,7 +96,7 @@ public class PollingTransport extends ChannelInboundHandlerAdapter {
                 }
 
                 try {
-                    if (sid != null && sid.get(0) != null) {
+                    if (isNotNull(sid)) {
                         final UUID sessionId = UUID.fromString(sid.get(0));
                         handleMessage(req, sessionId, queryDecoder, ctx);
                     } else {
@@ -113,19 +117,30 @@ public class PollingTransport extends ChannelInboundHandlerAdapter {
                                                                                 throws IOException {
             String origin = req.headers().get(HttpHeaderNames.ORIGIN);
             if (queryDecoder.parameters().containsKey("disconnect")) {
-                ClientHead client = clientsBox.get(sessionId);
-                client.onChannelDisconnect();
-                ctx.channel().writeAndFlush(new XHRPostMessage(origin, sessionId));
-            } else if (HttpMethod.POST.equals(req.method())) {
-                onPost(sessionId, ctx, origin, req.content());
-            } else if (HttpMethod.GET.equals(req.method())) {
-                onGet(sessionId, ctx, origin);
-            } else if (HttpMethod.OPTIONS.equals(req.method())) {
-                onOptions(sessionId, ctx, origin);
+                disconnectChannel(sessionId, origin, ctx);
             } else {
-                log.error("Wrong {} method invocation for {}", req.method(), sessionId);
-                sendError(ctx);
-            }
+                handleHttpMethod(req.method(), req.content(), sessionId, ctx, origin);
+            } 
+    }
+
+    private void disconnectChannel(UUID sId, String origin, ChannelHandlerContext ctx){
+            ClientHead client = clientsBox.get(sId);
+            client.onChannelDisconnect();
+            ctx.channel().writeAndFlush(new XHRPostMessage(origin, sId));
+    }
+    
+    private void handleHttpMethod(HttpMethod method, ByteBuf contents, UUID sessionId, ChannelHandlerContext ctx, String origin) throws IOException{
+    	if (HttpMethod.POST.equals(method)) {
+            onPost(sessionId, ctx, origin, contents);
+        } else if (HttpMethod.GET.equals(method)) {
+            onGet(sessionId, ctx, origin);
+        } else if (HttpMethod.OPTIONS.equals(method)) {
+            onOptions(sessionId, ctx, origin);
+        } else {
+            log.error("Wrong {} method invocation for {}", method, sessionId);
+            sendError(ctx);
+        }
+        return;
     }
 
     private void onOptions(UUID sessionId, ChannelHandlerContext ctx, String origin) {
@@ -139,45 +154,45 @@ public class PollingTransport extends ChannelInboundHandlerAdapter {
         ctx.channel().writeAndFlush(new XHROptionsMessage(origin, sessionId));
     }
 
-    private void onPost(UUID sessionId, ChannelHandlerContext ctx, String origin, ByteBuf content)
-                                                                                throws IOException {
-        ClientHead client = clientsBox.get(sessionId);
-        if (client == null) {
-            log.error("{} is not registered. Closing connection", sessionId);
-            sendError(ctx);
-            return;
-        }
+     private void onPost(UUID sessionId, ChannelHandlerContext ctx, String origin, ByteBuf content)
+                                                                                 throws IOException {
+         ClientHead client = clientsBox.get(sessionId);
+         if (client == null) {
+             log.error("{} is not registered. Closing connection", sessionId);
+             sendError(ctx);
+             return;
+         }
 
 
-        // release POST response before message processing
-        ctx.channel().writeAndFlush(new XHRPostMessage(origin, sessionId));
+         // release POST response before message processing
+         ctx.channel().writeAndFlush(new XHRPostMessage(origin, sessionId));
 
-        Boolean b64 = ctx.channel().attr(EncoderHandler.B64).get();
-        if (b64 != null && b64) {
-            Integer jsonIndex = ctx.channel().attr(EncoderHandler.JSONP_INDEX).get();
-            content = decoder.preprocessJson(jsonIndex, content);
-        }
+         Boolean b64 = ctx.channel().attr(EncoderHandler.B64).get();
+         if (b64 != null && b64) {
+             Integer jsonIndex = ctx.channel().attr(EncoderHandler.JSONP_INDEX).get();
+             content = decoder.preprocessJson(jsonIndex, content);
+         }
 
-        ctx.pipeline().fireChannelRead(new PacketsMessage(client, content, Transport.POLLING));
-    }
+         ctx.pipeline().fireChannelRead(new PacketsMessage(client, content, Transport.POLLING));
+     }
 
-    protected void onGet(UUID sessionId, ChannelHandlerContext ctx, String origin) {
-        ClientHead client = clientsBox.get(sessionId);
-        if (client == null) {
-            log.error("{} is not registered. Closing connection", sessionId);
-            sendError(ctx);
-            return;
-        }
+     protected void onGet(UUID sessionId, ChannelHandlerContext ctx, String origin) {
+         ClientHead client = clientsBox.get(sessionId);
+         if (client == null) {
+             log.error("{} is not registered. Closing connection", sessionId);
+             sendError(ctx);
+             return;
+         }
 
-        client.bindChannel(ctx.channel(), Transport.POLLING);
+         client.bindChannel(ctx.channel(), Transport.POLLING);
 
-        authorizeHandler.connect(client);
-    }
+         authorizeHandler.connect(client);
+     }
 
-    private void sendError(ChannelHandlerContext ctx) {
-        HttpResponse res = new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.INTERNAL_SERVER_ERROR);
-        ctx.channel().writeAndFlush(res).addListener(ChannelFutureListener.CLOSE);
-    }
+     private void sendError(ChannelHandlerContext ctx) {
+         HttpResponse res = new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.INTERNAL_SERVER_ERROR);
+         ctx.channel().writeAndFlush(res).addListener(ChannelFutureListener.CLOSE);
+     }
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
@@ -188,6 +203,14 @@ public class PollingTransport extends ChannelInboundHandlerAdapter {
             client.releasePollingChannel(channel);
         }
         super.channelInactive(ctx);
+    }
+
+    private Boolean isPolling(List<String> transport){
+        return transport != null && NAME.equals(transport.get(0));
+    }
+
+    private Boolean isNotNull(List<String> param){
+        return param != null && param.get(0) != null;
     }
 
 }
