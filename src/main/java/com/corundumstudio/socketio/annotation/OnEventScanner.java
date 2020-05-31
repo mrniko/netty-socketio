@@ -134,7 +134,7 @@ public class OnEventScanner implements AnnotationScanner {
     }
 
     @Override
-    public void validate(Method method, Class<?> clazz) {
+    public void validateListener(Method method, Class<?> clazz) {
         int paramsCount = method.getParameterTypes().length;
         final int socketIOClientIndex = paramIndex(method, SocketIOClient.class);
         final int ackRequestIndex = paramIndex(method, AckRequest.class);
