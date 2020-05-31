@@ -54,9 +54,9 @@ public abstract class BaseStoreFactory implements StoreFactory {
         pubSubStore().subscribe(PubSubType.DISPATCH, new PubSubListener<DispatchMessage>() {
             @Override
             public void onMessage(DispatchMessage msg) {
-                String name = msg.getRoom();
+                String roomName = msg.getRoom();
 
-                namespacesHub.get(msg.getNamespace()).dispatch(name, msg.getPacket());
+                namespacesHub.get(msg.getNamespace()).dispatch(roomName, msg.getPacket());
                 log.debug("{} packet: {}", PubSubType.DISPATCH, msg.getPacket());
             }
         }, DispatchMessage.class);
@@ -64,9 +64,9 @@ public abstract class BaseStoreFactory implements StoreFactory {
         pubSubStore().subscribe(PubSubType.JOIN, new PubSubListener<JoinLeaveMessage>() {
             @Override
             public void onMessage(JoinLeaveMessage msg) {
-                String name = msg.getRoom();
+                String roomName = msg.getRoom();
 
-                namespacesHub.get(msg.getNamespace()).join(name, msg.getSessionId());
+                namespacesHub.get(msg.getNamespace()).join(roomName, msg.getSessionId());
                 log.debug("{} sessionId: {}", PubSubType.JOIN, msg.getSessionId());
             }
         }, JoinLeaveMessage.class);
@@ -74,9 +74,9 @@ public abstract class BaseStoreFactory implements StoreFactory {
         pubSubStore().subscribe(PubSubType.LEAVE, new PubSubListener<JoinLeaveMessage>() {
             @Override
             public void onMessage(JoinLeaveMessage msg) {
-                String name = msg.getRoom();
+                String roomName = msg.getRoom();
 
-                namespacesHub.get(msg.getNamespace()).leave(name, msg.getSessionId());
+                namespacesHub.get(msg.getNamespace()).leave(roomName, msg.getSessionId());
                 log.debug("{} sessionId: {}", PubSubType.LEAVE, msg.getSessionId());
             }
         }, JoinLeaveMessage.class);

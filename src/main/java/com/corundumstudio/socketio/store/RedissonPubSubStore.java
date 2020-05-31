@@ -52,8 +52,8 @@ public class RedissonPubSubStore implements PubSubStore {
 
     @Override
     public <T extends PubSubMessage> void subscribe(PubSubType type, final PubSubListener<T> listener, Class<T> clazz) {
-        String name = type.toString();
-        RTopic topic = redissonSub.getTopic(name);
+        String typeName = type.toString();
+        RTopic topic = redissonSub.getTopic(typeName);
         int regId = topic.addListener(PubSubMessage.class, new MessageListener<PubSubMessage>() {
             @Override
             public void onMessage(CharSequence channel, PubSubMessage msg) {
@@ -76,9 +76,9 @@ public class RedissonPubSubStore implements PubSubStore {
 
     @Override
     public void unsubscribe(PubSubType type) {
-        String name = type.toString();
-        Queue<Integer> regIds = map.remove(name);
-        RTopic topic = redissonSub.getTopic(name);
+        String typeName = type.toString();
+        Queue<Integer> regIds = map.remove(typeName);
+        RTopic topic = redissonSub.getTopic(typeName);
         for (Integer id : regIds) {
             topic.removeListener(id);
         }

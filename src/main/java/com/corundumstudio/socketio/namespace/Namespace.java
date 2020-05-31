@@ -160,7 +160,8 @@ public class Namespace implements SocketIONamespace {
     }
 
     private void sendAck(AckRequest ackRequest) {
-        if (ackMode == AckMode.AUTO || ackMode == AckMode.AUTO_SUCCESS_ONLY) {
+    	boolean isAckModeAuto = ackMode == AckMode.AUTO || ackMode == AckMode.AUTO_SUCCESS_ONLY;
+        if (isAckModeAuto) {
             // send ack response if it not executed
             // during {@link DataListener#onData} invocation
             ackRequest.sendAckData(Collections.emptyList());
