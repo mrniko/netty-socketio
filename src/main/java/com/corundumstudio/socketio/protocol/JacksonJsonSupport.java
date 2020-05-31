@@ -129,22 +129,27 @@ public class JacksonJsonSupport implements JsonSupport {
             result = prime * result + ((namespaceName == null) ? 0 : namespaceName.hashCode());
             return result;
         }
-
+        
         @Override
         public boolean equals(Object obj) {
-            if (this == obj)
+        	boolean isSame = (this == obj);
+        	boolean isnull = (obj == null);
+        	boolean isNotSame_Class = (getClass() != obj.getClass());
+        	boolean isEmptyeventName = (eventName == null);
+        	boolean isEmptynamespaceName = (namespaceName == null);
+            if (isSame)
                 return true;
-            if (obj == null)
+            if (isnull)
                 return false;
-            if (getClass() != obj.getClass())
+            if (isNotSame_Class)
                 return false;
             EventKey other = (EventKey) obj;
-            if (eventName == null) {
+            if (isEmptyeventName) {
                 if (other.eventName != null)
                     return false;
             } else if (!eventName.equals(other.eventName))
                 return false;
-            if (namespaceName == null) {
+            if (isEmptynamespaceName) {
                 if (other.namespaceName != null)
                     return false;
             } else if (!namespaceName.equals(other.namespaceName))
@@ -156,7 +161,7 @@ public class JacksonJsonSupport implements JsonSupport {
 
     private class EventDeserializer extends StdDeserializer<Event> {
 
-        private static final long serialVersionUID = 8178797221017768689L;
+        private static final long serialVersionUserID = 8178797221017768689L;
 
         final Map<EventKey, List<Class<?>>> eventMapping = PlatformDependent.newConcurrentHashMap();
 
@@ -205,7 +210,7 @@ public class JacksonJsonSupport implements JsonSupport {
     public static class ByteArraySerializer extends StdSerializer<byte[]>
     {
 
-        private static final long serialVersionUID = 3420082888596468148L;
+        private static final long serialVersionUserID = 3420082888596468148L;
 
         private final ThreadLocal<List<byte[]>> arrays = new ThreadLocal<List<byte[]>>() {
             @Override
@@ -254,9 +259,12 @@ public class JacksonJsonSupport implements JsonSupport {
         public void acceptJsonFormatVisitor(JsonFormatVisitorWrapper visitor, JavaType typeHint)
                 throws JsonMappingException
         {
-            if (visitor != null) {
+        	boolean isvisitorNotNull = (visitor != null);
+        	
+            if (isvisitorNotNull) {
                 JsonArrayFormatVisitor v2 = visitor.expectArrayFormat(typeHint);
-                if (v2 != null) {
+                boolean isv2NotNull = (v2 != null);
+                if (isv2NotNull) {
                     v2.itemsFormat(JsonFormatTypes.STRING);
                 }
             }
@@ -307,7 +315,8 @@ public class JacksonJsonSupport implements JsonSupport {
     }
 
     public JacksonJsonSupport(Module... modules) {
-        if (modules != null && modules.length > 0) {
+    	boolean ismodulesRegisterable = (modules != null && modules.length > 0)
+        if (ismodulesRegisterable) {
             objectMapper.registerModules(modules);
         }
         init(objectMapper);
