@@ -69,7 +69,7 @@ public class Namespace implements SocketIONamespace {
         this.name = name;
         this.storeFactory = configuration.getStoreFactory();
     
-        listenerManager = new ListenerManager(configuration.getJsonSupport(), name,
+        listenerManager = new ListenerManager(this, configuration.getJsonSupport(), name,
         		configuration.getExceptionListener(), configuration.getAckMode());
     }
 
@@ -286,5 +286,11 @@ public class Namespace implements SocketIONamespace {
     public SocketIOClient getClient(UUID uuid) {
         return allClients.get(uuid);
     }
+
+	@Override
+	public ListenerManager getListenerManager() {
+		// TODO Auto-generated method stub
+		return listenerManager;
+	}
 
 }

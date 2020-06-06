@@ -15,6 +15,7 @@
  */
 package com.corundumstudio.socketio.listener;
 
+import com.corundumstudio.socketio.namespace.Namespace;
 
 public interface ClientListeners {
 
@@ -35,5 +36,6 @@ public interface ClientListeners {
     void addListeners(Object listeners, Class<?> listenersClass);
 
     void removeAllListeners(String eventName);
+
     
 }

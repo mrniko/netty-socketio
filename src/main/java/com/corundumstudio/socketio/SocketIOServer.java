@@ -51,7 +51,7 @@ public class SocketIOServer implements ClientListeners {
 
     private final NamespacesHub namespacesHub;
     private final SocketIONamespace mainNamespace;
-
+    private ListenerManager listenerManager;
     private SocketIOChannelInitializer pipelineFactory = new SocketIOChannelInitializer();
 
     private EventLoopGroup bossGroup;
@@ -62,6 +62,7 @@ public class SocketIOServer implements ClientListeners {
         this.configCopy = new Configuration(configuration);
         namespacesHub = new NamespacesHub(configCopy);
         mainNamespace = addNamespace(Namespace.DEFAULT_NAME);
+        listenerManager = mainNamespace.getListenerManager();
     }
 
     public void setPipelineFactory(SocketIOChannelInitializer pipelineFactory) {
@@ -221,50 +222,56 @@ public class SocketIOServer implements ClientListeners {
 
     @Override
     public void addMultiTypeEventListener(String eventName, MultiTypeEventListener listener, Class<?>... eventClass) {
-        mainNamespace.addMultiTypeEventListener(eventName, listener, eventClass);
+    	listenerManager.addMultiTypeEventListener(eventName, listener, eventClass);
     }
 
     @Override
     public <T> void addEventListener(String eventName, Class<T> eventClass, DataListener<T> listener) {
-        mainNamespace.addEventListener(eventName, eventClass, listener);
+    	listenerManager.addEventListener(eventName, eventClass, listener);
     }
 
     @Override
     public void addEventInterceptor(EventInterceptor eventInterceptor) {
-        mainNamespace.addEventInterceptor(eventInterceptor);
+    	listenerManager.addEventInterceptor(eventInterceptor);
 
     }
 
 
     @Override
     public void removeAllListeners(String eventName) {
-        mainNamespace.removeAllListeners(eventName);
+    	listenerManager.removeAllListeners(eventName);
     }
 
     @Override
     public void addDisconnectListener(DisconnectListener listener) {
-        mainNamespace.addDisconnectListener(listener);
+    	listenerManager.addDisconnectListener(listener);
     }
 
     @Override
     public void addConnectListener(ConnectListener listener) {
-        mainNamespace.addConnectListener(listener);
+    	listenerManager.addConnectListener(listener);
     }
 
     @Override
     public void addPingListener(PingListener listener) {
-        mainNamespace.addPingListener(listener);
+    	listenerManager.addPingListener(listener);
     }
 
     @Override
     public void addListeners(Object listeners) {
-        mainNamespace.addListeners(listeners);
+    	listenerManager.addListeners(listeners);
     }
     
-    @Override
-    public void addListeners(Object listeners, Class<?> listenersClass) {
-        mainNamespace.addListeners(listeners, listenersClass);
-    }
+//    @Override
+//    public void addListeners(Object listeners, Class<?> listenersClass) {
+//    	listenerManager.addListeners(listeners, listenersClass);
+//    }
+
+	@Override
+	public void addListeners(Object listeners, Class<?> listenersClass) {
+		listenerManager.addListeners(listeners, listenersClass);
+		
+	}
 
 
 }

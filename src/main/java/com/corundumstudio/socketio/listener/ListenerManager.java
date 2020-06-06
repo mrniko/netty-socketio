@@ -12,6 +12,7 @@ import com.corundumstudio.socketio.MultiTypeArgs;
 import com.corundumstudio.socketio.SocketIOClient;
 import com.corundumstudio.socketio.annotation.ScannerEngine;
 import com.corundumstudio.socketio.namespace.EventEntry;
+import com.corundumstudio.socketio.namespace.Namespace;
 import com.corundumstudio.socketio.protocol.JsonSupport;
 import com.corundumstudio.socketio.transport.NamespaceClient;
 
@@ -23,7 +24,8 @@ public class ListenerManager implements ClientListeners {
     private final JsonSupport jsonSupport;
     private final ExceptionListener exceptionListener;
     private final AckMode ackMode;
-
+    private final Namespace namespace;
+    
     private final ScannerEngine engine = new ScannerEngine();
 
     private final ConcurrentMap<String, EventEntry<?>> eventListeners = PlatformDependent.newConcurrentHashMap();
@@ -34,7 +36,8 @@ public class ListenerManager implements ClientListeners {
     private final Queue<EventInterceptor> eventInterceptors = new ConcurrentLinkedQueue<EventInterceptor>();
 	
     
-    public ListenerManager(JsonSupport jsonSupport, String namespaceName, ExceptionListener exceptionListener, AckMode ackMode) {
+    public ListenerManager(Namespace namespace, JsonSupport jsonSupport, String namespaceName, ExceptionListener exceptionListener, AckMode ackMode) {
+    	this.namespace = namespace;
     	this.jsonSupport = jsonSupport;
     	this.namespaceName = namespaceName;
     	this.exceptionListener = exceptionListener;
@@ -107,7 +110,7 @@ public class ListenerManager implements ClientListeners {
 	@Override
 	public void addListeners(Object listeners, Class<?> listenersClass) {
 		// TODO Auto-generated method stub
-        engine.scan(this, listeners, listenersClass);
+        engine.scan(namespace, listeners, listenersClass);
 	}
 
 	@Override
