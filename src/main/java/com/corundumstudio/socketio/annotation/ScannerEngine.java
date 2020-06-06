@@ -52,7 +52,7 @@ public class ScannerEngine {
                 for (AnnotationScanner annotationScanner : annotations) {
                     Annotation ann = method.getAnnotation(annotationScanner.getScanAnnotation());
                     if (ann != null) {
-                        annotationScanner.validate(method, clazz);
+                        annotationScanner.validateListener(method, clazz);
 
                         Method m = findSimilarMethod(object.getClass(), method);
                         if (m != null) {
@@ -68,7 +68,7 @@ public class ScannerEngine {
                 for (AnnotationScanner annotationScanner : annotations) {
                     Annotation ann = method.getAnnotation(annotationScanner.getScanAnnotation());
                     if (ann != null) {
-                        annotationScanner.validate(method, clazz);
+                        annotationScanner.validateListener(method, clazz);
                         makeAccessible(method);
                         annotationScanner.addListener(namespace, object, method, ann);
                     }

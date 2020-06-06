@@ -24,7 +24,7 @@ import com.corundumstudio.socketio.listener.ClientListeners;
  * Fully thread-safe.
  *
  */
-public interface SocketIONamespace extends ClientListeners {
+public interface SocketIONamespace  {
 
     String getName();
 

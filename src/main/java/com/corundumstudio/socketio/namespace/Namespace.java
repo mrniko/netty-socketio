@@ -53,31 +53,24 @@ import io.netty.util.internal.PlatformDependent;
 public class Namespace implements SocketIONamespace {
 
     public static final String DEFAULT_NAME = "";
-
-    private final ScannerEngine engine = new ScannerEngine();
-    private final ConcurrentMap<String, EventEntry<?>> eventListeners = PlatformDependent.newConcurrentHashMap();
-    private final Queue<ConnectListener> connectListeners = new ConcurrentLinkedQueue<ConnectListener>();
-    private final Queue<DisconnectListener> disconnectListeners = new ConcurrentLinkedQueue<DisconnectListener>();
-    private final Queue<PingListener> pingListeners = new ConcurrentLinkedQueue<PingListener>();
-    private final Queue<EventInterceptor> eventInterceptors = new ConcurrentLinkedQueue<EventInterceptor>();
-
+       
+    private ListenerManager listenerManager;
+    
     private final Map<UUID, SocketIOClient> allClients = PlatformDependent.newConcurrentHashMap();
     private final ConcurrentMap<String, Set<UUID>> roomClients = PlatformDependent.newConcurrentHashMap();
     private final ConcurrentMap<UUID, Set<String>> clientRooms = PlatformDependent.newConcurrentHashMap();
 
     private final String name;
-    private final AckMode ackMode;
-    private final JsonSupport jsonSupport;
     private final StoreFactory storeFactory;
-    private final ExceptionListener exceptionListener;
 
     public Namespace(String name, Configuration configuration) {
         super();
+
         this.name = name;
-        this.jsonSupport = configuration.getJsonSupport();
         this.storeFactory = configuration.getStoreFactory();
-        this.exceptionListener = configuration.getExceptionListener();
-        this.ackMode = configuration.getAckMode();
+    
+        listenerManager = new ListenerManager(configuration.getJsonSupport(), name,
+        		configuration.getExceptionListener(), configuration.getAckMode());
     }
 
     public void addClient(SocketIOClient client) {
@@ -88,101 +81,36 @@ public class Namespace implements SocketIONamespace {
     public String getName() {
         return name;
     }
-
-    @Override
-    public void addMultiTypeEventListener(String eventName, MultiTypeEventListener listener,
-            Class<?>... eventClass) {
-        EventEntry entry = eventListeners.get(eventName);
-        if (entry == null) {
-            entry = new EventEntry();
-            EventEntry<?> oldEntry = eventListeners.putIfAbsent(eventName, entry);
-            if (oldEntry != null) {
-                entry = oldEntry;
-            }
-        }
-        entry.addListener(listener);
-        jsonSupport.addEventMapping(name, eventName, eventClass);
-    }
-    
-    @Override
-    public void removeAllListeners(String eventName) {
-        EventEntry<?> entry = eventListeners.remove(eventName);
-        if (entry != null) {
-            jsonSupport.removeEventMapping(name, eventName);
-        }
-    }
-
-    @Override
-    @SuppressWarnings({"unchecked", "rawtypes"})
-    public <T> void addEventListener(String eventName, Class<T> eventClass, DataListener<T> listener) {
-        EventEntry entry = eventListeners.get(eventName);
-        if (entry == null) {
-            entry = new EventEntry<T>();
-            EventEntry<?> oldEntry = eventListeners.putIfAbsent(eventName, entry);
-            if (oldEntry != null) {
-                entry = oldEntry;
-            }
-        }
-        entry.addListener(listener);
-        jsonSupport.addEventMapping(name, eventName, eventClass);
-    }
-
-    @Override
-    public void addEventInterceptor(EventInterceptor eventInterceptor) {
-        eventInterceptors.add(eventInterceptor);
-    }
+//
+//    @Override
+//    public void addMultiTypeEventListener(String eventName, MultiTypeEventListener listener,
+//            Class<?>... eventClass) {
+//    	listenerManager.addMultiTypeEventListener(eventName, listener, eventClass);
+//    }
+//    
+//    @Override
+//    public void removeAllListeners(String eventName) {
+//    	listenerManager.removeAllListeners(eventName);
+//    }
+//
+//    @Override
+//    @SuppressWarnings({"unchecked", "rawtypes"})
+//    public <T> void addEventListener(String eventName, Class<T> eventClass, DataListener<T> listener) {
+//    	listenerManager.addEventListener(eventName, eventClass, listener);
+//    }
+//
+//    @Override
+//    public void addEventInterceptor(EventInterceptor eventInterceptor) {
+//    	listenerManager.addEventInterceptor(eventInterceptor);
+//    }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     public void onEvent(NamespaceClient client, String eventName, List<Object> args, AckRequest ackRequest) {
-        EventEntry entry = eventListeners.get(eventName);
-        if (entry == null) {
-            return;
-        }
-
-        try {
-            Queue<DataListener> listeners = entry.getListeners();
-            for (DataListener dataListener : listeners) {
-                Object data = getEventData(args, dataListener);
-                dataListener.onData(client, data, ackRequest);
-            }
-
-            for (EventInterceptor eventInterceptor : eventInterceptors) {
-                eventInterceptor.onEvent(client, eventName, args, ackRequest);
-            }
-        } catch (Exception e) {
-            exceptionListener.onEventException(e, args, client);
-            if (ackMode == AckMode.AUTO_SUCCESS_ONLY) {
-                return;
-            }
-        }
-
-        sendAck(ackRequest);
+        if(listenerManager.onEvent(client, eventName, args, ackRequest))
+        	listenerManager.sendAck(ackRequest);
+        return;
     }
 
-    private void sendAck(AckRequest ackRequest) {
-    	boolean isAckModeAuto = ackMode == AckMode.AUTO || ackMode == AckMode.AUTO_SUCCESS_ONLY;
-        if (isAckModeAuto) {
-            // send ack response if it not executed
-            // during {@link DataListener#onData} invocation
-            ackRequest.sendAckData(Collections.emptyList());
-        }
-    }
-
-    private Object getEventData(List<Object> args, DataListener<?> dataListener) {
-        if (dataListener instanceof MultiTypeEventListener) {
-            return new MultiTypeArgs(args);
-        } else {
-            if (!args.isEmpty()) {
-                return args.get(0);
-            }
-        }
-        return null;
-    }
-
-    @Override
-    public void addDisconnectListener(DisconnectListener listener) {
-        disconnectListeners.add(listener);
-    }
 
     public void onDisconnect(SocketIOClient client) {
         Set<String> joinedRooms = client.getAllRooms();        
@@ -196,46 +124,26 @@ public class Namespace implements SocketIONamespace {
         }
         clientRooms.remove(client.getSessionId());
 
-        try {
-            for (DisconnectListener listener : disconnectListeners) {
-                listener.onDisconnect(client);
-            }
-        } catch (Exception e) {
-            exceptionListener.onDisconnectException(e, client);
-        }
+        listenerManager.onDisconnect(client);
     }
 
-    @Override
-    public void addConnectListener(ConnectListener listener) {
-        connectListeners.add(listener);
-    }
+
 
     public void onConnect(SocketIOClient client) {
         join(getName(), client.getSessionId());
         storeFactory.pubSubStore().publish(PubSubType.JOIN, new JoinLeaveMessage(client.getSessionId(), getName(), getName()));
 
-        try {
-            for (ConnectListener listener : connectListeners) {
-                listener.onConnect(client);
-            }
-        } catch (Exception e) {
-            exceptionListener.onConnectException(e, client);
-        }
+        listenerManager.onConnect(client);
+
     }
 
-    @Override
-    public void addPingListener(PingListener listener) {
-        pingListeners.add(listener);
-    }
+//    @Override
+//    public void addPingListener(PingListener listener) {
+//        pingListeners.add(listener);
+//    }
 
     public void onPing(SocketIOClient client) {
-        try {
-            for (PingListener listener : pingListeners) {
-                listener.onPing(client);
-            }
-        } catch (Exception e) {
-            exceptionListener.onPingException(e, client);
-        }
+        listenerManager.onPing(client);
     }
 
     @Override
@@ -273,15 +181,15 @@ public class Namespace implements SocketIONamespace {
         return true;
     }
 
-    @Override
-    public void addListeners(Object listeners) {
-        addListeners(listeners, listeners.getClass());
-    }
-
-    @Override
-    public void addListeners(Object listeners, Class<?> listenersClass) {
-        engine.scan(this, listeners, listenersClass);
-    }
+//    @Override
+//    public void addListeners(Object listeners) {
+//        addListeners(listeners, listeners.getClass());
+//    }
+//
+//    @Override
+//    public void addListeners(Object listeners, Class<?> listenersClass) {
+//        engine.scan(this, listeners, listenersClass);
+//    }
 
     public void joinRoom(String room, UUID sessionId) {
         join(room, sessionId);
@@ -372,10 +280,6 @@ public class Namespace implements SocketIONamespace {
     @Override
     public Collection<SocketIOClient> getAllClients() {
         return Collections.unmodifiableCollection(allClients.values());
-    }
-
-    public JsonSupport getJsonSupport() {
-        return jsonSupport;
     }
 
     @Override
