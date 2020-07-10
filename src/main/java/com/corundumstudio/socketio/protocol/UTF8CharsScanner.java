@@ -86,15 +86,6 @@ public class UTF8CharsScanner {
         return i;
     }
 
-    public int getLength(ByteBuf inputBuffer, int start) {
-        int len = 0;
-        for (int i = start; i < inputBuffer.writerIndex();) {
-            i = getCharTailIndex(inputBuffer, i);
-            len++;
-        }
-        return len;
-    }
-
     public int getActualLength(ByteBuf inputBuffer, int length) {
         int len = 0;
         int start = inputBuffer.readerIndex();
@@ -106,21 +97,6 @@ public class UTF8CharsScanner {
             }
         }
         throw new IllegalStateException();
-    }
-
-
-    public int findTailIndex(ByteBuf inputBuffer, int start, int end,
-            int charsToRead) {
-        int len = 0;
-        int i = start;
-        while (i < end) {
-            i = getCharTailIndex(inputBuffer, i);
-            len++;
-            if (charsToRead == len) {
-                break;
-            }
-        }
-        return i;
     }
 
 }

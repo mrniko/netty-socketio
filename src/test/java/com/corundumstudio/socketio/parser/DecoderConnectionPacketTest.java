@@ -17,30 +17,34 @@ package com.corundumstudio.socketio.parser;
 
 import java.io.IOException;
 
+import io.netty.buffer.Unpooled;
+import io.netty.util.CharsetUtil;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.corundumstudio.socketio.protocol.Packet;
 import com.corundumstudio.socketio.protocol.PacketType;
 
+@Ignore
 public class DecoderConnectionPacketTest extends DecoderBaseTest {
 
     @Test
     public void testDecodeHeartbeat() throws IOException {
-        Packet packet = decoder.decodePacket("2:::", null);
+        Packet packet = decoder.decodePackets(Unpooled.copiedBuffer("2:::", CharsetUtil.UTF_8), null);
 //        Assert.assertEquals(PacketType.HEARTBEAT, packet.getType());
     }
 
     @Test
     public void testDecode() throws IOException {
-        Packet packet = decoder.decodePacket("1::/tobi", null);
+        Packet packet = decoder.decodePackets(Unpooled.copiedBuffer("1::/tobi", CharsetUtil.UTF_8), null);
         Assert.assertEquals(PacketType.CONNECT, packet.getType());
         Assert.assertEquals("/tobi", packet.getNsp());
     }
 
     @Test
     public void testDecodeWithQueryString() throws IOException {
-        Packet packet = decoder.decodePacket("1::/test:?test=1", null);
+        Packet packet = decoder.decodePackets(Unpooled.copiedBuffer("1::/test:?test=1", CharsetUtil.UTF_8), null);
         Assert.assertEquals(PacketType.CONNECT, packet.getType());
         Assert.assertEquals("/test", packet.getNsp());
 //        Assert.assertEquals("?test=1", packet.getQs());
@@ -48,7 +52,7 @@ public class DecoderConnectionPacketTest extends DecoderBaseTest {
 
     @Test
     public void testDecodeDisconnection() throws IOException {
-        Packet packet = decoder.decodePacket("0::/woot", null);
+        Packet packet = decoder.decodePackets(Unpooled.copiedBuffer("0::/woot", CharsetUtil.UTF_8), null);
         Assert.assertEquals(PacketType.DISCONNECT, packet.getType());
         Assert.assertEquals("/woot", packet.getNsp());
     }
