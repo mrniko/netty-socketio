@@ -18,6 +18,7 @@ package com.corundumstudio.socketio.store;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ConcurrentSkipListMap;
 
 import org.redisson.api.RTopic;
 import org.redisson.api.RedissonClient;
@@ -36,7 +37,7 @@ public class RedissonPubSubStore implements PubSubStore {
     private final RedissonClient redissonSub;
     private final Long nodeId;
 
-    private final ConcurrentMap<String, Queue<Integer>> map = PlatformDependent.newConcurrentHashMap();
+    private final ConcurrentMap<String, Queue<Integer>> map = new ConcurrentSkipListMap<String, Queue<Integer>>();
 
     public RedissonPubSubStore(RedissonClient redissonPub, RedissonClient redissonSub, Long nodeId) {
         this.redissonPub = redissonPub;

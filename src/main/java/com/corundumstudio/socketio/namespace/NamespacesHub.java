@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ConcurrentSkipListMap;
 
 import com.corundumstudio.socketio.Configuration;
 import com.corundumstudio.socketio.SocketIOClient;
@@ -29,7 +30,7 @@ import com.corundumstudio.socketio.misc.CompositeIterable;
 
 public class NamespacesHub {
 
-    private final ConcurrentMap<String, SocketIONamespace> namespaces = PlatformDependent.newConcurrentHashMap();
+    private final ConcurrentMap<String, SocketIONamespace> namespaces = new ConcurrentSkipListMap<String, SocketIONamespace>();
     private final Configuration configuration;
 
     public NamespacesHub(Configuration configuration) {

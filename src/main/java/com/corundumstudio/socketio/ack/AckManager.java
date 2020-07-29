@@ -30,6 +30,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -37,7 +38,7 @@ public class AckManager implements Disconnectable {
 
     class AckEntry {
 
-        final Map<Long, AckCallback<?>> ackCallbacks = PlatformDependent.newConcurrentHashMap();
+        final Map<Long, AckCallback<?>> ackCallbacks = new ConcurrentSkipListMap<Long, AckCallback<?>>();
         final AtomicLong ackIndex = new AtomicLong(-1);
 
         public long addAckCallback(AckCallback<?> callback) {
@@ -66,7 +67,7 @@ public class AckManager implements Disconnectable {
 
     private static final Logger log = LoggerFactory.getLogger(AckManager.class);
 
-    private final ConcurrentMap<UUID, AckEntry> ackEntries = PlatformDependent.newConcurrentHashMap();
+    private final ConcurrentMap<UUID, AckEntry> ackEntries = new ConcurrentSkipListMap<UUID, AckEntry>();
 
     private final CancelableScheduler scheduler;
 

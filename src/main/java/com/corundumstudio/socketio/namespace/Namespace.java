@@ -25,6 +25,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ConcurrentSkipListMap;
 
 import com.corundumstudio.socketio.AckMode;
 import com.corundumstudio.socketio.AckRequest;
@@ -55,15 +56,15 @@ public class Namespace implements SocketIONamespace {
     public static final String DEFAULT_NAME = "";
 
     private final ScannerEngine engine = new ScannerEngine();
-    private final ConcurrentMap<String, EventEntry<?>> eventListeners = PlatformDependent.newConcurrentHashMap();
+    private final ConcurrentMap<String, EventEntry<?>> eventListeners = new ConcurrentSkipListMap<String, EventEntry<?>>();
     private final Queue<ConnectListener> connectListeners = new ConcurrentLinkedQueue<ConnectListener>();
     private final Queue<DisconnectListener> disconnectListeners = new ConcurrentLinkedQueue<DisconnectListener>();
     private final Queue<PingListener> pingListeners = new ConcurrentLinkedQueue<PingListener>();
     private final Queue<EventInterceptor> eventInterceptors = new ConcurrentLinkedQueue<EventInterceptor>();
 
-    private final Map<UUID, SocketIOClient> allClients = PlatformDependent.newConcurrentHashMap();
-    private final ConcurrentMap<String, Set<UUID>> roomClients = PlatformDependent.newConcurrentHashMap();
-    private final ConcurrentMap<UUID, Set<String>> clientRooms = PlatformDependent.newConcurrentHashMap();
+    private final Map<UUID, SocketIOClient> allClients = new ConcurrentSkipListMap<UUID, SocketIOClient>();
+    private final ConcurrentMap<String, Set<UUID>> roomClients = new ConcurrentSkipListMap<String, Set<UUID>>();
+    private final ConcurrentMap<UUID, Set<String>> clientRooms = new ConcurrentSkipListMap<UUID, Set<String>>();
 
     private final String name;
     private final AckMode ackMode;
@@ -298,7 +299,7 @@ public class Namespace implements SocketIONamespace {
     private <K, V> void join(ConcurrentMap<K, Set<V>> map, K key, V value) {
         Set<V> clients = map.get(key);
         if (clients == null) {
-            clients = Collections.newSetFromMap(PlatformDependent.<V, Boolean>newConcurrentHashMap());
+            clients = Collections.newSetFromMap(new ConcurrentSkipListMap<V, Boolean>());
             Set<V> oldClients = map.putIfAbsent(key, clients);
             if (oldClients != null) {
                 clients = oldClients;
