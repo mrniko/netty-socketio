@@ -188,11 +188,10 @@ public class Namespace implements SocketIONamespace {
         Set<String> joinedRooms = client.getAllRooms();        
         allClients.remove(client.getSessionId());
 
-        leave(getName(), client.getSessionId());
-        storeFactory.pubSubStore().publish(PubSubType.LEAVE, new JoinLeaveMessage(client.getSessionId(), getName(), getName()));
-
+        // client must leave all rooms and publish the leave msg one by one on disconnect.
         for (String joinedRoom : joinedRooms) {
             leave(roomClients, joinedRoom, client.getSessionId());
+            storeFactory.pubSubStore().publish(PubSubType.LEAVE, new JoinLeaveMessage(client.getSessionId(), joinedRoom, getName()));
         }
         clientRooms.remove(client.getSessionId());
 
