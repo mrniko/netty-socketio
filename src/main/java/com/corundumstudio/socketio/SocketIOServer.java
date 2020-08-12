@@ -15,7 +15,24 @@
  */
 package com.corundumstudio.socketio;
 
-import com.corundumstudio.socketio.listener.*;
+import java.net.InetSocketAddress;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.UUID;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.corundumstudio.socketio.listener.ClientListeners;
+import com.corundumstudio.socketio.listener.ConnectListener;
+import com.corundumstudio.socketio.listener.DataListener;
+import com.corundumstudio.socketio.listener.DisconnectListener;
+import com.corundumstudio.socketio.listener.MultiTypeEventListener;
+import com.corundumstudio.socketio.listener.PingListener;
+import com.corundumstudio.socketio.namespace.Namespace;
+import com.corundumstudio.socketio.namespace.NamespacesHub;
+
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
@@ -27,16 +44,6 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.FutureListener;
-
-import java.net.InetSocketAddress;
-import java.util.Collection;
-import java.util.UUID;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.corundumstudio.socketio.namespace.Namespace;
-import com.corundumstudio.socketio.namespace.NamespacesHub;
 
 /**
  * Fully thread-safe.
@@ -97,7 +104,16 @@ public class SocketIOServer implements ClientListeners {
     }
 
     public BroadcastOperations getBroadcastOperations() {
-        return new BroadcastOperations(getAllClients(), configCopy.getStoreFactory());
+    	Collection<SocketIONamespace> namespaces = namespacesHub.getAllNamespaces();
+    	List<BroadcastOperations> list = new ArrayList<BroadcastOperations>();
+    	BroadcastOperations broadcast = null;
+    	if( namespaces != null && namespaces.size() > 0 ) {
+    		for( SocketIONamespace n : namespaces ) {
+    			broadcast = n.getBroadcastOperations();
+    			list.add( broadcast );
+    		}
+    	}
+        return new MultiRoomBroadcastOperations( list );
     }
 
     /**
@@ -108,8 +124,16 @@ public class SocketIOServer implements ClientListeners {
      * @return broadcast operations
      */
     public BroadcastOperations getRoomOperations(String room) {
-        Iterable<SocketIOClient> clients = namespacesHub.getRoomClients(room);
-        return new BroadcastOperations(clients, configCopy.getStoreFactory());
+    	Collection<SocketIONamespace> namespaces = namespacesHub.getAllNamespaces();
+    	List<BroadcastOperations> list = new ArrayList<BroadcastOperations>();
+    	BroadcastOperations broadcast = null;
+    	if( namespaces != null && namespaces.size() > 0 ) {
+    		for( SocketIONamespace n : namespaces ) {
+    			broadcast = n.getRoomOperations( room );
+    			list.add( broadcast );
+    		}
+    	}
+        return new MultiRoomBroadcastOperations( list );
     }
 
     /**

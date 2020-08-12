@@ -31,10 +31,16 @@ import com.corundumstudio.socketio.AckRequest;
 import com.corundumstudio.socketio.BroadcastOperations;
 import com.corundumstudio.socketio.Configuration;
 import com.corundumstudio.socketio.MultiTypeArgs;
+import com.corundumstudio.socketio.SingleRoomBroadcastOperations;
 import com.corundumstudio.socketio.SocketIOClient;
 import com.corundumstudio.socketio.SocketIONamespace;
 import com.corundumstudio.socketio.annotation.ScannerEngine;
-import com.corundumstudio.socketio.listener.*;
+import com.corundumstudio.socketio.listener.ConnectListener;
+import com.corundumstudio.socketio.listener.DataListener;
+import com.corundumstudio.socketio.listener.DisconnectListener;
+import com.corundumstudio.socketio.listener.ExceptionListener;
+import com.corundumstudio.socketio.listener.MultiTypeEventListener;
+import com.corundumstudio.socketio.listener.PingListener;
 import com.corundumstudio.socketio.protocol.JsonSupport;
 import com.corundumstudio.socketio.protocol.Packet;
 import com.corundumstudio.socketio.store.StoreFactory;
@@ -239,12 +245,12 @@ public class Namespace implements SocketIONamespace {
 
     @Override
     public BroadcastOperations getBroadcastOperations() {
-        return new BroadcastOperations(allClients.values(), storeFactory);
+        return new SingleRoomBroadcastOperations(getName(), getName(), allClients.values(), storeFactory);
     }
 
     @Override
     public BroadcastOperations getRoomOperations(String room) {
-        return new BroadcastOperations(getRoomClients(room), storeFactory);
+        return new SingleRoomBroadcastOperations(getName(), room, getRoomClients(room), storeFactory);
     }
 
     @Override
@@ -330,7 +336,7 @@ public class Namespace implements SocketIONamespace {
         clients.remove(sessionId);
 
         if (clients.isEmpty()) {
-            map.remove(room, Collections.emptySet());
+            map.remove(room, clients);
         }
     }
 
