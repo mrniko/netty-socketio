@@ -113,7 +113,7 @@ public class SocketIOServer implements ClientListeners {
     			list.add( broadcast );
     		}
     	}
-        return new MultyRoomBroadcastOperations( list );
+        return new MultiRoomBroadcastOperations( list );
     }
 
     /**
@@ -133,7 +133,7 @@ public class SocketIOServer implements ClientListeners {
     			list.add( broadcast );
     		}
     	}
-        return new MultyRoomBroadcastOperations( list );
+        return new MultiRoomBroadcastOperations( list );
     }
 
     /**

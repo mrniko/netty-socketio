@@ -25,11 +25,11 @@ import com.corundumstudio.socketio.protocol.Packet;
  * Fully thread-safe.
  *
  */
-public class MultyRoomBroadcastOperations implements BroadcastOperations {
+public class MultiRoomBroadcastOperations implements BroadcastOperations {
 
 	private Collection<BroadcastOperations> broadcastOperations;
 
-    public MultyRoomBroadcastOperations( Collection<BroadcastOperations> broadcastOperations ) {
+    public MultiRoomBroadcastOperations( Collection<BroadcastOperations> broadcastOperations ) {
     	this.broadcastOperations = broadcastOperations;
     }
 

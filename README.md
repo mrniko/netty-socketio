@@ -1,4 +1,3 @@
-fork from mrniko/netty-socketio
 
 Netty-socketio Overview
 ===
