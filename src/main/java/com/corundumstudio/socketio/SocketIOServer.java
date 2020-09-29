@@ -29,7 +29,9 @@ import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.FutureListener;
 
 import java.net.InetSocketAddress;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.UUID;
 
 import org.slf4j.Logger;
@@ -97,7 +99,16 @@ public class SocketIOServer implements ClientListeners {
     }
 
     public BroadcastOperations getBroadcastOperations() {
-        return new BroadcastOperations(getAllClients(), configCopy.getStoreFactory());
+        Collection<SocketIONamespace> namespaces = namespacesHub.getAllNamespaces();
+        List<BroadcastOperations> list = new ArrayList<BroadcastOperations>();
+        BroadcastOperations broadcast = null;
+        if( namespaces != null && namespaces.size() > 0 ) {
+            for( SocketIONamespace n : namespaces ) {
+                broadcast = n.getBroadcastOperations();
+                list.add( broadcast );
+            }
+        }
+        return new MultiRoomBroadcastOperations( list );
     }
 
     /**
@@ -108,8 +119,16 @@ public class SocketIOServer implements ClientListeners {
      * @return broadcast operations
      */
     public BroadcastOperations getRoomOperations(String room) {
-        Iterable<SocketIOClient> clients = namespacesHub.getRoomClients(room);
-        return new BroadcastOperations(clients, configCopy.getStoreFactory());
+        Collection<SocketIONamespace> namespaces = namespacesHub.getAllNamespaces();
+        List<BroadcastOperations> list = new ArrayList<BroadcastOperations>();
+        BroadcastOperations broadcast = null;
+        if( namespaces != null && namespaces.size() > 0 ) {
+            for( SocketIONamespace n : namespaces ) {
+                broadcast = n.getRoomOperations( room );
+                list.add( broadcast );
+            }
+        }
+        return new MultiRoomBroadcastOperations( list );
     }
 
     /**

@@ -31,6 +31,7 @@ import com.corundumstudio.socketio.AckRequest;
 import com.corundumstudio.socketio.BroadcastOperations;
 import com.corundumstudio.socketio.Configuration;
 import com.corundumstudio.socketio.MultiTypeArgs;
+import com.corundumstudio.socketio.SingleRoomBroadcastOperations;
 import com.corundumstudio.socketio.SocketIOClient;
 import com.corundumstudio.socketio.SocketIONamespace;
 import com.corundumstudio.socketio.annotation.ScannerEngine;
@@ -187,11 +188,10 @@ public class Namespace implements SocketIONamespace {
         Set<String> joinedRooms = client.getAllRooms();        
         allClients.remove(client.getSessionId());
 
-        leave(getName(), client.getSessionId());
-        storeFactory.pubSubStore().publish(PubSubType.LEAVE, new JoinLeaveMessage(client.getSessionId(), getName(), getName()));
-
+        // client must leave all rooms and publish the leave msg one by one on disconnect.
         for (String joinedRoom : joinedRooms) {
             leave(roomClients, joinedRoom, client.getSessionId());
+            storeFactory.pubSubStore().publish(PubSubType.LEAVE, new JoinLeaveMessage(client.getSessionId(), joinedRoom, getName()));
         }
         clientRooms.remove(client.getSessionId());
 
@@ -239,12 +239,12 @@ public class Namespace implements SocketIONamespace {
 
     @Override
     public BroadcastOperations getBroadcastOperations() {
-        return new BroadcastOperations(allClients.values(), storeFactory);
+        return new SingleRoomBroadcastOperations(getName(), getName(), allClients.values(), storeFactory);
     }
 
     @Override
     public BroadcastOperations getRoomOperations(String room) {
-        return new BroadcastOperations(getRoomClients(room), storeFactory);
+        return new SingleRoomBroadcastOperations(getName(), room, getRoomClients(room), storeFactory);
     }
 
     @Override
