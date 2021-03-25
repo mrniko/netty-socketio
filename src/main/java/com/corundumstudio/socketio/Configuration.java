@@ -60,6 +60,8 @@ public class Configuration {
     private InputStream keyStore;
     private String keyStorePassword;
 
+    private String allowHeaders;
+
     private String trustStoreFormat = "JKS";
     private InputStream trustStore;
     private String trustStorePassword;
@@ -149,6 +151,7 @@ public class Configuration {
 
         setAddVersionHeader(conf.isAddVersionHeader());
         setOrigin(conf.getOrigin());
+        setAllowHeaders(conf.getAllowHeaders());
         setSSLProtocol(conf.getSSLProtocol());
 
         setHttpCompression(conf.isHttpCompression());
@@ -531,6 +534,18 @@ public class Configuration {
     }
     public String getSSLProtocol() {
         return sslProtocol;
+    }
+
+
+    /**
+     * Set the response Access-Control-Allow-Headers
+     * @param allowHeaders - allow headers
+     * */
+    public void setAllowHeaders(String allowHeaders) {
+        this.allowHeaders = allowHeaders;
+    }
+    public String getAllowHeaders() {
+        return allowHeaders;
     }
 
     /**
