@@ -26,8 +26,8 @@ import java.util.Arrays;
 import java.util.Collection;
 
 /**
- * @Author: liangjiaqi
- * @Date: 2020/8/8 6:08 PM
+ * Author: liangjiaqi
+ * Date: 2020/8/8 6:08 PM
  */
 public class SingleRoomBroadcastOperations implements BroadcastOperations {
     private final String namespace;

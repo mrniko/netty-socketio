@@ -81,6 +81,9 @@ public class Packet implements Serializable {
      * Creates a copy of #{@link Packet} with new namespace set
      * if it differs from current namespace.
      * Otherwise, returns original object unchanged
+     *
+     * @param namespace
+     * @return packet
      */
     public Packet withNsp(String namespace) {
         if (this.nsp.equalsIgnoreCase(namespace)) {

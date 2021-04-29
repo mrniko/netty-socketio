@@ -22,8 +22,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * @Author: liangjiaqi
- * @Date: 2020/8/8 6:02 PM
+ * author: liangjiaqi
+ * date: 2020/8/8 6:02 PM
  */
 public class MultiRoomBroadcastOperations implements BroadcastOperations {
 
