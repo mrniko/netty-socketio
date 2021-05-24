@@ -48,6 +48,8 @@ Recent Releases
 ================================
 #### Please Note: trunk is current development branch.
 
+#### 29-Apr-2021 - version 1.7.19 released  
+
 #### 17-Jan-2020 - version 1.7.18 released  
 Feature - support for event interceptors which catch all events (thanks to yosiat)  
 Fixed - namespace event broadcasting (thanks to Volodymyr Masliy)  
@@ -261,7 +263,7 @@ Include the following to your dependency list:
     <dependency>
      <groupId>com.corundumstudio.socketio</groupId>
      <artifactId>netty-socketio</artifactId>
-     <version>1.7.12</version>
+     <version>1.7.19</version>
     </dependency>
     
 ### Supported by
