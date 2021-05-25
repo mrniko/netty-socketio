@@ -19,6 +19,7 @@ import io.netty.util.internal.PlatformDependent;
 
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentSkipListMap;
 
 import com.corundumstudio.socketio.store.pubsub.BaseStoreFactory;
 import com.corundumstudio.socketio.store.pubsub.PubSubStore;
@@ -48,7 +49,7 @@ public class MemoryStoreFactory extends BaseStoreFactory {
 
     @Override
     public <K, V> Map<K, V> createMap(String name) {
-        return PlatformDependent.newConcurrentHashMap();
+        return new ConcurrentSkipListMap<K, V>();
     }
 
 }

@@ -20,13 +20,14 @@ import io.netty.util.internal.PlatformDependent;
 
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentSkipListMap;
 
 import com.corundumstudio.socketio.HandshakeData;
 
 public class ClientsBox {
 
-    private final Map<UUID, ClientHead> uuid2clients = PlatformDependent.newConcurrentHashMap();
-    private final Map<Channel, ClientHead> channel2clients = PlatformDependent.newConcurrentHashMap();
+    private final Map<UUID, ClientHead> uuid2clients = new ConcurrentSkipListMap<UUID, ClientHead>();
+    private final Map<Channel, ClientHead> channel2clients = new ConcurrentSkipListMap<Channel, ClientHead>();
 
     // TODO use storeFactory
     public HandshakeData getHandshakeData(UUID sessionId) {

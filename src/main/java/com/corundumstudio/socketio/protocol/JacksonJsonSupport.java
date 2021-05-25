@@ -26,6 +26,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentSkipListMap;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -158,7 +159,7 @@ public class JacksonJsonSupport implements JsonSupport {
 
         private static final long serialVersionUID = 8178797221017768689L;
 
-        final Map<EventKey, List<Class<?>>> eventMapping = PlatformDependent.newConcurrentHashMap();
+        final Map<EventKey, List<Class<?>>> eventMapping = new ConcurrentSkipListMap<EventKey, List<Class<?>>>();
 
 
         protected EventDeserializer() {

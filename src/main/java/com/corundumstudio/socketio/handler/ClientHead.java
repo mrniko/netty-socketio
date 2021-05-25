@@ -42,6 +42,7 @@ import org.slf4j.LoggerFactory;
 import java.net.SocketAddress;
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -52,7 +53,7 @@ public class ClientHead {
     public static final AttributeKey<ClientHead> CLIENT = AttributeKey.<ClientHead>valueOf("client");
 
     private final AtomicBoolean disconnected = new AtomicBoolean();
-    private final Map<Namespace, NamespaceClient> namespaceClients = PlatformDependent.newConcurrentHashMap();
+    private final Map<Namespace, NamespaceClient> namespaceClients = new ConcurrentSkipListMap<Namespace, NamespaceClient>();
     private final Map<Transport, TransportState> channels = new HashMap<Transport, TransportState>(2);
     private final HandshakeData handshakeData;
     private final UUID sessionId;
