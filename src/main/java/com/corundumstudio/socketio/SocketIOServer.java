@@ -17,10 +17,7 @@ package com.corundumstudio.socketio;
 
 import com.corundumstudio.socketio.listener.*;
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.channel.ChannelOption;
-import io.netty.channel.EventLoopGroup;
-import io.netty.channel.FixedRecvByteBufAllocator;
-import io.netty.channel.ServerChannel;
+import io.netty.channel.*;
 import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.epoll.EpollServerSocketChannel;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -187,6 +184,13 @@ public class SocketIOServer implements ClientListeners {
             bootstrap.childOption(ChannelOption.SO_RCVBUF, config.getTcpReceiveBufferSize());
             bootstrap.childOption(ChannelOption.RCVBUF_ALLOCATOR, new FixedRecvByteBufAllocator(config.getTcpReceiveBufferSize()));
         }
+        //default value @see WriteBufferWaterMark.DEFAULT
+        if (config.getWriteBufferWaterMarkLow() != -1 && config.getWriteBufferWaterMarkHigh() != -1) {
+            bootstrap.childOption(ChannelOption.WRITE_BUFFER_WATER_MARK, new WriteBufferWaterMark(
+                    config.getWriteBufferWaterMarkLow(), config.getWriteBufferWaterMarkHigh()
+            ));
+        }
+
         bootstrap.childOption(ChannelOption.SO_KEEPALIVE, config.isTcpKeepAlive());
         bootstrap.childOption(ChannelOption.SO_LINGER, config.getSoLinger());
 
