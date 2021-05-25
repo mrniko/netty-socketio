@@ -65,6 +65,7 @@ import io.netty.handler.codec.http.websocketx.WebSocketFrame;
 import io.netty.util.Attribute;
 import io.netty.util.AttributeKey;
 import io.netty.util.CharsetUtil;
+import io.netty.util.internal.StringUtil;
 
 @Sharable
 public class EncoderHandler extends ChannelOutboundHandlerAdapter {
@@ -200,6 +201,9 @@ public class EncoderHandler extends ChannelOutboundHandlerAdapter {
             } else {
                 res.headers().add(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN, "*");
             }
+        }
+        if(configuration.getAllowHeaders() != null){
+            res.headers().add(HttpHeaderNames.ACCESS_CONTROL_ALLOW_HEADERS, configuration.getAllowHeaders());
         }
     }
 
