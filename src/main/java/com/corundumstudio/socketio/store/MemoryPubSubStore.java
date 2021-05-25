@@ -15,23 +15,46 @@
  */
 package com.corundumstudio.socketio.store;
 
+import java.util.Map;
+import java.util.concurrent.Executors;
+
 import com.corundumstudio.socketio.store.pubsub.PubSubListener;
 import com.corundumstudio.socketio.store.pubsub.PubSubMessage;
 import com.corundumstudio.socketio.store.pubsub.PubSubStore;
 import com.corundumstudio.socketio.store.pubsub.PubSubType;
 
-public class MemoryPubSubStore implements PubSubStore {
+import com.google.common.collect.Maps;
+import com.google.common.eventbus.AsyncEventBus;
 
+public class MemoryPubSubStore implements PubSubStore {
+	
+	private final AsyncEventBus asyncEventBus = new AsyncEventBus(Executors.newFixedThreadPool(3));
+    
+    private final Map<PubSubType,PubSubListener<?>> subtypeListener = Maps.newHashMap();
+    
+    private final Long nodeId;
+    
+    public MemoryPubSubStore(Long nodeId){
+        this.nodeId = nodeId;
+    }
+	
     @Override
     public void publish(PubSubType type, PubSubMessage msg) {
+		msg.setNodeId(nodeId);
+        asyncEventBus.post(msg);
     }
 
     @Override
     public <T extends PubSubMessage> void subscribe(PubSubType type, PubSubListener<T> listener, Class<T> clazz) {
+		subtypeListener.put(type, listener);
+        asyncEventBus.register(listener);
     }
 
     @Override
     public void unsubscribe(PubSubType type) {
+		PubSubListener<?> ls = subtypeListener.get(type);
+        asyncEventBus.unregister(ls);
+        subtypeListener.remove(type);
     }
 
     @Override
