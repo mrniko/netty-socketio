@@ -18,10 +18,17 @@ package com.corundumstudio.socketio;
 public interface AuthorizationListener {
 
     /**
-     * Checks is client with handshake data is authorized
+     * Checks if client with handshake data is redirected (307)
+     *
+     * @return - the <b>URL</b> if client is redirected or <b>null</b> otherwise
+     */
+    String isRedirected(HandshakeData data);
+
+    /**
+     * Checks if client with handshake data is authorized
      *
      * @param data - handshake data
-     * @return - <b>true</b> if client is authorized of <b>false</b> otherwise
+     * @return - <b>true</b> if client is authorized or <b>false</b> otherwise
      */
     boolean isAuthorized(HandshakeData data);
 
