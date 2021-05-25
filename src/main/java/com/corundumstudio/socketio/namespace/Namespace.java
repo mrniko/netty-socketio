@@ -368,6 +368,11 @@ public class Namespace implements SocketIONamespace {
         return result;
     }
 
+    public int getRoomClientsInCluster(String room) {
+        Set<UUID> sessionIds = roomClients.get(room);
+        return sessionIds == null ? 0 : sessionIds.size();
+    }
+
     @Override
     public Collection<SocketIOClient> getAllClients() {
         return Collections.unmodifiableCollection(allClients.values());

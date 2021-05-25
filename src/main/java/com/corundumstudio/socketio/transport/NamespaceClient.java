@@ -203,6 +203,11 @@ public class NamespaceClient implements SocketIOClient {
     }
 
     @Override
+    public int getCurrentRoomSize(String room) {
+        return namespace.getRoomClientsInCluster(room);
+    }
+
+    @Override
     public HandshakeData getHandshakeData() {
         return baseClient.getHandshakeData();
     }

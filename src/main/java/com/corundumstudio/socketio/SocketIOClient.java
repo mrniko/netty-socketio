@@ -109,4 +109,13 @@ public interface SocketIOClient extends ClientOperations, Store {
      */
     Set<String> getAllRooms();
 
+    /**
+     * Get current room Size (contain in cluster)
+     *
+     * @param room - name of room
+     *
+     * @return int
+     */
+    int getCurrentRoomSize(String room);
+
 }
