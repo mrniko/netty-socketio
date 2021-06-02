@@ -15,6 +15,7 @@
  */
 package com.corundumstudio.socketio.store.pubsub;
 
+import com.corundumstudio.socketio.namespace.Namespace;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -55,8 +56,11 @@ public abstract class BaseStoreFactory implements StoreFactory {
             @Override
             public void onMessage(DispatchMessage msg) {
                 String name = msg.getRoom();
-
-                namespacesHub.get(msg.getNamespace()).dispatch(name, msg.getPacket());
+                Namespace namespace = namespacesHub.get(msg.getNamespace());
+                if (null == namespace) {
+                    return;
+                }
+                namespace.dispatch(name, msg.getPacket());
                 log.debug("{} packet: {}", PubSubType.DISPATCH, msg.getPacket());
             }
         }, DispatchMessage.class);
@@ -65,8 +69,11 @@ public abstract class BaseStoreFactory implements StoreFactory {
             @Override
             public void onMessage(JoinLeaveMessage msg) {
                 String name = msg.getRoom();
-
-                namespacesHub.get(msg.getNamespace()).join(name, msg.getSessionId());
+                Namespace namespace = namespacesHub.get(msg.getNamespace());
+                if (null == namespace) {
+                    return;
+                }
+                namespace.join(name, msg.getSessionId());
                 log.debug("{} sessionId: {}", PubSubType.JOIN, msg.getSessionId());
             }
         }, JoinLeaveMessage.class);
@@ -75,8 +82,11 @@ public abstract class BaseStoreFactory implements StoreFactory {
             @Override
             public void onMessage(JoinLeaveMessage msg) {
                 String name = msg.getRoom();
-
-                namespacesHub.get(msg.getNamespace()).leave(name, msg.getSessionId());
+                Namespace namespace = namespacesHub.get(msg.getNamespace());
+                if (null == namespace) {
+                    return;
+                }
+                namespace.leave(name, msg.getSessionId());
                 log.debug("{} sessionId: {}", PubSubType.LEAVE, msg.getSessionId());
             }
         }, JoinLeaveMessage.class);
