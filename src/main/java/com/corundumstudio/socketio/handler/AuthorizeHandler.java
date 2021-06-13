@@ -175,20 +175,21 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
         List<String> transportValue = params.get("transport");
         if (transportValue == null) {
             log.error("Got no transports for request {}", req.uri());
-
-            HttpResponse res = new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.UNAUTHORIZED);
-            channel.writeAndFlush(res).addListener(ChannelFutureListener.CLOSE);
+            writeAndFlushTransportError(channel, origin);
             return false;
         }
 
-        Transport transport = Transport.byName(transportValue.get(0));
+        Transport transport = null;
+        try {
+            transport = Transport.valueOf(transportValue.get(0));
+        } catch (IllegalArgumentException e) {
+            log.error("Unknown transport for request {}", req.uri());
+            writeAndFlushTransportError(channel, origin);
+            return false;
+        }
         if (!configuration.getTransports().contains(transport)) {
-            Map<String, Object> errorData = new HashMap<String, Object>();
-            errorData.put("code", 0);
-            errorData.put("message", "Transport unknown");
-
-            channel.attr(EncoderHandler.ORIGIN).set(origin);
-            channel.writeAndFlush(new HttpErrorMessage(errorData));
+            log.error("Unsupported transport for request {}", req.uri());
+            writeAndFlushTransportError(channel, origin);
             return false;
         }
 
@@ -210,6 +211,15 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
         client.schedulePingTimeout();
         log.debug("Handshake authorized for sessionId: {}, query params: {} headers: {}", sessionId, params, headers);
         return true;
+    }
+
+    private void writeAndFlushTransportError(Channel channel, String origin) {
+        Map<String, Object> errorData = new HashMap<String, Object>();
+        errorData.put("code", 0);
+        errorData.put("message", "Transport unknown");
+
+        channel.attr(EncoderHandler.ORIGIN).set(origin);
+        channel.writeAndFlush(new HttpErrorMessage(errorData));
     }
 
     /**
