@@ -88,6 +88,8 @@ public class Configuration {
 
     private boolean randomSession = false;
 
+    private boolean needClientAuth = false;
+
     public Configuration() {
     }
 
@@ -154,6 +156,7 @@ public class Configuration {
         setHttpCompression(conf.isHttpCompression());
         setWebsocketCompression(conf.isWebsocketCompression());
         setRandomSession(conf.randomSession);
+        setNeedClientAuth(conf.isNeedClientAuth());
     }
 
     public JsonSupport getJsonSupport() {
@@ -583,5 +586,20 @@ public class Configuration {
 
     public void setRandomSession(boolean randomSession) {
         this.randomSession = randomSession;
+    }
+
+    /**
+     * Enable/disable client authentication.
+     * Has no effect unless a trust store has been provided.
+     *
+     * Default is <code>false</code>
+     *
+     * @param needClientAuth - <code>true</code> to use client authentication
+     */
+    public void setNeedClientAuth(boolean needClientAuth) {
+        this.needClientAuth = needClientAuth;
+    }
+    public boolean isNeedClientAuth() {
+        return needClientAuth;
     }
 }
