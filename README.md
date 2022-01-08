@@ -1,3 +1,6 @@
+[![Maven Central](https://img.shields.io/maven-central/v/com.corundumstudio.socketio/netty-socketio.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:com.corundumstudio.socketio%20AND%20a:netty-socketio)
+[![License](https://img.shields.io/github/license/mrniko/netty-socketio)](https://github.com/mrniko/netty-socketio/blob/master/LICENSE.txt)
+
 Netty-socketio Overview
 ===
 This project is an open-source Java implementation of [Socket.IO](http://socket.io/) server. Based on [Netty](http://netty.io/) server framework.  
