@@ -26,6 +26,7 @@ import java.util.Queue;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 
+import io.netty.handler.codec.http.websocketx.ContinuationWebSocketFrame;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
 import org.slf4j.Logger;
@@ -227,6 +228,10 @@ public class EncoderHandler extends ChannelOutboundHandlerAdapter {
         }
     }
 
+
+    private static final int FRAME_BUFFER_SIZE = 8192;
+
+
     private void handleWebsocket(final OutPacketMessage msg, ChannelHandlerContext ctx, ChannelPromise promise) throws IOException {
         ChannelFutureList writeFutureList = new ChannelFutureList();
 
@@ -241,13 +246,23 @@ public class EncoderHandler extends ChannelOutboundHandlerAdapter {
             final ByteBuf out = encoder.allocateBuffer(ctx.alloc());
             encoder.encodePacket(packet, out, ctx.alloc(), true);
 
-            WebSocketFrame res = new TextWebSocketFrame(out);
             if (log.isTraceEnabled()) {
                 log.trace("Out message: {} sessionId: {}", out.toString(CharsetUtil.UTF_8), msg.getSessionId());
             }
-
-            if (out.isReadable()) {
-                writeFutureList.add(ctx.channel().writeAndFlush(res));
+            if (out.isReadable() && out.readableBytes() > configuration.getMaxFramePayloadLength()) {
+                ByteBuf dstStart = ByteBufUtil.readBytes(ctx.alloc(), out, FRAME_BUFFER_SIZE);
+                WebSocketFrame start = new TextWebSocketFrame(false, 0, dstStart);
+                ctx.channel().write(start);
+                while (out.isReadable()) {
+                    int re = out.readableBytes() > FRAME_BUFFER_SIZE ? FRAME_BUFFER_SIZE : out.readableBytes();
+                    ByteBuf dst = ByteBufUtil.readBytes(ctx.alloc(), out, re);
+                    WebSocketFrame res = new ContinuationWebSocketFrame(out.isReadable() ? false : true, 0, dst);
+                    ctx.channel().write(res);
+                }
+                ctx.channel().flush();
+            } else if (out.isReadable()){
+                WebSocketFrame res = new TextWebSocketFrame(out);
+                ctx.channel().writeAndFlush(res);
             } else {
                 out.release();
             }
