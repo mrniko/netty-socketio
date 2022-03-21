@@ -129,8 +129,32 @@ public class Namespace implements SocketIONamespace {
     }
 
     @Override
+    public void removeEventListener(DataListener listener) {
+        List<String> needRemove = new ArrayList<String>();
+
+        for (Map.Entry<String, EventEntry<?>> entry : eventListeners.entrySet()) {
+            if(entry.getValue().getListeners().contains(listener)){
+                entry.getValue().getListeners().remove(listener);
+            }
+            if(entry.getValue().getListeners().size() == 0){
+                needRemove.add(entry.getKey());
+            }
+        }
+
+        for(String eventName : needRemove){
+            eventListeners.remove(eventName);
+            jsonSupport.removeEventMapping(name, eventName);
+        }
+    }
+
+    @Override
     public void addEventInterceptor(EventInterceptor eventInterceptor) {
         eventInterceptors.add(eventInterceptor);
+    }
+
+    @Override
+    public void removeEventInterceptor(EventInterceptor eventInterceptor) {
+        eventInterceptors.remove(eventInterceptor);
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
@@ -184,6 +208,11 @@ public class Namespace implements SocketIONamespace {
         disconnectListeners.add(listener);
     }
 
+    @Override
+    public void removeDisconnectListener(DisconnectListener listener) {
+        disconnectListeners.remove(listener);
+    }
+
     public void onDisconnect(SocketIOClient client) {
         Set<String> joinedRooms = client.getAllRooms();        
         allClients.remove(client.getSessionId());
@@ -209,6 +238,11 @@ public class Namespace implements SocketIONamespace {
         connectListeners.add(listener);
     }
 
+    @Override
+    public void removeConnectListener(ConnectListener listener) {
+        connectListeners.remove(listener);
+    }
+
     public void onConnect(SocketIOClient client) {
         join(getName(), client.getSessionId());
         storeFactory.pubSubStore().publish(PubSubType.JOIN, new JoinLeaveMessage(client.getSessionId(), getName(), getName()));
@@ -225,6 +259,11 @@ public class Namespace implements SocketIONamespace {
     @Override
     public void addPingListener(PingListener listener) {
         pingListeners.add(listener);
+    }
+
+    @Override
+    public void removePingListener(PingListener listener) {
+        pingListeners.remove(listener);
     }
 
     public void onPing(SocketIOClient client) {

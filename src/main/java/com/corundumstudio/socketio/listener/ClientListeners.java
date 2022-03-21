@@ -22,13 +22,23 @@ public interface ClientListeners {
 
     <T> void addEventListener(String eventName, Class<T> eventClass, DataListener<T> listener);
 
+    void removeEventListener(DataListener listener);
+
     void addEventInterceptor(EventInterceptor eventInterceptor);
+
+    void removeEventInterceptor(EventInterceptor eventInterceptor);
 
     void addDisconnectListener(DisconnectListener listener);
 
+    void removeDisconnectListener(DisconnectListener listener);
+
     void addConnectListener(ConnectListener listener);
 
+    void removeConnectListener(ConnectListener listener);
+
     void addPingListener(PingListener listener);
+
+    void removePingListener(PingListener listener);
 
     void addListeners(Object listeners);
 
