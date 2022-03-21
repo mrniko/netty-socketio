@@ -39,6 +39,12 @@ public interface ClientOperations {
     void disconnect();
 
     /**
+     * Disconnect client
+     *
+     */
+    void close();
+
+    /**
      * Send event
      *
      * @param name - event name
