@@ -35,5 +35,7 @@ public interface ClientListeners {
     void addListeners(Object listeners, Class<?> listenersClass);
 
     void removeAllListeners(String eventName);
+
+    <T> void setDefaultListener(Class<T> eventClass, DefaultDataListener<T> listener);
     
 }

@@ -19,8 +19,10 @@ import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import com.corundumstudio.socketio.listener.DataListener;
+import com.corundumstudio.socketio.listener.DefaultDataListener;
 
 public class EventEntry<T> {
+
 
     private final Queue<DataListener<T>> listeners = new ConcurrentLinkedQueue<DataListener<T>>();;
 
@@ -34,6 +36,16 @@ public class EventEntry<T> {
 
     public Queue<DataListener<T>> getListeners() {
         return listeners;
+    }
+
+    private DefaultDataListener defaultDataListener;
+
+    public void setDefaultDataListener(DefaultDataListener defaultDataListener){
+        this.defaultDataListener=defaultDataListener;
+    }
+
+    public DefaultDataListener getDefaultDataListener(){
+        return defaultDataListener;
     }
 
 }

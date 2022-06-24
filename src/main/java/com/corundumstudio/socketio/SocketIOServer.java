@@ -251,13 +251,17 @@ public class SocketIOServer implements ClientListeners {
     @Override
     public void addEventInterceptor(EventInterceptor eventInterceptor) {
         mainNamespace.addEventInterceptor(eventInterceptor);
-
     }
 
 
     @Override
     public void removeAllListeners(String eventName) {
         mainNamespace.removeAllListeners(eventName);
+    }
+
+    @Override
+    public <T> void setDefaultListener(Class<T> eventClass, DefaultDataListener<T> listener) {
+        mainNamespace.setDefaultListener(eventClass,listener);
     }
 
     @Override

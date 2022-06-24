@@ -56,6 +56,8 @@ public class Namespace implements SocketIONamespace {
     public static final String DEFAULT_NAME = "";
 
     private final ScannerEngine engine = new ScannerEngine();
+
+    private  EventEntry<?> defaultEventListener;
     private final ConcurrentMap<String, EventEntry<?>> eventListeners = PlatformDependent.newConcurrentHashMap();
     private final Queue<ConnectListener> connectListeners = new ConcurrentLinkedQueue<ConnectListener>();
     private final Queue<DisconnectListener> disconnectListeners = new ConcurrentLinkedQueue<DisconnectListener>();
@@ -114,6 +116,14 @@ public class Namespace implements SocketIONamespace {
     }
 
     @Override
+    public <T> void setDefaultListener(Class<T> eventClass, DefaultDataListener<T> listener) {
+        EventEntry entry = new EventEntry<T>();
+        entry.setDefaultDataListener(listener);
+        defaultEventListener = entry;
+    }
+
+
+    @Override
     @SuppressWarnings({"unchecked", "rawtypes"})
     public <T> void addEventListener(String eventName, Class<T> eventClass, DataListener<T> listener) {
         EventEntry entry = eventListeners.get(eventName);
@@ -137,6 +147,20 @@ public class Namespace implements SocketIONamespace {
     public void onEvent(NamespaceClient client, String eventName, List<Object> args, AckRequest ackRequest) {
         EventEntry entry = eventListeners.get(eventName);
         if (entry == null) {
+            if(defaultEventListener!=null && defaultEventListener.getDefaultDataListener()!=null){
+                try {
+                    Object data = null;
+                    if(!args.isEmpty()){
+                        data = args.get(0);
+                    }
+                    defaultEventListener.getDefaultDataListener().onData(client, data, ackRequest,eventName);
+                } catch (Exception e) {
+                    exceptionListener.onEventException(e, args, client);
+                    if (ackMode == AckMode.AUTO_SUCCESS_ONLY) {
+                        return;
+                    }
+                }
+            }
             return;
         }
 
