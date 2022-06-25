@@ -122,7 +122,12 @@ public class NamespaceClient implements SocketIOClient {
         Packet packet = new Packet(PacketType.MESSAGE);
         packet.setSubType(PacketType.DISCONNECT);
         send(packet);
-//        onDisconnect();
+        //onDisconnect();
+    }
+
+    @Override
+    public void close() {
+        getBaseClient().disconnect();
     }
 
     @Override

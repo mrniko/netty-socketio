@@ -106,6 +106,16 @@ public class MultiRoomBroadcastOperations implements BroadcastOperations {
     }
 
     @Override
+    public void close() {
+        if( this.broadcastOperations == null || this.broadcastOperations.size() == 0 ) {
+            return;
+        }
+        for( BroadcastOperations b : this.broadcastOperations ) {
+            b.close();
+        }
+    }
+
+    @Override
     public void sendEvent(String name, Object... data) {
         if( this.broadcastOperations == null || this.broadcastOperations.size() == 0 ) {
             return;

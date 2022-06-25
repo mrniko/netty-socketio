@@ -253,9 +253,19 @@ public class SocketIOServer implements ClientListeners {
     }
 
     @Override
+    public void removeEventListener(DataListener listener) {
+        mainNamespace.removeEventListener(listener);
+    }
+
+    @Override
     public void addEventInterceptor(EventInterceptor eventInterceptor) {
         mainNamespace.addEventInterceptor(eventInterceptor);
 
+    }
+
+    @Override
+    public void removeEventInterceptor(EventInterceptor eventInterceptor) {
+        mainNamespace.removeEventInterceptor(eventInterceptor);
     }
 
 
@@ -270,8 +280,18 @@ public class SocketIOServer implements ClientListeners {
     }
 
     @Override
+    public void removeDisconnectListener(DisconnectListener listener) {
+        mainNamespace.removeDisconnectListener(listener);
+    }
+
+    @Override
     public void addConnectListener(ConnectListener listener) {
         mainNamespace.addConnectListener(listener);
+    }
+
+    @Override
+    public void removeConnectListener(ConnectListener listener) {
+        mainNamespace.removeConnectListener(listener);
     }
 
     @Override
@@ -280,14 +300,18 @@ public class SocketIOServer implements ClientListeners {
     }
 
     @Override
+    public void removePingListener(PingListener listener) {
+        mainNamespace.removePingListener(listener);
+    }
+
+    @Override
     public void addListeners(Object listeners) {
         mainNamespace.addListeners(listeners);
     }
-    
+
     @Override
     public void addListeners(Object listeners, Class<?> listenersClass) {
         mainNamespace.addListeners(listeners, listenersClass);
     }
-
 
 }

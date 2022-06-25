@@ -78,6 +78,13 @@ public class SingleRoomBroadcastOperations implements BroadcastOperations {
     }
 
     @Override
+    public void close() {
+        for (SocketIOClient client : clients) {
+            client.close();
+        }
+    }
+
+    @Override
     public void sendEvent(String name, SocketIOClient excludedClient, Object... data) {
         Packet packet = new Packet(PacketType.MESSAGE);
         packet.setSubType(PacketType.EVENT);
