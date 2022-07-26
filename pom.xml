@@ -140,19 +140,19 @@
   <dependency>
   	<groupId>com.fasterxml.jackson.core</groupId>
   	<artifactId>jackson-core</artifactId>
-  	<version>2.13.1</version>
+  	<version>2.13.2</version>
   </dependency>
   <dependency>
   	<groupId>com.fasterxml.jackson.core</groupId>
   	<artifactId>jackson-databind</artifactId>
-  	<version>2.13.1</version>
+  	<version>2.13.2</version>
   </dependency>
 
 
   <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-beans</artifactId>
-      <version>5.3.14</version>
+      <version>5.3.20</version>
       <scope>provided</scope>
   </dependency>
   <dependency>
@@ -172,7 +172,7 @@
     <dependency>
         <groupId>org.redisson</groupId>
         <artifactId>redisson</artifactId>
-        <version>3.17.4</version>
+        <version>3.17.5</version>
         <scope>provided</scope>
     </dependency>
     <dependency>
