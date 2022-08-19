@@ -17,6 +17,7 @@ package com.corundumstudio.socketio.listener;
 
 import com.corundumstudio.socketio.SocketIOClient;
 
+@Deprecated
 public interface PingListener {
 
     void onPing(SocketIOClient client);

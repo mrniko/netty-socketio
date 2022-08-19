@@ -28,7 +28,16 @@ public interface ClientListeners {
 
     void addConnectListener(ConnectListener listener);
 
+    /**
+     * from v4, ping will always be sent by server except probe ping packet sent from client,
+     * and pong will always be responded by client while receiving ping except probe pong packet responded from server
+     * it makes no more sense to listen to ping packet, instead you can listen to pong packet
+     * @deprecated use addPongListener instead
+     * @param listener
+     */
+    @Deprecated
     void addPingListener(PingListener listener);
+    void addPongListener(PongListener listener);
 
     void addListeners(Object listeners);
 
