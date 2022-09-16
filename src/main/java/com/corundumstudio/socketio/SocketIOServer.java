@@ -278,6 +278,10 @@ public class SocketIOServer implements ClientListeners {
     public void addPingListener(PingListener listener) {
         mainNamespace.addPingListener(listener);
     }
+    @Override
+    public void addPongListener(PongListener listener) {
+        mainNamespace.addPongListener(listener);
+    }
 
     @Override
     public void addListeners(Object listeners) {

@@ -60,6 +60,7 @@ public class Namespace implements SocketIONamespace {
     private final Queue<ConnectListener> connectListeners = new ConcurrentLinkedQueue<ConnectListener>();
     private final Queue<DisconnectListener> disconnectListeners = new ConcurrentLinkedQueue<DisconnectListener>();
     private final Queue<PingListener> pingListeners = new ConcurrentLinkedQueue<PingListener>();
+    private final Queue<PongListener> pongListeners = new ConcurrentLinkedQueue<PongListener>();
     private final Queue<EventInterceptor> eventInterceptors = new ConcurrentLinkedQueue<EventInterceptor>();
 
     private final Map<UUID, SocketIOClient> allClients = PlatformDependent.newConcurrentHashMap();
@@ -227,10 +228,25 @@ public class Namespace implements SocketIONamespace {
         pingListeners.add(listener);
     }
 
+    @Override
+    public void addPongListener(PongListener listener) {
+        pongListeners.add(listener);
+    }
+
     public void onPing(SocketIOClient client) {
         try {
             for (PingListener listener : pingListeners) {
                 listener.onPing(client);
+            }
+        } catch (Exception e) {
+            exceptionListener.onPingException(e, client);
+        }
+    }
+
+    public void onPong(SocketIOClient client) {
+        try {
+            for (PongListener listener : pongListeners) {
+                listener.onPong(client);
             }
         } catch (Exception e) {
             exceptionListener.onPingException(e, client);

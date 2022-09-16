@@ -49,6 +49,11 @@ public class DefaultExceptionListener extends ExceptionListenerAdapter {
     }
 
     @Override
+    public void onPongException(Exception e, SocketIOClient client) {
+        log.error(e.getMessage(), e);
+    }
+
+    @Override
     public boolean exceptionCaught(ChannelHandlerContext ctx, Throwable e) throws Exception {
         log.error(e.getMessage(), e);
         return true;

@@ -61,7 +61,7 @@ public class ClientHead {
     private final DisconnectableHub disconnectableHub;
     private final AckManager ackManager;
     private ClientsBox clientsBox;
-    private final CancelableScheduler disconnectScheduler;
+    private final CancelableScheduler scheduler;
     private final Configuration configuration;
 
     private Packet lastBinaryPacket;
@@ -70,7 +70,7 @@ public class ClientHead {
     private volatile Transport currentTransport;
 
     public ClientHead(UUID sessionId, AckManager ackManager, DisconnectableHub disconnectable,
-            StoreFactory storeFactory, HandshakeData handshakeData, ClientsBox clientsBox, Transport transport, CancelableScheduler disconnectScheduler,
+            StoreFactory storeFactory, HandshakeData handshakeData, ClientsBox clientsBox, Transport transport, CancelableScheduler scheduler,
             Configuration configuration) {
         this.sessionId = sessionId;
         this.ackManager = ackManager;
@@ -79,7 +79,7 @@ public class ClientHead {
         this.handshakeData = handshakeData;
         this.clientsBox = clientsBox;
         this.currentTransport = transport;
-        this.disconnectScheduler = disconnectScheduler;
+        this.scheduler = scheduler;
         this.configuration = configuration;
 
         channels.put(Transport.POLLING, new TransportState());
@@ -115,14 +115,32 @@ public class ClientHead {
         return send(packet, getCurrentTransport());
     }
 
+    public void cancelPing() {
+        SchedulerKey key = new SchedulerKey(Type.PING, sessionId);
+        scheduler.cancel(key);
+    }
     public void cancelPingTimeout() {
         SchedulerKey key = new SchedulerKey(Type.PING_TIMEOUT, sessionId);
-        disconnectScheduler.cancel(key);
+        scheduler.cancel(key);
+    }
+
+    public void schedulePing() {
+        final SchedulerKey key = new SchedulerKey(Type.PING, sessionId);
+        scheduler.schedule(key, new Runnable() {
+            @Override
+            public void run() {
+                ClientHead client = clientsBox.get(sessionId);
+                if (client != null) {
+                    client.send(new Packet(PacketType.PING));
+                }
+                schedulePing();
+            }
+        }, configuration.getPingInterval(), TimeUnit.MILLISECONDS);
     }
 
     public void schedulePingTimeout() {
         SchedulerKey key = new SchedulerKey(Type.PING_TIMEOUT, sessionId);
-        disconnectScheduler.schedule(key, new Runnable() {
+        scheduler.schedule(key, new Runnable() {
             @Override
             public void run() {
                 ClientHead client = clientsBox.get(sessionId);
@@ -176,6 +194,7 @@ public class ClientHead {
     }
 
     public void onChannelDisconnect() {
+        cancelPing();
         cancelPingTimeout();
 
         disconnected.set(true);
