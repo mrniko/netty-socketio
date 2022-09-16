@@ -9,7 +9,7 @@ Licensed under the Apache License 2.0.
 
 Features
 ================================
-* Supports __0.7__...__0.9.16__ (netty-socketio 1.6.6) and __1.0+__ (netty-socketio latest version) version of [Socket.IO-client](https://github.com/LearnBoost/socket.io-client)  
+* __1.0+__ (netty-socketio latest version) version of [Socket.IO-client](https://github.com/LearnBoost/socket.io-client)  
 * Supports xhr-polling transport  
 * Supports websocket transport  
 * Supports namespaces and rooms  
@@ -48,23 +48,40 @@ Recent Releases
 ================================
 #### Please Note: trunk is current development branch.
 
+#### 06-Aug-2022 - version 1.7.21 released  
+Fixed - transport name should be checked in uppercase (regression since 1.7.20)
+
+#### 26-Jul-2022 - version 1.7.20 released  
+Feature - needClientAuth setting added (thanks to @huws)
+
+Fixed - ContinuationWebSocketFrame should be used if payload > maxFramePayloadLength (thanks to 俞伟搏)  
+Fixed - event listener src class and dest bean is no match (thanks to @cifaz)  
+Fixed - illegal transport parameter (thanks to @mirus36)  
+
 #### 29-Apr-2021 - version 1.7.19 released  
+Feature - writeBufferWaterMarkLow and writeBufferWaterMarkHigh settings added (thanks to @xuminwlt)  
+Feature - allowHeaders setting added (thanks to @HuangHuan)  
+Feature - getCurrentRoomSize() method added (thanks to @sunxiaoyu3)  
+
+Fixed - namespace bug (thanks to @@johntyty912)  
+Fixed - multiple nodes with redisson receive same message (thanks to 梁嘉祺)  
+Fixed - multiple nodes receive only one LEAVE msg on client disconnect (thanks to @GaryLeung922)  
 
 #### 17-Jan-2020 - version 1.7.18 released  
-Feature - support for event interceptors which catch all events (thanks to yosiat)  
+Feature - support for event interceptors which catch all events (thanks to @yosiat)  
 Fixed - namespace event broadcasting (thanks to Volodymyr Masliy)  
 
 #### 11-Jan-2019 - version 1.7.17 released  
-Feature - randomSession setting added to Config object (thanks to yuanxiangz)  
+Feature - randomSession setting added to Config object (thanks to @yuanxiangz)  
 Fixed - NPE in WebSocketTransport  
 Fixed - NPE & memory leak (thanks to zhaolianwang)  
 Fixed - namespace parsing (thanks to Redliver)  
 Fixed - Redisson 3.9+ compatibility  
 
 #### 06-Jul-2018 - version 1.7.16 released  
-Fixed - non thread-safe ACK handling (thanks to dawnbreaks)  
-Fixed - inactive long-polling channels cause memory leak (thanks to dawnbreaks)  
-Fixed - websocket CloseFrame processing (thanks to hangsu.cho)  
+Fixed - non thread-safe ACK handling (thanks to @dawnbreaks)  
+Fixed - inactive long-polling channels cause memory leak (thanks to @dawnbreaks)  
+Fixed - websocket CloseFrame processing (thanks to @hangsu.cho)  
 Fixed - WebSocketTransport NPE  
 
 #### 15-May-2018 - version 1.7.15 released  
