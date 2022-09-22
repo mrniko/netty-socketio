@@ -48,6 +48,9 @@ Recent Releases
 ================================
 #### Please Note: trunk is current development branch.
 
+#### 22-Sep-2022 - version 1.7.22 released  
+Feature - ping/pong support for socketio v4 protocol
+
 #### 06-Aug-2022 - version 1.7.21 released  
 Fixed - transport name should be checked in uppercase (regression since 1.7.20)
 
