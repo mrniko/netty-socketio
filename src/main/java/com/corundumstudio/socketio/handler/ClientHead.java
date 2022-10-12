@@ -132,8 +132,8 @@ public class ClientHead {
                 ClientHead client = clientsBox.get(sessionId);
                 if (client != null) {
                     client.send(new Packet(PacketType.PING));
+                    schedulePing();
                 }
-                schedulePing();
             }
         }, configuration.getPingInterval(), TimeUnit.MILLISECONDS);
     }
