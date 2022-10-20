@@ -277,9 +277,6 @@ public class PacketDecoder {
                 packet.setDataSource(Unpooled.copiedBuffer(frame));
                 frame.readerIndex(frame.readableBytes());
                 head.setLastBinaryPacket(packet);
-            }
-
-            if (packet.hasAttachments() && !packet.isAttachmentsLoaded()) {
                 return;
             }
 
