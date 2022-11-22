@@ -39,6 +39,7 @@ import com.corundumstudio.socketio.listener.*;
 import com.corundumstudio.socketio.protocol.JsonSupport;
 import com.corundumstudio.socketio.protocol.Packet;
 import com.corundumstudio.socketio.store.StoreFactory;
+import com.corundumstudio.socketio.store.pubsub.BulkJoinLeaveMessage;
 import com.corundumstudio.socketio.store.pubsub.JoinLeaveMessage;
 import com.corundumstudio.socketio.store.pubsub.PubSubType;
 import com.corundumstudio.socketio.transport.NamespaceClient;
@@ -303,6 +304,13 @@ public class Namespace implements SocketIONamespace {
         storeFactory.pubSubStore().publish(PubSubType.JOIN, new JoinLeaveMessage(sessionId, room, getName()));
     }
 
+    public void joinRooms(Set<String> rooms, final UUID sessionId) {
+        for (String room : rooms) {
+            join(room, sessionId);
+        }
+        storeFactory.pubSubStore().publish(PubSubType.BULK_JOIN, new BulkJoinLeaveMessage(sessionId, rooms, getName()));
+    }
+
     public void dispatch(String room, Packet packet) {
         Iterable<SocketIOClient> clients = getRoomClients(room);
 
@@ -336,6 +344,13 @@ public class Namespace implements SocketIONamespace {
     public void leaveRoom(String room, UUID sessionId) {
         leave(room, sessionId);
         storeFactory.pubSubStore().publish(PubSubType.LEAVE, new JoinLeaveMessage(sessionId, room, getName()));
+    }
+
+    public void leaveRooms(Set<String> rooms, final UUID sessionId) {
+        for (String room : rooms) {
+            leave(room, sessionId);
+        }
+        storeFactory.pubSubStore().publish(PubSubType.BULK_LEAVE, new BulkJoinLeaveMessage(sessionId, rooms, getName()));
     }
 
     private <K, V> void leave(ConcurrentMap<K, Set<V>> map, K room, V sessionId) {
