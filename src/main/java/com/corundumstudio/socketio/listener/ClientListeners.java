@@ -41,6 +41,8 @@ public interface ClientListeners {
 
     void addListeners(Object listeners);
 
+    <L> void addListeners(Iterable<L> listeners);
+
     void addListeners(Object listeners, Class<?> listenersClass);
 
     void removeAllListeners(String eventName);

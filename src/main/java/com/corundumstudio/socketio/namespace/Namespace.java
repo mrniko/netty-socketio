@@ -292,24 +292,27 @@ public class Namespace implements SocketIONamespace {
 
     @Override
     public void addListeners(Object listeners) {
-        if (!(listeners instanceof Iterable)) {
-            addListeners(listeners, listeners.getClass());
+        if (listeners instanceof Iterable) {
+            addListeners((Iterable<? extends Object>) listeners);
         }
-        Iterator it = ((Iterable)listeners).iterator();
+        addListeners(listeners, listeners.getClass());
+    }
+
+    @Override
+    public <L> void addListeners(Iterable<L> listeners) {
+        Iterator<L> it = listeners.iterator();
         while (it.hasNext()) {
-            addListeners(it.next());
+            L next = it.next();
+            addListeners(next, next.getClass());
         }
     }
 
     @Override
     public void addListeners(Object listeners, Class<?> listenersClass) {
-        if (!(listeners instanceof Iterable)) {
-            engine.scan(this, listeners, listenersClass);
+        if (listeners instanceof Iterable) {
+            addListeners((Iterable<? extends Object>) listeners);
         }
-        Iterator it = ((Iterable)listeners).iterator();
-        while (it.hasNext()) {
-            addListeners(it.next());
-        }
+        engine.scan(this, listeners, listenersClass);
     }
 
     public void joinRoom(String room, UUID sessionId) {
