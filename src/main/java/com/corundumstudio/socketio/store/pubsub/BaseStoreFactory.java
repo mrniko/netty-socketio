@@ -15,6 +15,8 @@
  */
 package com.corundumstudio.socketio.store.pubsub;
 
+import java.util.Set;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -71,6 +73,18 @@ public abstract class BaseStoreFactory implements StoreFactory {
             }
         }, JoinLeaveMessage.class);
 
+        pubSubStore().subscribe(PubSubType.BULK_JOIN, new PubSubListener<BulkJoinLeaveMessage>() {
+            @Override
+            public void onMessage(BulkJoinLeaveMessage msg) {
+                Set<String> rooms = msg.getRooms();
+
+                for (String room : rooms) {
+                    namespacesHub.get(msg.getNamespace()).join(room, msg.getSessionId());
+                }
+                log.debug("{} sessionId: {}", PubSubType.BULK_JOIN, msg.getSessionId());
+            }
+        }, BulkJoinLeaveMessage.class);
+
         pubSubStore().subscribe(PubSubType.LEAVE, new PubSubListener<JoinLeaveMessage>() {
             @Override
             public void onMessage(JoinLeaveMessage msg) {
@@ -80,6 +94,18 @@ public abstract class BaseStoreFactory implements StoreFactory {
                 log.debug("{} sessionId: {}", PubSubType.LEAVE, msg.getSessionId());
             }
         }, JoinLeaveMessage.class);
+
+        pubSubStore().subscribe(PubSubType.BULK_LEAVE, new PubSubListener<BulkJoinLeaveMessage>() {
+            @Override
+            public void onMessage(BulkJoinLeaveMessage msg) {
+                Set<String> rooms = msg.getRooms();
+
+                for (String room : rooms) {
+                    namespacesHub.get(msg.getNamespace()).leave(room, msg.getSessionId());
+                }
+                log.debug("{} sessionId: {}", PubSubType.BULK_LEAVE, msg.getSessionId());
+            }
+        }, BulkJoinLeaveMessage.class);
     }
 
     @Override
