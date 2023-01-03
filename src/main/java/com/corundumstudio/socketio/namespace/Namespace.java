@@ -294,15 +294,14 @@ public class Namespace implements SocketIONamespace {
     public void addListeners(Object listeners) {
         if (listeners instanceof Iterable) {
             addListeners((Iterable<? extends Object>) listeners);
+            return;
         }
         addListeners(listeners, listeners.getClass());
     }
 
     @Override
     public <L> void addListeners(Iterable<L> listeners) {
-        Iterator<L> it = listeners.iterator();
-        while (it.hasNext()) {
-            L next = it.next();
+        for (L next : listeners) {
             addListeners(next, next.getClass());
         }
     }
@@ -311,6 +310,7 @@ public class Namespace implements SocketIONamespace {
     public void addListeners(Object listeners, Class<?> listenersClass) {
         if (listeners instanceof Iterable) {
             addListeners((Iterable<? extends Object>) listeners);
+            return;
         }
         engine.scan(this, listeners, listenersClass);
     }
