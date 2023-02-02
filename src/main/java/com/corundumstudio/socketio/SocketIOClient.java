@@ -96,11 +96,25 @@ public interface SocketIOClient extends ClientOperations, Store {
     void joinRoom(String room);
 
     /**
-     * Join client to room
+     * Join client to rooms
+     *
+     * @param rooms - names of rooms
+     */
+    void joinRooms(Set<String> rooms);
+
+    /**
+     * Leave client from room
      *
      * @param room - name of room
      */
     void leaveRoom(String room);
+
+    /**
+     * Leave client from rooms
+     *
+     * @param rooms - names of rooms
+     */
+    void leaveRooms(Set<String> rooms);
 
     /**
      * Get all rooms a client is joined in.

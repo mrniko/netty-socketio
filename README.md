@@ -9,7 +9,7 @@ Licensed under the Apache License 2.0.
 
 Features
 ================================
-* __1.0+__ (netty-socketio latest version) version of [Socket.IO-client](https://github.com/LearnBoost/socket.io-client)  
+* __2.x__ version of [Socket.IO-client](https://github.com/socketio/socket.io-client) is supported
 * Supports xhr-polling transport  
 * Supports websocket transport  
 * Supports namespaces and rooms  

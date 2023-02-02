@@ -125,6 +125,7 @@ public class ClientHead {
     }
 
     public void schedulePing() {
+        cancelPing();
         final SchedulerKey key = new SchedulerKey(Type.PING, sessionId);
         scheduler.schedule(key, new Runnable() {
             @Override
@@ -139,6 +140,7 @@ public class ClientHead {
     }
 
     public void schedulePingTimeout() {
+        cancelPingTimeout();
         SchedulerKey key = new SchedulerKey(Type.PING_TIMEOUT, sessionId);
         scheduler.schedule(key, new Runnable() {
             @Override
