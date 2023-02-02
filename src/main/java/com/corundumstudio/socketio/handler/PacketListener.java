@@ -58,6 +58,8 @@ public class PacketListener {
             client.getBaseClient().send(outPacket, transport);
             if ("probe".equals(packet.getData())) {
                 client.getBaseClient().send(new Packet(PacketType.NOOP), Transport.POLLING);
+            } else {
+                client.getBaseClient().schedulePingTimeout();
             }
             Namespace namespace = namespacesHub.get(packet.getNsp());
             namespace.onPing(client);
