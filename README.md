@@ -48,6 +48,11 @@ Recent Releases
 ================================
 #### Please Note: trunk is current development branch.
 
+#### 02-Feb-2023 - version 1.7.23 released  
+Feature - Added support for bulk join and leave (thanks @ksahu750)
+
+Fixed - auto disconnected (regression since 1.7.22)
+
 #### 22-Sep-2022 - version 1.7.22 released  
 Feature - ping/pong support for socketio v4 protocol (thanks to @HashZhang)
 
