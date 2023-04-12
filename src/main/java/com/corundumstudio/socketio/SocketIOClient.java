@@ -44,6 +44,13 @@ public interface SocketIOClient extends ClientOperations, Store {
     Transport getTransport();
 
     /**
+     * Returns true if and only if the I/O thread will perform the requested write operation immediately.
+     * Any write requests made when this method returns false are queued until the I/O thread is ready to process the queued write requests.
+     * @return
+     */
+    boolean isWritable();
+
+    /**
      * Send event with ack callback
      *
      * @param name - event name
