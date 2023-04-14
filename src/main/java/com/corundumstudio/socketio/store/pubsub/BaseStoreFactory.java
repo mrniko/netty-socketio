@@ -17,6 +17,7 @@ package com.corundumstudio.socketio.store.pubsub;
 
 import java.util.Set;
 
+import com.corundumstudio.socketio.namespace.Namespace;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,7 +59,10 @@ public abstract class BaseStoreFactory implements StoreFactory {
             public void onMessage(DispatchMessage msg) {
                 String name = msg.getRoom();
 
-                namespacesHub.get(msg.getNamespace()).dispatch(name, msg.getPacket());
+                Namespace n = namespacesHub.get(msg.getNamespace());
+                if (n != null) {
+                    n.dispatch(name, msg.getPacket());
+                }
                 log.debug("{} packet: {}", PubSubType.DISPATCH, msg.getPacket());
             }
         }, DispatchMessage.class);
@@ -68,7 +72,10 @@ public abstract class BaseStoreFactory implements StoreFactory {
             public void onMessage(JoinLeaveMessage msg) {
                 String name = msg.getRoom();
 
-                namespacesHub.get(msg.getNamespace()).join(name, msg.getSessionId());
+                Namespace n = namespacesHub.get(msg.getNamespace());
+                if (n != null) {
+                    n.join(name, msg.getSessionId());
+                }
                 log.debug("{} sessionId: {}", PubSubType.JOIN, msg.getSessionId());
             }
         }, JoinLeaveMessage.class);
@@ -79,7 +86,10 @@ public abstract class BaseStoreFactory implements StoreFactory {
                 Set<String> rooms = msg.getRooms();
 
                 for (String room : rooms) {
-                    namespacesHub.get(msg.getNamespace()).join(room, msg.getSessionId());
+                    Namespace n = namespacesHub.get(msg.getNamespace());
+                    if (n != null) {
+                        n.join(room, msg.getSessionId());
+                    }
                 }
                 log.debug("{} sessionId: {}", PubSubType.BULK_JOIN, msg.getSessionId());
             }
@@ -90,7 +100,10 @@ public abstract class BaseStoreFactory implements StoreFactory {
             public void onMessage(JoinLeaveMessage msg) {
                 String name = msg.getRoom();
 
-                namespacesHub.get(msg.getNamespace()).leave(name, msg.getSessionId());
+                Namespace n = namespacesHub.get(msg.getNamespace());
+                if (n != null) {
+                    n.leave(name, msg.getSessionId());
+                }
                 log.debug("{} sessionId: {}", PubSubType.LEAVE, msg.getSessionId());
             }
         }, JoinLeaveMessage.class);
@@ -101,7 +114,10 @@ public abstract class BaseStoreFactory implements StoreFactory {
                 Set<String> rooms = msg.getRooms();
 
                 for (String room : rooms) {
-                    namespacesHub.get(msg.getNamespace()).leave(room, msg.getSessionId());
+                    Namespace n = namespacesHub.get(msg.getNamespace());
+                    if (n != null) {
+                        n.leave(room, msg.getSessionId());
+                    }
                 }
                 log.debug("{} sessionId: {}", PubSubType.BULK_LEAVE, msg.getSessionId());
             }
