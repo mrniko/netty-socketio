@@ -48,6 +48,13 @@ Recent Releases
 ================================
 #### Please Note: trunk is current development branch.
 
+#### 14-Apr-2023 - version 1.7.24 released  
+Feature - SocketIOClient.isWritable() method added (thanks @xuwenqing04)  
+Feature - Namespace.addListeners(Iterable<L> listeners) method added (thanks @damonxue)  
+
+Fixed - disconnect event packet should be a subtype of MESSAGE (thanks @MasterShi)  
+Fixed - BaseStoreFactory throws NPE  
+
 #### 02-Feb-2023 - version 1.7.23 released  
 Feature - Added support for bulk join and leave (thanks @ksahu750)
 
