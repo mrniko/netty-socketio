@@ -89,6 +89,11 @@ public class NamespaceClient implements SocketIOClient {
     }
 
     @Override
+    public boolean isWritable() {
+        return isConnected() && this.baseClient.isWritable();
+    }
+
+    @Override
     public void send(Packet packet, AckCallback<?> ackCallback) {
         if (!isConnected()) {
             ackCallback.onTimeout();
