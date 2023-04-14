@@ -18,6 +18,7 @@ package com.corundumstudio.socketio.namespace;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
@@ -291,11 +292,26 @@ public class Namespace implements SocketIONamespace {
 
     @Override
     public void addListeners(Object listeners) {
+        if (listeners instanceof Iterable) {
+            addListeners((Iterable<? extends Object>) listeners);
+            return;
+        }
         addListeners(listeners, listeners.getClass());
     }
 
     @Override
+    public <L> void addListeners(Iterable<L> listeners) {
+        for (L next : listeners) {
+            addListeners(next, next.getClass());
+        }
+    }
+
+    @Override
     public void addListeners(Object listeners, Class<?> listenersClass) {
+        if (listeners instanceof Iterable) {
+            addListeners((Iterable<? extends Object>) listeners);
+            return;
+        }
         engine.scan(this, listeners, listenersClass);
     }
 

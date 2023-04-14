@@ -49,6 +49,7 @@
  <properties>
      <skipTests>true</skipTests>
      <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+     <netty.version>4.1.80.Final</netty.version>
  </properties>
 
  <profiles>
@@ -85,37 +86,37 @@
   <dependency>
   	<groupId>io.netty</groupId>
   	<artifactId>netty-buffer</artifactId>
-  	<version>4.1.80.Final</version>
+  	<version>${netty.version}</version>
   </dependency>
   <dependency>
   	<groupId>io.netty</groupId>
   	<artifactId>netty-common</artifactId>
-  	<version>4.1.80.Final</version>
+  	<version>${netty.version}</version>
   </dependency>
   <dependency>
   	<groupId>io.netty</groupId>
   	<artifactId>netty-transport</artifactId>
-       <version>4.1.80.Final</version>
+       <version>${netty.version}</version>
   </dependency>
   <dependency>
   	<groupId>io.netty</groupId>
   	<artifactId>netty-handler</artifactId>
-  	<version>4.1.80.Final</version>
+  	<version>${netty.version}</version>
   </dependency>
   <dependency>
   	<groupId>io.netty</groupId>
   	<artifactId>netty-codec-http</artifactId>
-  	<version>4.1.80.Final</version>
+  	<version>${netty.version}</version>
   </dependency>
   <dependency>
   	<groupId>io.netty</groupId>
   	<artifactId>netty-codec</artifactId>
-  	<version>4.1.80.Final</version>
+  	<version>${netty.version}</version>
   </dependency>
   <dependency>
         <groupId>io.netty</groupId>
         <artifactId>netty-transport-native-epoll</artifactId>
-        <version>4.1.80.Final</version>
+        <version>${netty.version}</version>
   </dependency>
   
   <dependency>
