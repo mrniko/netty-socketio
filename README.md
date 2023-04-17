@@ -48,6 +48,9 @@ Recent Releases
 ================================
 #### Please Note: trunk is current development branch.
 
+#### 17-Apr-2023 - version 1.7.25 released  
+Fixed - io.netty.channel.ChannelPipelineException error
+
 #### 14-Apr-2023 - version 1.7.24 released  
 Feature - SocketIOClient.isWritable() method added (thanks @xuwenqing04)  
 Feature - Namespace.addListeners(Iterable<L> listeners) method added (thanks @damonxue)  
