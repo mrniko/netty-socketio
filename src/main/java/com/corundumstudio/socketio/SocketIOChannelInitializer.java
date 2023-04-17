@@ -23,6 +23,7 @@ import javax.net.ssl.SSLEngine;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 
+import io.netty.handler.codec.http.websocketx.extensions.compression.WebSocketServerCompressionHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -55,7 +56,6 @@ import io.netty.handler.codec.http.HttpMessage;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpRequestDecoder;
 import io.netty.handler.codec.http.HttpResponseEncoder;
-import io.netty.handler.codec.http.websocketx.extensions.compression.WebSocketServerCompressionHandler;
 import io.netty.handler.ssl.SslHandler;
 
 public class SocketIOChannelInitializer extends ChannelInitializer<Channel> implements DisconnectableHub {
@@ -84,7 +84,6 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
     private AuthorizeHandler authorizeHandler;
     private PollingTransport xhrPollingTransport;
     private WebSocketTransport webSocketTransport;
-    private WebSocketServerCompressionHandler webSocketTransportCompression = new WebSocketServerCompressionHandler();
     private EncoderHandler encoderHandler;
     private WrongUrlHandler wrongUrlHandler;
 
@@ -189,7 +188,7 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
         pipeline.addLast(XHR_POLLING_TRANSPORT, xhrPollingTransport);
         // TODO use single instance when https://github.com/netty/netty/issues/4755 will be resolved
         if (configuration.isWebsocketCompression()) {
-            pipeline.addLast(WEB_SOCKET_TRANSPORT_COMPRESSION, webSocketTransportCompression);
+            pipeline.addLast(WEB_SOCKET_TRANSPORT_COMPRESSION, new WebSocketServerCompressionHandler());
         }
         pipeline.addLast(WEB_SOCKET_TRANSPORT, webSocketTransport);
 
