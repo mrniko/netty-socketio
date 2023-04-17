@@ -49,7 +49,7 @@
  <properties>
      <skipTests>true</skipTests>
      <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-     <netty.version>4.1.80.Final</netty.version>
+     <netty.version>4.1.91.Final</netty.version>
  </properties>
 
  <profiles>
@@ -173,7 +173,7 @@
     <dependency>
         <groupId>org.redisson</groupId>
         <artifactId>redisson</artifactId>
-        <version>3.17.6</version>
+        <version>3.20.1</version>
         <scope>provided</scope>
     </dependency>
     <dependency>
