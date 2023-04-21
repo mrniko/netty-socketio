@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--定时检查配置文件是否变化并根据变化重新加载，其中30指30秒-->
+<Configuration monitorInterval="30">
+
+	<Appenders>
+		<Console name="Console" target="SYSTEM_OUT">
+			<PatternLayout pattern="[netty-socketio][%-5p][%d{yyyy-MM-dd HH:mm:ss,SSS}][%t][%F:%L]%m%n"/>
+		</Console>
+		<RollingFile name="MyFile"
+					 fileName="./logs/log.txt"
+					 filePattern="./logs/log_%d{yyyy-MM-dd}.txt">
+			<PatternLayout pattern="[netty-socketio][%-5p][%d{yyyy-MM-dd HH:mm:ss,SSS}][%t][%F:%L]%m%n"/>
+			<Policies>
+				<TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+			</Policies>
+
+			<DefaultRolloverStrategy>
+				<Delete basePath="./logs" maxDepth="1">
+					<IfFileName glob="log_*.txt"/>
+					<!-- 删除最后一次操作超过30天-->
+					<IfLastModified age="30d"/>
+				</Delete>
+			</DefaultRolloverStrategy>
+		</RollingFile>
+
+	</Appenders>
+
+	<Loggers>
+
+		<!--过滤掉spring一些无用的DEBUG信息-->
+		<logger name="org.springframework" level="ERROR"/>
+		<logger name="org.redisson" level="ERROR"/>
+		<logger name="org.apache.commons" level="ERROR"/>
+		<logger name="io.netty" level="ERROR"/>
+
+
+		<Root level="DEBUG">
+			<AppenderRef ref="Console"/>
+			<AppenderRef ref="MyFile"/>
+		</Root>
+	</Loggers>
+
+</Configuration>
