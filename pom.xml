@@ -300,12 +300,7 @@
                     org.springframework.*;resolution:=optional,com.hazelcast.*;resolution:=optional,org.redisson.*;resolution:=optional,*
                    </Import-Package>
                    <Export-Package>
-                    com.corundumstudio.socketio;version="${project.version}",
-                    com.corundumstudio.socketio.annotation;version="${project.version}",
-                    com.corundumstudio.socketio.listener;version="${project.version}",
-                    com.corundumstudio.socketio.protocol;version="${project.version}",                       
-                    com.corundumstudio.socketio.store;version="${project.version}",                       
-                    com.corundumstudio.socketio.store.pubsub;version="${project.version}",                       
+                    com.corundumstudio.socketio.*;version="${project.version}"
                    </Export-Package>
                </instructions>
            </configuration>
