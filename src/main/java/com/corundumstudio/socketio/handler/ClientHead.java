@@ -88,7 +88,7 @@ public class ClientHead {
         channels.put(Transport.POLLING, new TransportState());
         channels.put(Transport.WEBSOCKET, new TransportState());
 
-        List<String> versions = params.getOrDefault(EngineIOVersion.EIO, new ArrayList<>());
+        List<String> versions = params.getOrDefault(EngineIOVersion.EIO, new ArrayList<String>());
         if (versions.isEmpty()) {
             engineIOVersion = EngineIOVersion.UNKNOWN;
         } else {
