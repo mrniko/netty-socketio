@@ -15,6 +15,7 @@
  */
 package com.corundumstudio.socketio.protocol;
 
+import com.corundumstudio.socketio.handler.ClientHead;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.ByteBufOutputStream;
@@ -298,6 +299,11 @@ public class PacketEncoder {
                         if (!packet.getNsp().isEmpty()) {
                             buf.writeBytes(packet.getNsp().getBytes(CharsetUtil.UTF_8));
                         }
+                        if (EngineIOVersion.V4.equals(packet.getEngineIOVersion())
+                                && packet.getData() != null) {
+                            ByteBufOutputStream out = new ByteBufOutputStream(buf);
+                            jsonSupport.writeValue(out, packet.getData());
+                        }
                     } else {
                         if (!packet.getNsp().isEmpty()) {
                             buf.writeBytes(packet.getNsp().getBytes(CharsetUtil.UTF_8));
@@ -321,10 +327,12 @@ public class PacketEncoder {
         } finally {
             // we need to write a buffer in any case
             if (!binary) {
-                buffer.writeByte(0);
-                int length = buf.writerIndex();
-                buffer.writeBytes(longToBytes(length));
-                buffer.writeByte(0xff);
+                if (!EngineIOVersion.V4.equals(packet.getEngineIOVersion())){
+                    buffer.writeByte(0);
+                    int length = buf.writerIndex();
+                    buffer.writeBytes(longToBytes(length));
+                    buffer.writeByte(0xff);
+                }
                 buffer.writeBytes(buf);
 
                 buf.release();

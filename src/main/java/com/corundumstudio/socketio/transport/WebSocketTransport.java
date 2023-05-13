@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
+import com.corundumstudio.socketio.protocol.EngineIOVersion;
 import com.corundumstudio.socketio.protocol.Packet;
 import com.corundumstudio.socketio.protocol.PacketType;
 import org.slf4j.Logger;
@@ -141,7 +142,7 @@ public class WebSocketTransport extends ChannelInboundHandlerAdapter {
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         final  Channel channel = ctx.channel();
         ClientHead client = clientsBox.get(channel);
-        Packet packet = new Packet(PacketType.MESSAGE, client.getEngineIOVersion());
+        Packet packet = new Packet(PacketType.MESSAGE, client != null ? client.getEngineIOVersion() : EngineIOVersion.UNKNOWN);
         packet.setSubType(PacketType.DISCONNECT);
         if (client != null && client.isTransportChannel(ctx.channel(), Transport.WEBSOCKET)) {
             log.debug("channel inactive {}", client.getSessionId());
