@@ -80,7 +80,7 @@ public class AckRequest {
         if (!isAckRequested() || !sended.compareAndSet(false, true)) {
             return;
         }
-        Packet ackPacket = new Packet(PacketType.MESSAGE);
+        Packet ackPacket = new Packet(PacketType.MESSAGE, client.getEngineIOVersion());
         ackPacket.setSubType(PacketType.ACK);
         ackPacket.setAckId(originalPacket.getAckId());
         ackPacket.setData(objs);

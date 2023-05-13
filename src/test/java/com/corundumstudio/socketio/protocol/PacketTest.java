@@ -30,7 +30,7 @@ public class PacketTest {
         Packet oldPacket = createPacket();
 
         String newNs = "new";
-        Packet newPacket = oldPacket.withNsp(newNs);
+        Packet newPacket = oldPacket.withNsp(newNs, EngineIOVersion.UNKNOWN);
         assertEquals(newNs, newPacket.getNsp());
         assertPacketCopied(oldPacket, newPacket);
     }
@@ -38,7 +38,7 @@ public class PacketTest {
     @Test
     public void packetCopyIsCreatedWhenNewNamespaceDiffersAndIsNull() {
         Packet packet = createPacket();
-        Packet newPacket = packet.withNsp(null);
+        Packet newPacket = packet.withNsp(null, EngineIOVersion.UNKNOWN);
         assertNull(newPacket.getNsp());
         assertPacketCopied(packet, newPacket);
     }
@@ -46,7 +46,7 @@ public class PacketTest {
     @Test
     public void originalPacketReturnedIfNamespaceIsTheSame() {
         Packet packet = new Packet(PacketType.MESSAGE);
-        assertSame(packet, packet.withNsp(""));
+        assertSame(packet, packet.withNsp("", EngineIOVersion.UNKNOWN));
     }
 
     private void assertPacketCopied(Packet oldPacket, Packet newPacket) {
