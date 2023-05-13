@@ -1,6 +1,7 @@
 package com.corundumstudio.socketio.protocol;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -28,14 +29,13 @@ public enum EngineIOVersion {
 
     public static final String EIO = "EIO";
 
-    private static final Map<String, EngineIOVersion> VERSIONS =
-            Arrays.stream(values())
-                .collect(
-                        Collectors.toMap(
-                                EngineIOVersion::getValue,
-                                Function.identity()
-                        )
-                );
+    private static final Map<String, EngineIOVersion> VERSIONS = new HashMap<>();
+
+    static {
+        for (EngineIOVersion value : values()) {
+            VERSIONS.put(value.getValue(), value);
+        }
+    }
 
     private final String value;
 
