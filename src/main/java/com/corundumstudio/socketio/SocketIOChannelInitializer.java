@@ -186,7 +186,6 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
 
         pipeline.addLast(AUTHORIZE_HANDLER, authorizeHandler);
         pipeline.addLast(XHR_POLLING_TRANSPORT, xhrPollingTransport);
-        // TODO use single instance when https://github.com/netty/netty/issues/4755 will be resolved
         if (configuration.isWebsocketCompression()) {
             pipeline.addLast(WEB_SOCKET_TRANSPORT_COMPRESSION, new WebSocketServerCompressionHandler());
         }
