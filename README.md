@@ -50,7 +50,9 @@ Recent Releases
 
 
 #### 14-May-2023 - version 2.0.0 released 
-Feature - SocketIO 4.x protocol support (thanks to @HashZhang)
+Feature - SocketIO 4.x protocol support (thanks to @HashZhang)  
+
+Fixed - add all the socketio specific classes to bundles (thanks to @rishabhgup)  
 
 #### 17-Apr-2023 - version 1.7.25 released  
 Fixed - io.netty.channel.ChannelPipelineException error
