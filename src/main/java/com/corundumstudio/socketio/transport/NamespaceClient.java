@@ -21,6 +21,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import com.corundumstudio.socketio.protocol.EngineIOVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,6 +58,11 @@ public class NamespaceClient implements SocketIOClient {
     }
 
     @Override
+    public EngineIOVersion getEngineIOVersion() {
+        return baseClient.getEngineIOVersion();
+    }
+
+    @Override
     public boolean isChannelOpen() {
         return baseClient.isChannelOpen();
     }
@@ -68,7 +74,7 @@ public class NamespaceClient implements SocketIOClient {
 
     @Override
     public void sendEvent(String name, Object ... data) {
-        Packet packet = new Packet(PacketType.MESSAGE);
+        Packet packet = new Packet(PacketType.MESSAGE, getEngineIOVersion());
         packet.setSubType(PacketType.EVENT);
         packet.setName(name);
         packet.setData(Arrays.asList(data));
@@ -77,7 +83,7 @@ public class NamespaceClient implements SocketIOClient {
 
     @Override
     public void sendEvent(String name, AckCallback<?> ackCallback, Object ... data) {
-        Packet packet = new Packet(PacketType.MESSAGE);
+        Packet packet = new Packet(PacketType.MESSAGE, getEngineIOVersion());
         packet.setSubType(PacketType.EVENT);
         packet.setName(name);
         packet.setData(Arrays.asList(data));
@@ -110,7 +116,7 @@ public class NamespaceClient implements SocketIOClient {
             return;
         }
 
-        baseClient.send(packet.withNsp(namespace.getName()));
+        baseClient.send(packet.withNsp(namespace.getName(), baseClient.getEngineIOVersion()));
     }
 
     public void onDisconnect() {
@@ -124,7 +130,7 @@ public class NamespaceClient implements SocketIOClient {
 
     @Override
     public void disconnect() {
-        Packet packet = new Packet(PacketType.MESSAGE);
+        Packet packet = new Packet(PacketType.MESSAGE, getEngineIOVersion());
         packet.setSubType(PacketType.DISCONNECT);
         send(packet);
 //        onDisconnect();

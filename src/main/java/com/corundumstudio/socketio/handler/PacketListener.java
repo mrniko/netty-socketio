@@ -23,6 +23,7 @@ import com.corundumstudio.socketio.Transport;
 import com.corundumstudio.socketio.ack.AckManager;
 import com.corundumstudio.socketio.namespace.Namespace;
 import com.corundumstudio.socketio.namespace.NamespacesHub;
+import com.corundumstudio.socketio.protocol.EngineIOVersion;
 import com.corundumstudio.socketio.protocol.Packet;
 import com.corundumstudio.socketio.protocol.PacketType;
 import com.corundumstudio.socketio.scheduler.CancelableScheduler;
@@ -52,12 +53,12 @@ public class PacketListener {
 
         switch (packet.getType()) {
         case PING: {
-            Packet outPacket = new Packet(PacketType.PONG);
+            Packet outPacket = new Packet(PacketType.PONG, client.getEngineIOVersion());
             outPacket.setData(packet.getData());
             // TODO use future
             client.getBaseClient().send(outPacket, transport);
             if ("probe".equals(packet.getData())) {
-                client.getBaseClient().send(new Packet(PacketType.NOOP), Transport.POLLING);
+                client.getBaseClient().send(new Packet(PacketType.NOOP, client.getEngineIOVersion()), Transport.POLLING);
             } else {
                 client.getBaseClient().schedulePingTimeout();
             }
@@ -93,7 +94,9 @@ public class PacketListener {
                 Namespace namespace = namespacesHub.get(packet.getNsp());
                 namespace.onConnect(client);
                 // send connect handshake packet back to client
-                client.getBaseClient().send(packet, transport);
+                if (!EngineIOVersion.V4.equals(client.getEngineIOVersion())) {
+                    client.getBaseClient().send(packet, transport);
+                }
             }
 
             if (packet.getSubType() == PacketType.ACK

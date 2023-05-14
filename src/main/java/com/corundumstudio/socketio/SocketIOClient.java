@@ -19,6 +19,7 @@ import java.net.SocketAddress;
 import java.util.Set;
 import java.util.UUID;
 
+import com.corundumstudio.socketio.protocol.EngineIOVersion;
 import com.corundumstudio.socketio.protocol.Packet;
 import com.corundumstudio.socketio.store.Store;
 
@@ -42,6 +43,12 @@ public interface SocketIOClient extends ClientOperations, Store {
      * @return transport protocol
      */
     Transport getTransport();
+
+    /**
+     * Engine IO Protocol version
+     * @return
+     */
+    EngineIOVersion getEngineIOVersion();
 
     /**
      * Returns true if and only if the I/O thread will perform the requested write operation immediately.

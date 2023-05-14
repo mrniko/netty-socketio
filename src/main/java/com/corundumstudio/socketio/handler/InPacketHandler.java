@@ -69,7 +69,7 @@ public class InPacketHandler extends SimpleChannelInboundHandler<PacketsMessage>
                 Namespace ns = namespacesHub.get(packet.getNsp());
                 if (ns == null) {
                     if (packet.getSubType() == PacketType.CONNECT) {
-                        Packet p = new Packet(PacketType.MESSAGE);
+                        Packet p = new Packet(PacketType.MESSAGE, client.getEngineIOVersion());
                         p.setSubType(PacketType.ERROR);
                         p.setNsp(packet.getNsp());
                         p.setData("Invalid namespace");

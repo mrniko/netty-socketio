@@ -22,6 +22,7 @@ import com.corundumstudio.socketio.Transport;
 import com.corundumstudio.socketio.ack.AckManager;
 import com.corundumstudio.socketio.messages.OutPacketMessage;
 import com.corundumstudio.socketio.namespace.Namespace;
+import com.corundumstudio.socketio.protocol.EngineIOVersion;
 import com.corundumstudio.socketio.protocol.Packet;
 import com.corundumstudio.socketio.protocol.PacketType;
 import com.corundumstudio.socketio.scheduler.CancelableScheduler;
@@ -57,6 +58,8 @@ public class ClientHead {
     private final HandshakeData handshakeData;
     private final UUID sessionId;
 
+    private final EngineIOVersion engineIOVersion;
+
     private final Store store;
     private final DisconnectableHub disconnectableHub;
     private final AckManager ackManager;
@@ -70,8 +73,8 @@ public class ClientHead {
     private volatile Transport currentTransport;
 
     public ClientHead(UUID sessionId, AckManager ackManager, DisconnectableHub disconnectable,
-            StoreFactory storeFactory, HandshakeData handshakeData, ClientsBox clientsBox, Transport transport, CancelableScheduler scheduler,
-            Configuration configuration) {
+                      StoreFactory storeFactory, HandshakeData handshakeData, ClientsBox clientsBox, Transport transport, CancelableScheduler scheduler,
+                      Configuration configuration, Map<String, List<String>> params) {
         this.sessionId = sessionId;
         this.ackManager = ackManager;
         this.disconnectableHub = disconnectable;
@@ -84,6 +87,13 @@ public class ClientHead {
 
         channels.put(Transport.POLLING, new TransportState());
         channels.put(Transport.WEBSOCKET, new TransportState());
+
+        List<String> versions = params.getOrDefault(EngineIOVersion.EIO, new ArrayList<String>());
+        if (versions.isEmpty()) {
+            engineIOVersion = EngineIOVersion.UNKNOWN;
+        } else {
+            engineIOVersion = EngineIOVersion.fromValue(versions.get(0));
+        }
     }
 
     public void bindChannel(Channel channel, Transport transport) {
@@ -132,7 +142,11 @@ public class ClientHead {
             public void run() {
                 ClientHead client = clientsBox.get(sessionId);
                 if (client != null) {
-                    client.send(new Packet(PacketType.PING));
+                    EngineIOVersion version = client.getEngineIOVersion();
+                    //only send ping packet for engine.io version 4
+                    if (EngineIOVersion.V4.equals(version)) {
+                        client.send(new Packet(PacketType.PING, version));
+                    }
                     schedulePing();
                 }
             }
@@ -227,7 +241,7 @@ public class ClientHead {
     }
 
     public void disconnect() {
-        Packet packet = new Packet(PacketType.MESSAGE);
+        Packet packet = new Packet(PacketType.MESSAGE, engineIOVersion);
         packet.setSubType(PacketType.DISCONNECT);
         ChannelFuture future = send(packet);
 		if(future != null) {
@@ -289,6 +303,10 @@ public class ClientHead {
     }
     public Packet getLastBinaryPacket() {
         return lastBinaryPacket;
+    }
+
+    public EngineIOVersion getEngineIOVersion() {
+        return engineIOVersion;
     }
 
     /**

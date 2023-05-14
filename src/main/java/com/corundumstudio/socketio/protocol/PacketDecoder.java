@@ -149,7 +149,7 @@ public class PacketDecoder {
             return parseBinary(head, frame);
         }
         PacketType type = readType(frame);
-        Packet packet = new Packet(type);
+        Packet packet = new Packet(type, head.getEngineIOVersion());
 
         if (type == PacketType.PING) {
             packet.setData(readString(frame));
@@ -263,7 +263,7 @@ public class PacketDecoder {
                 return binaryPacket;
             }
         }
-        return new Packet(PacketType.MESSAGE);
+        return new Packet(PacketType.MESSAGE, head.getEngineIOVersion());
     }
 
     private void parseBody(ClientHead head, ByteBuf frame, Packet packet) throws IOException {

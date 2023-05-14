@@ -16,6 +16,7 @@
 package com.corundumstudio.socketio;
 
 import com.corundumstudio.socketio.misc.IterableCollection;
+import com.corundumstudio.socketio.protocol.EngineIOVersion;
 import com.corundumstudio.socketio.protocol.Packet;
 import com.corundumstudio.socketio.protocol.PacketType;
 import com.corundumstudio.socketio.store.StoreFactory;
@@ -57,6 +58,7 @@ public class SingleRoomBroadcastOperations implements BroadcastOperations {
     @Override
     public void send(Packet packet) {
         for (SocketIOClient client : clients) {
+            packet.setEngineIOVersion(client.getEngineIOVersion());
             client.send(packet);
         }
         dispatch(packet);
@@ -79,12 +81,13 @@ public class SingleRoomBroadcastOperations implements BroadcastOperations {
 
     @Override
     public void sendEvent(String name, SocketIOClient excludedClient, Object... data) {
-        Packet packet = new Packet(PacketType.MESSAGE);
+        Packet packet = new Packet(PacketType.MESSAGE, EngineIOVersion.UNKNOWN);
         packet.setSubType(PacketType.EVENT);
         packet.setName(name);
         packet.setData(Arrays.asList(data));
 
         for (SocketIOClient client : clients) {
+            packet.setEngineIOVersion(client.getEngineIOVersion());
             if (client.getSessionId().equals(excludedClient.getSessionId())) {
                 continue;
             }
@@ -95,7 +98,7 @@ public class SingleRoomBroadcastOperations implements BroadcastOperations {
 
     @Override
     public void sendEvent(String name, Object... data) {
-        Packet packet = new Packet(PacketType.MESSAGE);
+        Packet packet = new Packet(PacketType.MESSAGE, EngineIOVersion.UNKNOWN);
         packet.setSubType(PacketType.EVENT);
         packet.setName(name);
         packet.setData(Arrays.asList(data));
