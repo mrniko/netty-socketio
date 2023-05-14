@@ -9,7 +9,7 @@ Licensed under the Apache License 2.0.
 
 Features
 ================================
-* __2.x__ version of [Socket.IO-client](https://github.com/socketio/socket.io-client) is supported
+* __1.x - 4.x__ version of [Socket.IO-client](https://github.com/socketio/socket.io-client) is supported
 * Supports xhr-polling transport  
 * Supports websocket transport  
 * Supports namespaces and rooms  
@@ -47,6 +47,10 @@ Zipwhip: [zipwhip.com](https://zipwhip.com/)
 Recent Releases
 ================================
 #### Please Note: trunk is current development branch.
+
+
+#### 14-May-2023 - version 2.0.0 released 
+Feature - SocketIO 4.x protocol support (thanks to @HashZhang)
 
 #### 17-Apr-2023 - version 1.7.25 released  
 Fixed - io.netty.channel.ChannelPipelineException error
