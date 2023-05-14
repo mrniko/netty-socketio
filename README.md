@@ -48,6 +48,10 @@ Recent Releases
 ================================
 #### Please Note: trunk is current development branch.
 
+#### 14-May-2023 - version 2.0.1 released 
+JDK 8 is minimum version required for usage. 
+
+Fixed - message larger than maxFramePayloadLength causes memory leak  
 
 #### 14-May-2023 - version 2.0.0 released 
 Feature - SocketIO 4.x protocol support (thanks to @HashZhang)  
