@@ -115,7 +115,9 @@ public class WebSocketTransport extends ChannelInboundHandlerAdapter {
                     } else {
                         ClientHead client = ctx.channel().attr(ClientHead.CLIENT).get();
                         // first connection
-                        handshake(ctx, client.getSessionId(), path, req);
+                        if (client != null) {
+                            handshake(ctx, client.getSessionId(), path, req);
+                        }
                     }
                 } finally {
                     req.release();

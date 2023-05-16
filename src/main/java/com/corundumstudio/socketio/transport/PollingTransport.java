@@ -98,7 +98,9 @@ public class PollingTransport extends ChannelInboundHandlerAdapter {
                     } else {
                         // first connection
                         ClientHead client = ctx.channel().attr(ClientHead.CLIENT).get();
-                        handleMessage(req, client.getSessionId(), queryDecoder, ctx);
+                        if (client != null) {
+                            handleMessage(req, client.getSessionId(), queryDecoder, ctx);
+                        }
                     }
                 } finally {
                     req.release();
