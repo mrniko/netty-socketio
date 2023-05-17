@@ -48,6 +48,9 @@ Recent Releases
 ================================
 #### Please Note: trunk is current development branch.
 
+#### 17-May-2023 - version 2.0.2 released
+Fixed - NPE in WebSocketTransport and PollingTransport (thanks to @Hunterk95)
+
 #### 14-May-2023 - version 2.0.1 released 
 JDK 8 is minimum version required for usage. 
 
