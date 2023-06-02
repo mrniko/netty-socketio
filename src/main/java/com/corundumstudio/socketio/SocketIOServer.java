@@ -77,6 +77,15 @@ public class SocketIOServer implements ClientListeners {
     }
 
     /**
+     * Get all clients connected to namespace
+     *
+     * @return clients collection
+     */
+    public Collection<SocketIOClient> getAllClients(String name) {
+        return namespacesHub.get(name).getAllClients();
+    }
+
+    /**
      * Get client by uuid from default namespace
      *
      * @param uuid - id of client
@@ -84,6 +93,16 @@ public class SocketIOServer implements ClientListeners {
      */
     public SocketIOClient getClient(UUID uuid) {
         return namespacesHub.get(Namespace.DEFAULT_NAME).getClient(uuid);
+    }
+
+    /**
+     * Get client by name and uuid from namespace
+     *
+     * @param uuid - id of client
+     * @return client
+     */
+    public SocketIOClient getClient(String name, UUID uuid) {
+        return namespacesHub.get(name).getClient(uuid);
     }
 
     /**
