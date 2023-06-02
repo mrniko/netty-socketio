@@ -52,7 +52,7 @@ public class HazelcastStoreFactory extends BaseStoreFactory {
         this.hazelcastPub = hazelcastPub;
         this.hazelcastSub = hazelcastSub;
 
-        this.pubSubStore = new HazelcastPubSubStore(hazelcastPub, hazelcastSub, getNodeId());
+        this.pubSubStore = createPubSubStore();
     }
 
     @Override
@@ -65,6 +65,11 @@ public class HazelcastStoreFactory extends BaseStoreFactory {
         hazelcastClient.shutdown();
         hazelcastPub.shutdown();
         hazelcastSub.shutdown();
+    }
+
+    @Override
+    protected PubSubStore createPubSubStore() {
+        return new HazelcastPubSubStore(hazelcastPub, hazelcastSub, getNodeId());
     }
 
     @Override
