@@ -298,6 +298,7 @@ public class PacketEncoder {
                     if (packet.getSubType() == PacketType.CONNECT) {
                         if (!packet.getNsp().isEmpty()) {
                             buf.writeBytes(packet.getNsp().getBytes(CharsetUtil.UTF_8));
+                            buf.writeByte(',');
                         }
                         if (EngineIOVersion.V4.equals(packet.getEngineIOVersion())
                                 && packet.getData() != null) {
