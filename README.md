@@ -4,7 +4,7 @@ about this patch
 this patch socket.io V4
 
  client connect  websocket   connect state  is conneting  still time out
-                 polling     loop  open new url ,no succece success
+                 polling     loop  open new url ,no succece info
        
 fix
 ================================
