@@ -4,7 +4,7 @@ Netty-socketio Overview
 this patch  V4 socket.io   websocket  when  conect  is conneting  ,still time out
                            polling    loop   open new url   
 ![image](https://github.com/mrniko/netty-socketio/assets/7028443/70c91fc9-210d-4001-beba-c4408b0e0ed4)![image](https://github.com/mrniko/netty-socketio/assets/7028443/78467ab1-0a90-40ea-a6ea-06ef08bc8b5d)
-
+![image](https://github.com/mrniko/netty-socketio/assets/7028443/c9433c02-d58c-489b-b001-09f29b4e32f3)
 This project is an open-source Java implementation of [Socket.IO](http://socket.io/) server. Based on [Netty](http://netty.io/) server framework.  
 
 Checkout [Demo project](https://github.com/mrniko/netty-socketio-demo)
