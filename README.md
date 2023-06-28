@@ -3,6 +3,8 @@ Netty-socketio Overview
 ===
 this patch socket.io V4 client   websocket  when  conect  is conneting  ,still time out
                                  polling    loop   open new url   
+you can download https://github.com/lyjnew/netty-socketio-patch/files/11896219/netty-socketio-2.0.2-pach.jar.zip relapce netty-socketio-2.0.2-pach.jar
+or compile this project yourself
 websocket
 ![image](https://github.com/mrniko/netty-socketio/assets/7028443/c9433c02-d58c-489b-b001-09f29b4e32f3)
 
