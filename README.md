@@ -1,14 +1,25 @@
 
 Netty-socketio Overview
-===
-this patch socket.io V4 client   websocket  when  conect  is conneting  ,still time out
-                                 polling    loop   open new url   
+================================
+this patch socket.io V4
+ client connect
+      websocket  when  conect  is conneting  ,still time out
+       polling    loop   open new url 
+
+       
+fix
+================================
 you can download https://github.com/lyjnew/netty-socketio-patch/files/11896219/netty-socketio-2.0.2-pach.jar.zip relapce netty-socketio-2.0.2-pach.jar
+
 or compile this project yourself
+================================
+
 websocket
+================================
 ![image](https://github.com/mrniko/netty-socketio/assets/7028443/c9433c02-d58c-489b-b001-09f29b4e32f3)
 
 polling
+================================
 ![image](https://github.com/mrniko/netty-socketio/assets/7028443/70c91fc9-210d-4001-beba-c4408b0e0ed4)![image](https://github.com/mrniko/netty-socketio/assets/7028443/78467ab1-0a90-40ea-a6ea-06ef08bc8b5d)
 
 This project is an open-source Java implementation of [Socket.IO](http://socket.io/) server. Based on [Netty](http://netty.io/) server framework.  
