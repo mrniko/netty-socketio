@@ -200,7 +200,9 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
         clientsBox.addClient(client);
 
         String[] transports = {};
-        if (configuration.getTransports().contains(Transport.WEBSOCKET)) {
+        //:TODO lyjnew temp change v4 websocket
+        if (configuration.getTransports().contains(Transport.WEBSOCKET) &&
+                !(EngineIOVersion.V4.equals(client.getEngineIOVersion()) && Transport.WEBSOCKET.equals(client.getCurrentTransport())))  {
             transports = new String[]{"websocket"};
         }
 
@@ -269,8 +271,10 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
             Packet packet = new Packet(PacketType.MESSAGE, client.getEngineIOVersion());
             packet.setSubType(PacketType.CONNECT);
             if (EngineIOVersion.V4.equals(client.getEngineIOVersion())) {
-                packet.setData(new ConnPacket(client.getSessionId()));
+                //::TODO lyjnew V4 delay send connect packet  ON client add Namecapse
+                //packet.setData(new ConnPacket(client.getSessionId()));
             }
+            else
             client.send(packet);
 
             configuration.getStoreFactory().pubSubStore().publish(PubSubType.CONNECT, new ConnectMessage(client.getSessionId()));
