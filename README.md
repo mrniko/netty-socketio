@@ -13,11 +13,17 @@ you can download https://github.com/lyjnew/netty-socketio-patch/files/11896219/n
 or compile this project yourself
 ================================
 
-websocket
+postman test  socket.io V2 V3 V4 pass
+==============================
+
+![image](https://github.com/mrniko/netty-socketio/assets/7028443/e2f3edc5-edac-401d-a344-9921c38c1f86)
+![image](https://github.com/mrniko/netty-socketio/assets/7028443/67812e3a-7938-4a5e-9c49-b3c094d56674)
+==============================
+websocket demo test
 ================================
 ![image](https://github.com/mrniko/netty-socketio/assets/7028443/c9433c02-d58c-489b-b001-09f29b4e32f3)
 
-polling
+polling demo test
 ================================
 ![image](https://github.com/mrniko/netty-socketio/assets/7028443/70c91fc9-210d-4001-beba-c4408b0e0ed4)![image](https://github.com/mrniko/netty-socketio/assets/7028443/78467ab1-0a90-40ea-a6ea-06ef08bc8b5d)
 
