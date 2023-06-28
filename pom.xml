@@ -3,7 +3,7 @@
 
  <groupId>com.corundumstudio.socketio</groupId>
  <artifactId>netty-socketio</artifactId>
- <version>2.0.3-SNAPSHOT</version>
+ <version>2.0.2-pach</version>
  <packaging>bundle</packaging>
  <name>NettySocketIO</name>
  <description>Socket.IO server implemented on Java</description>
@@ -66,7 +66,7 @@
              <plugin>
                <groupId>org.apache.maven.plugins</groupId>
                <artifactId>maven-gpg-plugin</artifactId>
-               <version>1.4</version>
+               <version>1.5</version>
                <executions>
                  <execution>
                    <id>sign-artifacts</id>
@@ -153,13 +153,13 @@
   <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-beans</artifactId>
-      <version>6.0.8</version>
+      <version>5.3.23</version>
       <scope>provided</scope>
   </dependency>
   <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-core</artifactId>
-      <version>6.0.8</version>
+      <version>5.3.23</version>
       <exclusions>
          <exclusion>
              <groupId>commons-logging</groupId>
@@ -226,7 +226,7 @@
             </execution>
           </executions>
           <configuration>
-            <linkXref>true</linkXref>
+            <linkXRef>true</linkXRef>
             <minimumTokens>100</minimumTokens>
             <targetJdk>1.6</targetJdk>
             <verbose>true</verbose>
