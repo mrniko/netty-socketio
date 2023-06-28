@@ -17,7 +17,7 @@ postman test  socket.io V2 V3 V4 pass
 ==============================
 ![image](https://github.com/mrniko/netty-socketio/assets/7028443/7854b336-5fc5-43d3-a3e0-191f8f48e9cb)
 ![image](https://github.com/mrniko/netty-socketio/assets/7028443/80915d75-06b6-4738-9ab9-0a0b9335efed)
-![image](https://github.com/mrniko/netty-socketio/assets/7028443/0eb78c90-93b5-491a-a538-66e54b6e3925)
+![image](https://github.com/mrniko/netty-socketio/assets/7028443/13e7960d-03fb-45c0-ae99-352b414f320e)
 ==============================
 websocket demo test
 ================================
