@@ -1,8 +1,8 @@
 
 Netty-socketio Overview
 ===
-this patch  V4 socket.io   websocket  when  conect  is conneting  ,still time out
-                           polling    loop   open new url   
+this patch socket.io V4 client   websocket  when  conect  is conneting  ,still time out
+                                 polling    loop   open new url   
 websocket
 ![image](https://github.com/mrniko/netty-socketio/assets/7028443/c9433c02-d58c-489b-b001-09f29b4e32f3)
 
