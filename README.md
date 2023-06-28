@@ -1,4 +1,4 @@
-this patch  V4 socket.io   websocket  wehen  conect  is conneting  ,still time out
+this patch  V4 socket.io   websocket  when  conect  is conneting  ,still time out
                            polling    loop   open new url   
 Netty-socketio Overview
 ===
