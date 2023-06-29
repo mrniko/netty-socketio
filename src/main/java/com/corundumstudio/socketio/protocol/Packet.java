@@ -110,6 +110,10 @@ public class Packet implements Serializable {
     }
 
     public void setNsp(String endpoint) {
+        //patch for #903
+        if (endpoint.equals("{}")){
+            endpoint="";
+        }
         this.nsp = endpoint;
     }
 
