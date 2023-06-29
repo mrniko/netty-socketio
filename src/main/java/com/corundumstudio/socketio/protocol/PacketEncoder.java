@@ -299,8 +299,13 @@ public class PacketEncoder {
                         if (!packet.getNsp().isEmpty()) {
                             buf.writeBytes(packet.getNsp().getBytes(CharsetUtil.UTF_8));
                         }
+                        //:TODO lyjnew tmp change V4 add “,”
                         if (EngineIOVersion.V4.equals(packet.getEngineIOVersion())
                                 && packet.getData() != null) {
+
+                            if (!packet.getNsp().isEmpty()) {
+                                buf.writeByte(',');
+                            }
                             ByteBufOutputStream out = new ByteBufOutputStream(buf);
                             jsonSupport.writeValue(out, packet.getData());
                         }
