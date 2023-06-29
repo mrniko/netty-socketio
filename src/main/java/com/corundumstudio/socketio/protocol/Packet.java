@@ -71,9 +71,9 @@ public class Packet implements Serializable {
 
     /**
      * Get packet data
-     * 
+     *
      * @param <T> the type data
-     * 
+     *
      * <pre>
      * @return <b>json object</b> for PacketType.JSON type
      * <b>message</b> for PacketType.MESSAGE type
@@ -110,6 +110,12 @@ public class Packet implements Serializable {
     }
 
     public void setNsp(String endpoint) {
+
+		// temporary fix for V3-4 namespaces compatibility
+        if ("{}".equals(endpoint)) {
+            endpoint = "";
+        }
+
         this.nsp = endpoint;
     }
 
