@@ -48,6 +48,9 @@ Recent Releases
 ================================
 #### Please Note: trunk is current development branch.
 
+#### 01-Jul-2023 - version 2.0.3 released
+Fixed - client can't connect to non-default namespace (thanks to @lyjnew)
+
 #### 17-May-2023 - version 2.0.2 released
 Fixed - NPE in WebSocketTransport and PollingTransport (thanks to @Hunterk95)
 
