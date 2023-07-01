@@ -15,6 +15,7 @@
  */
 package com.corundumstudio.socketio.handler;
 
+import com.corundumstudio.socketio.protocol.*;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
@@ -28,9 +29,6 @@ import com.corundumstudio.socketio.listener.ExceptionListener;
 import com.corundumstudio.socketio.messages.PacketsMessage;
 import com.corundumstudio.socketio.namespace.Namespace;
 import com.corundumstudio.socketio.namespace.NamespacesHub;
-import com.corundumstudio.socketio.protocol.Packet;
-import com.corundumstudio.socketio.protocol.PacketDecoder;
-import com.corundumstudio.socketio.protocol.PacketType;
 import com.corundumstudio.socketio.transport.NamespaceClient;
 
 @Sharable
@@ -63,9 +61,7 @@ public class InPacketHandler extends SimpleChannelInboundHandler<PacketsMessage>
         while (content.isReadable()) {
             try {
                 Packet packet = decoder.decodePackets(content, client);
-                if (packet.hasAttachments() && !packet.isAttachmentsLoaded()) {
-                    return;
-                }
+
                 Namespace ns = namespacesHub.get(packet.getNsp());
                 if (ns == null) {
                     if (packet.getSubType() == PacketType.CONNECT) {
@@ -82,11 +78,24 @@ public class InPacketHandler extends SimpleChannelInboundHandler<PacketsMessage>
 
                 if (packet.getSubType() == PacketType.CONNECT) {
                     client.addNamespaceClient(ns);
+                    //:TODO lyjnew client namespace send connect packet 0+namespace  socket io v4
+                    // https://socket.io/docs/v4/socket-io-protocol/#connection-to-a-namespace
+                    if (EngineIOVersion.V4.equals(client.getEngineIOVersion()))
+                    {
+                        Packet p = new Packet(PacketType.MESSAGE, client.getEngineIOVersion());
+                        p.setSubType(PacketType.CONNECT);
+                        p.setNsp(packet.getNsp());
+                        p.setData(new ConnPacket(client.getSessionId()));
+                        client.send(p);
+                    }
                 }
 
                 NamespaceClient nClient = client.getChildClient(ns);
                 if (nClient == null) {
                     log.debug("Can't find namespace client in namespace: {}, sessionId: {} probably it was disconnected.", ns.getName(), client.getSessionId());
+                    return;
+                }
+                if (packet.hasAttachments() && !packet.isAttachmentsLoaded()) {
                     return;
                 }
                 packetListener.onPacket(packet, nClient, message.getTransport());
