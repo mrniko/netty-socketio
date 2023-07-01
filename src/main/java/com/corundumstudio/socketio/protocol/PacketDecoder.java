@@ -20,15 +20,12 @@ import com.corundumstudio.socketio.ack.AckManager;
 import com.corundumstudio.socketio.handler.ClientHead;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufInputStream;
-import io.netty.buffer.ByteBufUtil;
 import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.base64.Base64;
 import io.netty.util.CharsetUtil;
 
 import java.io.IOException;
-import java.net.URLDecoder;
 import java.util.LinkedList;
-import java.util.UUID;
 
 public class PacketDecoder {
 
@@ -48,37 +45,57 @@ public class PacketDecoder {
         return content.getByte(content.readerIndex()) == 0x0;
     }
 
-    // TODO optimize
-    public ByteBuf preprocessJson(Integer jsonIndex, ByteBuf content) throws IOException {
-        String packet = URLDecoder.decode(content.toString(CharsetUtil.UTF_8), CharsetUtil.UTF_8.name());
+	public ByteBuf preprocessJson(Integer jsonIndex, ByteBuf content) {
+		if (jsonIndex == null) {
+			return content;
+		}
+		ByteBuf output = Unpooled.buffer(content.readableBytes());
 
-        if (jsonIndex != null) {
-            /**
-            * double escaping is required for escaped new lines because unescaping of new lines can be done safely on server-side
-            * (c) socket.io.js
-            *
-            * @see https://github.com/Automattic/socket.io-client/blob/1.3.3/socket.io.js#L2682
-            */
-            packet = packet.replace("\\\\n", "\\n");
+		// Skip first two bytes "d=" and start processing from the third byte.
+		content.skipBytes(2);
 
-            // skip "d="
-            packet = packet.substring(2);
-        }
+		// double escaping is required for escaped new lines
+		// because unescaping of new lines can be done safely on server-side (c) socket.io.js
+		// @see https://github.com/Automattic/socket.io-client/blob/1.3.3/socket.io.js#L2682
+		boolean isPrevByteSlash = false;
 
-        return Unpooled.wrappedBuffer(packet.getBytes(CharsetUtil.UTF_8));
-    }
+		while (content.isReadable()) {
+			byte currentByte = content.readByte();
+
+			// Check for double escaping of new lines and replace with single escaping.
+			boolean isCurrentByteSlash = currentByte == '\\';
+			if (isPrevByteSlash && isCurrentByteSlash && content.readableBytes() > 0) {
+				byte nextByte = content.readByte();
+				if (nextByte == 'n') {
+					output.writeByte('\\');
+					output.writeByte('n');
+					continue; // Skip current iteration to avoid writing the current '\\' byte to the output.
+				} else {
+					content.readerIndex(content.readerIndex() - 1); // Rollback the read index to re-read nextByte.
+				}
+			}
+
+			// Check if the current character is a backslash.
+			isPrevByteSlash = isCurrentByteSlash;
+
+			// Write the current byte to the output buffer.
+			output.writeByte(currentByte);
+		}
+
+		return output;
+	}
 
     // fastest way to parse chars to int
     private long readLong(ByteBuf chars, int length) {
         long result = 0;
-        for (int i = chars.readerIndex(); i < chars.readerIndex() + length; i++) {
-            int digit = ((int)chars.getByte(i) & 0xF);
-            for (int j = 0; j < chars.readerIndex() + length-1-i; j++) {
-                digit *= 10;
-            }
-            result += digit;
+        int readerIndex = chars.readerIndex();
+
+        for (int i = readerIndex; i < readerIndex + length; i++) {
+            int digit = chars.getByte(i) - '0';
+            result = result * 10 + digit;
         }
-        chars.readerIndex(chars.readerIndex() + length);
+
+        chars.readerIndex(readerIndex + length);
         return result;
     }
 
@@ -188,21 +205,23 @@ public class PacketDecoder {
             return;
         }
 
-        // TODO optimize
-        boolean hasNsp = frame.bytesBefore(endIndex, (byte)',') != -1;
-        if (hasNsp) {
-            String nspAckId = readString(frame, endIndex);
-            String[] parts = nspAckId.split(",");
-            String nsp = parts[0];
-            packet.setNsp(nsp);
-            if (parts.length > 1) {
-                String ackId = parts[1];
-                packet.setAckId(Long.valueOf(ackId));
-            }
-        } else {
-            long ackId = readLong(frame, endIndex);
-            packet.setAckId(ackId);
-        }
+		int commaIndex = frame.bytesBefore(endIndex, (byte) ',');
+		if (commaIndex != -1) { // hasNsp
+			// Directly working on the ByteBuf to avoid unnecessary String creation
+			int readerIndex = frame.readerIndex();
+			ByteBuf nspBuffer = frame.readSlice(commaIndex);
+			ByteBuf ackIdBuffer = frame.readSlice(endIndex - commaIndex - 1);
+
+			packet.setNsp(nspBuffer.toString(CharsetUtil.UTF_8));
+			if (ackIdBuffer.readableBytes() > 0) {
+				packet.setAckId(Long.parseLong(ackIdBuffer.toString(CharsetUtil.UTF_8)));
+			}
+
+			frame.readerIndex(readerIndex + endIndex); // Reset the reader index after parsing
+		} else {
+			long ackId = readLong(frame, endIndex);
+			packet.setAckId(ackId);
+		}
     }
 
     private Packet parseBinary(ClientHead head, ByteBuf frame) throws IOException {
@@ -257,7 +276,7 @@ public class PacketDecoder {
                 }
                 slices.add(source.slice());
 
-                ByteBuf compositeBuf = Unpooled.wrappedBuffer(slices.toArray(new ByteBuf[slices.size()]));
+                ByteBuf compositeBuf = Unpooled.wrappedBuffer(slices.toArray(new ByteBuf[0]));
                 parseBody(head, compositeBuf, binaryPacket);
                 head.setLastBinaryPacket(null);
                 return binaryPacket;
