@@ -1,12 +1,12 @@
 /**
  * Copyright (c) 2012-2019 Nikita Koksharov
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -22,9 +22,14 @@ import com.corundumstudio.socketio.protocol.PacketType;
 import com.corundumstudio.socketio.store.StoreFactory;
 import com.corundumstudio.socketio.store.pubsub.DispatchMessage;
 import com.corundumstudio.socketio.store.pubsub.PubSubType;
+import io.netty.buffer.Unpooled;
+import org.springframework.lang.NonNull;
+import org.springframework.util.CollectionUtils;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Author: liangjiaqi
@@ -80,11 +85,14 @@ public class SingleRoomBroadcastOperations implements BroadcastOperations {
     }
 
     @Override
-    public void sendEvent(String name, SocketIOClient excludedClient, Object... data) {
+    public void sendEvent(String name, SocketIOClient excludedClient, @NonNull Object... data) {
         Packet packet = new Packet(PacketType.MESSAGE, EngineIOVersion.UNKNOWN);
         packet.setSubType(PacketType.EVENT);
         packet.setName(name);
         packet.setData(Arrays.asList(data));
+
+        // handle byte[] data
+        handleBytes(packet, data);
 
         for (SocketIOClient client : clients) {
             packet.setEngineIOVersion(client.getEngineIOVersion());
@@ -97,12 +105,29 @@ public class SingleRoomBroadcastOperations implements BroadcastOperations {
     }
 
     @Override
-    public void sendEvent(String name, Object... data) {
+    public void sendEvent(String name, @NonNull Object... data) {
         Packet packet = new Packet(PacketType.MESSAGE, EngineIOVersion.UNKNOWN);
         packet.setSubType(PacketType.EVENT);
         packet.setName(name);
         packet.setData(Arrays.asList(data));
+
+        // handle byte[] data
+        handleBytes(packet, data);
+
         send(packet);
+    }
+
+    private static void handleBytes(Packet packet, Object[] data) {
+        List<byte[]> bytes = Arrays.stream(data)
+                .filter(o -> o instanceof byte[])
+                .map(b -> (byte[]) b)
+                .filter(b -> b.length > 0)
+                .collect(Collectors.toList());
+
+        if (!CollectionUtils.isEmpty(bytes)) {
+            packet.initAttachments(bytes.size());
+            bytes.stream().peek(b -> packet.addAttachment(Unpooled.wrappedBuffer(b)));
+        }
     }
 
     @Override

@@ -27,6 +27,13 @@ public interface ClientOperations {
      * Send custom packet.
      * But {@link ClientOperations#sendEvent} method
      * usage is enough for most cases.
+     * If the Packet is sent by BroadcastOperations,
+     * {@link Packet#attachments} needs to be filled when sending byte[].
+     * Using {@link io.netty.buffer.Unpooled#wrappedBuffer(byte[])} to
+     * fill byte[] into {@link Packet#attachments} is the recommended way.
+     * Before using {@link Packet#addAttachment(io.netty.buffer.ByteBuf)},
+     * be sure to initialize the number of attachments with
+     * {@link Packet#initAttachments(int)})}
      *
      * @param packet - packet to send
      */

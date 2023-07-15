@@ -15,7 +15,7 @@
  */
 package com.corundumstudio.socketio.protocol;
 
-import com.corundumstudio.socketio.handler.ClientHead;
+import com.corundumstudio.socketio.Configuration;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.ByteBufOutputStream;
@@ -28,8 +28,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
-
-import com.corundumstudio.socketio.Configuration;
 
 public class PacketEncoder {
 
@@ -254,18 +252,20 @@ public class PacketEncoder {
 
                     ByteBuf encBuf = null;
 
-                    if (packet.getSubType() == PacketType.ERROR) {
+                    PacketType subType = packet.getSubType();
+                    if (subType == PacketType.ERROR) {
                         encBuf = allocateBuffer(allocator);
 
                         ByteBufOutputStream out = new ByteBufOutputStream(encBuf);
                         jsonSupport.writeValue(out, packet.getData());
                     }
 
-                    if (packet.getSubType() == PacketType.EVENT
-                            || packet.getSubType() == PacketType.ACK) {
+                    PacketType tmpSubType = subType;
+                    if (subType == PacketType.EVENT
+                            || subType == PacketType.ACK) {
 
                         List<Object> values = new ArrayList<Object>();
-                        if (packet.getSubType() == PacketType.EVENT) {
+                        if (subType == PacketType.EVENT) {
                             values.add(packet.getName());
                         }
 
@@ -277,17 +277,22 @@ public class PacketEncoder {
                         jsonSupport.writeValue(out, values);
 
                         if (!jsonSupport.getArrays().isEmpty()) {
-                            packet.initAttachments(jsonSupport.getArrays().size());
-                            for (byte[] array : jsonSupport.getArrays()) {
-                                packet.addAttachment(Unpooled.wrappedBuffer(array));
+                            // If the Packet is sent by BroadcastOperations,
+                            // there is a problem of concurrent initialization for the same Packet.
+                            // Please initAttachment when creating the Packet to avoid this problem.
+                            if (!packet.hasAttachments()) {
+                                packet.initAttachments(jsonSupport.getArrays().size());
+                                for (byte[] array : jsonSupport.getArrays()) {
+                                    packet.addAttachment(Unpooled.wrappedBuffer(array));
+                                }
                             }
-                            packet.setSubType(packet.getSubType() == PacketType.ACK
+                            tmpSubType = (subType == PacketType.ACK
                                     ? PacketType.BINARY_ACK : PacketType.BINARY_EVENT);
                         }
                     }
 
-                    byte subType = toChar(packet.getSubType().getValue());
-                    buf.writeByte(subType);
+                    byte subTypeByte = toChar(tmpSubType.getValue());
+                    buf.writeByte(subTypeByte);
 
                     if (packet.hasAttachments()) {
                         byte[] ackId = toChars(packet.getAttachments().size());
@@ -295,7 +300,7 @@ public class PacketEncoder {
                         buf.writeByte('-');
                     }
 
-                    if (packet.getSubType() == PacketType.CONNECT) {
+                    if (subType == PacketType.CONNECT) {
                         if (!packet.getNsp().isEmpty()) {
                             buf.writeBytes(packet.getNsp().getBytes(CharsetUtil.UTF_8));
                         }

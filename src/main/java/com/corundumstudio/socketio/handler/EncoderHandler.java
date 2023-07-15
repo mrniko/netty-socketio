@@ -259,7 +259,7 @@ public class EncoderHandler extends ChannelOutboundHandlerAdapter {
             for (ByteBuf buf : packet.getAttachments()) {
                 ByteBuf outBuf = encoder.allocateBuffer(ctx.alloc());
                 outBuf.writeByte(4);
-                outBuf.writeBytes(buf);
+                outBuf.writeBytes(buf, 0, buf.readableBytes());
                 if (log.isTraceEnabled()) {
                     log.trace("Out attachment: {} sessionId: {}", ByteBufUtil.hexDump(outBuf), msg.getSessionId());
                 }

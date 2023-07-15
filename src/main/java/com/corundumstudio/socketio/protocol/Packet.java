@@ -15,14 +15,13 @@
  */
 package com.corundumstudio.socketio.protocol;
 
+import com.corundumstudio.socketio.namespace.Namespace;
 import io.netty.buffer.ByteBuf;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
-import com.corundumstudio.socketio.namespace.Namespace;
 
 public class Packet implements Serializable {
 
@@ -71,9 +70,9 @@ public class Packet implements Serializable {
 
     /**
      * Get packet data
-     * 
+     *
      * @param <T> the type data
-     * 
+     *
      * <pre>
      * @return <b>json object</b> for PacketType.JSON type
      * <b>message</b> for PacketType.MESSAGE type
@@ -145,6 +144,16 @@ public class Packet implements Serializable {
         this.attachmentsCount = attachmentsCount;
         this.attachments = new ArrayList<ByteBuf>(attachmentsCount);
     }
+
+    /**
+     *
+     * It needs to be called when transferring the byte[].
+     * Recommended Use{@link io.netty.buffer.Unpooled#wrappedBuffer(byte[])}.
+     * Before using {@link #addAttachment(ByteBuf)},
+     * be sure to initialize the number of attachments with {@link #initAttachments(int)})}
+     *
+     * @param attachment
+     */
     public void addAttachment(ByteBuf attachment) {
         if (this.attachments.size() < attachmentsCount) {
             this.attachments.add(attachment);
