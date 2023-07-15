@@ -21,12 +21,23 @@ import java.util.Collection;
 
 /**
  * broadcast interface
- *
  */
 public interface BroadcastOperations extends ClientOperations {
 
     Collection<SocketIOClient> getClients();
 
+    /**
+     * {@link Packet#attachments} needs to be filled when sending byte[].
+     * Using {@link io.netty.buffer.Unpooled#wrappedBuffer(byte[])} to
+     * fill byte[] into {@link Packet#attachments} is the recommended way.
+     * Before using {@link Packet#addAttachment(io.netty.buffer.ByteBuf)},
+     * be sure to initialize the number of attachments with
+     * {@link Packet#initAttachments(int)})}
+     *
+     * @param packet
+     * @param ackCallback
+     * @param <T>
+     */
     <T> void send(Packet packet, BroadcastAckCallback<T> ackCallback);
 
     void sendEvent(String name, SocketIOClient excludedClient, Object... data);

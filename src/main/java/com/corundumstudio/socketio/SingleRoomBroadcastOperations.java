@@ -85,11 +85,14 @@ public class SingleRoomBroadcastOperations implements BroadcastOperations {
     }
 
     @Override
-    public void sendEvent(String name, SocketIOClient excludedClient, Object... data) {
+    public void sendEvent(String name, SocketIOClient excludedClient, @NonNull Object... data) {
         Packet packet = new Packet(PacketType.MESSAGE, EngineIOVersion.UNKNOWN);
         packet.setSubType(PacketType.EVENT);
         packet.setName(name);
         packet.setData(Arrays.asList(data));
+
+        // handle byte[] data
+        handleBytes(packet, data);
 
         for (SocketIOClient client : clients) {
             packet.setEngineIOVersion(client.getEngineIOVersion());
@@ -109,6 +112,12 @@ public class SingleRoomBroadcastOperations implements BroadcastOperations {
         packet.setData(Arrays.asList(data));
 
         // handle byte[] data
+        handleBytes(packet, data);
+
+        send(packet);
+    }
+
+    private static void handleBytes(Packet packet, Object[] data) {
         List<byte[]> bytes = Arrays.stream(data)
                 .filter(o -> o instanceof byte[])
                 .map(b -> (byte[]) b)
@@ -119,8 +128,6 @@ public class SingleRoomBroadcastOperations implements BroadcastOperations {
             packet.initAttachments(bytes.size());
             bytes.stream().peek(b -> packet.addAttachment(Unpooled.wrappedBuffer(b)));
         }
-
-        send(packet);
     }
 
     @Override
