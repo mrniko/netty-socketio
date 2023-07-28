@@ -171,7 +171,7 @@ public class WebSocketTransport extends ChannelInboundHandlerAdapter {
                     @Override
                     public void operationComplete(ChannelFuture future) throws Exception {
                         if (!future.isSuccess()) {
-                            log.warn("Can't handshake " + sessionId, future.cause());
+                            log.warn("Can't handshake {}", sessionId, future.cause());
                             clientsBox.removeClient(sessionId);
                             return;
                         }
