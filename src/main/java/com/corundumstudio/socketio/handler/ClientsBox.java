@@ -53,7 +53,7 @@ public class ClientsBox {
             }
             for (UUID uuid : disconnected) {
                 ClientHead clientHead = uuid2clients.get(uuid);
-                log.info("Client with sessionId {}-{} was disconnected but still exists in uuid2clients",
+                log.warn("Client with sessionId {}-{} was disconnected but still exists in uuid2clients",
                         clientHead.getSessionId(), clientHead.getEngineIOVersion());
                 uuid2clients.remove(uuid);
             }
