@@ -15,9 +15,11 @@
  */
 package com.corundumstudio.socketio.handler;
 
-import com.corundumstudio.socketio.SocketIOServer;
+import com.corundumstudio.socketio.HandshakeData;
 import io.netty.channel.Channel;
 import io.netty.util.internal.PlatformDependent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,11 +27,6 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-
-import com.corundumstudio.socketio.HandshakeData;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class ClientsBox {
     private static final Logger log = LoggerFactory.getLogger(ClientsBox.class);
@@ -46,10 +43,6 @@ public class ClientsBox {
                 if (!entry.getValue().isConnected()) {
                     disconnected.add(entry.getKey());
                 }
-            }
-            try {
-                TimeUnit.SECONDS.sleep(3);
-            } catch (InterruptedException e) {
             }
             for (UUID uuid : disconnected) {
                 ClientHead clientHead = uuid2clients.get(uuid);
