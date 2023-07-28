@@ -172,7 +172,7 @@ public class WebSocketTransport extends ChannelInboundHandlerAdapter {
                     public void operationComplete(ChannelFuture future) throws Exception {
                         if (!future.isSuccess()) {
                             log.warn("Can't handshake {}", sessionId, future.cause());
-                            clientsBox.removeClient(sessionId);
+                            closeClient(sessionId, channel);
                             return;
                         }
 
@@ -183,11 +183,22 @@ public class WebSocketTransport extends ChannelInboundHandlerAdapter {
                 });
             } catch (Throwable e) {
                 log.warn("Can't handshake {}, {}", sessionId, e.getMessage(), e);
-                clientsBox.removeClient(sessionId);
+                closeClient(sessionId, channel);
             }
         } else {
             WebSocketServerHandshakerFactory.sendUnsupportedVersionResponse(ctx.channel());
         }
+    }
+
+    private void closeClient(UUID sessionId, Channel channel) {
+        try {
+            channel.close();
+        } catch (Throwable t) {
+            log.warn("Can't close channel for sessionId: {}", sessionId, t);
+        }
+        ClientHead clientHead = clientsBox.removeClient(sessionId);
+        clientHead.disconnect();
+        log.info("Client with sessionId: {} was disconnected", sessionId);
     }
 
     private void connectClient(final Channel channel, final UUID sessionId) {
@@ -195,7 +206,7 @@ public class WebSocketTransport extends ChannelInboundHandlerAdapter {
         if (client == null) {
             log.warn("Unauthorized client with sessionId: {} with ip: {}. Channel closed!",
                         sessionId, channel.remoteAddress());
-            channel.close();
+            closeClient(sessionId, channel);
             return;
         }
 
