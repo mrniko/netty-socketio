@@ -171,7 +171,7 @@ public class WebSocketTransport extends ChannelInboundHandlerAdapter {
                     @Override
                     public void operationComplete(ChannelFuture future) throws Exception {
                         if (!future.isSuccess()) {
-                            log.error("Can't handshake " + sessionId, future.cause());
+                            log.warn("Can't handshake " + sessionId, future.cause());
                             clientsBox.removeClient(sessionId);
                             return;
                         }
@@ -182,7 +182,7 @@ public class WebSocketTransport extends ChannelInboundHandlerAdapter {
                     }
                 });
             } catch (Throwable e) {
-                log.error("Can't handshake {}, {}", sessionId, e.getMessage(), e);
+                log.warn("Can't handshake {}, {}", sessionId, e.getMessage(), e);
                 clientsBox.removeClient(sessionId);
             }
         } else {
