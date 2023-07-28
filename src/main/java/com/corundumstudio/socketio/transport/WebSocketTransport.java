@@ -165,20 +165,26 @@ public class WebSocketTransport extends ChannelInboundHandlerAdapter {
                 new WebSocketServerHandshakerFactory(getWebSocketLocation(req), null, true, configuration.getMaxFramePayloadLength());
         WebSocketServerHandshaker handshaker = factory.newHandshaker(req);
         if (handshaker != null) {
-            ChannelFuture f = handshaker.handshake(channel, req);
-            f.addListener(new ChannelFutureListener() {
-                @Override
-                public void operationComplete(ChannelFuture future) throws Exception {
-                    if (!future.isSuccess()) {
-                        log.error("Can't handshake " + sessionId, future.cause());
-                        return;
-                    }
+            try {
+                ChannelFuture f = handshaker.handshake(channel, req);
+                f.addListener(new ChannelFutureListener() {
+                    @Override
+                    public void operationComplete(ChannelFuture future) throws Exception {
+                        if (!future.isSuccess()) {
+                            log.error("Can't handshake " + sessionId, future.cause());
+                            clientsBox.removeClient(sessionId);
+                            return;
+                        }
 
-                    channel.pipeline().addBefore(SocketIOChannelInitializer.WEB_SOCKET_TRANSPORT, SocketIOChannelInitializer.WEB_SOCKET_AGGREGATOR,
-                            new WebSocketFrameAggregator(configuration.getMaxFramePayloadLength()));
-                    connectClient(channel, sessionId);
-                }
-            });
+                        channel.pipeline().addBefore(SocketIOChannelInitializer.WEB_SOCKET_TRANSPORT, SocketIOChannelInitializer.WEB_SOCKET_AGGREGATOR,
+                                new WebSocketFrameAggregator(configuration.getMaxFramePayloadLength()));
+                        connectClient(channel, sessionId);
+                    }
+                });
+            } catch (Throwable e) {
+                log.error("Can't handshake {}, {}", sessionId, e.getMessage(), e);
+                clientsBox.removeClient(sessionId);
+            }
         } else {
             WebSocketServerHandshakerFactory.sendUnsupportedVersionResponse(ctx.channel());
         }
