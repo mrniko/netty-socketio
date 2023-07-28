@@ -45,10 +45,11 @@ public class ClientsBox {
                 }
             }
             for (UUID uuid : disconnected) {
-                ClientHead clientHead = uuid2clients.get(uuid);
-                log.warn("Client with sessionId {}-{} was disconnected but still exists in uuid2clients",
-                        clientHead.getSessionId(), clientHead.getEngineIOVersion());
-                uuid2clients.remove(uuid);
+                ClientHead clientHead = uuid2clients.remove(uuid);
+                if (clientHead != null) {
+                    log.warn("Client with sessionId {}-{} was disconnected but still exists in uuid2clients",
+                            clientHead.getSessionId(), clientHead.getEngineIOVersion());
+                }
             }
         }, 5, 5, java.util.concurrent.TimeUnit.SECONDS);
     }
