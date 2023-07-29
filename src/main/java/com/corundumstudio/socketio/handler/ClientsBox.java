@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.stream.Collectors;
 
 public class ClientsBox {
     private static final Logger log = LoggerFactory.getLogger(ClientsBox.class);
@@ -38,19 +39,17 @@ public class ClientsBox {
 
     public ClientsBox() {
         scheduledExecutorService.scheduleWithFixedDelay(() -> {
-            List<UUID> disconnected = new ArrayList<>();
-            for (Map.Entry<UUID, ClientHead> entry : uuid2clients.entrySet()) {
-                if (!entry.getValue().isConnected()) {
-                    disconnected.add(entry.getKey());
-                }
-            }
-            for (UUID uuid : disconnected) {
+            List<UUID> disconnected = uuid2clients.entrySet()
+                    .stream().filter(entry -> !entry.getValue().isConnected())
+                    .map(Map.Entry::getKey)
+                    .collect(Collectors.toList());
+            disconnected.forEach(uuid -> {
                 ClientHead clientHead = uuid2clients.remove(uuid);
                 if (clientHead != null) {
                     log.warn("Client with sessionId {}-{} was disconnected but still exists in uuid2clients",
                             clientHead.getSessionId(), clientHead.getEngineIOVersion());
                 }
-            }
+            });
         }, 5, 5, java.util.concurrent.TimeUnit.SECONDS);
     }
 
