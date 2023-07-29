@@ -19,7 +19,9 @@ import com.corundumstudio.socketio.protocol.Packet;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
+import java.util.function.Predicate;
 
 /**
  * author: liangjiaqi
@@ -27,7 +29,7 @@ import java.util.Set;
  */
 public class MultiRoomBroadcastOperations implements BroadcastOperations {
 
-    private Collection<BroadcastOperations> broadcastOperations;
+    private final Collection<BroadcastOperations> broadcastOperations;
 
     public MultiRoomBroadcastOperations(Collection<BroadcastOperations> broadcastOperations) {
         this.broadcastOperations = broadcastOperations;
@@ -57,11 +59,19 @@ public class MultiRoomBroadcastOperations implements BroadcastOperations {
 
     @Override
     public void sendEvent(String name, SocketIOClient excludedClient, Object... data) {
+        Predicate<SocketIOClient> excludePredicate = (socketIOClient) -> Objects.equals(
+                socketIOClient.getSessionId(), excludedClient.getSessionId()
+        );
+        sendEvent(name, excludePredicate, data);
+    }
+
+    @Override
+    public void sendEvent(String name, Predicate<SocketIOClient> excludePredicate, Object... data) {
         if( this.broadcastOperations == null || this.broadcastOperations.size() == 0 ) {
             return;
         }
         for( BroadcastOperations b : this.broadcastOperations ) {
-            b.sendEvent( name, excludedClient, data );
+            b.sendEvent( name, excludePredicate, data );
         }
     }
 
@@ -77,11 +87,19 @@ public class MultiRoomBroadcastOperations implements BroadcastOperations {
 
     @Override
     public <T> void sendEvent(String name, Object data, SocketIOClient excludedClient, BroadcastAckCallback<T> ackCallback) {
+        Predicate<SocketIOClient> excludePredicate = (socketIOClient) -> Objects.equals(
+                socketIOClient.getSessionId(), excludedClient.getSessionId()
+        );
+        sendEvent(name, data, excludePredicate, ackCallback);
+    }
+
+    @Override
+    public <T> void sendEvent(String name, Object data, Predicate<SocketIOClient> excludePredicate, BroadcastAckCallback<T> ackCallback) {
         if( this.broadcastOperations == null || this.broadcastOperations.size() == 0 ) {
             return;
         }
         for( BroadcastOperations b : this.broadcastOperations ) {
-            b.sendEvent( name, data, excludedClient, ackCallback );
+            b.sendEvent( name, data, excludePredicate, ackCallback );
         }
     }
 

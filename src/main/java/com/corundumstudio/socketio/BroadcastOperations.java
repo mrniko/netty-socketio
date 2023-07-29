@@ -18,6 +18,7 @@ package com.corundumstudio.socketio;
 import com.corundumstudio.socketio.protocol.Packet;
 
 import java.util.Collection;
+import java.util.function.Predicate;
 
 /**
  * broadcast interface
@@ -31,8 +32,12 @@ public interface BroadcastOperations extends ClientOperations {
 
     void sendEvent(String name, SocketIOClient excludedClient, Object... data);
 
+    void sendEvent(String name, Predicate<SocketIOClient> excludePredicate, Object... data);
+
     <T> void sendEvent(String name, Object data, BroadcastAckCallback<T> ackCallback);
 
     <T> void sendEvent(String name, Object data, SocketIOClient excludedClient, BroadcastAckCallback<T> ackCallback);
+
+    <T> void sendEvent(String name, Object data, Predicate<SocketIOClient> excludePredicate, BroadcastAckCallback<T> ackCallback);
 
 }
