@@ -107,6 +107,7 @@ public class Configuration {
 
         setPingInterval(conf.getPingInterval());
         setPingTimeout(conf.getPingTimeout());
+        setFirstDataTimeout(conf.getFirstDataTimeout());
 
         setHostname(conf.getHostname());
         setPort(conf.getPort());
