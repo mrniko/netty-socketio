@@ -139,7 +139,7 @@ public class Configuration {
         setTrustStorePassword(conf.getTrustStorePassword());
         setKeyManagerFactoryAlgorithm(conf.getKeyManagerFactoryAlgorithm());
 
-        setTransports(conf.getTransports().toArray(new Transport[conf.getTransports().size()]));
+        setTransports(conf.getTransports().toArray(new Transport[0]));
         setMaxHttpContentLength(conf.getMaxHttpContentLength());
         setPackagePrefix(conf.getPackagePrefix());
 
