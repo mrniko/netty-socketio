@@ -21,6 +21,11 @@ import com.corundumstudio.socketio.HandshakeData;
 public class SuccessAuthorizationListener implements AuthorizationListener {
 
     @Override
+    public String isRedirected(HandshakeData data) {
+        return null;
+    }
+
+    @Override
     public boolean isAuthorized(HandshakeData data) {
         return true;
     }
