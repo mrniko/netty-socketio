@@ -381,7 +381,7 @@ public class Configuration {
 
     /**
      * Authorization listener invoked on every handshake.
-     * Accepts or denies a client by {@code AuthorizationListener.isAuthorized} method.
+     * Accepts or denies a client by {@code AuthorizationListener.getAuthorizationResult} method.
      * <b>Accepts</b> all clients by default.
      *
      * @param authorizationListener - authorization listener itself
