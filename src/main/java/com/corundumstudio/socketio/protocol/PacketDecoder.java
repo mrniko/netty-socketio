@@ -20,7 +20,6 @@ import com.corundumstudio.socketio.ack.AckManager;
 import com.corundumstudio.socketio.handler.ClientHead;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufInputStream;
-import io.netty.buffer.ByteBufUtil;
 import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.base64.Base64;
 import io.netty.util.CharsetUtil;
@@ -28,7 +27,6 @@ import io.netty.util.CharsetUtil;
 import java.io.IOException;
 import java.net.URLDecoder;
 import java.util.LinkedList;
-import java.util.UUID;
 
 public class PacketDecoder {
 
@@ -257,7 +255,7 @@ public class PacketDecoder {
                 }
                 slices.add(source.slice());
 
-                ByteBuf compositeBuf = Unpooled.wrappedBuffer(slices.toArray(new ByteBuf[slices.size()]));
+                ByteBuf compositeBuf = Unpooled.wrappedBuffer(slices.toArray(new ByteBuf[0]));
                 parseBody(head, compositeBuf, binaryPacket);
                 head.setLastBinaryPacket(null);
                 return binaryPacket;

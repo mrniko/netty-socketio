@@ -35,7 +35,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 public class AckManager implements Disconnectable {
 
-    class AckEntry {
+    static class AckEntry {
 
         final Map<Long, AckCallback<?>> ackCallbacks = PlatformDependent.newConcurrentHashMap();
         final AtomicLong ackIndex = new AtomicLong(-1);
