@@ -52,7 +52,7 @@ import java.util.jar.Manifest;
 import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 
 @Sharable
- public class EncoderHandler extends ChannelOutboundHandlerAdapter {
+public class EncoderHandler extends ChannelOutboundHandlerAdapter {
 
     private static final byte[] OK = "ok".getBytes(CharsetUtil.UTF_8);
 
@@ -78,7 +78,7 @@ import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
         }
     }
 
-     private void readVersion() throws IOException {
+    private void readVersion() throws IOException {
         Enumeration<URL> resources = getClass().getClassLoader().getResources("META-INF/MANIFEST.MF");
         while (resources.hasMoreElements()) {
             try (InputStream inputStream = resources.nextElement().openStream()){
@@ -92,7 +92,6 @@ import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
                     version = name + "/" + attrs.getValue("Bundle-Version");
                     break;
                 }
-
             } catch (IOException E) {
                 // skip it
             }
@@ -162,7 +161,6 @@ import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 
         channel.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT, promise).addListener(ChannelFutureListener.CLOSE);
     }
-
     private void sendError(HttpErrorMessage errorMsg, ChannelHandlerContext ctx, ChannelPromise promise) throws IOException {
         final ByteBuf encBuf = encoder.allocateBuffer(ctx.alloc());
         ByteBufOutputStream out = new ByteBufOutputStream(encBuf);
