@@ -36,10 +36,16 @@ import io.netty.util.AttributeKey;
 import io.netty.util.CharsetUtil;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
+//import jdk.internal.util.xml.impl.Input;
+import org.checkerframework.checker.mustcall.qual.InheritableMustCall;
+import org.checkerframework.checker.mustcall.qual.MustCall;
+import org.checkerframework.checker.mustcall.qual.NotOwning;
+import org.checkerframework.checker.mustcall.qual.Owning;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Enumeration;
@@ -51,7 +57,7 @@ import java.util.jar.Manifest;
 import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 
 @Sharable
-public class EncoderHandler extends ChannelOutboundHandlerAdapter {
+ public class EncoderHandler extends ChannelOutboundHandlerAdapter {
 
     private static final byte[] OK = "ok".getBytes(CharsetUtil.UTF_8);
 
@@ -77,11 +83,11 @@ public class EncoderHandler extends ChannelOutboundHandlerAdapter {
         }
     }
 
-    private void readVersion() throws IOException {
+     private void readVersion() throws IOException {
         Enumeration<URL> resources = getClass().getClassLoader().getResources("META-INF/MANIFEST.MF");
         while (resources.hasMoreElements()) {
-            try {
-                Manifest manifest = new Manifest(resources.nextElement().openStream());
+            try (InputStream inputStream = resources.nextElement().openStream()){
+                Manifest manifest = new Manifest(inputStream);
                 Attributes attrs = manifest.getMainAttributes();
                 if (attrs == null) {
                     continue;
@@ -91,6 +97,7 @@ public class EncoderHandler extends ChannelOutboundHandlerAdapter {
                     version = name + "/" + attrs.getValue("Bundle-Version");
                     break;
                 }
+
             } catch (IOException E) {
                 // skip it
             }
@@ -160,7 +167,7 @@ public class EncoderHandler extends ChannelOutboundHandlerAdapter {
 
         channel.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT, promise).addListener(ChannelFutureListener.CLOSE);
     }
-    
+
     private void sendError(HttpErrorMessage errorMsg, ChannelHandlerContext ctx, ChannelPromise promise) throws IOException {
         final ByteBuf encBuf = encoder.allocateBuffer(ctx.alloc());
         ByteBufOutputStream out = new ByteBufOutputStream(encBuf);
