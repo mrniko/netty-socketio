@@ -49,7 +49,7 @@
  <properties>
      <skipTests>true</skipTests>
      <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-     <netty.version>4.1.94.Final</netty.version>
+     <netty.version>4.1.100.Final</netty.version>
  </properties>
 
  <profiles>
@@ -173,7 +173,7 @@
     <dependency>
         <groupId>org.redisson</groupId>
         <artifactId>redisson</artifactId>
-        <version>3.20.1</version>
+        <version>3.24.3</version>
         <scope>provided</scope>
     </dependency>
     <dependency>
@@ -209,7 +209,7 @@
        <plugin>
            <groupId>org.apache.maven.plugins</groupId>
            <artifactId>maven-release-plugin</artifactId>
-           <version>2.5.3</version>
+           <version>3.0.1</version>
        </plugin>
 
         <plugin>
