@@ -52,35 +52,61 @@
      <netty.version>4.1.100.Final</netty.version>
  </properties>
 
- <profiles>
-     <profile>
-         <id>release-sign-artifacts</id>
-         <activation>
-           <property>
-             <name>performRelease</name>
-             <value>true</value>
-           </property>
-         </activation>
-         <build>
-           <plugins>
-             <plugin>
-               <groupId>org.apache.maven.plugins</groupId>
-               <artifactId>maven-gpg-plugin</artifactId>
-               <version>1.4</version>
-               <executions>
-                 <execution>
-                   <id>sign-artifacts</id>
-                   <phase>verify</phase>
-                   <goals>
-                     <goal>sign</goal>
-                   </goals>
-                 </execution>
-               </executions>
-             </plugin>
-           </plugins>
-         </build>
-     </profile>
- </profiles>
+    <profiles>
+        <profile>
+            <id>release</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-source-plugin</artifactId>
+                        <version>3.2.1</version>
+                        <executions>
+                          <execution>
+                            <id>attach-sources</id>
+                            <goals>
+                              <goal>jar-no-fork</goal>
+                            </goals>
+                            <configuration>
+                              <archive>
+                                <manifest>
+                                  <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+                                  <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+                                </manifest>
+                                <manifestEntries>
+                                  <Implementation-Build>${implementation.build}</Implementation-Build>
+                                  <Implementation-Build-Date>${maven.build.timestamp}</Implementation-Build-Date>
+                                  <X-Compile-Source-JDK>${javac.src.version}</X-Compile-Source-JDK>
+                                  <X-Compile-Target-JDK>${javac.target.version}</X-Compile-Target-JDK>
+                                </manifestEntries>
+                              </archive>
+                            </configuration>
+                          </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>1.6</version>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>net.ju-n.maven.plugins</groupId>
+                        <artifactId>checksum-maven-plugin</artifactId>
+                        <version>1.4</version>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 
  <dependencies>
   <dependency>
@@ -187,6 +213,19 @@
 
  <build>
   <plugins>
+      <plugin>
+     	<groupId>org.sonatype.plugins</groupId>
+     	<artifactId>nexus-staging-maven-plugin</artifactId>
+     	<version>1.6.13</version>
+     	<extensions>true</extensions>
+            <configuration>
+                <serverId>ossrepo</serverId>
+                <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+                <autoReleaseAfterClose>true</autoReleaseAfterClose>
+                <stagingProgressTimeoutMinutes>15</stagingProgressTimeoutMinutes>
+     	</configuration>
+      </plugin>
+
       <plugin>
    	<groupId>org.apache.maven.plugins</groupId>
    	<artifactId>maven-javadoc-plugin</artifactId>
