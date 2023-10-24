@@ -77,7 +77,7 @@ public class OnEventScanner implements AnnotationScanner {
                         throw new SocketIOException(e);
                     }
                 }
-            }, classes.toArray(new Class[classes.size()]));
+            }, classes.toArray(new Class[0]));
         } else {
             Class objectType = Void.class;
             if (!dataIndexes.isEmpty()) {

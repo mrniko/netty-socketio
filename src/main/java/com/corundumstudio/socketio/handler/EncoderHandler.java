@@ -302,7 +302,7 @@ public class EncoderHandler extends ChannelOutboundHandlerAdapter {
      * - all of the operations succeed
      * The setChannelPromise method should be called after all the futures are added
      */
-    private class ChannelFutureList implements GenericFutureListener<Future<Void>> {
+    private static class ChannelFutureList implements GenericFutureListener<Future<Void>> {
 
         private List<ChannelFuture> futureList = new ArrayList<ChannelFuture>();
         private ChannelPromise promise = null;

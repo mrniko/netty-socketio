@@ -19,7 +19,7 @@ import java.util.Iterator;
 
 public class CompositeIterator<T> implements Iterator<T> {
 
-    private Iterator<Iterator<T>> listIterator;
+    private final Iterator<Iterator<T>> listIterator;
     private Iterator<T> currentIterator;
     
     public CompositeIterator(Iterator<Iterator<T>> listIterator) {
@@ -39,7 +39,7 @@ public class CompositeIterator<T> implements Iterator<T> {
             }
             return false;
         }
-        return currentIterator.hasNext();
+        return true; // can only be reached when currentIterator.hasNext() is true
     }
 
     @Override

@@ -52,15 +52,14 @@ public class OnConnectScanner implements AnnotationScanner  {
         if (method.getParameterTypes().length != 1) {
             throw new IllegalArgumentException("Wrong OnConnect listener signature: " + clazz + "." + method.getName());
         }
-        boolean valid = false;
+
         for (Class<?> eventType : method.getParameterTypes()) {
-            if (eventType.equals(SocketIOClient.class)) {
-                valid = true;
-            }
+			if (SocketIOClient.class.equals(eventType)) {
+                return;
+			}
         }
-        if (!valid) {
-            throw new IllegalArgumentException("Wrong OnConnect listener signature: " + clazz + "." + method.getName());
-        }
+
+        throw new IllegalArgumentException("Wrong OnConnect listener signature: " + clazz + "." + method.getName());
     }
 
 }

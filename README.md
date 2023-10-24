@@ -2,8 +2,6 @@ Netty-socketio Overview
 ===
 This project is an open-source Java implementation of [Socket.IO](http://socket.io/) server. Based on [Netty](http://netty.io/) server framework.  
 
-Checkout [Demo project](https://github.com/mrniko/netty-socketio-demo)
-
 Licensed under the Apache License 2.0.
 
 
@@ -47,6 +45,9 @@ Zipwhip: [zipwhip.com](https://zipwhip.com/)
 Recent Releases
 ================================
 #### Please Note: trunk is current development branch.
+
+#### 01-Jul-2023 - version 2.0.3 released
+Fixed - client can't connect to non-default namespace (thanks to @lyjnew)
 
 #### 17-May-2023 - version 2.0.2 released
 Fixed - NPE in WebSocketTransport and PollingTransport (thanks to @Hunterk95)
@@ -311,13 +312,5 @@ Include the following to your dependency list:
     <dependency>
      <groupId>com.corundumstudio.socketio</groupId>
      <artifactId>netty-socketio</artifactId>
-     <version>1.7.19</version>
+     <version>2.0.3</version>
     </dependency>
-    
-### Supported by
-
-YourKit is kindly supporting this open source project with its full-featured Java Profiler.
-YourKit, LLC is the creator of innovative and intelligent tools for profiling
-Java and .NET applications. Take a look at YourKit's leading software products:
-<a href="http://www.yourkit.com/java/profiler/index.jsp">YourKit Java Profiler</a> and
-<a href="http://www.yourkit.com/.net/profiler/index.jsp">YourKit .NET Profiler</a>.

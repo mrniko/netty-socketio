@@ -107,6 +107,7 @@ public class Configuration {
 
         setPingInterval(conf.getPingInterval());
         setPingTimeout(conf.getPingTimeout());
+        setFirstDataTimeout(conf.getFirstDataTimeout());
 
         setHostname(conf.getHostname());
         setPort(conf.getPort());
@@ -138,7 +139,7 @@ public class Configuration {
         setTrustStorePassword(conf.getTrustStorePassword());
         setKeyManagerFactoryAlgorithm(conf.getKeyManagerFactoryAlgorithm());
 
-        setTransports(conf.getTransports().toArray(new Transport[conf.getTransports().size()]));
+        setTransports(conf.getTransports().toArray(new Transport[0]));
         setMaxHttpContentLength(conf.getMaxHttpContentLength());
         setPackagePrefix(conf.getPackagePrefix());
 
@@ -380,7 +381,7 @@ public class Configuration {
 
     /**
      * Authorization listener invoked on every handshake.
-     * Accepts or denies a client by {@code AuthorizationListener.isAuthorized} method.
+     * Accepts or denies a client by {@code AuthorizationListener.getAuthorizationResult} method.
      * <b>Accepts</b> all clients by default.
      *
      * @param authorizationListener - authorization listener itself

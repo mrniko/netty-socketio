@@ -15,7 +15,7 @@
  */
 package com.corundumstudio.socketio.protocol;
 
-import com.corundumstudio.socketio.handler.ClientHead;
+import com.corundumstudio.socketio.Configuration;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.ByteBufOutputStream;
@@ -28,8 +28,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
-
-import com.corundumstudio.socketio.Configuration;
 
 public class PacketEncoder {
 
