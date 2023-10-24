@@ -46,6 +46,11 @@ Recent Releases
 ================================
 #### Please Note: trunk is current development branch.
 
+#### 24-Oct-2023 - version 2.0.6 released
+
+Feature - added availability to add key-value pairs to socket store during authorization (thanks to @shutuper)  
+Feature - getRoomOperations() method with room varargs param (thanks to @shutuper)  
+
 #### 01-Jul-2023 - version 2.0.3 released
 Fixed - client can't connect to non-default namespace (thanks to @lyjnew)
 
