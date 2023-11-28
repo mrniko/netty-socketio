@@ -56,7 +56,7 @@ public class PacketEncoder {
 
         return allocator.heapBuffer();
     }
-
+/*alterdo */
     public void encodeJsonP(Integer jsonpIndex, Queue<Packet> packets, ByteBuf out, ByteBufAllocator allocator, int limit) throws IOException {
         boolean jsonpMode = jsonpIndex != null;
 
