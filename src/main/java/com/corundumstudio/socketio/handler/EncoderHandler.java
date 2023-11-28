@@ -229,44 +229,59 @@ public class EncoderHandler extends ChannelOutboundHandlerAdapter {
                 break;
             }
 
-            ByteBuf out = encoder.allocateBuffer(ctx.alloc());
-            encoder.encodePacket(packet, out, ctx.alloc(), true);
-
-            if (log.isTraceEnabled()) {
-                log.trace("Out message: {} sessionId: {}", out.toString(CharsetUtil.UTF_8), msg.getSessionId());
-            }
-            if (out.isReadable() && out.readableBytes() > configuration.getMaxFramePayloadLength()) {
-                ByteBuf dstStart = out.readSlice(FRAME_BUFFER_SIZE);
-                dstStart.retain();
-                WebSocketFrame start = new TextWebSocketFrame(false, 0, dstStart);
-                ctx.channel().write(start);
-                while (out.isReadable()) {
-                    int re = Math.min(out.readableBytes(), FRAME_BUFFER_SIZE);
-                    ByteBuf dst = out.readSlice(re);
-                    dst.retain();
-                    WebSocketFrame res = new ContinuationWebSocketFrame(!out.isReadable(), 0, dst);
-                    ctx.channel().write(res);
-                }
-                out.release();
-                ctx.channel().flush();
-            } else if (out.isReadable()){
-                WebSocketFrame res = new TextWebSocketFrame(out);
-                ctx.channel().writeAndFlush(res);
-            } else {
-                out.release();
-            }
-
-            for (ByteBuf buf : packet.getAttachments()) {
-                ByteBuf outBuf = encoder.allocateBuffer(ctx.alloc());
-                outBuf.writeByte(4);
-                outBuf.writeBytes(buf);
-                if (log.isTraceEnabled()) {
-                    log.trace("Out attachment: {} sessionId: {}", ByteBufUtil.hexDump(outBuf), msg.getSessionId());
-                }
-                writeFutureList.add(ctx.channel().writeAndFlush(new BinaryWebSocketFrame(outBuf)));
-            }
+            handlePacket(msg, ctx, packet, writeFutureList);
+            handleAttachments(msg, ctx, packet, writeFutureList);
         }
     }
+
+    private void handlePacket(final OutPacketMessage msg, ChannelHandlerContext ctx, Packet packet, ChannelFutureList writeFutureList) throws IOException {
+        ByteBuf out = encoder.allocateBuffer(ctx.alloc());
+        encoder.encodePacket(packet, out, ctx.alloc(), true);
+
+        if (log.isTraceEnabled()) {
+            log.trace("Out message: {} sessionId: {}", out.toString(CharsetUtil.UTF_8), msg.getSessionId());
+        }
+
+        if (out.isReadable() && out.readableBytes() > configuration.getMaxFramePayloadLength()) {
+            handleLargePayload(ctx, out);
+        } else if (out.isReadable()) {
+            WebSocketFrame res = new TextWebSocketFrame(out);
+            ctx.channel().writeAndFlush(res);
+        } else {
+            out.release();
+        }
+    }
+
+    private void handleLargePayload(ChannelHandlerContext ctx, ByteBuf out) {
+        ByteBuf dstStart = out.readSlice(FRAME_BUFFER_SIZE);
+        dstStart.retain();
+        WebSocketFrame start = new TextWebSocketFrame(false, 0, dstStart);
+        ctx.channel().write(start);
+
+        while (out.isReadable()) {
+            int re = Math.min(out.readableBytes(), FRAME_BUFFER_SIZE);
+            ByteBuf dst = out.readSlice(re);
+            dst.retain();
+            WebSocketFrame res = new ContinuationWebSocketFrame(!out.isReadable(), 0, dst);
+            ctx.channel().write(res);
+        }
+
+        out.release();
+        ctx.channel().flush();
+    }
+
+    private void handleAttachments(final OutPacketMessage msg, ChannelHandlerContext ctx, Packet packet, ChannelFutureList writeFutureList) {
+        for (ByteBuf buf : packet.getAttachments()) {
+            ByteBuf outBuf = encoder.allocateBuffer(ctx.alloc());
+            outBuf.writeByte(4);
+            outBuf.writeBytes(buf);
+            if (log.isTraceEnabled()) {
+                log.trace("Out attachment: {} sessionId: {}", ByteBufUtil.hexDump(outBuf), msg.getSessionId());
+            }
+            writeFutureList.add(ctx.channel().writeAndFlush(new BinaryWebSocketFrame(outBuf)));
+        }
+    }
+
 
     private void handleHTTP(OutPacketMessage msg, ChannelHandlerContext ctx, ChannelPromise promise) throws IOException {
         Channel channel = ctx.channel();

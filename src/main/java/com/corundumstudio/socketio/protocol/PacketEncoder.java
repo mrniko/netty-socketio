@@ -60,6 +60,21 @@ public class PacketEncoder {
     public void encodeJsonP(Integer jsonpIndex, Queue<Packet> packets, ByteBuf out, ByteBufAllocator allocator, int limit) throws IOException {
         boolean jsonpMode = jsonpIndex != null;
 
+        ByteBuf buf = buildPacketsBuffer(packets, allocator, limit);
+
+        if (jsonpMode) {
+            writeJsonPHeader(out, jsonpIndex);
+        }
+
+        processUtf8(buf, out, jsonpMode);
+        buf.release();
+
+        if (jsonpMode) {
+            writeJsonPEnd(out);
+        }
+    }
+
+    private ByteBuf buildPacketsBuffer(Queue<Packet> packets, ByteBufAllocator allocator, int limit) throws IOException {
         ByteBuf buf = allocateBuffer(allocator);
 
         int i = 0;
@@ -69,40 +84,51 @@ public class PacketEncoder {
                 break;
             }
 
-            ByteBuf packetBuf = allocateBuffer(allocator);
-            encodePacket(packet, packetBuf, allocator, true);
-
-            int packetSize = packetBuf.writerIndex();
-            buf.writeBytes(toChars(packetSize));
-            buf.writeBytes(B64_DELIMITER);
-            buf.writeBytes(packetBuf);
-
+            ByteBuf packetBuf = buildPacketBuffer(packet, allocator);
+            appendPacketToBuffer(packetBuf, buf);
             packetBuf.release();
 
+            appendAttachmentsToBuffer(packet, buf);
+
             i++;
-
-            for (ByteBuf attachment : packet.getAttachments()) {
-                ByteBuf encodedBuf = Base64.encode(attachment, Base64Dialect.URL_SAFE);
-                buf.writeBytes(toChars(encodedBuf.readableBytes() + 2));
-                buf.writeBytes(B64_DELIMITER);
-                buf.writeBytes(BINARY_HEADER);
-                buf.writeBytes(encodedBuf);
-            }
         }
 
-        if (jsonpMode) {
-            out.writeBytes(JSONP_HEAD);
-            out.writeBytes(toChars(jsonpIndex));
-            out.writeBytes(JSONP_START);
-        }
+        return buf;
+    }
 
-        processUtf8(buf, out, jsonpMode);
-        buf.release();
+    private ByteBuf buildPacketBuffer(Packet packet, ByteBufAllocator allocator) throws IOException {
+        ByteBuf packetBuf = allocateBuffer(allocator);
+        encodePacket(packet, packetBuf, allocator, true);
+        return packetBuf;
+    }
 
-        if (jsonpMode) {
-            out.writeBytes(JSONP_END);
+    private void appendPacketToBuffer(ByteBuf packetBuf, ByteBuf buf) {
+        int packetSize = packetBuf.writerIndex();
+        buf.writeBytes(toChars(packetSize));
+        buf.writeBytes(B64_DELIMITER);
+        buf.writeBytes(packetBuf);
+    }
+
+    private void appendAttachmentsToBuffer(Packet packet, ByteBuf buf) throws IOException {
+        for (ByteBuf attachment : packet.getAttachments()) {
+            ByteBuf encodedBuf = Base64.encode(attachment, Base64Dialect.URL_SAFE);
+            buf.writeBytes(toChars(encodedBuf.readableBytes() + 2));
+            buf.writeBytes(B64_DELIMITER);
+            buf.writeBytes(BINARY_HEADER);
+            buf.writeBytes(encodedBuf);
         }
     }
+
+    private void writeJsonPHeader(ByteBuf out, Integer jsonpIndex) {
+        out.writeBytes(JSONP_HEAD);
+        out.writeBytes(toChars(jsonpIndex));
+        out.writeBytes(JSONP_START);
+    }
+
+    private void writeJsonPEnd(ByteBuf out) {
+        out.writeBytes(JSONP_END);
+    }
+
 
     private void processUtf8(ByteBuf in, ByteBuf out, boolean jsonpMode) {
         while (in.isReadable()) {
