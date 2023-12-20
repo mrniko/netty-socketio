@@ -1,0 +1,28 @@
+name: Build PR
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+on:
+  pull_request:
+    branches:
+      - master
+  workflow_dispatch:
+
+jobs:
+
+  build:
+    strategy:
+      matrix:
+        java-version:
+          - 8
+          - 11
+          - 17
+          - 21
+    uses: ./.github/workflows/build.yml
+    with:
+      javaVersion: "${{ matrix.java-version }}"
