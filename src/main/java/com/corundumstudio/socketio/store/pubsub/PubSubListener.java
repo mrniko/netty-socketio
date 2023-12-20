@@ -15,9 +15,11 @@
  */
 package com.corundumstudio.socketio.store.pubsub;
 
+import com.google.common.eventbus.Subscribe;
 
 public interface PubSubListener<T> {
 
+    @Subscribe
     void onMessage(T data);
 
 }
