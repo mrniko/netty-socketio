@@ -15,21 +15,24 @@
  */
 package com.corundumstudio.socketio.handler;
 
-import com.corundumstudio.socketio.protocol.*;
+import com.corundumstudio.socketio.AuthTokenResult;
+import com.corundumstudio.socketio.listener.ExceptionListener;
+import com.corundumstudio.socketio.messages.PacketsMessage;
+import com.corundumstudio.socketio.namespace.Namespace;
+import com.corundumstudio.socketio.namespace.NamespacesHub;
+import com.corundumstudio.socketio.protocol.ConnPacket;
+import com.corundumstudio.socketio.protocol.EngineIOVersion;
+import com.corundumstudio.socketio.protocol.Packet;
+import com.corundumstudio.socketio.protocol.PacketDecoder;
+import com.corundumstudio.socketio.protocol.PacketType;
+import com.corundumstudio.socketio.transport.NamespaceClient;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.util.CharsetUtil;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.corundumstudio.socketio.listener.ExceptionListener;
-import com.corundumstudio.socketio.messages.PacketsMessage;
-import com.corundumstudio.socketio.namespace.Namespace;
-import com.corundumstudio.socketio.namespace.NamespacesHub;
-import com.corundumstudio.socketio.transport.NamespaceClient;
 
 @Sharable
 public class InPacketHandler extends SimpleChannelInboundHandler<PacketsMessage> {
@@ -78,10 +81,28 @@ public class InPacketHandler extends SimpleChannelInboundHandler<PacketsMessage>
 
                 if (packet.getSubType() == PacketType.CONNECT) {
                     client.addNamespaceClient(ns);
+                    NamespaceClient nClient = client.getChildClient(ns);
                     //:TODO lyjnew client namespace send connect packet 0+namespace  socket io v4
                     // https://socket.io/docs/v4/socket-io-protocol/#connection-to-a-namespace
-                    if (EngineIOVersion.V4.equals(client.getEngineIOVersion()))
-                    {
+                    if (EngineIOVersion.V4.equals(client.getEngineIOVersion())) {
+                        // Check for an auth token
+                        if (packet.getData() != null) {
+                            final Object authData = packet.getData();
+                            client.getHandshakeData().setAuthToken(authData);
+                            // Call all authTokenListeners to see if one denies it
+                            final AuthTokenResult allowAuth = ns.onAuthData(nClient, authData);
+                            if (!allowAuth.isSuccess()) {
+                                Packet p = new Packet(PacketType.MESSAGE, client.getEngineIOVersion());
+                                p.setSubType(PacketType.ERROR);
+                                p.setNsp(packet.getNsp());
+                                final Object errorData = allowAuth.getErrorData();
+                                if (errorData != null) {
+                                    p.setData(errorData);
+                                }
+                                client.send(p);
+                                return;
+                            }
+                        }
                         Packet p = new Packet(PacketType.MESSAGE, client.getEngineIOVersion());
                         p.setSubType(PacketType.CONNECT);
                         p.setNsp(packet.getNsp());
