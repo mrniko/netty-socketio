@@ -49,4 +49,5 @@ public interface SocketIONamespace extends ClientListeners {
      */
     SocketIOClient getClient(UUID uuid);
 
+    void addAuthTokenListener(AuthTokenListener listener);
 }

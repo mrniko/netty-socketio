@@ -36,4 +36,5 @@ public interface ExceptionListener {
 
     boolean exceptionCaught(ChannelHandlerContext ctx, Throwable e) throws Exception;
 
+    void onAuthException(Throwable e, SocketIOClient client);
 }
