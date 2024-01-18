@@ -441,6 +441,7 @@
           </includes>
           <excludes>
             <exclude>target/**</exclude>
+            <exclude>src/main/java/module-info.java</exclude>
           </excludes>
           <useDefaultExcludes>true</useDefaultExcludes>
           <mapping>
