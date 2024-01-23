@@ -54,6 +54,7 @@ import io.netty.util.CharsetUtil;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Enumeration;
@@ -94,8 +95,8 @@ public class EncoderHandler extends ChannelOutboundHandlerAdapter {
     private void readVersion() throws IOException {
         Enumeration<URL> resources = getClass().getClassLoader().getResources("META-INF/MANIFEST.MF");
         while (resources.hasMoreElements()) {
-            try {
-                Manifest manifest = new Manifest(resources.nextElement().openStream());
+            try (InputStream inputStream = resources.nextElement().openStream()){
+                Manifest manifest = new Manifest(inputStream);
                 Attributes attrs = manifest.getMainAttributes();
                 if (attrs == null) {
                     continue;
@@ -174,7 +175,6 @@ public class EncoderHandler extends ChannelOutboundHandlerAdapter {
 
         channel.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT, promise).addListener(ChannelFutureListener.CLOSE);
     }
-    
     private void sendError(HttpErrorMessage errorMsg, ChannelHandlerContext ctx, ChannelPromise promise) throws IOException {
         final ByteBuf encBuf = encoder.allocateBuffer(ctx.alloc());
         ByteBufOutputStream out = new ByteBufOutputStream(encBuf);
