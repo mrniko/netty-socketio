@@ -36,12 +36,10 @@ Customer feedback in __2014__:
 
 Projects using netty-socketio
 ================================
-Multiplayer Orchestra: [multiplayer-orchestra.com](https://multiplayer-orchestra.com/)
+Multiplayer Orchestra: [multiplayer-orchestra.com](https://multiplayer-orchestra.com/)  
 AVOS Cloud: [avoscloud.com](https://avoscloud.com/)  
-Bingo Crack: [bingocrack.com](http://bingocrack.com/)  
 Kambi Sports Solutions: [kambi.com](http://kambi.com/)  
 ARSnova: [arsnova.eu](https://arsnova.eu)  
-Zipwhip: [zipwhip.com](https://zipwhip.com/)
 
 Recent Releases
 ================================
