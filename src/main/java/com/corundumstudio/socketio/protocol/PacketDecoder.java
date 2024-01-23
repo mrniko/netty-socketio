@@ -18,15 +18,16 @@ package com.corundumstudio.socketio.protocol;
 import com.corundumstudio.socketio.AckCallback;
 import com.corundumstudio.socketio.ack.AckManager;
 import com.corundumstudio.socketio.handler.ClientHead;
+import com.corundumstudio.socketio.namespace.Namespace;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufInputStream;
 import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.base64.Base64;
 import io.netty.util.CharsetUtil;
-
 import java.io.IOException;
 import java.net.URLDecoder;
 import java.util.LinkedList;
+import java.util.Map;
 
 public class PacketDecoder {
 
@@ -268,7 +269,11 @@ public class PacketDecoder {
         if (packet.getType() == PacketType.MESSAGE) {
             if (packet.getSubType() == PacketType.CONNECT
                     || packet.getSubType() == PacketType.DISCONNECT) {
-                packet.setNsp(readNamespace(frame));
+                packet.setNsp(readNamespace(frame, false));
+                if (packet.getSubType() == PacketType.CONNECT && frame.readableBytes() > 0) {
+                    final Object authArgs = jsonSupport.readValue(packet.getNsp(), new ByteBufInputStream(frame), Map.class);
+                    packet.setData(authArgs);
+                }
             }
 
             if (packet.hasAttachments() && !packet.isAttachmentsLoaded()) {
@@ -296,7 +301,7 @@ public class PacketDecoder {
         }
     }
 
-    private String readNamespace(ByteBuf frame) {
+    private String readNamespace(ByteBuf frame, final boolean defaultToAll) {
 
         /**
          * namespace post request with url queryString, like
@@ -304,18 +309,26 @@ public class PacketDecoder {
          *  /message,
          */
         ByteBuf buffer = frame.slice();
-        // skip this frame
-        frame.readerIndex(frame.readerIndex() + frame.readableBytes());
+
 
         int endIndex = buffer.bytesBefore((byte) '?');
         if (endIndex > 0) {
+            // skip this frame
+            frame.readerIndex(frame.readerIndex() + frame.readableBytes());
             return readString(buffer, endIndex);
         }
         endIndex = buffer.bytesBefore((byte) ',');
         if (endIndex > 0) {
+            // skip this frame
+            frame.readerIndex(frame.readerIndex() + frame.readableBytes());
             return readString(buffer, endIndex);
         }
-        return readString(buffer);
+        if (defaultToAll) {
+            // skip this frame
+            frame.readerIndex(frame.readerIndex() + frame.readableBytes());
+            return readString(buffer);
+        }
+        return Namespace.DEFAULT_NAME;
     }
 
 }

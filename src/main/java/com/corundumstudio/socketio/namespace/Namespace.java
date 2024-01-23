@@ -49,6 +49,8 @@ public class Namespace implements SocketIONamespace {
     private final Queue<PongListener> pongListeners = new ConcurrentLinkedQueue<PongListener>();
     private final Queue<EventInterceptor> eventInterceptors = new ConcurrentLinkedQueue<EventInterceptor>();
 
+    private final Queue<AuthTokenListener> authDataInterceptors = new ConcurrentLinkedQueue<>();
+
     private final Map<UUID, SocketIOClient> allClients = PlatformDependent.newConcurrentHashMap();
     private final ConcurrentMap<String, Set<UUID>> roomClients = PlatformDependent.newConcurrentHashMap();
     private final ConcurrentMap<UUID, Set<String>> clientRooms = PlatformDependent.newConcurrentHashMap();
@@ -427,4 +429,23 @@ public class Namespace implements SocketIONamespace {
         return allClients.get(uuid);
     }
 
+    @Override
+    public void addAuthTokenListener(final AuthTokenListener listener) {
+        this.authDataInterceptors.add(listener);
+    }
+
+  public AuthTokenResult onAuthData(SocketIOClient client, Object authData) {
+      try {
+          for (AuthTokenListener listener : authDataInterceptors) {
+              final AuthTokenResult result = listener.getAuthTokenResult(authData, client);
+              if (!result.isSuccess()) {
+                return result;
+              }
+          }
+          return AuthTokenResult.AuthTokenResultSuccess;
+      } catch (Exception e) {
+          exceptionListener.onAuthException(e, client);
+      }
+      return new AuthTokenResult(false, "Internal error");
+  }
 }

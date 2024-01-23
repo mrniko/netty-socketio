@@ -34,6 +34,7 @@ public class HandshakeData implements Serializable {
     private String url;
     private Map<String, List<String>> urlParams;
     private boolean xdomain;
+    private Object authToken;
 
     // needed for correct deserialization
     public HandshakeData() {
@@ -119,4 +120,11 @@ public class HandshakeData implements Serializable {
         return null;
     }
 
+    public void setAuthToken(Object token) {
+        this.authToken = token;
+    }
+
+    public Object getAuthToken() {
+        return this.authToken;
+    }
 }

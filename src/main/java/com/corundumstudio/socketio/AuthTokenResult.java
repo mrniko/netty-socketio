@@ -1,3 +1,5 @@
+package com.corundumstudio.socketio;
+
 /**
  * Copyright (c) 2012-2023 Nikita Koksharov
  *
@@ -13,18 +15,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.corundumstudio.socketio;
 
-public interface AuthorizationListener {
+public class AuthTokenResult {
 
-    /**
-     * Checks whether a client with handshake data is authorized on connection
-	   * Optionally returns storeParams that will be added to {@link SocketIOClient} store
-     *
-     * @param data handshake data
-     * @return - {@link AuthorizationResult}
-     */
-    AuthorizationResult getAuthorizationResult(HandshakeData data);
+  public final static AuthTokenResult AuthTokenResultSuccess = new AuthTokenResult(true, null);
+  private final boolean success;
+  private final Object errorData;
 
+  public AuthTokenResult(final boolean success, final Object errorData) {
+    this.success = success;
+    this.errorData = errorData;
+  }
 
+  public boolean isSuccess() {
+    return success;
+  }
+
+  public Object getErrorData() {
+    return errorData;
+  }
 }

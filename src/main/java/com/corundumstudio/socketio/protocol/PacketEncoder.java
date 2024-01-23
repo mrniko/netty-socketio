@@ -121,10 +121,18 @@ public class PacketEncoder {
 
     public void encodePackets(Queue<Packet> packets, ByteBuf buffer, ByteBufAllocator allocator, int limit) throws IOException {
         int i = 0;
+        boolean hasPrecedingPacket = false;
         while (true) {
             Packet packet = packets.poll();
             if (packet == null || i == limit) {
                 break;
+            }
+            // Multiple packets are separated by 0x1e from protocol version 3 on
+            // see https://socket.io/docs/v4/socket-io-protocol/#sample-session
+            final boolean isV3OrNewer = EngineIOVersion.V4.equals(packet.getEngineIOVersion()) ||
+                EngineIOVersion.V3.equals(packet.getEngineIOVersion());
+            if (hasPrecedingPacket && isV3OrNewer) {
+                buffer.writeByte(0x1e);
             }
             encodePacket(packet, buffer, allocator, false);
 
@@ -137,6 +145,7 @@ public class PacketEncoder {
                 buffer.writeByte(4);
                 buffer.writeBytes(attachment);
             }
+            hasPrecedingPacket = true;
         }
     }
 
