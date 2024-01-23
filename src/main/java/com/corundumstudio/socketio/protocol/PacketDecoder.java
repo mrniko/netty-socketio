@@ -285,10 +285,14 @@ public class PacketDecoder {
 
             if (packet.getSubType() == PacketType.ACK
                     || packet.getSubType() == PacketType.BINARY_ACK) {
-                ByteBufInputStream in = new ByteBufInputStream(frame);
                 AckCallback<?> callback = ackManager.getCallback(head.getSessionId(), packet.getAckId());
-                AckArgs args = jsonSupport.readAckArgs(in, callback);
-                packet.setData(args.getArgs());
+                if (callback != null) {
+                    ByteBufInputStream in = new ByteBufInputStream(frame);
+                    AckArgs args = jsonSupport.readAckArgs(in, callback);
+                    packet.setData(args.getArgs());
+                } else {
+                    frame.release();
+                }
             }
 
             if (packet.getSubType() == PacketType.EVENT
