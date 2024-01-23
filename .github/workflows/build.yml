@@ -1,0 +1,25 @@
+name: Build
+
+on:
+  workflow_call:
+    inputs:
+      javaVersion:
+        required: true
+        type: string
+
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 'Checkout'
+        uses: actions/checkout@v4
+      - name: 'Set Up Java'
+        uses: actions/setup-java@v3
+        with:
+          java-version: ${{ inputs.javaVersion }}
+          distribution: 'temurin'
+          cache: 'maven'
+      - name: 'Build Project'
+        run: |
+          mvn test
