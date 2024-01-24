@@ -36,16 +36,27 @@ Customer feedback in __2014__:
 
 Projects using netty-socketio
 ================================
-Multiplayer Orchestra: [multiplayer-orchestra.com](https://multiplayer-orchestra.com/)
+Multiplayer Orchestra: [multiplayer-orchestra.com](https://multiplayer-orchestra.com/)  
 AVOS Cloud: [avoscloud.com](https://avoscloud.com/)  
-Bingo Crack: [bingocrack.com](http://bingocrack.com/)  
 Kambi Sports Solutions: [kambi.com](http://kambi.com/)  
 ARSnova: [arsnova.eu](https://arsnova.eu)  
-Zipwhip: [zipwhip.com](https://zipwhip.com/)
 
 Recent Releases
 ================================
 #### Please Note: trunk is current development branch.
+
+#### 23-Jan-2024 - version 2.0.7 released
+
+Github Actions support made by @liangyuanpeng
+
+Feature - Java module support (thanks to @unverbraucht)  
+Feature - AuthTokenListener added (thanks to @unverbraucht)  
+Feature - multi-packet separator support (thanks to @unverbraucht)  
+
+Improvement - Send Bulk leave event instead of multiple leave events on disconnect (thanks to @ksahu750)  
+
+Fixed - NPE during ack response timeout (thanks to @BlueSodaWater)  
+Fixed - Resource Leak in readVersion() method (thanks to @JHOANG23)
 
 #### 24-Oct-2023 - version 2.0.6 released
 
