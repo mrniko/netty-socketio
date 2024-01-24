@@ -49,7 +49,7 @@
   <properties>
     <skipTests>true</skipTests>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <netty.version>4.1.100.Final</netty.version>
+    <netty.version>4.1.105.Final</netty.version>
     <testCompileSource>11</testCompileSource>
   </properties>
 
