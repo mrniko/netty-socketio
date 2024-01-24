@@ -150,10 +150,10 @@ public class PacketDecoder {
 
         final int separatorPos = frame.bytesBefore((byte) 0x1E);
         final ByteBuf packetBuf;
-        if (separatorPos != -1) {
+        if (separatorPos > 0) {
             // Multiple packets in one, copy out the next packet to parse
             packetBuf = frame.copy(frame.readerIndex(), separatorPos);
-            frame.readerIndex(separatorPos + 1);
+            frame.readerIndex(frame.readerIndex() + separatorPos + 1);
         } else {
             packetBuf = frame;
         }

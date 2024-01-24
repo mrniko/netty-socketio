@@ -174,9 +174,10 @@ public class HttpTransportTest {
     final ArrayList<String> events = new ArrayList<>();
     events.add("420[\"hello\", \"world\"]");
     events.add("421[\"hello\", \"socketio\"]");
+    events.add("422[\"hello\", \"socketio\"]");
     postMessage(sessionId, events.stream().collect(Collectors.joining(packetSeparator)));
     final String[] responses = pollForListOfResponses(sessionId);
-    Assert.assertEquals(responses.length, 2);
+    Assert.assertEquals(responses.length, 3);
   }
 
   /**
