@@ -63,7 +63,16 @@ public class InPacketHandler extends SimpleChannelInboundHandler<PacketsMessage>
         }
         while (content.isReadable()) {
             try {
-                Packet packet = decoder.decodePackets(content, client);
+                final ByteBuf packetBuf;
+                final int separatorPos = content.bytesBefore((byte) 0x1E);
+                if (separatorPos != -1) {
+                    // Multiple packets in one, copy out the next packet to parse
+                    packetBuf = content.copy(content.readerIndex(), separatorPos);
+                    content.readerIndex(separatorPos + 1);
+                } else {
+                    packetBuf = content;
+                }
+                Packet packet = decoder.decodePackets(packetBuf, client);
 
                 Namespace ns = namespacesHub.get(packet.getNsp());
                 if (ns == null) {
