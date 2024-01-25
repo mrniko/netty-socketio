@@ -25,15 +25,16 @@ import com.corundumstudio.socketio.listener.ExceptionListener;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.netty.channel.ChannelHandlerContext;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
 import java.net.ServerSocket;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpRequest.BodyPublishers;
-import java.net.http.HttpResponse;
-import java.net.http.HttpResponse.BodyHandlers;
+import java.net.URLConnection;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -122,31 +123,43 @@ public class HttpTransportTest {
         query, null);
   }
 
-  private HttpResponse<String> makeSocketIoRequest(final String sessionId, final String bodyForPost)
+  private String makeSocketIoRequest(final String sessionId, final String bodyForPost)
       throws URISyntaxException, IOException, InterruptedException {
     final URI uri = createTestServerUri("EIO=4&transport=polling&t=Oqd9eWh" + (sessionId == null ? "" : "&sid=" + sessionId));
-    HttpClient client = HttpClient.newHttpClient();
-    final var builder = HttpRequest.newBuilder()
-        .uri(uri);
+
+    URLConnection con = uri.toURL().openConnection();
+    HttpURLConnection http = (HttpURLConnection)con;
     if (bodyForPost != null) {
-      builder.POST(BodyPublishers.ofString(bodyForPost));
-    } else {
-      builder.GET();
+      http.setRequestMethod("POST"); // PUT is another valid option
+      http.setDoOutput(true);
     }
-    return client.send(builder.build(), BodyHandlers.ofString());
+
+    if (bodyForPost != null) {
+      byte[] out = bodyForPost.toString().getBytes(StandardCharsets.UTF_8);
+      http.setFixedLengthStreamingMode(out.length);
+      http.setRequestProperty("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8");
+      http.connect();
+      try (OutputStream os = http.getOutputStream()) {
+        os.write(out);
+      }
+    } else {
+      http.connect();
+    }
+
+    try (BufferedReader reader = new BufferedReader(new InputStreamReader(http.getInputStream(), StandardCharsets.UTF_8))) {
+      return reader.lines().collect(Collectors.joining("\n"));
+    }
   }
 
   private void postMessage(final String sessionId, final String body)
       throws URISyntaxException, IOException, InterruptedException {
-    HttpResponse<String> response = makeSocketIoRequest(sessionId, body);
-    final String responseStr = response.body();
+    final String responseStr = makeSocketIoRequest(sessionId, body);
     Assert.assertEquals(responseStr, "ok");
   }
 
   private String[] pollForListOfResponses(final String sessionId)
       throws URISyntaxException, IOException, InterruptedException {
-    HttpResponse<String> response = makeSocketIoRequest(sessionId, null);
-    final String responseStr = response.body();
+    final String responseStr = makeSocketIoRequest(sessionId, null);
     return responseStr.split(packetSeparator);
   }
 

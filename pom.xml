@@ -50,7 +50,6 @@
     <skipTests>true</skipTests>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <netty.version>4.1.105.Final</netty.version>
-    <testCompileSource>11</testCompileSource>
   </properties>
 
   <profiles>
@@ -374,19 +373,12 @@
               </excludes>
             </configuration>
           </execution>
-          <!-- We'd like to use JDK11 APIs for the tests -->
           <execution>
             <id>default-testCompile</id>
             <phase>process-test-sources</phase>
             <goals>
               <goal>testCompile</goal>
             </goals>
-            <configuration>
-              <source>${testCompileSource}</source>
-              <target>${testCompileSource}</target>
-              <release>${testCompileSource}</release>
-              <compilerArgs>--add-modules=java.net.http</compilerArgs>
-            </configuration>
           </execution>
         </executions>
         <!-- defaults for compile and testCompile -->
@@ -417,8 +409,6 @@
         <configuration>
           <argLine>
             -javaagent:"${settings.localRepository}"/org/jmockit/jmockit/1.46/jmockit-1.46.jar
-            --add-reads netty.socketio=java.net.http
-            --add-modules=java.net.http
           </argLine>
         </configuration>
       </plugin>
