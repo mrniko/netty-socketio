@@ -17,9 +17,11 @@ Features
 * Supports distributed broadcast across netty-socketio nodes ([Redisson](https://redisson.org), [Hazelcast](https://www.hazelcast.com/))  
 * Supports OSGi  
 * Supports Spring  
+* Contains Java module info for JPMS. 
 * Lock-free and thread-safe implementation  
 * Declarative handler configuration via annotations  
 
+JAR is compatible with Java 8 but needs Java 11+ for building the module-info.
 
 Performance
 ================================
