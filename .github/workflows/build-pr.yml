@@ -19,8 +19,6 @@ jobs:
     strategy:
       matrix:
         java-version:
-          - 8
-          - 11
           - 17
           - 21
     uses: ./.github/workflows/build.yml
