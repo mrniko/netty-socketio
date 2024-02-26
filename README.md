@@ -45,6 +45,10 @@ Recent Releases
 ================================
 #### Please Note: trunk is current development branch.
 
+#### 24-Jan-2024 - version 2.0.8 released
+
+Fixed - possible OOM caused by attachments parsing
+
 #### 23-Jan-2024 - version 2.0.7 released
 
 Github Actions support made by @liangyuanpeng
