@@ -355,7 +355,7 @@
           <execution>
             <id>default-compile</id>
             <configuration>
-              <release>9</release>
+              <release>11</release>
               <!-- no excludes: compile everything to ensure module-info contains right entries -->
             </configuration>
           </execution>
@@ -372,6 +372,13 @@
                 <exclude>module-info.java</exclude>
               </excludes>
             </configuration>
+          </execution>
+          <execution>
+            <id>default-testCompile</id>
+            <phase>process-test-sources</phase>
+            <goals>
+              <goal>testCompile</goal>
+            </goals>
           </execution>
         </executions>
         <!-- defaults for compile and testCompile -->
@@ -398,7 +405,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
-        <version>2.22.2</version>
+        <version>3.2.5</version>
         <configuration>
           <argLine>
             -javaagent:"${settings.localRepository}"/org/jmockit/jmockit/1.46/jmockit-1.46.jar

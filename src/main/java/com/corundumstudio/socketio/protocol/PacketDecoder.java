@@ -147,23 +147,34 @@ public class PacketDecoder {
                 || frame.getByte(0) == 4 || frame.getByte(0) == 1) {
             return parseBinary(head, frame);
         }
-        PacketType type = readType(frame);
+
+        final int separatorPos = frame.bytesBefore((byte) 0x1E);
+        final ByteBuf packetBuf;
+        if (separatorPos > 0) {
+            // Multiple packets in one, copy out the next packet to parse
+            packetBuf = frame.copy(frame.readerIndex(), separatorPos);
+            frame.readerIndex(frame.readerIndex() + separatorPos + 1);
+        } else {
+            packetBuf = frame;
+        }
+
+        PacketType type = readType(packetBuf);
         Packet packet = new Packet(type, head.getEngineIOVersion());
 
         if (type == PacketType.PING) {
-            packet.setData(readString(frame));
+            packet.setData(readString(packetBuf));
             return packet;
         }
 
-        if (!frame.isReadable()) {
+        if (!packetBuf.isReadable()) {
             return packet;
         }
 
-        PacketType innerType = readInnerType(frame);
+        PacketType innerType = readInnerType(packetBuf);
         packet.setSubType(innerType);
 
-        parseHeader(frame, packet, innerType);
-        parseBody(head, frame, packet);
+        parseHeader(packetBuf, packet, innerType);
+        parseBody(head, packetBuf, packet);
         return packet;
     }
 
