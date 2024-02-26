@@ -204,13 +204,13 @@
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-beans</artifactId>
-      <version>6.0.15</version>
+      <version>[6.0.16,)</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-core</artifactId>
-      <version>6.0.15</version>
+      <version>[6.0.16,)</version>
       <exclusions>
         <exclusion>
           <groupId>commons-logging</groupId>
