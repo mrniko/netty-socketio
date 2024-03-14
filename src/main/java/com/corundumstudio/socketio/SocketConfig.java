@@ -29,11 +29,11 @@ public class SocketConfig {
 
     private int tcpReceiveBufferSize = -1;
 
-    private boolean tcpKeepAlive = false;
+    private boolean tcpKeepAlive;
 
     private int soLinger = -1;
 
-    private boolean reuseAddress = false;
+    private boolean reuseAddress;
 
     private int acceptBackLog = 1024;
 

@@ -36,11 +36,11 @@ public class Configuration {
 
     private List<Transport> transports = Arrays.asList(Transport.WEBSOCKET, Transport.POLLING);
 
-    private int bossThreads = 0; // 0 = current_processors_amount * 2
-    private int workerThreads = 0; // 0 = current_processors_amount * 2
+    private int bossThreads; // 0 = current_processors_amount * 2
+    private int workerThreads; // 0 = current_processors_amount * 2
     private boolean useLinuxNativeEpoll;
 
-    private boolean allowCustomRequests = false;
+    private boolean allowCustomRequests;
 
     private int upgradeTimeout = 10000;
     private int pingTimeout = 60000;
