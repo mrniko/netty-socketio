@@ -326,15 +326,19 @@ public class PacketDecoder {
 
         int endIndex = buffer.bytesBefore((byte) '?');
         if (endIndex > 0) {
-            // skip this frame
-            frame.readerIndex(frame.readerIndex() + frame.readableBytes());
-            return readString(buffer, endIndex);
+            String namespace = readString(buffer, endIndex);
+            if(namespace.startsWith("/")) {
+                frame.readerIndex(frame.readerIndex() + endIndex + 1);
+                return namespace;
+            }
         }
         endIndex = buffer.bytesBefore((byte) ',');
         if (endIndex > 0) {
-            // skip this frame
-            frame.readerIndex(frame.readerIndex() + frame.readableBytes());
-            return readString(buffer, endIndex);
+            String namespace = readString(buffer, endIndex);
+            if(namespace.startsWith("/")) {
+                frame.readerIndex(frame.readerIndex() + endIndex + 1);
+                return namespace;
+            }
         }
         if (defaultToAll) {
             // skip this frame
