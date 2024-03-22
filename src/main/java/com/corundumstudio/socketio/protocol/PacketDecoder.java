@@ -328,7 +328,7 @@ public class PacketDecoder {
         if (endIndex > 0) {
             String namespace = readString(buffer, endIndex);
             if(namespace.startsWith("/")) {
-                frame.readerIndex(frame.readerIndex() + endIndex + 1);
+                frame.skipBytes(endIndex + 1);
                 return namespace;
             }
         }
@@ -336,13 +336,13 @@ public class PacketDecoder {
         if (endIndex > 0) {
             String namespace = readString(buffer, endIndex);
             if(namespace.startsWith("/")) {
-                frame.readerIndex(frame.readerIndex() + endIndex + 1);
+                frame.skipBytes(endIndex + 1);
                 return namespace;
             }
         }
         if (defaultToAll) {
             // skip this frame
-            frame.readerIndex(frame.readerIndex() + frame.readableBytes());
+            frame.skipBytes(frame.readableBytes());
             return readString(buffer);
         }
         return Namespace.DEFAULT_NAME;
