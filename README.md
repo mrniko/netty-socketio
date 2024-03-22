@@ -47,6 +47,12 @@ Recent Releases
 ================================
 #### Please Note: trunk is current development branch.
 
+#### 01-Mar-2024 - version 2.0.9 released
+
+Feature - v3/v4 parsing of multiple messages in one HTTP polling body (thanks to @unverbraucht)
+
+Fixed - IllegalReferenceCountException error
+
 #### 24-Jan-2024 - version 2.0.8 released
 
 Fixed - possible OOM caused by attachments parsing
