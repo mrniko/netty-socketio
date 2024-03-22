@@ -153,7 +153,7 @@ public class PacketDecoder {
         if (separatorPos > 0) {
             // Multiple packets in one, copy out the next packet to parse
             packetBuf = frame.copy(frame.readerIndex(), separatorPos);
-            frame.readerIndex(frame.readerIndex() + separatorPos + 1);
+            frame.skipBytes(separatorPos + 1);
         } else {
             packetBuf = frame;
         }
@@ -240,7 +240,7 @@ public class PacketDecoder {
                 binaryPacket.addAttachment(Unpooled.copiedBuffer(attachBuf));
                 attachBuf.release();
             }
-            frame.readerIndex(frame.readerIndex() + frame.readableBytes());
+            frame.skipBytes(frame.readableBytes());
 
             if (binaryPacket.isAttachmentsLoaded()) {
                 LinkedList<ByteBuf> slices = new LinkedList<ByteBuf>();
