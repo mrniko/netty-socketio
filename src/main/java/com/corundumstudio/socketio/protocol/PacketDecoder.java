@@ -301,6 +301,8 @@ public class PacketDecoder {
                     ByteBufInputStream in = new ByteBufInputStream(frame);
                     AckArgs args = jsonSupport.readAckArgs(in, callback);
                     packet.setData(args.getArgs());
+                }else {
+                    frame.clear();
                 }
             }
 
