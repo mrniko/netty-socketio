@@ -53,6 +53,7 @@ public class SocketIOServer implements ClientListeners {
 
     private SocketIOChannelInitializer pipelineFactory = new SocketIOChannelInitializer();
 
+    private Channel channel;
     private EventLoopGroup bossGroup;
     private EventLoopGroup workerGroup;
 
@@ -168,6 +169,7 @@ public class SocketIOServer implements ClientListeners {
             @Override
             public void operationComplete(Future<Void> future) throws Exception {
                 if (future.isSuccess()) {
+                    channel = ((ChannelFuture)future).channel();
                     log.info("SocketIO server started at port: {}", configCopy.getPort());
                 } else {
                     log.error("SocketIO server start failed at port: {}!", configCopy.getPort());
@@ -214,6 +216,9 @@ public class SocketIOServer implements ClientListeners {
      * Stop server
      */
     public void stop() {
+        if(channel != null) {
+            channel.close().syncUninterruptibly();
+        }
         bossGroup.shutdownGracefully().syncUninterruptibly();
         workerGroup.shutdownGracefully().syncUninterruptibly();
 
