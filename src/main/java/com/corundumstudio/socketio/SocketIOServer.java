@@ -143,38 +143,58 @@ public class SocketIOServer implements ClientListeners {
      * @return void
      */
     public Future<Void> startAsync() {
-        log.info("Session store / pubsub factory used: {}", configCopy.getStoreFactory());
+        logServerInfo();
+
         initGroups();
+        ServerBootstrap serverBootstrap = setupServerBootstrap();
 
-        pipelineFactory.start(configCopy, namespacesHub);
+        InetSocketAddress addr = createInetSocketAddress();
 
+        return bindServerBootstrap(serverBootstrap, addr);
+    }
+
+    private void logServerInfo() {
+        log.info("Session store / pubsub factory used: {}", configCopy.getStoreFactory());
+    }
+
+    private ServerBootstrap setupServerBootstrap() {
+        ServerBootstrap b = new ServerBootstrap();
         Class<? extends ServerChannel> channelClass = NioServerSocketChannel.class;
         if (configCopy.isUseLinuxNativeEpoll()) {
             channelClass = EpollServerSocketChannel.class;
         }
-
-        ServerBootstrap b = new ServerBootstrap();
         b.group(bossGroup, workerGroup)
-        .channel(channelClass)
-        .childHandler(pipelineFactory);
+                .channel(channelClass)
+                .childHandler(pipelineFactory);
         applyConnectionOptions(b);
+        return b;
+    }
 
+    private InetSocketAddress createInetSocketAddress() {
         InetSocketAddress addr = new InetSocketAddress(configCopy.getPort());
         if (configCopy.getHostname() != null) {
             addr = new InetSocketAddress(configCopy.getHostname(), configCopy.getPort());
         }
+        return addr;
+    }
 
-        return b.bind(addr).addListener(new FutureListener<Void>() {
+    private Future<Void> bindServerBootstrap(ServerBootstrap serverBootstrap, InetSocketAddress addr) {
+        return serverBootstrap.bind(addr).addListener(new FutureListener<Void>() {
             @Override
             public void operationComplete(Future<Void> future) throws Exception {
-                if (future.isSuccess()) {
-                    log.info("SocketIO server started at port: {}", configCopy.getPort());
-                } else {
-                    log.error("SocketIO server start failed at port: {}!", configCopy.getPort());
-                }
+                handleBindResult(future);
             }
         });
     }
+
+    private void handleBindResult(Future<Void> future) {
+        if (future.isSuccess()) {
+            log.info("SocketIO server started at port: {}", configCopy.getPort());
+        } else {
+            log.error("SocketIO server start failed at port: {}!", configCopy.getPort());
+        }
+    }
+
 
     protected void applyConnectionOptions(ServerBootstrap bootstrap) {
         SocketConfig config = configCopy.getSocketConfig();
