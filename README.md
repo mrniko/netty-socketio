@@ -341,5 +341,5 @@ Include the following to your dependency list:
     <dependency>
      <groupId>com.corundumstudio.socketio</groupId>
      <artifactId>netty-socketio</artifactId>
-     <version>2.0.3</version>
+     <version>2.0.9</version>
     </dependency>
