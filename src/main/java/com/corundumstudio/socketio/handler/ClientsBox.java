@@ -42,8 +42,8 @@ public class ClientsBox {
         uuid2clients.put(clientHead.getSessionId(), clientHead);
     }
 
-    public void removeClient(UUID sessionId) {
-        uuid2clients.remove(sessionId);
+    public ClientHead removeClient(UUID sessionId) {
+        return uuid2clients.remove(sessionId);
     }
 
     public ClientHead get(UUID sessionId) {
