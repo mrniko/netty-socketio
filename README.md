@@ -47,6 +47,12 @@ Recent Releases
 ================================
 #### Please Note: trunk is current development branch.
 
+#### 25-Jul-2024 - version 2.0.11 released
+
+Fixed - custom namespaces support auth data (thanks to @Addi)  
+Fixed - attachments frame buffer reading  
+Fixed - memory leak while WebSocketServerHandshakeException or Channel failed (thanks to @h3mant-1)
+
 #### 01-Mar-2024 - version 2.0.9 released
 
 Feature - v3/v4 parsing of multiple messages in one HTTP polling body (thanks to @unverbraucht)
@@ -341,5 +347,5 @@ Include the following to your dependency list:
     <dependency>
      <groupId>com.corundumstudio.socketio</groupId>
      <artifactId>netty-socketio</artifactId>
-     <version>2.0.3</version>
+     <version>2.0.11</version>
     </dependency>
