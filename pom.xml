@@ -47,9 +47,12 @@
   </distributionManagement>
 
   <properties>
-    <skipTests>true</skipTests>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <netty.version>4.1.105.Final</netty.version>
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    <maven.compiler.source>1.8</maven.compiler.source>
+    <maven.compiler.target>1.8</maven.compiler.target>
+    <skipTests>true</skipTests>
+    <netty.version>4.1.112.Final</netty.version>
   </properties>
 
   <profiles>
@@ -60,7 +63,7 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-source-plugin</artifactId>
-            <version>3.2.1</version>
+            <version>3.3.1</version>
             <executions>
               <execution>
                 <id>attach-sources</id>
@@ -87,7 +90,7 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-gpg-plugin</artifactId>
-            <version>1.6</version>
+            <version>3.2.4</version>
             <executions>
               <execution>
                 <id>sign-artifacts</id>
@@ -186,18 +189,18 @@
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
-      <version>1.7.33</version>
+      <version>1.7.36</version>
     </dependency>
 
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-core</artifactId>
-      <version>2.16.1</version>
+      <version>2.17.2</version>
     </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
-      <version>2.16.1</version>
+      <version>2.17.2</version>
     </dependency>
 
 
@@ -224,7 +227,7 @@
     <dependency>
       <groupId>org.redisson</groupId>
       <artifactId>redisson</artifactId>
-      <version>3.26.0</version>
+      <version>3.33.0</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
@@ -350,7 +353,7 @@
         https://maven.apache.org/plugins/maven-compiler-plugin/examples/module-info.html-->
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.12.1</version>
+        <version>3.13.0</version>
         <executions>
           <execution>
             <id>default-compile</id>
