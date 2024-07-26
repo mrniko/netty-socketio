@@ -183,8 +183,11 @@ public class WebSocketTransport extends ChannelInboundHandlerAdapter {
         } catch (Throwable t) {
             log.warn("Can't close channel for sessionId: {}", sessionId, t);
         }
-        ClientHead clientHead = clientsBox.removeClient(sessionId);
-        clientHead.disconnect();
+        ClientHead clientHead = clientsBox.get(sessionId);
+        if (clientHead != null && clientHead.getNamespaces().isEmpty()) {
+        	clientsBox.removeClient(sessionId);
+        	clientHead.disconnect();
+    	}
         log.info("Client with sessionId: {} was disconnected", sessionId);
     }
 
