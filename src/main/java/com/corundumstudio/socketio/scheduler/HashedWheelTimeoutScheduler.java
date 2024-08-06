@@ -80,11 +80,8 @@ public class HashedWheelTimeoutScheduler implements CancelableScheduler {
                 ctx.executor().execute(new Runnable() {
                     @Override
                     public void run() {
-                        try {
-                            runnable.run();
-                        } finally {
-                            scheduledFutures.remove(key);
-                        }
+                    	scheduledFutures.remove(key);
+                        runnable.run();
                     }
                 });
             }
@@ -98,11 +95,8 @@ public class HashedWheelTimeoutScheduler implements CancelableScheduler {
         Timeout timeout = executorService.newTimeout(new TimerTask() {
             @Override
             public void run(Timeout timeout) throws Exception {
-                try {
-                    runnable.run();
-                } finally {
-                    scheduledFutures.remove(key);
-                }
+                scheduledFutures.remove(key);
+                runnable.run();
             }
         }, delay, unit);
 
