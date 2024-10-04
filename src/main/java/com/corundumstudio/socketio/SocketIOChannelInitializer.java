@@ -167,7 +167,7 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
      * @param pipeline - channel pipeline
      */
     protected void addSocketioHandlers(ChannelPipeline pipeline) {
-        pipeline.addLast(HTTP_REQUEST_DECODER, new HttpRequestDecoder());
+        pipeline.addLast(HTTP_REQUEST_DECODER, new HttpRequestDecoder(configuration.getHttpDecoderConfig()));
         pipeline.addLast(HTTP_AGGREGATOR, new HttpObjectAggregator(configuration.getMaxHttpContentLength()) {
             @Override
             protected Object newContinueResponse(HttpMessage start, int maxContentLength,
