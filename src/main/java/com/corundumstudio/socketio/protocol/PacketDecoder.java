@@ -143,9 +143,13 @@ public class PacketDecoder {
     }
 
     private Packet decode(ClientHead head, ByteBuf frame) throws IOException {
-        if ((frame.getByte(0) == 'b' && frame.getByte(1) == '4')
-                || frame.getByte(0) == 4 || frame.getByte(0) == 1) {
-            return parseBinary(head, frame);
+
+        Packet lastPacket = head.getLastBinaryPacket();
+        // Assume attachments follow.
+        if (lastPacket != null) {
+            if (lastPacket.hasAttachments() && !lastPacket.isAttachmentsLoaded()) {
+                return addAttachment(head, frame, lastPacket);
+            }
         }
 
         final int separatorPos = frame.bytesBefore((byte) 0x1E);
@@ -215,63 +219,41 @@ public class PacketDecoder {
         }
     }
 
-    private Packet parseBinary(ClientHead head, ByteBuf frame) throws IOException {
-        if (frame.getByte(0) == 1) {
-            frame.readByte();
-            int headEndIndex = frame.bytesBefore((byte)-1);
-            int len = (int) readLong(frame, headEndIndex);
-            ByteBuf oldFrame = frame;
-            frame = frame.slice(oldFrame.readerIndex() + 1, len);
-            oldFrame.readerIndex(oldFrame.readerIndex() + 1 + len);
-        }
+    private Packet addAttachment(ClientHead head, ByteBuf frame, Packet binaryPacket) throws IOException {
+        ByteBuf attachBuf = Base64.encode(frame);
+        binaryPacket.addAttachment(Unpooled.copiedBuffer(attachBuf));
+        attachBuf.release();
+        frame.skipBytes(frame.readableBytes());
 
-        if (frame.getByte(0) == 'b' && frame.getByte(1) == '4') {
-            frame.readShort();
-        } else if (frame.getByte(0) == 4) {
-            frame.readByte();
-        }
-
-        Packet binaryPacket = head.getLastBinaryPacket();
-        if (binaryPacket != null) {
-            if (frame.getByte(0) == 'b' && frame.getByte(1) == '4') {
-                binaryPacket.addAttachment(Unpooled.copiedBuffer(frame));
-            } else {
-                ByteBuf attachBuf = Base64.encode(frame);
-                binaryPacket.addAttachment(Unpooled.copiedBuffer(attachBuf));
-                attachBuf.release();
-            }
-            frame.skipBytes(frame.readableBytes());
-
-            if (binaryPacket.isAttachmentsLoaded()) {
-                LinkedList<ByteBuf> slices = new LinkedList<ByteBuf>();
-                ByteBuf source = binaryPacket.getDataSource();
-                for (int i = 0; i < binaryPacket.getAttachments().size(); i++) {
-                    ByteBuf attachment = binaryPacket.getAttachments().get(i);
-                    ByteBuf scanValue = Unpooled.copiedBuffer("{\"_placeholder\":true,\"num\":" + i + "}", CharsetUtil.UTF_8);
-                    int pos = PacketEncoder.find(source, scanValue);
+        if (binaryPacket.isAttachmentsLoaded()) {
+            LinkedList<ByteBuf> slices = new LinkedList<ByteBuf>();
+            ByteBuf source = binaryPacket.getDataSource();
+            for (int i = 0; i < binaryPacket.getAttachments().size(); i++) {
+                ByteBuf attachment = binaryPacket.getAttachments().get(i);
+                ByteBuf scanValue = Unpooled.copiedBuffer("{\"_placeholder\":true,\"num\":" + i + "}", CharsetUtil.UTF_8);
+                int pos = PacketEncoder.find(source, scanValue);
+                if (pos == -1) {
+                    scanValue = Unpooled.copiedBuffer("{\"num\":" + i + ",\"_placeholder\":true}", CharsetUtil.UTF_8);
+                    pos = PacketEncoder.find(source, scanValue);
                     if (pos == -1) {
-                        scanValue = Unpooled.copiedBuffer("{\"num\":" + i + ",\"_placeholder\":true}", CharsetUtil.UTF_8);
-                        pos = PacketEncoder.find(source, scanValue);
-                        if (pos == -1) {
-                            throw new IllegalStateException("Can't find attachment by index: " + i + " in packet source");
-                        }
+                        throw new IllegalStateException("Can't find attachment by index: " + i + " in packet source");
                     }
-
-                    ByteBuf prefixBuf = source.slice(source.readerIndex(), pos - source.readerIndex());
-                    slices.add(prefixBuf);
-                    slices.add(QUOTES);
-                    slices.add(attachment);
-                    slices.add(QUOTES);
-
-                    source.readerIndex(pos + scanValue.readableBytes());
                 }
-                slices.add(source.slice());
 
-                ByteBuf compositeBuf = Unpooled.wrappedBuffer(slices.toArray(new ByteBuf[0]));
-                parseBody(head, compositeBuf, binaryPacket);
-                head.setLastBinaryPacket(null);
-                return binaryPacket;
+                ByteBuf prefixBuf = source.slice(source.readerIndex(), pos - source.readerIndex());
+                slices.add(prefixBuf);
+                slices.add(QUOTES);
+                slices.add(attachment);
+                slices.add(QUOTES);
+
+                source.readerIndex(pos + scanValue.readableBytes());
             }
+            slices.add(source.slice());
+
+            ByteBuf compositeBuf = Unpooled.wrappedBuffer(slices.toArray(new ByteBuf[0]));
+            parseBody(head, compositeBuf, binaryPacket);
+            head.setLastBinaryPacket(null);
+            return binaryPacket;
         }
         return new Packet(PacketType.MESSAGE, head.getEngineIOVersion());
     }
