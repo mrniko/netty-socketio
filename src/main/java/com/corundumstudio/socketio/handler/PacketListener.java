@@ -92,7 +92,9 @@ public class PacketListener {
 
             if (packet.getSubType() == PacketType.CONNECT) {
                 Namespace namespace = namespacesHub.get(packet.getNsp());
-                namespace.onConnect(client);
+                if (!namespace.getAllClients().contains(client)) {
+                    namespace.onConnect(client);
+                }
                 // send connect handshake packet back to client
                 if (!EngineIOVersion.V4.equals(client.getEngineIOVersion())) {
                     client.getBaseClient().send(packet, transport);
