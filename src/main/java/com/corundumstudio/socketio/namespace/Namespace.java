@@ -200,6 +200,11 @@ public class Namespace implements SocketIONamespace {
     }
 
     public void onConnect(SocketIOClient client) {
+        if (roomClients.containsKey(getName()) &&
+                roomClients.get(getName()).contains(client.getSessionId())) {
+            return;
+        }
+
         join(getName(), client.getSessionId());
         storeFactory.pubSubStore().publish(PubSubType.JOIN, new JoinLeaveMessage(client.getSessionId(), getName(), getName()));
 
