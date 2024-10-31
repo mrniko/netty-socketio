@@ -116,8 +116,8 @@ public class EncoderHandler extends ChannelOutboundHandlerAdapter {
         HttpResponse res = new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.OK);
 
         res.headers().add(HttpHeaderNames.SET_COOKIE, "io=" + msg.getSessionId())
-                    .add(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE)
-                    .add(HttpHeaderNames.ACCESS_CONTROL_ALLOW_HEADERS, HttpHeaderNames.CONTENT_TYPE);
+                .add(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE)
+                .add(HttpHeaderNames.ACCESS_CONTROL_ALLOW_HEADERS, HttpHeaderNames.CONTENT_TYPE);
 
         String origin = ctx.channel().attr(ORIGIN).get();
         addOriginHeaders(origin, res);
@@ -136,7 +136,7 @@ public class EncoderHandler extends ChannelOutboundHandlerAdapter {
         HttpResponse res = new DefaultHttpResponse(HTTP_1_1, status);
 
         res.headers().add(HttpHeaderNames.CONTENT_TYPE, type)
-                    .add(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
+                .add(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
         if (msg.getSessionId() != null) {
             res.headers().add(HttpHeaderNames.SET_COOKIE, "io=" + msg.getSessionId());
         }
@@ -188,19 +188,21 @@ public class EncoderHandler extends ChannelOutboundHandlerAdapter {
             res.headers().add(HttpHeaderNames.SERVER, version);
         }
 
-        if (configuration.getOrigin() != null) {
-            res.headers().add(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN, configuration.getOrigin());
-            res.headers().add(HttpHeaderNames.ACCESS_CONTROL_ALLOW_CREDENTIALS, Boolean.TRUE);
-        } else {
-            if (origin != null) {
-                res.headers().add(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN, origin);
+        if (configuration.isEnableCors()) {
+            if (configuration.getOrigin() != null) {
+                res.headers().add(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN, configuration.getOrigin());
                 res.headers().add(HttpHeaderNames.ACCESS_CONTROL_ALLOW_CREDENTIALS, Boolean.TRUE);
             } else {
-                res.headers().add(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN, "*");
+                if (origin != null) {
+                    res.headers().add(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN, origin);
+                    res.headers().add(HttpHeaderNames.ACCESS_CONTROL_ALLOW_CREDENTIALS, Boolean.TRUE);
+                } else {
+                    res.headers().add(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN, "*");
+                }
             }
-        }
-        if(configuration.getAllowHeaders() != null){
-            res.headers().add(HttpHeaderNames.ACCESS_CONTROL_ALLOW_HEADERS, configuration.getAllowHeaders());
+            if (configuration.getAllowHeaders() != null) {
+                res.headers().add(HttpHeaderNames.ACCESS_CONTROL_ALLOW_HEADERS, configuration.getAllowHeaders());
+            }
         }
     }
 
