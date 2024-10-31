@@ -25,6 +25,7 @@ import com.corundumstudio.socketio.listener.ExceptionListener;
 import com.corundumstudio.socketio.protocol.JsonSupport;
 import com.corundumstudio.socketio.store.MemoryStoreFactory;
 import com.corundumstudio.socketio.store.StoreFactory;
+import io.netty.handler.codec.http.HttpDecoderConfig;
 
 import javax.net.ssl.KeyManagerFactory;
 
@@ -91,6 +92,8 @@ public class Configuration {
     private boolean randomSession = false;
 
     private boolean needClientAuth = false;
+
+    private HttpRequestDecoderConfiguration httpRequestDecoderConfiguration = new HttpRequestDecoderConfiguration();
 
     public Configuration() {
     }
@@ -161,6 +164,7 @@ public class Configuration {
         setWebsocketCompression(conf.isWebsocketCompression());
         setRandomSession(conf.randomSession);
         setNeedClientAuth(conf.isNeedClientAuth());
+        setHttpRequestDecoderConfiguration(conf.getHttpRequestDecoderConfiguration());
     }
 
     public JsonSupport getJsonSupport() {
@@ -617,5 +621,20 @@ public class Configuration {
     }
     public boolean isNeedClientAuth() {
         return needClientAuth;
+    }
+
+    public HttpRequestDecoderConfiguration getHttpRequestDecoderConfiguration() {
+        return httpRequestDecoderConfiguration;
+    }
+
+    public void setHttpRequestDecoderConfiguration(HttpRequestDecoderConfiguration httpRequestDecoderConfiguration) {
+        this.httpRequestDecoderConfiguration = httpRequestDecoderConfiguration;
+    }
+
+    public HttpDecoderConfig getHttpDecoderConfig() {
+        return new HttpDecoderConfig()
+                .setMaxInitialLineLength(httpRequestDecoderConfiguration.getMaxInitialLineLength())
+                .setMaxHeaderSize(httpRequestDecoderConfiguration.getMaxHeaderSize())
+                .setMaxChunkSize(httpRequestDecoderConfiguration.getMaxChunkSize());
     }
 }
