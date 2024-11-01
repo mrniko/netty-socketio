@@ -23,6 +23,17 @@ Features
 
 JAR is compatible with Java 8 but needs Java 11+ for building the module-info.
 
+### Maven 
+
+Include the following to your dependency list:
+```xml
+    <dependency>
+     <groupId>com.corundumstudio.socketio</groupId>
+     <artifactId>netty-socketio</artifactId>
+     <version>2.0.12</version>
+    </dependency>
+```
+
 Performance
 ================================
 
@@ -46,6 +57,17 @@ ARSnova: [arsnova.eu](https://arsnova.eu)
 Recent Releases
 ================================
 #### Please Note: trunk is current development branch.
+
+#### 01-Nov-2024 - version 2.0.11 released
+
+Feature - enableCors setting added (thanks to @zd925)  
+Feature - ability to define http request decoder (thanks to @gurkancakir)  
+
+Fixed - if ack returns after the timeout trigger ,a IllegalStateException will be thrown (thanks to @malinGH)  
+Fixed - prevents the client from repeatedly connecting to the namespace (thanks to @bigtian99)  
+Fixed - treat attachments as binary by default (thanks to @nicsor)  
+Fixed - recoverable handshake failure handling (thanks to @berinhardt)  
+Fixed - HashedWheelTimeoutScheduler should remove scheduledFutures before task execution (thanks to @berinhardt)  
 
 #### 25-Jul-2024 - version 2.0.11 released
 
@@ -338,14 +360,3 @@ Improvement - logging error info with inbound data.
  
 #### 07-Jun-2013 - version 1.0.0 released
 First stable release.
-
-
-### Maven 
-
-Include the following to your dependency list:
-
-    <dependency>
-     <groupId>com.corundumstudio.socketio</groupId>
-     <artifactId>netty-socketio</artifactId>
-     <version>2.0.11</version>
-    </dependency>
