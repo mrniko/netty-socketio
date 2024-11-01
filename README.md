@@ -58,7 +58,7 @@ Recent Releases
 ================================
 #### Please Note: trunk is current development branch.
 
-#### 01-Nov-2024 - version 2.0.11 released
+#### 01-Nov-2024 - version 2.0.12 released
 
 Feature - enableCors setting added (thanks to @zd925)  
 Feature - ability to define http request decoder (thanks to @gurkancakir)  
