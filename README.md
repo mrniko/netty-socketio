@@ -13,8 +13,8 @@ Features
 * Supports namespaces and rooms  
 * Supports ack (acknowledgment of received data)  
 * Supports SSL  
-* Supports client store (Memory, [Redisson](https://redisson.org), [Hazelcast](https://www.hazelcast.com/))  
-* Supports distributed broadcast across netty-socketio nodes ([Redisson](https://redisson.org), [Hazelcast](https://www.hazelcast.com/))  
+* Supports client store ([Redisson](https://redisson.org), Hazelcast, Memory)  
+* Supports distributed broadcast across netty-socketio nodes ([Redisson](https://redisson.org), Hazelcast)  
 * Supports OSGi  
 * Supports Spring  
 * Contains Java module info for JPMS. 
