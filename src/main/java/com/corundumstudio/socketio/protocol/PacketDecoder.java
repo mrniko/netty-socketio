@@ -307,23 +307,18 @@ public class PacketDecoder {
          */
         ByteBuf buffer = frame.slice();
 
+        int namespaceFieldEndIndex = buffer.bytesBefore((byte) ',');
+        namespaceFieldEndIndex = namespaceFieldEndIndex > 0 ? namespaceFieldEndIndex : buffer.readableBytes();
 
-        int endIndex = buffer.bytesBefore((byte) '?');
-        if (endIndex > 0) {
-            String namespace = readString(buffer, endIndex);
-            if(namespace.startsWith("/")) {
-                frame.skipBytes(endIndex + 1);
-                return namespace;
-            }
+        int namespaceEndIndex = buffer.bytesBefore((byte) '?');
+        namespaceEndIndex = namespaceEndIndex > 0 ? namespaceEndIndex : namespaceFieldEndIndex;
+
+        String namespace = readString(buffer, namespaceEndIndex);
+        if (namespace.startsWith("/")) {
+            frame.skipBytes(namespaceFieldEndIndex + 1);
+            return namespace;
         }
-        endIndex = buffer.bytesBefore((byte) ',');
-        if (endIndex > 0) {
-            String namespace = readString(buffer, endIndex);
-            if(namespace.startsWith("/")) {
-                frame.skipBytes(endIndex + 1);
-                return namespace;
-            }
-        }
+
         if (defaultToAll) {
             // skip this frame
             frame.skipBytes(frame.readableBytes());
