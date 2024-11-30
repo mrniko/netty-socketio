@@ -112,6 +112,9 @@ public class InPacketHandler extends SimpleChannelInboundHandler<PacketsMessage>
                 }
 
                 NamespaceClient nClient = client.getChildClient(ns);
+                if (!client.getNamespaces().isEmpty() && nClient == null) {
+                    nClient = client.getChildClient(client.getNamespaces().stream().findFirst().get());
+                }
                 if (nClient == null) {
                     log.debug("Can't find namespace client in namespace: {}, sessionId: {} probably it was disconnected.", ns.getName(), client.getSessionId());
                     return;

@@ -23,6 +23,7 @@ import com.corundumstudio.socketio.Transport;
 import com.corundumstudio.socketio.ack.AckManager;
 import com.corundumstudio.socketio.namespace.Namespace;
 import com.corundumstudio.socketio.namespace.NamespacesHub;
+import com.corundumstudio.socketio.protocol.ConnPacket;
 import com.corundumstudio.socketio.protocol.EngineIOVersion;
 import com.corundumstudio.socketio.protocol.Packet;
 import com.corundumstudio.socketio.protocol.PacketType;
@@ -92,11 +93,14 @@ public class PacketListener {
 
             if (packet.getSubType() == PacketType.CONNECT) {
                 Namespace namespace = namespacesHub.get(packet.getNsp());
-                namespace.onConnect(client);
+
                 // send connect handshake packet back to client
-                if (!EngineIOVersion.V4.equals(client.getEngineIOVersion())) {
-                    client.getBaseClient().send(packet, transport);
+                if (EngineIOVersion.V4.equals(client.getEngineIOVersion())) {
+                    packet.setData(new ConnPacket(client.getSessionId()));
                 }
+                client.getBaseClient().send(packet, transport);
+
+                namespace.onConnect(client);
             }
 
             if (packet.getSubType() == PacketType.ACK

@@ -271,7 +271,7 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
     public void connect(ClientHead client) {
         Namespace ns = namespacesHub.get(Namespace.DEFAULT_NAME);
 
-        if (!client.getNamespaces().contains(ns)) {
+        if (!EngineIOVersion.V4.equals(client.getEngineIOVersion()) && !client.getNamespaces().contains(ns)) {
             Packet packet = new Packet(PacketType.MESSAGE, client.getEngineIOVersion());
             packet.setSubType(PacketType.CONNECT);
             //::TODO lyjnew V4 delay send connect packet  ON client add Namecapse
