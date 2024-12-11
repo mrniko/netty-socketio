@@ -281,7 +281,7 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
             configuration.getStoreFactory().pubSubStore().publish(PubSubType.CONNECT, new ConnectMessage(client.getSessionId()));
 
             SocketIOClient nsClient = client.addNamespaceClient(ns);
-            ns.onConnect(nsClient);
+            // ns.onConnect(nsClient);
         }
     }
 
