@@ -302,20 +302,31 @@ public class PacketDecoder {
 
         /**
          * namespace post request with url queryString, like
-         *  /message?a=1,
-         *  /message,
+         *  /message (v1)
+         *  /message?a=1, (v2)
+         *  /message, (v3,v4)
          */
         ByteBuf buffer = frame.slice();
 
+        boolean withSpecialChar = false;
+
         int namespaceFieldEndIndex = buffer.bytesBefore((byte) ',');
-        namespaceFieldEndIndex = namespaceFieldEndIndex > 0 ? namespaceFieldEndIndex : buffer.readableBytes();
+        if (namespaceFieldEndIndex > 0) {
+            withSpecialChar = true;
+        } else {
+            namespaceFieldEndIndex = buffer.readableBytes();
+        }
 
         int namespaceEndIndex = buffer.bytesBefore((byte) '?');
-        namespaceEndIndex = namespaceEndIndex > 0 ? namespaceEndIndex : namespaceFieldEndIndex;
+        if (namespaceEndIndex > 0) {
+            withSpecialChar = true;
+        } else {
+            namespaceEndIndex = namespaceFieldEndIndex;
+        }
 
         String namespace = readString(buffer, namespaceEndIndex);
         if (namespace.startsWith("/")) {
-            frame.skipBytes(namespaceFieldEndIndex + 1);
+            frame.skipBytes(namespaceFieldEndIndex + (withSpecialChar ? 1 : 0));
             return namespace;
         }
 
