@@ -30,7 +30,7 @@ Include the following to your dependency list:
     <dependency>
      <groupId>com.corundumstudio.socketio</groupId>
      <artifactId>netty-socketio</artifactId>
-     <version>2.0.12</version>
+     <version>2.0.13</version>
     </dependency>
 ```
 
@@ -57,6 +57,11 @@ ARSnova: [arsnova.eu](https://arsnova.eu)
 Recent Releases
 ================================
 #### Please Note: trunk is current development branch.
+
+#### 19-Mar-2025 - version 2.0.13 released
+
+Fixed - Socket.IO Client v2 fails to connect (thanks to @penguinlab)  
+Fixed - Support for v1 / readNamespace. V1 namespace is without special characters , or ? (thanks to @Pacl0)  
 
 #### 01-Nov-2024 - version 2.0.12 released
 
