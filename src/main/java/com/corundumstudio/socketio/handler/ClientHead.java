@@ -222,6 +222,7 @@ public class ClientHead {
                 clientsBox.remove(state.getChannel());
             }
         }
+        store.del(sessionId.toString());
     }
 
     public HandshakeData getHandshakeData() {
