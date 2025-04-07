@@ -26,9 +26,9 @@ import com.corundumstudio.socketio.store.pubsub.PubSubMessage;
 import com.corundumstudio.socketio.store.pubsub.PubSubStore;
 import com.corundumstudio.socketio.store.pubsub.PubSubType;
 import com.hazelcast.core.HazelcastInstance;
-import com.hazelcast.core.ITopic;
-import com.hazelcast.core.Message;
-import com.hazelcast.core.MessageListener;
+import com.hazelcast.topic.ITopic;
+import com.hazelcast.topic.Message;
+import com.hazelcast.topic.MessageListener;
 
 
 public class HazelcastPubSubStore implements PubSubStore {
@@ -63,7 +63,7 @@ public class HazelcastPubSubStore implements PubSubStore {
                     listener.onMessage(message.getMessageObject());
                 }
             }
-        });
+        }).toString();
 
         Queue<String> list = map.get(name);
         if (list == null) {

@@ -230,8 +230,8 @@
     </dependency>
     <dependency>
       <groupId>com.hazelcast</groupId>
-      <artifactId>hazelcast-client</artifactId>
-      <version>3.12.12</version>
+      <artifactId>hazelcast</artifactId>
+      <version>5.5.0</version>
       <scope>provided</scope>
     </dependency>
   </dependencies>
