@@ -17,7 +17,7 @@ module netty.socketio {
   requires com.fasterxml.jackson.databind;
 
   requires static com.hazelcast.core;
-  requires static com.hazelcast.client;
+
 
   requires static redisson;
 
