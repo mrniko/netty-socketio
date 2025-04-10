@@ -1,19 +1,19 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>com.corundumstudio.socketio</groupId>
+  <groupId>com.zizzle.socketio</groupId>
   <artifactId>netty-socketio</artifactId>
   <version>2.0.14-SNAPSHOT</version>
   <packaging>bundle</packaging>
   <name>NettySocketIO</name>
   <description>Socket.IO server implemented on Java</description>
   <inceptionYear>2012</inceptionYear>
-  <url>https://github.com/mrniko/netty-socketio</url>
+  <url>https://github.com/sanjomo/netty-socketio</url>
 
   <scm>
-    <url>scm:git:git@github.com:mrniko/netty-socketio.git</url>
-    <connection>scm:git:git@github.com:mrniko/netty-socketio.git</connection>
-    <developerConnection>scm:git:git@github.com:mrniko/netty-socketio.git</developerConnection>
+    <url>scm:git:git@github.com:sanjomo/netty-socketio.git</url>
+    <connection>scm:git:git@github.com:sanjomo/netty-socketio.git</connection>
+    <developerConnection>scm:git:git@github.com:sanjomo/netty-socketio.git</developerConnection>
     <tag>HEAD</tag>
   </scm>
 
@@ -27,9 +27,9 @@
 
   <developers>
     <developer>
-      <id>mrniko</id>
-      <name>Nikita Koksharov</name>
-      <email>abracham.mitchell@gmail.com</email>
+      <id>sanjomo</id>
+      <name>Santhosh Mohan</name>
+      <email>oss@santhoshmohan.com</email>
       <roles>
         <role>Architect</role>
         <role>Developer</role>
@@ -50,7 +50,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <skipTests>true</skipTests>
-    <netty.version>4.1.119.Final</netty.version>
+    <netty.version>4.2.0.Final</netty.version>
   </properties>
 
   <profiles>
@@ -129,11 +129,21 @@
           <classifier>linux-aarch_64</classifier>
           <version>${netty.version}</version>
         </dependency>
+        <dependency>
+          <groupId>io.netty</groupId>
+          <artifactId>netty-transport-native-io_uring</artifactId>
+          <version>${netty.version}</version>
+        </dependency>
       </dependencies>
     </profile>
   </profiles>
 
   <dependencies>
+    <dependency>
+      <groupId>io.netty</groupId>
+      <artifactId>netty-transport-native-io_uring</artifactId>
+      <version>4.2.0.Final</version>
+    </dependency>
     <dependency>
       <groupId>io.netty</groupId>
       <artifactId>netty-buffer</artifactId>
@@ -230,8 +240,8 @@
     </dependency>
     <dependency>
       <groupId>com.hazelcast</groupId>
-      <artifactId>hazelcast-client</artifactId>
-      <version>3.12.12</version>
+      <artifactId>hazelcast</artifactId>
+      <version>5.5.0</version>
       <scope>provided</scope>
     </dependency>
   </dependencies>
@@ -428,7 +438,7 @@
               org.springframework.*;resolution:=optional,com.hazelcast.*;resolution:=optional,org.redisson.*;resolution:=optional,*
             </Import-Package>
             <Export-Package>
-              com.corundumstudio.socketio.*;version="${project.version}"
+              com.zizzle.socketio.*;version="${project.version}"
             </Export-Package>
           </instructions>
         </configuration>

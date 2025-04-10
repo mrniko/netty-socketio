@@ -28,7 +28,7 @@ JAR is compatible with Java 8 but needs Java 11+ for building the module-info.
 Include the following to your dependency list:
 ```xml
     <dependency>
-     <groupId>com.corundumstudio.socketio</groupId>
+     <groupId>com.zizzle.socketio</groupId>
      <artifactId>netty-socketio</artifactId>
      <version>2.0.13</version>
     </dependency>

@@ -1,13 +1,13 @@
 module netty.socketio {
-  exports com.corundumstudio.socketio;
-  exports com.corundumstudio.socketio.ack;
-  exports com.corundumstudio.socketio.annotation;
-  exports com.corundumstudio.socketio.handler;
-  exports com.corundumstudio.socketio.listener;
-  exports com.corundumstudio.socketio.namespace;
-  exports com.corundumstudio.socketio.misc;
-  exports com.corundumstudio.socketio.messages;
-  exports com.corundumstudio.socketio.protocol;
+  exports com.zizzle.socketio;
+  exports com.zizzle.socketio.ack;
+  exports com.zizzle.socketio.annotation;
+  exports com.zizzle.socketio.handler;
+  exports com.zizzle.socketio.listener;
+  exports com.zizzle.socketio.namespace;
+  exports com.zizzle.socketio.misc;
+  exports com.zizzle.socketio.messages;
+  exports com.zizzle.socketio.protocol;
 
   requires static spring.beans;
   requires static spring.core;
@@ -17,16 +17,16 @@ module netty.socketio {
   requires com.fasterxml.jackson.databind;
 
   requires static com.hazelcast.core;
-  requires static com.hazelcast.client;
 
   requires static redisson;
 
   requires static io.netty.transport.classes.epoll;
   requires io.netty.codec;
-  requires io.netty.transport;
-  requires io.netty.buffer;
-  requires io.netty.common;
   requires io.netty.handler;
   requires io.netty.codec.http;
-  requires org.slf4j;
+    requires io.netty.transport.classes.io_uring;
+    requires io.netty.transport;
+    requires io.netty.buffer;
+    requires io.netty.common;
+    requires org.slf4j;
 }
