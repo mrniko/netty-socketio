@@ -167,13 +167,6 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
             return false;
         }
 
-        UUID sessionId = null;
-        if (configuration.isRandomSession()) {
-            sessionId = UUID.randomUUID();
-        } else {
-            sessionId = this.generateOrGetSessionIdFromRequest(req.headers());
-        }
-
         List<String> transportValue = params.get("transport");
         if (transportValue == null) {
             log.error("Got no transports for request {}", req.uri());
@@ -193,6 +186,13 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
             log.error("Unsupported transport for request {}", req.uri());
             writeAndFlushTransportError(channel, origin);
             return false;
+        }
+
+        UUID sessionId = null;
+        if (configuration.isRandomSession()) {
+            sessionId = UUID.randomUUID();
+        } else {
+            sessionId = this.generateOrGetSessionIdFromRequest(req.headers());
         }
 
         ClientHead client = new ClientHead(sessionId, ackManager, disconnectable, storeFactory, data, clientsBox, transport, scheduler, configuration, params);
