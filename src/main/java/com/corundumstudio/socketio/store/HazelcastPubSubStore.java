@@ -18,6 +18,7 @@ package com.corundumstudio.socketio.store;
 import io.netty.util.internal.PlatformDependent;
 
 import java.util.Queue;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentMap;
 
@@ -26,9 +27,7 @@ import com.corundumstudio.socketio.store.pubsub.PubSubMessage;
 import com.corundumstudio.socketio.store.pubsub.PubSubStore;
 import com.corundumstudio.socketio.store.pubsub.PubSubType;
 import com.hazelcast.core.HazelcastInstance;
-import com.hazelcast.core.ITopic;
-import com.hazelcast.core.Message;
-import com.hazelcast.core.MessageListener;
+import com.hazelcast.topic.ITopic;
 
 
 public class HazelcastPubSubStore implements PubSubStore {
@@ -55,13 +54,10 @@ public class HazelcastPubSubStore implements PubSubStore {
     public <T extends PubSubMessage> void subscribe(PubSubType type, final PubSubListener<T> listener, Class<T> clazz) {
         String name = type.toString();
         ITopic<T> topic = hazelcastSub.getTopic(name);
-        String regId = topic.addMessageListener(new MessageListener<T>() {
-            @Override
-            public void onMessage(Message<T> message) {
-                PubSubMessage msg = message.getMessageObject();
-                if (!nodeId.equals(msg.getNodeId())) {
-                    listener.onMessage(message.getMessageObject());
-                }
+        UUID regId = topic.addMessageListener(message -> {
+            PubSubMessage msg = message.getMessageObject();
+            if (!nodeId.equals(msg.getNodeId())) {
+                listener.onMessage(message.getMessageObject());
             }
         });
 
@@ -73,7 +69,7 @@ public class HazelcastPubSubStore implements PubSubStore {
                 list = oldList;
             }
         }
-        list.add(regId);
+        list.add(regId.toString());
     }
 
     @Override
@@ -82,7 +78,7 @@ public class HazelcastPubSubStore implements PubSubStore {
         Queue<String> regIds = map.remove(name);
         ITopic<Object> topic = hazelcastSub.getTopic(name);
         for (String id : regIds) {
-            topic.removeMessageListener(id);
+            topic.removeMessageListener(UUID.fromString(id));
         }
     }
 
