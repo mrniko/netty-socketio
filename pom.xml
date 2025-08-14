@@ -51,6 +51,7 @@
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <skipTests>true</skipTests>
     <netty.version>4.1.119.Final</netty.version>
+    <jmockit.version>1.49</jmockit.version>
   </properties>
 
   <profiles>
@@ -174,7 +175,7 @@
     <dependency>
       <groupId>org.jmockit</groupId>
       <artifactId>jmockit</artifactId>
-      <version>1.49</version>
+      <version>${jmockit.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -411,7 +412,7 @@
         <version>3.2.5</version>
         <configuration>
           <argLine>
-            -javaagent:"${settings.localRepository}"/org/jmockit/jmockit/1.46/jmockit-1.46.jar
+            -javaagent:"${settings.localRepository}"/org/jmockit/jmockit/${jmockit.version}/jmockit-${jmockit.version}.jar
           </argLine>
         </configuration>
       </plugin>
