@@ -456,6 +456,10 @@
         <configuration>
           <argLine>
             -javaagent:"${settings.localRepository}"/org/jmockit/jmockit/${jmockit.version}/jmockit-${jmockit.version}.jar
+            --add-opens netty.socketio/com.corundumstudio.socketio.store.pubsub=ALL-UNNAMED
+            --add-opens netty.socketio/com.corundumstudio.socketio.store=ALL-UNNAMED
+            --add-opens netty.socketio/com.corundumstudio.socketio.store.pubsub=redisson
+            --add-opens netty.socketio/com.corundumstudio.socketio.store=redisson
           </argLine>
         </configuration>
       </plugin>
