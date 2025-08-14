@@ -198,18 +198,4 @@ public abstract class AbstractPubSubStoreTest {
         assertEquals("connect message", connectMessage.get().getContent());
     }
 
-    /**
-     * Test message for testing purposes
-     */
-    public static class TestMessage extends PubSubMessage {
-        private String content;
-
-        public String getContent() {
-            return content;
-        }
-
-        public void setContent(String content) {
-            this.content = content;
-        }
-    }
 }
