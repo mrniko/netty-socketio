@@ -90,14 +90,7 @@ public class UTF8CharsScannerTest extends BaseProtocolTest {
         // When length is 0, the method should return 0 immediately
         // But the current implementation throws IllegalStateException
         // This is the actual behavior of the method
-        try {
-            int actualLength = scanner.getActualLength(buffer, 0);
-            assertEquals(0, actualLength);
-        } catch (IllegalStateException e) {
-            // This is the current behavior - the method throws exception for length 0
-            // We can either accept this behavior or fix the method
-        }
-        
+        assertThrows(IllegalStateException.class, () -> scanner.getActualLength(buffer, 0));
         buffer.release();
     }
 
@@ -168,13 +161,8 @@ public class UTF8CharsScannerTest extends BaseProtocolTest {
         String testString = "Hello";
         ByteBuf buffer = Unpooled.copiedBuffer(testString.getBytes());
         
-        try {
-            scanner.getActualLength(buffer, 10);
-            fail("Expected IllegalStateException for invalid length");
-        } catch (IllegalStateException e) {
-            // Expected behavior
-        }
-        
+        assertThrows(IllegalStateException.class, () -> scanner.getActualLength(buffer, 10));
+
         buffer.release();
     }
 
@@ -256,14 +244,7 @@ public class UTF8CharsScannerTest extends BaseProtocolTest {
         // When length is 0, the method should return 0 immediately
         // But the current implementation throws IllegalStateException
         // This is the actual behavior of the method
-        try {
-            int actualLength = scanner.getActualLength(buffer, 0);
-            assertEquals(0, actualLength);
-        } catch (IllegalStateException e) {
-            // This is the current behavior - the method throws exception for length 0
-            // We can either accept this behavior or fix the method
-        }
-        
+        assertThrows(IllegalStateException.class, () -> scanner.getActualLength(buffer, 0));
         buffer.release();
     }
 

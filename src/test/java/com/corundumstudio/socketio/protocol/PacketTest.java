@@ -24,14 +24,7 @@ public class PacketTest extends BaseProtocolTest {
         Packet packet = createPacket();
         // withNsp with null namespace should handle null gracefully
         // or throw an exception - let's test the actual behavior
-        try {
-            Packet newPacket = packet.withNsp(null, EngineIOVersion.UNKNOWN);
-            // If it doesn't throw exception, verify the behavior
-            assertNotSame(packet, newPacket);
-        } catch (Exception e) {
-            // If it throws exception, that's also valid behavior
-            assertTrue("Expected exception for null namespace", e instanceof NullPointerException);
-        }
+        assertThrows(NullPointerException.class, () -> packet.withNsp(null, EngineIOVersion.UNKNOWN));
     }
 
     @Test
@@ -241,14 +234,7 @@ public class PacketTest extends BaseProtocolTest {
         
         // withNsp with null namespace should handle null gracefully
         // or throw an exception - let's test the actual behavior
-        try {
-            Packet copiedPacket = originalPacket.withNsp(null, EngineIOVersion.V4);
-            // If it doesn't throw exception, verify the behavior
-            assertNotSame(originalPacket, copiedPacket);
-        } catch (Exception e) {
-            // If it throws exception, that's also valid behavior
-            assertTrue("Expected exception for null namespace", e instanceof NullPointerException);
-        }
+        assertThrows(NullPointerException.class, () -> originalPacket.withNsp(null, EngineIOVersion.V4));
     }
 
     private void assertPacketCopied(Packet oldPacket, Packet newPacket) {

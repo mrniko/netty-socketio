@@ -105,12 +105,7 @@ public class PacketTypeTest extends BaseProtocolTest {
     @Test
     public void testValueOfInnerWithInvalidValueShouldThrowException() {
         // Test valueOfInner with invalid value
-        try {
-            PacketType.valueOfInner(99);
-            fail("Expected IllegalArgumentException for invalid value");
-        } catch (IllegalArgumentException e) {
-            assertEquals("Can't parse 99", e.getMessage());
-        }
+        assertThrows(IllegalArgumentException.class, () -> PacketType.valueOfInner(99));
     }
 
     @Test

@@ -52,6 +52,7 @@
     <skipTests>false</skipTests>
     <netty.version>4.1.119.Final</netty.version>
     <jmockit.version>1.49</jmockit.version>
+    <byte-buddy.version>1.14.9</byte-buddy.version>
   </properties>
 
   <profiles>
@@ -177,6 +178,11 @@
       <artifactId>jmockit</artifactId>
       <version>${jmockit.version}</version>
       <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>net.bytebuddy</groupId>
+      <artifactId>byte-buddy-agent</artifactId>
+      <version>${byte-buddy.version}</version>
     </dependency>
     <dependency>
       <groupId>junit</groupId>
@@ -456,6 +462,7 @@
         <configuration>
           <argLine>
             -javaagent:"${settings.localRepository}"/org/jmockit/jmockit/${jmockit.version}/jmockit-${jmockit.version}.jar
+            -javaagent:"${settings.localRepository}"/net/bytebuddy/byte-buddy-agent/${byte-buddy.version}/byte-buddy-agent-${byte-buddy.version}.jar
             --add-opens netty.socketio/com.corundumstudio.socketio.store.pubsub=ALL-UNNAMED
             --add-opens netty.socketio/com.corundumstudio.socketio.store=ALL-UNNAMED
             --add-opens netty.socketio/com.corundumstudio.socketio.store.pubsub=redisson
