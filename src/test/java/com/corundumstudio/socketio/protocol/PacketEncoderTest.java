@@ -9,8 +9,8 @@ import io.netty.buffer.Unpooled;
 import io.netty.util.CharsetUtil;
 import com.corundumstudio.socketio.AckCallback;
 import com.corundumstudio.socketio.protocol.AckArgs;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -46,7 +46,7 @@ public class PacketEncoderTest extends BaseProtocolTest {
     @Mock
     private ByteBufAllocator allocator;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         MockitoAnnotations.openMocks(this);
         
@@ -737,8 +737,8 @@ public class PacketEncoderTest extends BaseProtocolTest {
         assertTrue(encoded.startsWith("42")); // MESSAGE(4) + EVENT(2)
         
         // Should complete within reasonable time (less than 100ms)
-        assertTrue("Encoding took too long: " + (endTime - startTime) + "ms", 
-                  (endTime - startTime) < 100);
+        assertTrue((endTime - startTime) < 100, 
+                  "Encoding took too long: " + (endTime - startTime) + "ms");
         
         buffer.release();
     }
@@ -770,8 +770,8 @@ public class PacketEncoderTest extends BaseProtocolTest {
         assertTrue(encoded.contains("event99"));
         
         // Should complete within reasonable time (less than 200ms)
-        assertTrue("Encoding multiple packets took too long: " + (endTime - startTime) + "ms", 
-                  (endTime - startTime) < 200);
+        assertTrue((endTime - startTime) < 200, 
+                  "Encoding multiple packets took too long: " + (endTime - startTime) + "ms");
         
         buffer.release();
     }

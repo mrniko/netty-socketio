@@ -1,7 +1,7 @@
 package com.corundumstudio.socketio.protocol;
 
-import org.junit.Test;
-import static org.junit.Assert.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.UUID;
 
@@ -187,6 +187,6 @@ public class ConnPacketTest extends BaseProtocolTest {
         long duration = endTime - startTime;
         
         // Should complete within reasonable time (less than 1 second)
-        assertTrue("Performance test took too long: " + duration + "ms", duration < 1000);
+        assertTrue(duration < 1000, "Performance test took too long: " + duration + "ms");
     }
 }

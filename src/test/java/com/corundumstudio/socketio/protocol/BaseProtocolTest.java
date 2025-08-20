@@ -2,7 +2,7 @@ package com.corundumstudio.socketio.protocol;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 import org.mockito.MockitoAnnotations;
 
 import java.util.Arrays;
@@ -28,7 +28,7 @@ public abstract class BaseProtocolTest {
     protected static final int TEST_PING_INTERVAL = 25000;
     protected static final int TEST_PING_TIMEOUT = 5000;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         MockitoAnnotations.openMocks(this);
     }

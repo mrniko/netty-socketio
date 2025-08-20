@@ -1,19 +1,15 @@
 package com.corundumstudio.socketio.store;
 
 import org.assertj.core.api.Assertions;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.testcontainers.containers.GenericContainer;
 
 import java.io.Serializable;
 import java.util.UUID;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThrows;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Abstract base class for store tests providing common test methods and utilities
@@ -24,7 +20,7 @@ public abstract class AbstractStoreTest {
     protected UUID sessionId;
     protected GenericContainer<?> container;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         sessionId = UUID.randomUUID();
         container = createContainer();
@@ -32,7 +28,7 @@ public abstract class AbstractStoreTest {
         store = createStore(sessionId);
     }
 
-    @After
+    @AfterEach
     public void tearDown() throws Exception {
         if (store != null) {
             // Clean up store data

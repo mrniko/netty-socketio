@@ -2,8 +2,8 @@ package com.corundumstudio.socketio.protocol;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
-import org.junit.Test;
-import static org.junit.Assert.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Comprehensive test suite for UTF8CharsScanner class
@@ -225,12 +225,12 @@ public class UTF8CharsScannerTest extends BaseProtocolTest {
         long endTime = System.currentTimeMillis();
         
         // Should complete within reasonable time (less than 100ms)
-        assertTrue("Performance test took too long: " + (endTime - startTime) + "ms", 
-                  (endTime - startTime) < 100);
+        assertTrue((endTime - startTime) < 100, 
+                  "Performance test took too long: " + (endTime - startTime) + "ms");
         
         // Verify the result is reasonable
-        assertTrue("Actual length should be greater than character count for UTF-8", 
-                  actualLength > 10000);
+        assertTrue(actualLength > 10000, 
+                  "Actual length should be greater than character count for UTF-8");
         
         buffer.release();
     }

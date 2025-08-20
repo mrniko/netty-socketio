@@ -4,15 +4,15 @@ import com.corundumstudio.socketio.handler.AuthorizeHandler;
 import com.corundumstudio.socketio.namespace.NamespacesHub;
 import com.corundumstudio.socketio.protocol.JsonSupport;
 import com.corundumstudio.socketio.store.pubsub.PubSubStore;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.util.Map;
 import java.util.UUID;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 /**
@@ -31,7 +31,7 @@ public abstract class StoreFactoryTest {
 
     protected StoreFactory storeFactory;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         MockitoAnnotations.openMocks(this);
         storeFactory = createStoreFactory();
@@ -48,16 +48,16 @@ public abstract class StoreFactoryTest {
         UUID sessionId = UUID.randomUUID();
         Store store = storeFactory.createStore(sessionId);
         
-        assertNotNull("Store should not be null", store);
-        assertTrue("Store should implement Store interface", store instanceof Store);
+        assertNotNull(store, "Store should not be null");
+        assertTrue(store instanceof Store, "Store should implement Store interface");
     }
 
     @Test
     public void testCreatePubSubStore() {
         PubSubStore pubSubStore = storeFactory.pubSubStore();
         
-        assertNotNull("PubSubStore should not be null", pubSubStore);
-        assertTrue("PubSubStore should implement PubSubStore interface", pubSubStore instanceof PubSubStore);
+        assertNotNull(pubSubStore, "PubSubStore should not be null");
+        assertTrue(pubSubStore instanceof PubSubStore, "PubSubStore should implement PubSubStore interface");
     }
 
     @Test
@@ -65,8 +65,8 @@ public abstract class StoreFactoryTest {
         String mapName = "testMap";
         Map<String, Object> map = storeFactory.createMap(mapName);
         
-        assertNotNull("Map should not be null", map);
-        assertTrue("Map should implement Map interface", map instanceof Map);
+        assertNotNull(map, "Map should not be null");
+        assertTrue(map instanceof Map, "Map should implement Map interface");
     }
 
     @Test
@@ -77,9 +77,9 @@ public abstract class StoreFactoryTest {
         Store store1 = storeFactory.createStore(sessionId1);
         Store store2 = storeFactory.createStore(sessionId2);
         
-        assertNotNull("First store should not be null", store1);
-        assertNotNull("Second store should not be null", store2);
-        assertNotSame("Stores should be different instances", store1, store2);
+        assertNotNull(store1, "First store should not be null");
+        assertNotNull(store2, "Second store should not be null");
+        assertNotSame(store1, store2, "Stores should be different instances");
     }
 
     @Test
@@ -94,12 +94,12 @@ public abstract class StoreFactoryTest {
         store1.set("isolatedKey", "store1Value");
         
         // Store2 should not have this data
-        assertFalse("Store2 should not have data from store1", store2.has("isolatedKey"));
-        assertNull("Store2 should not return data from store1", store2.get("isolatedKey"));
+        assertFalse(store2.has("isolatedKey"), "Store2 should not have data from store1");
+        assertNull(store2.get("isolatedKey"), "Store2 should not return data from store1");
         
         // Store1 should still have the data
-        assertTrue("Store1 should have its data", store1.has("isolatedKey"));
-        assertEquals("Store1 should return its data", "store1Value", store1.get("isolatedKey"));
+        assertTrue(store1.has("isolatedKey"), "Store1 should have its data");
+        assertEquals(store1.get("isolatedKey"), "store1Value", "Store1 should return its data");
     }
 
     @Test

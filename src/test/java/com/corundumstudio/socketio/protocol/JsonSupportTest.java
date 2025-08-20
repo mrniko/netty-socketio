@@ -4,22 +4,21 @@ import com.corundumstudio.socketio.AckCallback;
 import io.netty.buffer.ByteBufInputStream;
 import io.netty.buffer.ByteBufOutputStream;
 import io.netty.buffer.Unpooled;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.MockitoAnnotations;
 
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 /**
  * Comprehensive test suite for JsonSupport interface using Mockito
  */
-@RunWith(MockitoJUnitRunner.class)
 public class JsonSupportTest extends BaseProtocolTest {
 
     @Mock
@@ -27,6 +26,11 @@ public class JsonSupportTest extends BaseProtocolTest {
 
     @Mock
     private AckCallback<String> ackCallback;
+
+    @BeforeEach
+    public void setUp() {
+        MockitoAnnotations.openMocks(this);
+    }
 
     @Test
     public void testReadAckArgs() throws IOException {

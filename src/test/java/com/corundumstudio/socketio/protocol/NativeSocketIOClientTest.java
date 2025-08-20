@@ -10,8 +10,8 @@ import io.socket.parser.IOParser;
 import io.socket.parser.Packet;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.slf4j.Logger;
@@ -20,10 +20,10 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.UUID;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 public class NativeSocketIOClientTest {
@@ -43,7 +43,7 @@ public class NativeSocketIOClientTest {
     @Mock
     private AckCallback<?> ackCallback;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         MockitoAnnotations.openMocks(this);
         decoder = new PacketDecoder(jsonSupport, ackManager);
@@ -65,19 +65,19 @@ public class NativeSocketIOClientTest {
         
         String encoded = NativeSocketIOClientUtil.getNativeMessage(packet);
         log.info("CONNECT (default namespace): {}", encoded);
-        assertEquals("Expected '40', got: " + encoded, "40", encoded);
+        assertEquals("40", encoded, "Expected '40', got: " + encoded);
 
         ByteBuf buffer = Unpooled.copiedBuffer(encoded, CharsetUtil.UTF_8);
 
         com.corundumstudio.socketio.protocol.Packet nettySocketIOPacket = decoder.decodePackets(buffer, clientHead);
         
         // Assert decoded packet fields
-        assertNotNull("Decoded packet should not be null", nettySocketIOPacket);
-        assertEquals("Packet type should be MESSAGE", PacketType.MESSAGE, nettySocketIOPacket.getType());
-        assertEquals("Packet subType should be CONNECT", PacketType.CONNECT, nettySocketIOPacket.getSubType());
-        assertEquals("Packet namespace should be empty for default namespace", "", nettySocketIOPacket.getNsp());
-        assertNull("Packet data should be null", nettySocketIOPacket.getData());
-        assertNull("Packet ackId should be null", nettySocketIOPacket.getAckId());
+        assertNotNull(nettySocketIOPacket, "Decoded packet should not be null");
+        assertEquals(PacketType.MESSAGE, nettySocketIOPacket.getType(), "Packet type should be MESSAGE");
+        assertEquals(PacketType.CONNECT, nettySocketIOPacket.getSubType(), "Packet subType should be CONNECT");
+        assertEquals("", nettySocketIOPacket.getNsp(), "Packet namespace should be empty for default namespace");
+        assertNull(nettySocketIOPacket.getData(), "Packet data should be null");
+        assertNull(nettySocketIOPacket.getAckId(), "Packet ackId should be null");
         
         buffer.release();
     }
@@ -94,19 +94,19 @@ public class NativeSocketIOClientTest {
         
         String encoded = NativeSocketIOClientUtil.getNativeMessage(packet);
         log.info("CONNECT (custom namespace): {}", encoded);
-        assertEquals("Expected '40/admin,', got: " + encoded, "40/admin,", encoded);
+        assertEquals("40/admin,", encoded, "Expected '40/admin,', got: " + encoded);
 
         ByteBuf buffer = Unpooled.copiedBuffer(encoded, CharsetUtil.UTF_8);
 
         com.corundumstudio.socketio.protocol.Packet nettySocketIOPacket = decoder.decodePackets(buffer, clientHead);
         
         // Assert decoded packet fields
-        assertNotNull("Decoded packet should not be null", nettySocketIOPacket);
-        assertEquals("Packet type should be MESSAGE", PacketType.MESSAGE, nettySocketIOPacket.getType());
-        assertEquals("Packet subType should be CONNECT", PacketType.CONNECT, nettySocketIOPacket.getSubType());
-        assertEquals("Packet namespace should be /admin", "/admin", nettySocketIOPacket.getNsp());
-        assertNull("Packet data should be null", nettySocketIOPacket.getData());
-        assertNull("Packet ackId should be null", nettySocketIOPacket.getAckId());
+        assertNotNull(nettySocketIOPacket, "Decoded packet should not be null");
+        assertEquals(PacketType.MESSAGE, nettySocketIOPacket.getType(), "Packet type should be MESSAGE");
+        assertEquals(PacketType.CONNECT, nettySocketIOPacket.getSubType(), "Packet subType should be CONNECT");
+        assertEquals("/admin", nettySocketIOPacket.getNsp(), "Packet namespace should be /admin");
+        assertNull(nettySocketIOPacket.getData(), "Packet data should be null");
+        assertNull(nettySocketIOPacket.getAckId(), "Packet ackId should be null");
         
         buffer.release();
     }
@@ -123,22 +123,22 @@ public class NativeSocketIOClientTest {
         
         String encoded = NativeSocketIOClientUtil.getNativeMessage(packet);
         log.info("CONNECT (with query params): {}", encoded);
-        assertEquals("Expected '40/admin?token=1234&uid=abcd,', got: " + encoded, "40/admin?token=1234&uid=abcd,", encoded);
+        assertEquals("40/admin?token=1234&uid=abcd,", encoded, "Expected '40/admin?token=1234&uid=abcd,', got: " + encoded);
 
         ByteBuf buffer = Unpooled.copiedBuffer(encoded, CharsetUtil.UTF_8);
 
         com.corundumstudio.socketio.protocol.Packet nettySocketIOPacket = decoder.decodePackets(buffer, clientHead);
         
         // Assert decoded packet fields
-        assertNotNull("Decoded packet should not be null", nettySocketIOPacket);
-        assertEquals("Packet type should be MESSAGE", PacketType.MESSAGE, nettySocketIOPacket.getType());
-        assertEquals("Packet subType should be CONNECT", PacketType.CONNECT, nettySocketIOPacket.getSubType());
+        assertNotNull(nettySocketIOPacket, "Decoded packet should not be null");
+        assertEquals(PacketType.MESSAGE, nettySocketIOPacket.getType(), "Packet type should be MESSAGE");
+        assertEquals(PacketType.CONNECT, nettySocketIOPacket.getSubType(), "Packet subType should be CONNECT");
         // Note: Query parameters are not preserved in the decoded namespace
         // nettySocketIOPacket.getNsp() does not include query params, which is expected behavior
         // query params are typically handled separately in the HandshakeData process
-        assertEquals("Packet namespace should be /admin", "/admin", nettySocketIOPacket.getNsp());
-        assertNull("Packet data should be null", nettySocketIOPacket.getData());
-        assertNull("Packet ackId should be null", nettySocketIOPacket.getAckId());
+        assertEquals("/admin", nettySocketIOPacket.getNsp(), "Packet namespace should be /admin");
+        assertNull(nettySocketIOPacket.getData(), "Packet data should be null");
+        assertNull(nettySocketIOPacket.getAckId(), "Packet ackId should be null");
         
         buffer.release();
     }
@@ -155,19 +155,19 @@ public class NativeSocketIOClientTest {
         
         String encoded = NativeSocketIOClientUtil.getNativeMessage(packet);
         log.info("DISCONNECT: {}", encoded);
-        assertEquals("Expected '41/admin,', got: " + encoded, "41/admin,", encoded);
+        assertEquals("41/admin,", encoded, "Expected '41/admin,', got: " + encoded);
 
         ByteBuf buffer = Unpooled.copiedBuffer(encoded, CharsetUtil.UTF_8);
 
         com.corundumstudio.socketio.protocol.Packet nettySocketIOPacket = decoder.decodePackets(buffer, clientHead);
         
         // Assert decoded packet fields
-        assertNotNull("Decoded packet should not be null", nettySocketIOPacket);
-        assertEquals("Packet type should be MESSAGE", PacketType.MESSAGE, nettySocketIOPacket.getType());
-        assertEquals("Packet subType should be DISCONNECT", PacketType.DISCONNECT, nettySocketIOPacket.getSubType());
-        assertEquals("Packet namespace should be /admin", "/admin", nettySocketIOPacket.getNsp());
-        assertNull("Packet data should be null", nettySocketIOPacket.getData());
-        assertNull("Packet ackId should be null", nettySocketIOPacket.getAckId());
+        assertNotNull(nettySocketIOPacket, "Decoded packet should not be null");
+        assertEquals(PacketType.MESSAGE, nettySocketIOPacket.getType(), "Packet type should be MESSAGE");
+        assertEquals(PacketType.DISCONNECT, nettySocketIOPacket.getSubType(), "Packet subType should be DISCONNECT");
+        assertEquals("/admin", nettySocketIOPacket.getNsp(), "Packet namespace should be /admin");
+        assertNull(nettySocketIOPacket.getData(), "Packet data should be null");
+        assertNull(nettySocketIOPacket.getAckId(), "Packet ackId should be null");
         
         buffer.release();
     }
@@ -188,18 +188,18 @@ public class NativeSocketIOClientTest {
         
         String encoded = NativeSocketIOClientUtil.getNativeMessage(packet);
         log.info("EVENT: {}", encoded);
-        assertEquals("Expected '42[\"hello\",1]', got: " + encoded, "42[\"hello\",1]", encoded);
+        assertEquals("42[\"hello\",1]", encoded, "Expected '42[\"hello\",1]', got: " + encoded);
 
         ByteBuf buffer = Unpooled.copiedBuffer(encoded, CharsetUtil.UTF_8);
 
         com.corundumstudio.socketio.protocol.Packet nettySocketIOPacket = decoder.decodePackets(buffer, clientHead);
         
         // Assert decoded packet fields
-        assertNotNull("Decoded packet should not be null", nettySocketIOPacket);
-        assertEquals("Packet type should be MESSAGE", PacketType.MESSAGE, nettySocketIOPacket.getType());
-        assertEquals("Packet subType should be EVENT", PacketType.EVENT, nettySocketIOPacket.getSubType());
-        assertEquals("Packet namespace should be empty for default namespace", "", nettySocketIOPacket.getNsp());
-        assertNull("Packet ackId should be null", nettySocketIOPacket.getAckId());
+        assertNotNull(nettySocketIOPacket, "Decoded packet should not be null");
+        assertEquals(PacketType.MESSAGE, nettySocketIOPacket.getType(), "Packet type should be MESSAGE");
+        assertEquals(PacketType.EVENT, nettySocketIOPacket.getSubType(), "Packet subType should be EVENT");
+        assertEquals("", nettySocketIOPacket.getNsp(), "Packet namespace should be empty for default namespace");
+        assertNull(nettySocketIOPacket.getAckId(), "Packet ackId should be null");
         // Note: Data parsing requires JsonSupport mock setup for proper testing
         
         buffer.release();
@@ -221,18 +221,18 @@ public class NativeSocketIOClientTest {
         
         String encoded = NativeSocketIOClientUtil.getNativeMessage(packet);
         log.info("EVENT (with ack id): {}", encoded);
-        assertEquals("Expected '42/admin,456[\"project:delete\",123]', got: " + encoded, "42/admin,456[\"project:delete\",123]", encoded);
+        assertEquals("42/admin,456[\"project:delete\",123]", encoded, "Expected '42/admin,456[\"project:delete\",123]', got: " + encoded);
 
         ByteBuf buffer = Unpooled.copiedBuffer(encoded, CharsetUtil.UTF_8);
 
         com.corundumstudio.socketio.protocol.Packet nettySocketIOPacket = decoder.decodePackets(buffer, clientHead);
         
         // Assert decoded packet fields
-        assertNotNull("Decoded packet should not be null", nettySocketIOPacket);
-        assertEquals("Packet type should be MESSAGE", PacketType.MESSAGE, nettySocketIOPacket.getType());
-        assertEquals("Packet subType should be EVENT", PacketType.EVENT, nettySocketIOPacket.getSubType());
-        assertEquals("Packet namespace should be /admin", "/admin", nettySocketIOPacket.getNsp());
-        assertEquals("Packet ackId should be 456", Long.valueOf(456), nettySocketIOPacket.getAckId());
+        assertNotNull(nettySocketIOPacket, "Decoded packet should not be null");
+        assertEquals(PacketType.MESSAGE, nettySocketIOPacket.getType(), "Packet type should be MESSAGE");
+        assertEquals(PacketType.EVENT, nettySocketIOPacket.getSubType(), "Packet subType should be EVENT");
+        assertEquals("/admin", nettySocketIOPacket.getNsp(), "Packet namespace should be /admin");
+        assertEquals(Long.valueOf(456), nettySocketIOPacket.getAckId(), "Packet ackId should be 456");
         // Note: Data parsing requires JsonSupport mock setup for proper testing
         
         buffer.release();
@@ -252,18 +252,18 @@ public class NativeSocketIOClientTest {
         
         String encoded = NativeSocketIOClientUtil.getNativeMessage(packet);
         log.info("ACK: {}", encoded);
-        assertEquals("Expected '43/admin,456[]', got: " + encoded, "43/admin,456[]", encoded);
+        assertEquals("43/admin,456[]", encoded, "Expected '43/admin,456[]', got: " + encoded);
 
         ByteBuf buffer = Unpooled.copiedBuffer(encoded, CharsetUtil.UTF_8);
 
         com.corundumstudio.socketio.protocol.Packet nettySocketIOPacket = decoder.decodePackets(buffer, clientHead);
         
         // Assert decoded packet fields
-        assertNotNull("Decoded packet should not be null", nettySocketIOPacket);
-        assertEquals("Packet type should be MESSAGE", PacketType.MESSAGE, nettySocketIOPacket.getType());
-        assertEquals("Packet subType should be ACK", PacketType.ACK, nettySocketIOPacket.getSubType());
-        assertEquals("Packet namespace should be /admin", "/admin", nettySocketIOPacket.getNsp());
-        assertEquals("Packet ackId should be 456", Long.valueOf(456), nettySocketIOPacket.getAckId());
+        assertNotNull(nettySocketIOPacket, "Decoded packet should not be null");
+        assertEquals(PacketType.MESSAGE, nettySocketIOPacket.getType(), "Packet type should be MESSAGE");
+        assertEquals(PacketType.ACK, nettySocketIOPacket.getSubType(), "Packet subType should be ACK");
+        assertEquals("/admin", nettySocketIOPacket.getNsp(), "Packet namespace should be /admin");
+        assertEquals(Long.valueOf(456), nettySocketIOPacket.getAckId(), "Packet ackId should be 456");
         // Note: Data parsing requires AckManager mock setup for proper testing
         
         buffer.release();
@@ -285,18 +285,18 @@ public class NativeSocketIOClientTest {
         
         String encoded = NativeSocketIOClientUtil.getNativeMessage(packet);
         log.info("ACK (with data): {}", encoded);
-        assertEquals("Expected '43/admin,456[\"response\",true]', got: " + encoded, "43/admin,456[\"response\",true]", encoded);
+        assertEquals("43/admin,456[\"response\",true]", encoded, "Expected '43/admin,456[\"response\",true]', got: " + encoded);
 
         ByteBuf buffer = Unpooled.copiedBuffer(encoded, CharsetUtil.UTF_8);
 
         com.corundumstudio.socketio.protocol.Packet nettySocketIOPacket = decoder.decodePackets(buffer, clientHead);
         
         // Assert decoded packet fields
-        assertNotNull("Decoded packet should not be null", nettySocketIOPacket);
-        assertEquals("Packet type should be MESSAGE", PacketType.MESSAGE, nettySocketIOPacket.getType());
-        assertEquals("Packet subType should be ACK", PacketType.ACK, nettySocketIOPacket.getSubType());
-        assertEquals("Packet namespace should be /admin", "/admin", nettySocketIOPacket.getNsp());
-        assertEquals("Packet ackId should be 456", Long.valueOf(456), nettySocketIOPacket.getAckId());
+        assertNotNull(nettySocketIOPacket, "Decoded packet should not be null");
+        assertEquals(PacketType.MESSAGE, nettySocketIOPacket.getType(), "Packet type should be MESSAGE");
+        assertEquals(PacketType.ACK, nettySocketIOPacket.getSubType(), "Packet subType should be ACK");
+        assertEquals("/admin", nettySocketIOPacket.getNsp(), "Packet namespace should be /admin");
+        assertEquals(Long.valueOf(456), nettySocketIOPacket.getAckId(), "Packet ackId should be 456");
         // Note: Data parsing requires AckManager mock setup for proper testing
         
         buffer.release();
@@ -314,19 +314,19 @@ public class NativeSocketIOClientTest {
         
         String encoded = NativeSocketIOClientUtil.getNativeMessage(packet);
         log.info("ERROR: {}", encoded);
-        assertEquals("Expected '44/admin,Not authorized', got: " + encoded, "44/admin,Not authorized", encoded);
+        assertEquals("44/admin,Not authorized", encoded, "Expected '44/admin,Not authorized', got: " + encoded);
 
         ByteBuf buffer = Unpooled.copiedBuffer(encoded, CharsetUtil.UTF_8);
 
         com.corundumstudio.socketio.protocol.Packet nettySocketIOPacket = decoder.decodePackets(buffer, clientHead);
         
         // Assert decoded packet fields
-        assertNotNull("Decoded packet should not be null", nettySocketIOPacket);
-        assertEquals("Packet type should be MESSAGE", PacketType.MESSAGE, nettySocketIOPacket.getType());
-        assertEquals("Packet subType should be ERROR", PacketType.ERROR, nettySocketIOPacket.getSubType());
+        assertNotNull(nettySocketIOPacket, "Decoded packet should not be null");
+        assertEquals(PacketType.MESSAGE, nettySocketIOPacket.getType(), "Packet type should be MESSAGE");
+        assertEquals(PacketType.ERROR, nettySocketIOPacket.getSubType(), "Packet subType should be ERROR");
         // Note: ERROR packets don't preserve namespace in the same way as other packets
         // The namespace is read from the frame but may not be set correctly
-        assertNull("Packet ackId should be null", nettySocketIOPacket.getAckId());
+        assertNull(nettySocketIOPacket.getAckId(), "Packet ackId should be null");
         // Note: Data parsing requires JsonSupport mock setup for proper testing
         
         buffer.release();
@@ -361,18 +361,18 @@ public class NativeSocketIOClientTest {
         String encoded = NativeSocketIOClientUtil.getNativeMessage(packet);
         log.info("BINARY_EVENT: {}", encoded);
         // The actual encoding will include the binary attachment count
-        assertTrue("Expected to contain '450-', got: " + encoded, encoded.contains("450-"));
+        assertTrue(encoded.contains("450-"), "Expected to contain '450-', got: " + encoded);
 
         ByteBuf buffer = Unpooled.copiedBuffer(encoded, CharsetUtil.UTF_8);
 
         com.corundumstudio.socketio.protocol.Packet nettySocketIOPacket = decoder.decodePackets(buffer, clientHead);
         
         // Assert decoded packet fields
-        assertNotNull("Decoded packet should not be null", nettySocketIOPacket);
-        assertEquals("Packet type should be MESSAGE", PacketType.MESSAGE, nettySocketIOPacket.getType());
-        assertEquals("Packet subType should be BINARY_EVENT", PacketType.BINARY_EVENT, nettySocketIOPacket.getSubType());
-        assertEquals("Packet namespace should be empty for default namespace", "", nettySocketIOPacket.getNsp());
-        assertNull("Packet ackId should be null", nettySocketIOPacket.getAckId());
+        assertNotNull(nettySocketIOPacket, "Decoded packet should not be null");
+        assertEquals(PacketType.MESSAGE, nettySocketIOPacket.getType(), "Packet type should be MESSAGE");
+        assertEquals(PacketType.BINARY_EVENT, nettySocketIOPacket.getSubType(), "Packet subType should be BINARY_EVENT");
+        assertEquals("", nettySocketIOPacket.getNsp(), "Packet namespace should be empty for default namespace");
+        assertNull(nettySocketIOPacket.getAckId(), "Packet ackId should be null");
         // Note: Binary packets with attachments are handled differently
         // The decoder may not set attachments immediately for testing purposes
         
@@ -407,18 +407,18 @@ public class NativeSocketIOClientTest {
         String encoded = NativeSocketIOClientUtil.getNativeMessage(packet);
         log.info("BINARY_EVENT (with ack id): {}", encoded);
         // The actual encoding will include the binary attachment count and namespace
-        assertTrue("Expected to contain '450-/admin,456', got: " + encoded, encoded.contains("450-/admin,456"));
+        assertTrue(encoded.contains("450-/admin,456"), "Expected to contain '450-/admin,456', got: " + encoded);
 
         ByteBuf buffer = Unpooled.copiedBuffer(encoded, CharsetUtil.UTF_8);
 
         com.corundumstudio.socketio.protocol.Packet nettySocketIOPacket = decoder.decodePackets(buffer, clientHead);
         
         // Assert decoded packet fields
-        assertNotNull("Decoded packet should not be null", nettySocketIOPacket);
-        assertEquals("Packet type should be MESSAGE", PacketType.MESSAGE, nettySocketIOPacket.getType());
-        assertEquals("Packet subType should be BINARY_EVENT", PacketType.BINARY_EVENT, nettySocketIOPacket.getSubType());
-        assertEquals("Packet namespace should be /admin", "/admin", nettySocketIOPacket.getNsp());
-        assertEquals("Packet ackId should be 456", Long.valueOf(456), nettySocketIOPacket.getAckId());
+        assertNotNull(nettySocketIOPacket, "Decoded packet should not be null");
+        assertEquals(PacketType.MESSAGE, nettySocketIOPacket.getType(), "Packet type should be MESSAGE");
+        assertEquals(PacketType.BINARY_EVENT, nettySocketIOPacket.getSubType(), "Packet subType should be BINARY_EVENT");
+        assertEquals("/admin", nettySocketIOPacket.getNsp(), "Packet namespace should be /admin");
+        assertEquals(Long.valueOf(456), nettySocketIOPacket.getAckId(), "Packet ackId should be 456");
         // Note: Binary packets with attachments are handled differently
         // The decoder may not set attachments immediately for testing purposes
         
@@ -451,18 +451,18 @@ public class NativeSocketIOClientTest {
         String encoded = NativeSocketIOClientUtil.getNativeMessage(packet);
         log.info("BINARY_ACK: {}", encoded);
         // The actual encoding will include the binary attachment count and namespace
-        assertTrue("Expected to contain '460-/admin,456', got: " + encoded, encoded.contains("460-/admin,456"));
+        assertTrue(encoded.contains("460-/admin,456"), "Expected to contain '460-/admin,456', got: " + encoded);
 
         ByteBuf buffer = Unpooled.copiedBuffer(encoded, CharsetUtil.UTF_8);
 
         com.corundumstudio.socketio.protocol.Packet nettySocketIOPacket = decoder.decodePackets(buffer, clientHead);
         
         // Assert decoded packet fields
-        assertNotNull("Decoded packet should not be null", nettySocketIOPacket);
-        assertEquals("Packet type should be MESSAGE", PacketType.MESSAGE, nettySocketIOPacket.getType());
-        assertEquals("Packet subType should be BINARY_ACK", PacketType.BINARY_ACK, nettySocketIOPacket.getSubType());
-        assertEquals("Packet namespace should be /admin", "/admin", nettySocketIOPacket.getNsp());
-        assertEquals("Packet ackId should be 456", Long.valueOf(456), nettySocketIOPacket.getAckId());
+        assertNotNull(nettySocketIOPacket, "Decoded packet should not be null");
+        assertEquals(PacketType.MESSAGE, nettySocketIOPacket.getType(), "Packet type should be MESSAGE");
+        assertEquals(PacketType.BINARY_ACK, nettySocketIOPacket.getSubType(), "Packet subType should be BINARY_ACK");
+        assertEquals("/admin", nettySocketIOPacket.getNsp(), "Packet namespace should be /admin");
+        assertEquals(Long.valueOf(456), nettySocketIOPacket.getAckId(), "Packet ackId should be 456");
         // Note: Binary packets with attachments are handled differently
         // The decoder may not set attachments immediately for testing purposes
         
@@ -496,18 +496,18 @@ public class NativeSocketIOClientTest {
         
         String encoded = NativeSocketIOClientUtil.getNativeMessage(packet);
         log.info("Complex EVENT: {}", encoded);
-        assertTrue("Expected to contain '42[\"user:update\"', got: " + encoded, encoded.contains("42[\"user:update\""));
+        assertTrue(encoded.contains("42[\"user:update\""), "Expected to contain '42[\"user:update\"', got: " + encoded);
 
         ByteBuf buffer = Unpooled.copiedBuffer(encoded, CharsetUtil.UTF_8);
 
         com.corundumstudio.socketio.protocol.Packet nettySocketIOPacket = decoder.decodePackets(buffer, clientHead);
         
         // Assert decoded packet fields
-        assertNotNull("Decoded packet should not be null", nettySocketIOPacket);
-        assertEquals("Packet type should be MESSAGE", PacketType.MESSAGE, nettySocketIOPacket.getType());
-        assertEquals("Packet subType should be EVENT", PacketType.EVENT, nettySocketIOPacket.getSubType());
-        assertEquals("Packet namespace should be empty for default namespace", "", nettySocketIOPacket.getNsp());
-        assertNull("Packet ackId should be null", nettySocketIOPacket.getAckId());
+        assertNotNull(nettySocketIOPacket, "Decoded packet should not be null");
+        assertEquals(PacketType.MESSAGE, nettySocketIOPacket.getType(), "Packet type should be MESSAGE");
+        assertEquals(PacketType.EVENT, nettySocketIOPacket.getSubType(), "Packet subType should be EVENT");
+        assertEquals("", nettySocketIOPacket.getNsp(), "Packet namespace should be empty for default namespace");
+        assertNull(nettySocketIOPacket.getAckId(), "Packet ackId should be null");
         // Note: Data parsing requires JsonSupport mock setup for proper testing
         
         buffer.release();
@@ -559,18 +559,18 @@ public class NativeSocketIOClientTest {
         log.info("Event 3 (world): {}", encoded3);
         
         // Verify all events are properly encoded
-        assertEquals("Event 1 encoding failed", "42[\"hey\",\"Jude\"]", encoded1);
-        assertEquals("Event 2 encoding failed", "42[\"hello\"]", encoded2);
-        assertEquals("Event 3 encoding failed", "42[\"world\"]", encoded3);
+        assertEquals("42[\"hey\",\"Jude\"]", encoded1, "Event 1 encoding failed");
+        assertEquals("42[\"hello\"]", encoded2, "Event 2 encoding failed");
+        assertEquals("42[\"world\"]", encoded3, "Event 3 encoding failed");
 
         // Test decoding of first event
         ByteBuf buffer1 = Unpooled.copiedBuffer(encoded1, CharsetUtil.UTF_8);
         com.corundumstudio.socketio.protocol.Packet nettySocketIOPacket1 = decoder.decodePackets(buffer1, clientHead);
         
-        assertNotNull("Decoded packet 1 should not be null", nettySocketIOPacket1);
-        assertEquals("Packet 1 type should be MESSAGE", PacketType.MESSAGE, nettySocketIOPacket1.getType());
-        assertEquals("Packet 1 subType should be EVENT", PacketType.EVENT, nettySocketIOPacket1.getSubType());
-        assertEquals("Packet 1 namespace should be empty", "", nettySocketIOPacket1.getNsp());
+        assertNotNull(nettySocketIOPacket1, "Decoded packet 1 should not be null");
+        assertEquals(PacketType.MESSAGE, nettySocketIOPacket1.getType(), "Packet 1 type should be MESSAGE");
+        assertEquals(PacketType.EVENT, nettySocketIOPacket1.getSubType(), "Packet 1 subType should be EVENT");
+        assertEquals("", nettySocketIOPacket1.getNsp(), "Packet 1 namespace should be empty");
         
         buffer1.release();
     }
@@ -604,17 +604,17 @@ public class NativeSocketIOClientTest {
         log.info("Namespace transition - EVENT with ack: {}", encodedEvent);
         
         // Verify the encoding
-        assertEquals("CONNECT request encoding failed", "40/admin,", encodedConnect);
-        assertEquals("EVENT with ack encoding failed", "42/admin,1[\"tellme\"]", encodedEvent);
+        assertEquals("40/admin,", encodedConnect, "CONNECT request encoding failed");
+        assertEquals("42/admin,1[\"tellme\"]", encodedEvent, "EVENT with ack encoding failed");
 
         // Test decoding of CONNECT request
         ByteBuf bufferConnect = Unpooled.copiedBuffer(encodedConnect, CharsetUtil.UTF_8);
         com.corundumstudio.socketio.protocol.Packet nettySocketIOPacketConnect = decoder.decodePackets(bufferConnect, clientHead);
         
-        assertNotNull("Decoded CONNECT packet should not be null", nettySocketIOPacketConnect);
-        assertEquals("CONNECT packet type should be MESSAGE", PacketType.MESSAGE, nettySocketIOPacketConnect.getType());
-        assertEquals("CONNECT packet subType should be CONNECT", PacketType.CONNECT, nettySocketIOPacketConnect.getSubType());
-        assertEquals("CONNECT packet namespace should be /admin", "/admin", nettySocketIOPacketConnect.getNsp());
+        assertNotNull(nettySocketIOPacketConnect, "Decoded CONNECT packet should not be null");
+        assertEquals(PacketType.MESSAGE, nettySocketIOPacketConnect.getType(), "CONNECT packet type should be MESSAGE");
+        assertEquals(PacketType.CONNECT, nettySocketIOPacketConnect.getSubType(), "CONNECT packet subType should be CONNECT");
+        assertEquals("/admin", nettySocketIOPacketConnect.getNsp(), "CONNECT packet namespace should be /admin");
         
         bufferConnect.release();
 
@@ -622,11 +622,11 @@ public class NativeSocketIOClientTest {
         ByteBuf bufferEvent = Unpooled.copiedBuffer(encodedEvent, CharsetUtil.UTF_8);
         com.corundumstudio.socketio.protocol.Packet nettySocketIOPacketEvent = decoder.decodePackets(bufferEvent, clientHead);
         
-        assertNotNull("Decoded EVENT packet should not be null", nettySocketIOPacketEvent);
-        assertEquals("EVENT packet type should be MESSAGE", PacketType.MESSAGE, nettySocketIOPacketEvent.getType());
-        assertEquals("EVENT packet subType should be EVENT", PacketType.EVENT, nettySocketIOPacketEvent.getSubType());
-        assertEquals("EVENT packet namespace should be /admin", "/admin", nettySocketIOPacketEvent.getNsp());
-        assertEquals("EVENT packet ackId should be 1", Long.valueOf(1), nettySocketIOPacketEvent.getAckId());
+        assertNotNull(nettySocketIOPacketEvent, "Decoded EVENT packet should not be null");
+        assertEquals(PacketType.MESSAGE, nettySocketIOPacketEvent.getType(), "EVENT packet type should be MESSAGE");
+        assertEquals(PacketType.EVENT, nettySocketIOPacketEvent.getSubType(), "EVENT packet subType should be EVENT");
+        assertEquals("/admin", nettySocketIOPacketEvent.getNsp(), "EVENT packet namespace should be /admin");
+        assertEquals(Long.valueOf(1), nettySocketIOPacketEvent.getAckId(), "EVENT packet ackId should be 1");
         
         bufferEvent.release();
     }

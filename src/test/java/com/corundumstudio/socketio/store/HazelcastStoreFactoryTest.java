@@ -5,17 +5,13 @@ import com.hazelcast.client.config.ClientConfig;
 import com.hazelcast.core.HazelcastInstance;
 import com.corundumstudio.socketio.store.CustomizedHazelcastContainer;
 import com.corundumstudio.socketio.store.pubsub.PubSubStore;
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 import org.testcontainers.containers.GenericContainer;
 
 import java.util.UUID;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Test class for HazelcastStoreFactory using testcontainers
@@ -41,7 +37,7 @@ public class HazelcastStoreFactoryTest extends StoreFactoryTest {
         return new HazelcastStoreFactory(hazelcastInstance);
     }
 
-    @After
+    @AfterEach
     public void tearDown() throws Exception {
         if (storeFactory != null) {
             storeFactory.shutdown();
@@ -60,8 +56,8 @@ public class HazelcastStoreFactoryTest extends StoreFactoryTest {
         UUID sessionId = UUID.randomUUID();
         Store store = storeFactory.createStore(sessionId);
         
-        assertNotNull("Store should not be null", store);
-        assertTrue("Store should be HazelcastStore", store instanceof HazelcastStore);
+        assertNotNull(store, "Store should not be null");
+        assertTrue(store instanceof HazelcastStore, "Store should be HazelcastStore");
         
         // Test that the store works with Hazelcast
         store.set("hazelcastKey", "hazelcastValue");
@@ -72,8 +68,8 @@ public class HazelcastStoreFactoryTest extends StoreFactoryTest {
     public void testHazelcastPubSubStore() {
         PubSubStore pubSubStore = storeFactory.pubSubStore();
         
-        assertNotNull("PubSubStore should not be null", pubSubStore);
-        assertTrue("PubSubStore should be HazelcastPubSubStore", pubSubStore instanceof HazelcastPubSubStore);
+        assertNotNull(pubSubStore, "PubSubStore should not be null");
+        assertTrue(pubSubStore instanceof HazelcastPubSubStore, "PubSubStore should be HazelcastStore");
     }
 
     @Test
@@ -81,8 +77,8 @@ public class HazelcastStoreFactoryTest extends StoreFactoryTest {
         String mapName = "testHazelcastMap";
         java.util.Map<String, Object> map = storeFactory.createMap(mapName);
         
-        assertNotNull("Map should not be null", map);
-        assertTrue("Map should implement Map interface", map instanceof java.util.Map);
+        assertNotNull(map, "Map should not be null");
+        assertTrue(map instanceof java.util.Map, "Map should implement Map interface");
         
         // Test that the map works
         map.put("testKey", "testValue");

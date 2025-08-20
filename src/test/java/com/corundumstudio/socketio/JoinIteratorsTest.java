@@ -19,8 +19,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
 
 import com.corundumstudio.socketio.misc.CompositeIterable;
 
@@ -40,10 +40,10 @@ public class JoinIteratorsTest {
         for (Integer integer : iterators) {
             mainList.add(integer);
         }
-        Assert.assertEquals(list1.size() + list2.size(), mainList.size());
+        assertEquals(list1.size() + list2.size(), mainList.size());
         mainList.removeAll(list1);
         mainList.removeAll(list2);
-        Assert.assertTrue(mainList.isEmpty());
+        assertTrue(mainList.isEmpty());
 
     }
 

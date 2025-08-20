@@ -1,7 +1,7 @@
 package com.corundumstudio.socketio.protocol;
 
-import org.junit.Test;
-import static org.junit.Assert.*;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Comprehensive test suite for PacketType enum

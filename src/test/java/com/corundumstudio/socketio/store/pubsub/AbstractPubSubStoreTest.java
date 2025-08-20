@@ -1,15 +1,15 @@
 package com.corundumstudio.socketio.store.pubsub;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.testcontainers.containers.GenericContainer;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Abstract base class for PubSub store tests
@@ -22,7 +22,7 @@ public abstract class AbstractPubSubStoreTest {
     protected Long publisherNodeId = 2L;   // 发布者的 nodeId
     protected Long subscriberNodeId = 1L;  // 订阅者的 nodeId
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         container = createContainer();
         if (container != null) {
@@ -32,7 +32,7 @@ public abstract class AbstractPubSubStoreTest {
         subscriberStore = createPubSubStore(subscriberNodeId);
     }
 
-    @After
+    @AfterEach
     public void tearDown() throws Exception {
         if (publisherStore != null) {
             publisherStore.shutdown();
@@ -79,10 +79,10 @@ public abstract class AbstractPubSubStoreTest {
         publisherStore.publish(PubSubType.DISPATCH, testMessage);
 
         // Wait for message to be received
-        assertTrue("Message should be received within 5 seconds", latch.await(5, TimeUnit.SECONDS));
+        assertTrue(latch.await(5, TimeUnit.SECONDS), "Message should be received within 5 seconds");
         
         TestMessage received = receivedMessage.get();
-        assertNotNull("Message should not be null", received);
+        assertNotNull(received, "Message should not be null");
         assertEquals("test content from different node", received.getContent());
         assertEquals(publisherNodeId, received.getNodeId());
     }
@@ -111,10 +111,10 @@ public abstract class AbstractPubSubStoreTest {
         publisherStore.publish(PubSubType.DISPATCH, testMessage);
 
         // Wait for message to be received
-        assertTrue("Message should be received within 5 seconds", latch.await(5, TimeUnit.SECONDS));
+        assertTrue(latch.await(5, TimeUnit.SECONDS), "Message should be received within 5 seconds");
         
         TestMessage received = receivedMessage.get();
-        assertNotNull("Message should not be null", received);
+        assertNotNull(received, "Message should not be null");
         assertEquals("test content from different node", received.getContent());
         assertEquals(publisherNodeId, received.getNodeId());
     }
@@ -146,8 +146,8 @@ public abstract class AbstractPubSubStoreTest {
         publisherStore.publish(PubSubType.DISPATCH, testMessage);
 
         // Message should not be received
-        assertFalse("Message should not be received after unsubscribe", latch.await(2, TimeUnit.SECONDS));
-        assertNull("No message should be received", receivedMessage.get());
+        assertFalse(latch.await(2, TimeUnit.SECONDS), "Message should not be received after unsubscribe");
+        assertNull(receivedMessage.get(), "No message should be received");
     }
 
     @Test
@@ -191,8 +191,8 @@ public abstract class AbstractPubSubStoreTest {
         publisherStore.publish(PubSubType.CONNECT, connectMsg);
 
         // Wait for both messages
-        assertTrue("Dispatch message should be received", dispatchLatch.await(5, TimeUnit.SECONDS));
-        assertTrue("Connect message should be received", connectLatch.await(5, TimeUnit.SECONDS));
+        assertTrue(dispatchLatch.await(5, TimeUnit.SECONDS), "Dispatch message should be received");
+        assertTrue(connectLatch.await(5, TimeUnit.SECONDS), "Connect message should be received");
 
         assertEquals("dispatch message", dispatchMessage.get().getContent());
         assertEquals("connect message", connectMessage.get().getContent());

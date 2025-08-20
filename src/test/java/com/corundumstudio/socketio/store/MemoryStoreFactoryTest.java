@@ -1,11 +1,11 @@
 package com.corundumstudio.socketio.store;
 
 import com.corundumstudio.socketio.store.pubsub.PubSubStore;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.UUID;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Test class for MemoryStoreFactory - no container needed as it's in-memory
@@ -23,8 +23,8 @@ public class MemoryStoreFactoryTest extends StoreFactoryTest {
         UUID sessionId = UUID.randomUUID();
         Store store = storeFactory.createStore(sessionId);
         
-        assertNotNull("Store should not be null", store);
-        assertTrue("Store should be MemoryStore", store instanceof MemoryStore);
+        assertNotNull(store, "Store should not be null");
+        assertTrue(store instanceof MemoryStore, "Store should be MemoryStore");
         
         // Test that the store works with memory storage
         store.set("memoryKey", "memoryValue");
@@ -35,8 +35,8 @@ public class MemoryStoreFactoryTest extends StoreFactoryTest {
     public void testMemoryPubSubStore() {
         PubSubStore pubSubStore = storeFactory.pubSubStore();
         
-        assertNotNull("PubSubStore should not be null", pubSubStore);
-        assertTrue("PubSubStore should be MemoryPubSubStore", pubSubStore instanceof MemoryPubSubStore);
+        assertNotNull(pubSubStore, "PubSubStore should not be null");
+        assertTrue(pubSubStore instanceof MemoryPubSubStore, "PubSubStore should be MemoryPubSubStore");
     }
 
     @Test
@@ -44,8 +44,8 @@ public class MemoryStoreFactoryTest extends StoreFactoryTest {
         String mapName = "testMemoryMap";
         java.util.Map<String, Object> map = storeFactory.createMap(mapName);
         
-        assertNotNull("Map should not be null", map);
-        assertTrue("Map should implement Map interface", map instanceof java.util.Map);
+        assertNotNull(map, "Map should not be null");
+        assertTrue(map instanceof java.util.Map, "Map should implement Map interface");
         
         // Test that the map works
         map.put("testKey", "testValue");
@@ -65,11 +65,11 @@ public class MemoryStoreFactoryTest extends StoreFactoryTest {
         store1.set("isolatedKey", "store1Value");
         
         // Store2 should not have this data
-        assertFalse("Store2 should not have data from store1", store2.has("isolatedKey"));
-        assertNull("Store2 should not return data from store1", store2.get("isolatedKey"));
+        assertFalse(store2.has("isolatedKey"), "Store2 should not have data from store1");
+        assertNull(store2.get("isolatedKey"), "Store2 should not return data from store1");
         
         // Store1 should still have the data
-        assertTrue("Store1 should have its data", store1.has("isolatedKey"));
-        assertEquals("Store1 should return its data", "store1Value", store1.get("isolatedKey"));
+        assertTrue(store1.has("isolatedKey"), "Store1 should have its data");
+        assertEquals(store1.get("isolatedKey"), "store1Value", "Store1 should return its data");
     }
 }

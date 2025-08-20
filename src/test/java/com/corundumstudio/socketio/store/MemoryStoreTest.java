@@ -1,12 +1,12 @@
 package com.corundumstudio.socketio.store;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.testcontainers.containers.GenericContainer;
 
 import java.util.UUID;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Test class for MemoryStore - no container needed as it's in-memory
@@ -97,7 +97,7 @@ public class MemoryStoreTest extends AbstractStoreTest {
         long getTime = System.currentTimeMillis() - startTime;
         
         // Memory operations should be very fast
-        assertTrue("Set operations took too long: " + setTime + "ms", setTime < 1000);
-        assertTrue("Get operations took too long: " + getTime + "ms", getTime < 1000);
+        assertTrue(setTime < 1000, "Set operations took too long: " + setTime + "ms");
+        assertTrue(getTime < 1000, "Get operations took too long: " + getTime + "ms");
     }
 }

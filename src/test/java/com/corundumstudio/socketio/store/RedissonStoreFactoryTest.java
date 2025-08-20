@@ -2,8 +2,8 @@ package com.corundumstudio.socketio.store;
 
 import com.corundumstudio.socketio.store.CustomizedRedisContainer;
 import com.corundumstudio.socketio.store.pubsub.PubSubStore;
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 import org.redisson.Redisson;
 import org.redisson.api.RedissonClient;
 import org.redisson.config.Config;
@@ -11,7 +11,7 @@ import org.testcontainers.containers.GenericContainer;
 
 import java.util.UUID;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Test class for RedissonStoreFactory using testcontainers
@@ -35,7 +35,7 @@ public class RedissonStoreFactoryTest extends StoreFactoryTest {
         return new RedissonStoreFactory(redissonClient);
     }
 
-    @After
+    @AfterEach
     public void tearDown() throws Exception {
         if (storeFactory != null) {
             storeFactory.shutdown();
@@ -54,8 +54,8 @@ public class RedissonStoreFactoryTest extends StoreFactoryTest {
         UUID sessionId = UUID.randomUUID();
         Store store = storeFactory.createStore(sessionId);
         
-        assertNotNull("Store should not be null", store);
-        assertTrue("Store should be RedissonStore", store instanceof RedissonStore);
+        assertNotNull(store, "Store should not be null");
+        assertTrue(store instanceof RedissonStore, "Store should be RedissonStore");
         
         // Test that the store works with Redisson
         store.set("redissonKey", "redissonValue");
@@ -66,8 +66,8 @@ public class RedissonStoreFactoryTest extends StoreFactoryTest {
     public void testRedissonPubSubStore() {
         PubSubStore pubSubStore = storeFactory.pubSubStore();
         
-        assertNotNull("PubSubStore should not be null", pubSubStore);
-        assertTrue("PubSubStore should be RedissonPubSubStore", pubSubStore instanceof RedissonPubSubStore);
+        assertNotNull(pubSubStore, "PubSubStore should not be null");
+        assertTrue(pubSubStore instanceof RedissonPubSubStore, "PubSubStore should be RedissonPubSubStore");
     }
 
     @Test
@@ -75,8 +75,8 @@ public class RedissonStoreFactoryTest extends StoreFactoryTest {
         String mapName = "testRedissonMap";
         java.util.Map<String, Object> map = storeFactory.createMap(mapName);
         
-        assertNotNull("Map should not be null", map);
-        assertTrue("Map should implement Map interface", map instanceof java.util.Map);
+        assertNotNull(map, "Map should not be null");
+        assertTrue(map instanceof java.util.Map, "Map should implement Map interface");
         
         // Test that the map works
         map.put("testKey", "testValue");

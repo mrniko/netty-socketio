@@ -6,8 +6,8 @@ import com.corundumstudio.socketio.handler.ClientHead;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.util.CharsetUtil;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
@@ -43,7 +43,7 @@ public class PacketDecoderTest extends BaseProtocolTest {
     @Mock
     private AckCallback<?> ackCallback;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         MockitoAnnotations.openMocks(this);
         decoder = new PacketDecoder(jsonSupport, ackManager);
@@ -555,7 +555,7 @@ public class PacketDecoderTest extends BaseProtocolTest {
         hasLengthHeaderMethod.setAccessible(true);
         boolean result = (Boolean) hasLengthHeaderMethod.invoke(decoder, buffer);
         
-        assertTrue("Buffer should have length header", result);
+        assertTrue(result, "Buffer should have length header");
         
         buffer.release();
     }
@@ -570,7 +570,7 @@ public class PacketDecoderTest extends BaseProtocolTest {
         hasLengthHeaderMethod.setAccessible(true);
         boolean result = (Boolean) hasLengthHeaderMethod.invoke(decoder, buffer);
         
-        assertFalse("Buffer should not have length header", result);
+        assertFalse(result, "Buffer should not have length header");
         
         buffer.release();
     }
@@ -603,8 +603,8 @@ public class PacketDecoderTest extends BaseProtocolTest {
         assertEquals(PacketType.EVENT, packet.getSubType());
         
         // Should complete within reasonable time (less than 100ms)
-        assertTrue("Decoding took too long: " + (endTime - startTime) + "ms", 
-                  (endTime - startTime) < 100);
+        assertTrue((endTime - startTime) < 100, 
+                  "Decoding took too long: " + (endTime - startTime) + "ms");
         
         buffer.release();
     }
