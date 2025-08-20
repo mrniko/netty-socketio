@@ -23,6 +23,7 @@ import java.util.UUID;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
 public class NativeSocketIOClientTest {
@@ -64,7 +65,7 @@ public class NativeSocketIOClientTest {
         
         String encoded = NativeSocketIOClientUtil.getNativeMessage(packet);
         log.info("CONNECT (default namespace): {}", encoded);
-        assert encoded.equals("40") : "Expected '40', got: " + encoded;
+        assertEquals("Expected '40', got: " + encoded, "40", encoded);
 
         ByteBuf buffer = Unpooled.copiedBuffer(encoded, CharsetUtil.UTF_8);
 
@@ -93,7 +94,7 @@ public class NativeSocketIOClientTest {
         
         String encoded = NativeSocketIOClientUtil.getNativeMessage(packet);
         log.info("CONNECT (custom namespace): {}", encoded);
-        assert encoded.equals("40/admin,") : "Expected '40/admin,', got: " + encoded;
+        assertEquals("Expected '40/admin,', got: " + encoded, "40/admin,", encoded);
 
         ByteBuf buffer = Unpooled.copiedBuffer(encoded, CharsetUtil.UTF_8);
 
@@ -122,7 +123,7 @@ public class NativeSocketIOClientTest {
         
         String encoded = NativeSocketIOClientUtil.getNativeMessage(packet);
         log.info("CONNECT (with query params): {}", encoded);
-        assert encoded.equals("40/admin?token=1234&uid=abcd,") : "Expected '40/admin?token=1234&uid=abcd,', got: " + encoded;
+        assertEquals("Expected '40/admin?token=1234&uid=abcd,', got: " + encoded, "40/admin?token=1234&uid=abcd,", encoded);
 
         ByteBuf buffer = Unpooled.copiedBuffer(encoded, CharsetUtil.UTF_8);
 
@@ -133,6 +134,8 @@ public class NativeSocketIOClientTest {
         assertEquals("Packet type should be MESSAGE", PacketType.MESSAGE, nettySocketIOPacket.getType());
         assertEquals("Packet subType should be CONNECT", PacketType.CONNECT, nettySocketIOPacket.getSubType());
         // Note: Query parameters are not preserved in the decoded namespace
+        // nettySocketIOPacket.getNsp() does not include query params, which is expected behavior
+        // query params are typically handled separately in the HandshakeData process
         assertEquals("Packet namespace should be /admin", "/admin", nettySocketIOPacket.getNsp());
         assertNull("Packet data should be null", nettySocketIOPacket.getData());
         assertNull("Packet ackId should be null", nettySocketIOPacket.getAckId());
@@ -152,7 +155,7 @@ public class NativeSocketIOClientTest {
         
         String encoded = NativeSocketIOClientUtil.getNativeMessage(packet);
         log.info("DISCONNECT: {}", encoded);
-        assert encoded.equals("41/admin,") : "Expected '41/admin,', got: " + encoded;
+        assertEquals("Expected '41/admin,', got: " + encoded, "41/admin,", encoded);
 
         ByteBuf buffer = Unpooled.copiedBuffer(encoded, CharsetUtil.UTF_8);
 
@@ -185,7 +188,7 @@ public class NativeSocketIOClientTest {
         
         String encoded = NativeSocketIOClientUtil.getNativeMessage(packet);
         log.info("EVENT: {}", encoded);
-        assert encoded.equals("42[\"hello\",1]") : "Expected '42[\"hello\",1]', got: " + encoded;
+        assertEquals("Expected '42[\"hello\",1]', got: " + encoded, "42[\"hello\",1]", encoded);
 
         ByteBuf buffer = Unpooled.copiedBuffer(encoded, CharsetUtil.UTF_8);
 
@@ -218,7 +221,7 @@ public class NativeSocketIOClientTest {
         
         String encoded = NativeSocketIOClientUtil.getNativeMessage(packet);
         log.info("EVENT (with ack id): {}", encoded);
-        assert encoded.equals("42/admin,456[\"project:delete\",123]") : "Expected '42/admin,456[\"project:delete\",123]', got: " + encoded;
+        assertEquals("Expected '42/admin,456[\"project:delete\",123]', got: " + encoded, "42/admin,456[\"project:delete\",123]", encoded);
 
         ByteBuf buffer = Unpooled.copiedBuffer(encoded, CharsetUtil.UTF_8);
 
@@ -249,7 +252,7 @@ public class NativeSocketIOClientTest {
         
         String encoded = NativeSocketIOClientUtil.getNativeMessage(packet);
         log.info("ACK: {}", encoded);
-        assert encoded.equals("43/admin,456[]") : "Expected '43/admin,456[]', got: " + encoded;
+        assertEquals("Expected '43/admin,456[]', got: " + encoded, "43/admin,456[]", encoded);
 
         ByteBuf buffer = Unpooled.copiedBuffer(encoded, CharsetUtil.UTF_8);
 
@@ -282,7 +285,7 @@ public class NativeSocketIOClientTest {
         
         String encoded = NativeSocketIOClientUtil.getNativeMessage(packet);
         log.info("ACK (with data): {}", encoded);
-        assert encoded.equals("43/admin,456[\"response\",true]") : "Expected '43/admin,456[\"response\",true]', got: " + encoded;
+        assertEquals("Expected '43/admin,456[\"response\",true]', got: " + encoded, "43/admin,456[\"response\",true]", encoded);
 
         ByteBuf buffer = Unpooled.copiedBuffer(encoded, CharsetUtil.UTF_8);
 
@@ -311,7 +314,7 @@ public class NativeSocketIOClientTest {
         
         String encoded = NativeSocketIOClientUtil.getNativeMessage(packet);
         log.info("ERROR: {}", encoded);
-        assert encoded.equals("44/admin,Not authorized") : "Expected '44/admin,Not authorized', got: " + encoded;
+        assertEquals("Expected '44/admin,Not authorized', got: " + encoded, "44/admin,Not authorized", encoded);
 
         ByteBuf buffer = Unpooled.copiedBuffer(encoded, CharsetUtil.UTF_8);
 
@@ -358,7 +361,7 @@ public class NativeSocketIOClientTest {
         String encoded = NativeSocketIOClientUtil.getNativeMessage(packet);
         log.info("BINARY_EVENT: {}", encoded);
         // The actual encoding will include the binary attachment count
-        assert encoded.contains("450-") : "Expected to contain '450-', got: " + encoded;
+        assertTrue("Expected to contain '450-', got: " + encoded, encoded.contains("450-"));
 
         ByteBuf buffer = Unpooled.copiedBuffer(encoded, CharsetUtil.UTF_8);
 
@@ -404,7 +407,7 @@ public class NativeSocketIOClientTest {
         String encoded = NativeSocketIOClientUtil.getNativeMessage(packet);
         log.info("BINARY_EVENT (with ack id): {}", encoded);
         // The actual encoding will include the binary attachment count and namespace
-        assert encoded.contains("450-/admin,456") : "Expected to contain '450-/admin,456', got: " + encoded;
+        assertTrue("Expected to contain '450-/admin,456', got: " + encoded, encoded.contains("450-/admin,456"));
 
         ByteBuf buffer = Unpooled.copiedBuffer(encoded, CharsetUtil.UTF_8);
 
@@ -448,7 +451,7 @@ public class NativeSocketIOClientTest {
         String encoded = NativeSocketIOClientUtil.getNativeMessage(packet);
         log.info("BINARY_ACK: {}", encoded);
         // The actual encoding will include the binary attachment count and namespace
-        assert encoded.contains("460-/admin,456") : "Expected to contain '460-/admin,456', got: " + encoded;
+        assertTrue("Expected to contain '460-/admin,456', got: " + encoded, encoded.contains("460-/admin,456"));
 
         ByteBuf buffer = Unpooled.copiedBuffer(encoded, CharsetUtil.UTF_8);
 
@@ -493,7 +496,7 @@ public class NativeSocketIOClientTest {
         
         String encoded = NativeSocketIOClientUtil.getNativeMessage(packet);
         log.info("Complex EVENT: {}", encoded);
-        assert encoded.contains("42[\"user:update\"") : "Expected to contain '42[\"user:update\"', got: " + encoded;
+        assertTrue("Expected to contain '42[\"user:update\"', got: " + encoded, encoded.contains("42[\"user:update\""));
 
         ByteBuf buffer = Unpooled.copiedBuffer(encoded, CharsetUtil.UTF_8);
 
@@ -556,9 +559,9 @@ public class NativeSocketIOClientTest {
         log.info("Event 3 (world): {}", encoded3);
         
         // Verify all events are properly encoded
-        assert encoded1.equals("42[\"hey\",\"Jude\"]") : "Event 1 encoding failed";
-        assert encoded2.equals("42[\"hello\"]") : "Event 2 encoding failed";
-        assert encoded3.equals("42[\"world\"]") : "Event 3 encoding failed";
+        assertEquals("Event 1 encoding failed", "42[\"hey\",\"Jude\"]", encoded1);
+        assertEquals("Event 2 encoding failed", "42[\"hello\"]", encoded2);
+        assertEquals("Event 3 encoding failed", "42[\"world\"]", encoded3);
 
         // Test decoding of first event
         ByteBuf buffer1 = Unpooled.copiedBuffer(encoded1, CharsetUtil.UTF_8);
@@ -601,8 +604,8 @@ public class NativeSocketIOClientTest {
         log.info("Namespace transition - EVENT with ack: {}", encodedEvent);
         
         // Verify the encoding
-        assert encodedConnect.equals("40/admin,") : "CONNECT request encoding failed";
-        assert encodedEvent.equals("42/admin,1[\"tellme\"]") : "EVENT with ack encoding failed";
+        assertEquals("CONNECT request encoding failed", "40/admin,", encodedConnect);
+        assertEquals("EVENT with ack encoding failed", "42/admin,1[\"tellme\"]", encodedEvent);
 
         // Test decoding of CONNECT request
         ByteBuf bufferConnect = Unpooled.copiedBuffer(encodedConnect, CharsetUtil.UTF_8);
