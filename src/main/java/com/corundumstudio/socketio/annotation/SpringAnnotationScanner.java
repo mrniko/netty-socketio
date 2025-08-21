@@ -1,16 +1,14 @@
 /**
  * Copyright (c) 2012-2023 Nikita Koksharov
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * <p>Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file
+ * except in compliance with the License. You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ * <p>http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
+ * <p>Unless required by applicable law or agreed to in writing, software distributed under the
+ * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ * express or implied. See the License for the specific language governing permissions and
  * limitations under the License.
  */
 package com.corundumstudio.socketio.annotation;
@@ -33,64 +31,65 @@ import com.corundumstudio.socketio.SocketIOServer;
 
 public class SpringAnnotationScanner implements BeanPostProcessor {
 
-    private static final Logger log = LoggerFactory.getLogger(SpringAnnotationScanner.class);
+  private static final Logger log = LoggerFactory.getLogger(SpringAnnotationScanner.class);
 
-    private final List<Class<? extends Annotation>> annotations =
-                    Arrays.asList(OnConnect.class, OnDisconnect.class, OnEvent.class);
+  private final List<Class<? extends Annotation>> annotations =
+      Arrays.asList(OnConnect.class, OnDisconnect.class, OnEvent.class);
 
-    private final SocketIOServer socketIOServer;
+  private final SocketIOServer socketIOServer;
 
-    private Class originalBeanClass;
+  private Class originalBeanClass;
 
-    private Object originalBean;
+  private Object originalBean;
 
-    private String originalBeanName;
+  private String originalBeanName;
 
-    public SpringAnnotationScanner(SocketIOServer socketIOServer) {
-        super();
-        this.socketIOServer = socketIOServer;
+  public SpringAnnotationScanner(SocketIOServer socketIOServer) {
+    super();
+    this.socketIOServer = socketIOServer;
+  }
+
+  @Override
+  public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
+    if (originalBeanClass != null) {
+      socketIOServer.addListeners(originalBean, originalBeanClass);
+      log.info("{} bean listeners added", originalBeanName);
+      originalBeanClass = null;
+      originalBeanName = null;
     }
+    return bean;
+  }
 
-    @Override
-    public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
-        if (originalBeanClass != null) {
-            socketIOServer.addListeners(originalBean, originalBeanClass);
-            log.info("{} bean listeners added", originalBeanName);
-            originalBeanClass = null;
-            originalBeanName = null;
-        }
-        return bean;
-    }
-
-    @Override
-    public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
-        final AtomicBoolean add = new AtomicBoolean();
-        ReflectionUtils.doWithMethods(bean.getClass(),
-                new MethodCallback() {
-            @Override
-            public void doWith(Method method) throws IllegalArgumentException,
-            IllegalAccessException {
-                add.set(true);
-            }
+  @Override
+  public Object postProcessBeforeInitialization(Object bean, String beanName)
+      throws BeansException {
+    final AtomicBoolean add = new AtomicBoolean();
+    ReflectionUtils.doWithMethods(
+        bean.getClass(),
+        new MethodCallback() {
+          @Override
+          public void doWith(Method method)
+              throws IllegalArgumentException, IllegalAccessException {
+            add.set(true);
+          }
         },
         new MethodFilter() {
-            @Override
-            public boolean matches(Method method) {
-                for (Class<? extends Annotation> annotationClass : annotations) {
-                    if (method.isAnnotationPresent(annotationClass)) {
-                        return true;
-                    }
-                }
-                return false;
+          @Override
+          public boolean matches(Method method) {
+            for (Class<? extends Annotation> annotationClass : annotations) {
+              if (method.isAnnotationPresent(annotationClass)) {
+                return true;
+              }
             }
+            return false;
+          }
         });
 
-        if (add.get()) {
-            originalBeanClass = bean.getClass();
-            originalBean = bean;
-            originalBeanName = beanName;
-        }
-        return bean;
+    if (add.get()) {
+      originalBeanClass = bean.getClass();
+      originalBean = bean;
+      originalBeanName = beanName;
     }
-
+    return bean;
+  }
 }

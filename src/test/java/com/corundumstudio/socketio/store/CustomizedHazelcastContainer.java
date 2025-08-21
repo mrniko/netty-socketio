@@ -1,81 +1,83 @@
 package com.corundumstudio.socketio.store;
 
-import com.github.dockerjava.api.command.InspectContainerResponse;
+import java.util.concurrent.TimeUnit;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.GenericContainer;
 
-import java.util.concurrent.TimeUnit;
+import com.github.dockerjava.api.command.InspectContainerResponse;
 
-/**
- * Customized Hazelcast container for testing purposes.
- */
+/** Customized Hazelcast container for testing purposes. */
 public class CustomizedHazelcastContainer extends GenericContainer<CustomizedHazelcastContainer> {
-    private static final Logger log = LoggerFactory.getLogger(CustomizedHazelcastContainer.class);
-    public static final int HAZELCAST_PORT = 5701;
+  private static final Logger log = LoggerFactory.getLogger(CustomizedHazelcastContainer.class);
+  public static final int HAZELCAST_PORT = 5701;
 
-    /**
-     * Default constructor that initializes the Hazelcast container with the official Hazelcast image.
-     */
-    public CustomizedHazelcastContainer() {
-        super("hazelcast/hazelcast:3.12.12");
-    }
+  /**
+   * Default constructor that initializes the Hazelcast container with the official Hazelcast image.
+   */
+  public CustomizedHazelcastContainer() {
+    super("hazelcast/hazelcast:3.12.12");
+  }
 
-    @Override
-    protected void configure() {
-        withExposedPorts(HAZELCAST_PORT);
-        withEnv("JVM_OPTS", "-Dhazelcast.config=/opt/hazelcast/config_ext/hazelcast.xml");
-        withClasspathResourceMapping("hazelcast-test-config.xml", 
-            "/opt/hazelcast/config_ext/hazelcast.xml", 
-            org.testcontainers.containers.BindMode.READ_ONLY);
-    }
+  @Override
+  protected void configure() {
+    withExposedPorts(HAZELCAST_PORT);
+    withEnv("JVM_OPTS", "-Dhazelcast.config=/opt/hazelcast/config_ext/hazelcast.xml");
+    withClasspathResourceMapping(
+        "hazelcast-test-config.xml",
+        "/opt/hazelcast/config_ext/hazelcast.xml",
+        org.testcontainers.containers.BindMode.READ_ONLY);
+  }
 
-    @Override
-    protected void containerIsStarted(InspectContainerResponse containerInfo) {
+  @Override
+  protected void containerIsStarted(InspectContainerResponse containerInfo) {
+    try {
+      // Wait for Hazelcast to be ready
+      TimeUnit.SECONDS.sleep(15);
+
+      // Check if Hazelcast is responding
+      ExecResult result = null;
+      int attempts = 0;
+      while (attempts < 20) {
         try {
-            // Wait for Hazelcast to be ready
-            TimeUnit.SECONDS.sleep(15);
-            
-            // Check if Hazelcast is responding
-            ExecResult result = null;
-            int attempts = 0;
-            while (attempts < 20) {
-                try {
-                    result = execInContainer("sh", "-c", "netstat -an | grep " + HAZELCAST_PORT + " | grep LISTEN");
-                    if (result.getExitCode() == 0 && result.getStdout().contains("LISTEN")) {
-                        log.info("Hazelcast is ready and listening on port {}", HAZELCAST_PORT);
-                        break;
-                    }
-                } catch (Exception e) {
-                    // Ignore and retry
-                }
-                
-                attempts++;
-                TimeUnit.SECONDS.sleep(2);
-                log.info("Waiting for Hazelcast to be ready, attempt {}", attempts);
-            }
-            
-            if (attempts >= 20) {
-                log.info("Hazelcast container started but may not be fully ready");
-            }
+          result =
+              execInContainer(
+                  "sh", "-c", "netstat -an | grep " + HAZELCAST_PORT + " | grep LISTEN");
+          if (result.getExitCode() == 0 && result.getStdout().contains("LISTEN")) {
+            log.info("Hazelcast is ready and listening on port {}", HAZELCAST_PORT);
+            break;
+          }
         } catch (Exception e) {
-            throw new RuntimeException("Failed to start Hazelcast container", e);
+          // Ignore and retry
         }
-    }
 
-    @Override
-    public void start() {
-        super.start();
-        log.info("Hazelcast started at port: {}", getHazelcastPort());
-    }
+        attempts++;
+        TimeUnit.SECONDS.sleep(2);
+        log.info("Waiting for Hazelcast to be ready, attempt {}", attempts);
+      }
 
-    @Override
-    public void stop() {
-        super.stop();
-        log.info("Hazelcast stopped");
+      if (attempts >= 20) {
+        log.info("Hazelcast container started but may not be fully ready");
+      }
+    } catch (Exception e) {
+      throw new RuntimeException("Failed to start Hazelcast container", e);
     }
+  }
 
-    public int getHazelcastPort() {
-        return getMappedPort(HAZELCAST_PORT);
-    }
+  @Override
+  public void start() {
+    super.start();
+    log.info("Hazelcast started at port: {}", getHazelcastPort());
+  }
+
+  @Override
+  public void stop() {
+    super.stop();
+    log.info("Hazelcast stopped");
+  }
+
+  public int getHazelcastPort() {
+    return getMappedPort(HAZELCAST_PORT);
+  }
 }

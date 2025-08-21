@@ -1,16 +1,14 @@
 /**
  * Copyright (c) 2012-2023 Nikita Koksharov
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * <p>Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file
+ * except in compliance with the License. You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ * <p>http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
+ * <p>Unless required by applicable law or agreed to in writing, software distributed under the
+ * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ * express or implied. See the License for the specific language governing permissions and
  * limitations under the License.
  */
 package com.corundumstudio.socketio.annotation;
@@ -28,78 +26,81 @@ import com.corundumstudio.socketio.namespace.Namespace;
 
 public class ScannerEngine {
 
-    private static final Logger log = LoggerFactory.getLogger(ScannerEngine.class);
+  private static final Logger log = LoggerFactory.getLogger(ScannerEngine.class);
 
-    private static final List<? extends AnnotationScanner> ANNOTATIONS =
-                    Arrays.asList(new OnConnectScanner(), new OnDisconnectScanner(), new OnEventScanner());
+  private static final List<? extends AnnotationScanner> ANNOTATIONS =
+      Arrays.asList(new OnConnectScanner(), new OnDisconnectScanner(), new OnEventScanner());
 
-    private Method findSimilarMethod(Class<?> objectClazz, Method method) {
-        Method[] methods = objectClazz.getDeclaredMethods();
-        for (Method m : methods) {
-            if (isEquals(m, method)) {
-                return m;
+  private Method findSimilarMethod(Class<?> objectClazz, Method method) {
+    Method[] methods = objectClazz.getDeclaredMethods();
+    for (Method m : methods) {
+      if (isEquals(m, method)) {
+        return m;
+      }
+    }
+    return null;
+  }
+
+  public void scan(Namespace namespace, Object object, Class<?> clazz)
+      throws IllegalArgumentException {
+    Method[] methods = clazz.getDeclaredMethods();
+
+    if (!clazz.isAssignableFrom(object.getClass())) {
+      for (Method method : methods) {
+        for (AnnotationScanner annotationScanner : ANNOTATIONS) {
+          Annotation ann = method.getAnnotation(annotationScanner.getScanAnnotation());
+          if (ann != null) {
+            annotationScanner.validate(method, clazz);
+
+            Method m = findSimilarMethod(object.getClass(), method);
+            if (m != null) {
+              annotationScanner.addListener(namespace, object, m, ann);
+            } else {
+              log.warn(
+                  "Method similar to "
+                      + method.getName()
+                      + " can't be found in "
+                      + object.getClass());
             }
+          }
         }
-        return null;
+      }
+    } else {
+      for (Method method : methods) {
+        for (AnnotationScanner annotationScanner : ANNOTATIONS) {
+          Annotation ann = method.getAnnotation(annotationScanner.getScanAnnotation());
+          if (ann != null) {
+            annotationScanner.validate(method, clazz);
+            makeAccessible(method);
+            annotationScanner.addListener(namespace, object, method, ann);
+          }
+        }
+      }
+
+      if (clazz.getSuperclass() != null) {
+        scan(namespace, object, clazz.getSuperclass());
+      } else if (clazz.isInterface()) {
+        for (Class<?> superIfc : clazz.getInterfaces()) {
+          scan(namespace, object, superIfc);
+        }
+      }
+    }
+  }
+
+  private boolean isEquals(Method method1, Method method2) {
+    if (!method1.getName().equals(method2.getName())
+        || !method1.getReturnType().equals(method2.getReturnType())) {
+      return false;
     }
 
-    public void scan(Namespace namespace, Object object, Class<?> clazz)
-            throws IllegalArgumentException {
-        Method[] methods = clazz.getDeclaredMethods();
+    return Arrays.equals(method1.getParameterTypes(), method2.getParameterTypes());
+  }
 
-        if (!clazz.isAssignableFrom(object.getClass())) {
-            for (Method method : methods) {
-                for (AnnotationScanner annotationScanner : ANNOTATIONS) {
-                    Annotation ann = method.getAnnotation(annotationScanner.getScanAnnotation());
-                    if (ann != null) {
-                        annotationScanner.validate(method, clazz);
-
-                        Method m = findSimilarMethod(object.getClass(), method);
-                        if (m != null) {
-                            annotationScanner.addListener(namespace, object, m, ann);
-                        } else {
-                            log.warn("Method similar to " + method.getName() + " can't be found in " + object.getClass());
-                        }
-                    }
-                }
-            }
-        } else {
-            for (Method method : methods) {
-                for (AnnotationScanner annotationScanner : ANNOTATIONS) {
-                    Annotation ann = method.getAnnotation(annotationScanner.getScanAnnotation());
-                    if (ann != null) {
-                        annotationScanner.validate(method, clazz);
-                        makeAccessible(method);
-                        annotationScanner.addListener(namespace, object, method, ann);
-                    }
-                }
-            }
-
-            if (clazz.getSuperclass() != null) {
-                scan(namespace, object, clazz.getSuperclass());
-            } else if (clazz.isInterface()) {
-                for (Class<?> superIfc : clazz.getInterfaces()) {
-                    scan(namespace, object, superIfc);
-                }
-            }
-        }
-
+  private void makeAccessible(Method method) {
+    if ((!Modifier.isPublic(method.getModifiers())
+            || !Modifier.isPublic(method.getDeclaringClass().getModifiers()))
+        && !method.isAccessible()) {
+      method.setAccessible(true);
     }
-
-    private boolean isEquals(Method method1, Method method2) {
-        if (!method1.getName().equals(method2.getName())
-                || !method1.getReturnType().equals(method2.getReturnType())) {
-            return false;
-        }
-
-        return Arrays.equals(method1.getParameterTypes(), method2.getParameterTypes());
-    }
-
-    private void makeAccessible(Method method) {
-        if ((!Modifier.isPublic(method.getModifiers()) || !Modifier.isPublic(method.getDeclaringClass().getModifiers()))
-                && !method.isAccessible()) {
-            method.setAccessible(true);
-        }
-    }
-
+  }
 }

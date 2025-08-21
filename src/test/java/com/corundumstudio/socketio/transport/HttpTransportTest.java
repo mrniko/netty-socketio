@@ -1,30 +1,20 @@
 /**
  * Copyright (c) 2012-2023 Nikita Koksharov
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * <p>Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file
+ * except in compliance with the License. You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ * <p>http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
+ * <p>Unless required by applicable law or agreed to in writing, software distributed under the
+ * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ * express or implied. See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.corundumstudio.socketio.transport;
 
-import com.corundumstudio.socketio.Configuration;
-import com.corundumstudio.socketio.SocketConfig;
-import com.corundumstudio.socketio.SocketIOClient;
-import com.corundumstudio.socketio.SocketIOServer;
-import com.corundumstudio.socketio.Transport;
-import com.corundumstudio.socketio.listener.ExceptionListener;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.netty.channel.ChannelHandlerContext;
+import static org.junit.jupiter.api.Assertions.*;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -40,12 +30,23 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.corundumstudio.socketio.Configuration;
+import com.corundumstudio.socketio.SocketConfig;
+import com.corundumstudio.socketio.SocketIOClient;
+import com.corundumstudio.socketio.SocketIOServer;
+import com.corundumstudio.socketio.Transport;
+import com.corundumstudio.socketio.listener.ExceptionListener;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import io.netty.channel.ChannelHandlerContext;
 
 public class HttpTransportTest {
 
@@ -55,9 +56,11 @@ public class HttpTransportTest {
 
   private Pattern responseJsonMatcher = Pattern.compile("([0-9]+)(\\{.*\\})?");
 
-  private Pattern multiResponsePattern = Pattern.compile("((?<type>[0-9])(?<id>[0-9]*)(?<body>.+)\\x{1E})*(?<lasttype>[0-9])(?<lastid>[0-9]*)(?<lastbody>.+)");
+  private Pattern multiResponsePattern =
+      Pattern.compile(
+          "((?<type>[0-9])(?<id>[0-9]*)(?<body>.+)\\x{1E})*(?<lasttype>[0-9])(?<lastid>[0-9]*)(?<lastbody>.+)");
 
-  private final String packetSeparator = new String(new byte[] { 0x1e });
+  private final String packetSeparator = new String(new byte[] {0x1e});
 
   private Logger logger = LoggerFactory.getLogger(HttpTransportTest.class);
 
@@ -68,42 +71,43 @@ public class HttpTransportTest {
     config.setRandomSession(true);
     config.setTransports(Transport.POLLING);
     config.setPort(port);
-    config.setExceptionListener(new ExceptionListener() {
-      @Override
-      public void onEventException(Exception e, List<Object> args, SocketIOClient client) {
-        logger.error("eventException", e);
-      }
+    config.setExceptionListener(
+        new ExceptionListener() {
+          @Override
+          public void onEventException(Exception e, List<Object> args, SocketIOClient client) {
+            logger.error("eventException", e);
+          }
 
-      @Override
-      public void onDisconnectException(Exception e, SocketIOClient client) {
-        logger.error("disconnectException", e);
-      }
+          @Override
+          public void onDisconnectException(Exception e, SocketIOClient client) {
+            logger.error("disconnectException", e);
+          }
 
-      @Override
-      public void onConnectException(Exception e, SocketIOClient client) {
-        logger.error("connectException", e);
-      }
+          @Override
+          public void onConnectException(Exception e, SocketIOClient client) {
+            logger.error("connectException", e);
+          }
 
-      @Override
-      public void onPingException(Exception e, SocketIOClient client) {
-        logger.error("pingException", e);
-      }
+          @Override
+          public void onPingException(Exception e, SocketIOClient client) {
+            logger.error("pingException", e);
+          }
 
-      @Override
-      public void onPongException(Exception e, SocketIOClient client) {
-        logger.error("pongException", e);
-      }
+          @Override
+          public void onPongException(Exception e, SocketIOClient client) {
+            logger.error("pongException", e);
+          }
 
-      @Override
-      public boolean exceptionCaught(ChannelHandlerContext ctx, Throwable e) throws Exception {
-        return false;
-      }
+          @Override
+          public boolean exceptionCaught(ChannelHandlerContext ctx, Throwable e) throws Exception {
+            return false;
+          }
 
-      @Override
-      public void onAuthException(Throwable e, SocketIOClient client) {
-        logger.error("authException", e);
-      }
-    });
+          @Override
+          public void onAuthException(Throwable e, SocketIOClient client) {
+            logger.error("authException", e);
+          }
+        });
 
     final SocketConfig socketConfig = new SocketConfig();
     socketConfig.setReuseAddress(true);
@@ -120,32 +124,37 @@ public class HttpTransportTest {
 
   /**
    * Creates a test server URI with the specified query parameters.
-   * 
-   * This method demonstrates how query parameters are passed to the Socket.IO server.
-   * The query string will be parsed by netty-socketio and stored in HandshakeData.urlParams
-   * for structured access during the handshake process.
-   * 
+   *
+   * <p>This method demonstrates how query parameters are passed to the Socket.IO server. The query
+   * string will be parsed by netty-socketio and stored in HandshakeData.urlParams for structured
+   * access during the handshake process.
+   *
    * @param query the query string (e.g., "EIO=4&transport=polling&t=Oqd9eWh")
    * @return URI with the specified query parameters
    * @throws URISyntaxException if the URI is malformed
    */
   private URI createTestServerUri(final String query) throws URISyntaxException {
-    return new URI("http", null , "localhost",  server.getConfiguration().getPort(), server.getConfiguration().getContext() + "/",
-        query, null);
+    return new URI(
+        "http",
+        null,
+        "localhost",
+        server.getConfiguration().getPort(),
+        server.getConfiguration().getContext() + "/",
+        query,
+        null);
   }
 
   /**
    * Makes a Socket.IO HTTP request to the test server.
-   * 
-   * This method demonstrates the complete handshake process including:
-   * - Engine.IO version specification (EIO=4)
-   * - Transport type specification (transport=polling)
-   * - Session ID handling (sid parameter)
-   * - Query parameter parsing by netty-socketio
-   * 
-   * The query parameters in the request URI will be parsed and stored in HandshakeData.urlParams,
-   * providing structured access to authentication tokens, user IDs, and other metadata.
-   * 
+   *
+   * <p>This method demonstrates the complete handshake process including: - Engine.IO version
+   * specification (EIO=4) - Transport type specification (transport=polling) - Session ID handling
+   * (sid parameter) - Query parameter parsing by netty-socketio
+   *
+   * <p>The query parameters in the request URI will be parsed and stored in
+   * HandshakeData.urlParams, providing structured access to authentication tokens, user IDs, and
+   * other metadata.
+   *
    * @param sessionId the session ID for existing connections, or null for new connections
    * @param bodyForPost the POST body for sending data, or null for GET requests
    * @return the server response as a string
@@ -155,10 +164,12 @@ public class HttpTransportTest {
    */
   private String makeSocketIoRequest(final String sessionId, final String bodyForPost)
       throws URISyntaxException, IOException, InterruptedException {
-    final URI uri = createTestServerUri("EIO=4&transport=polling&t=Oqd9eWh" + (sessionId == null ? "" : "&sid=" + sessionId));
+    final URI uri =
+        createTestServerUri(
+            "EIO=4&transport=polling&t=Oqd9eWh" + (sessionId == null ? "" : "&sid=" + sessionId));
 
     URLConnection con = uri.toURL().openConnection();
-    HttpURLConnection http = (HttpURLConnection)con;
+    HttpURLConnection http = (HttpURLConnection) con;
     if (bodyForPost != null) {
       http.setRequestMethod("POST"); // PUT is another valid option
       http.setDoOutput(true);
@@ -176,7 +187,8 @@ public class HttpTransportTest {
       http.connect();
     }
 
-    try (BufferedReader reader = new BufferedReader(new InputStreamReader(http.getInputStream(), StandardCharsets.UTF_8))) {
+    try (BufferedReader reader =
+        new BufferedReader(new InputStreamReader(http.getInputStream(), StandardCharsets.UTF_8))) {
       return reader.lines().collect(Collectors.joining("\n"));
     }
   }
@@ -211,8 +223,8 @@ public class HttpTransportTest {
 
   @Test
   public void testMultipleMessages() throws URISyntaxException, IOException, InterruptedException {
-    server.addEventListener("hello", String.class, (client, data, ackSender) ->
-        ackSender.sendAckData(data));
+    server.addEventListener(
+        "hello", String.class, (client, data, ackSender) -> ackSender.sendAckData(data));
     final String sessionId = connectForSessionId(null);
     final ArrayList<String> events = new ArrayList<>();
     events.add("420[\"hello\", \"world\"]");
@@ -226,8 +238,9 @@ public class HttpTransportTest {
   /**
    * Returns a free port number on localhost.
    *
-   * Heavily inspired from org.eclipse.jdt.launching.SocketUtil (to avoid a dependency to JDT just because of this).
-   * Slightly improved with close() missing in JDT. And throws exception instead of returning -1.
+   * <p>Heavily inspired from org.eclipse.jdt.launching.SocketUtil (to avoid a dependency to JDT
+   * just because of this). Slightly improved with close() missing in JDT. And throws exception
+   * instead of returning -1.
    *
    * @return a free port number on localhost
    * @throws IllegalStateException if unable to find a free port
@@ -247,7 +260,7 @@ public class HttpTransportTest {
         }
       }
     }
-    throw new IllegalStateException("Could not find a free TCP/IP port to start embedded SocketIO Server on");
+    throw new IllegalStateException(
+        "Could not find a free TCP/IP port to start embedded SocketIO Server on");
   }
-
 }
