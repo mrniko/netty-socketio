@@ -80,7 +80,7 @@ public class Packet implements Serializable {
      * </pre>
      */
     public <T> T getData() {
-        return (T)data;
+        return (T) data;
     }
 
     /**
@@ -111,7 +111,7 @@ public class Packet implements Serializable {
 
     public void setNsp(String endpoint) {
         //patch for #903
-        if (endpoint.equals("{}")){
+        if ("{}".equals(endpoint)) {
             endpoint="";
         }
         this.nsp = endpoint;

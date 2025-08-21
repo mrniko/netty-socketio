@@ -33,7 +33,7 @@ public class PacketDecoder {
 
     private final UTF8CharsScanner utf8scanner = new UTF8CharsScanner();
 
-    private final ByteBuf QUOTES = Unpooled.copiedBuffer("\"", CharsetUtil.UTF_8);
+    private final ByteBuf quotes = Unpooled.copiedBuffer("\"", CharsetUtil.UTF_8);
 
     private final JsonSupport jsonSupport;
     private final AckManager ackManager;
@@ -71,7 +71,7 @@ public class PacketDecoder {
     private long readLong(ByteBuf chars, int length) {
         long result = 0;
         for (int i = chars.readerIndex(); i < chars.readerIndex() + length; i++) {
-            int digit = ((int)chars.getByte(i) & 0xF);
+            int digit = ((int) chars.getByte(i) & 0xF);
             for (int j = 0; j < chars.readerIndex() + length-1-i; j++) {
                 digit *= 10;
             }
@@ -94,7 +94,7 @@ public class PacketDecoder {
     private boolean hasLengthHeader(ByteBuf buffer) {
         for (int i = 0; i < Math.min(buffer.readableBytes(), 10); i++) {
             byte b = buffer.getByte(buffer.readerIndex() + i);
-            if (b == (byte)':' && i > 0) {
+            if (b == (byte) ':' && i > 0) {
                 return true;
             }
             if (b > 57 || b < 48) {
@@ -108,9 +108,9 @@ public class PacketDecoder {
         if (isStringPacket(buffer)) {
             // TODO refactor
             int maxLength = Math.min(buffer.readableBytes(), 10);
-            int headEndIndex = buffer.bytesBefore(maxLength, (byte)-1);
+            int headEndIndex = buffer.bytesBefore(maxLength, (byte) -1);
             if (headEndIndex == -1) {
-                headEndIndex = buffer.bytesBefore(maxLength, (byte)0x3f);
+                headEndIndex = buffer.bytesBefore(maxLength, (byte) 0x3f);
             }
             int len = (int) readLong(buffer, headEndIndex);
 
@@ -120,7 +120,7 @@ public class PacketDecoder {
             return decode(client, frame);
         } else if (hasLengthHeader(buffer)) {
             // TODO refactor
-            int lengthEndIndex = buffer.bytesBefore((byte)':');
+            int lengthEndIndex = buffer.bytesBefore((byte) ':');
             int lenHeader = (int) readLong(buffer, lengthEndIndex);
             int len = utf8scanner.getActualLength(buffer, lenHeader);
 
@@ -183,12 +183,12 @@ public class PacketDecoder {
     }
 
     private void parseHeader(ByteBuf frame, Packet packet, PacketType innerType) {
-        int endIndex = frame.bytesBefore((byte)'[');
+        int endIndex = frame.bytesBefore((byte) '[');
         if (endIndex <= 0) {
             return;
         }
 
-        int attachmentsDividerIndex = frame.bytesBefore(endIndex, (byte)'-');
+        int attachmentsDividerIndex = frame.bytesBefore(endIndex, (byte) '-');
         boolean hasAttachments = attachmentsDividerIndex != -1;
         if (hasAttachments && (PacketType.BINARY_EVENT.equals(innerType)
                 || PacketType.BINARY_ACK.equals(innerType))) {
@@ -203,7 +203,7 @@ public class PacketDecoder {
         }
 
         // TODO optimize
-        boolean hasNsp = frame.bytesBefore(endIndex, (byte)',') != -1;
+        boolean hasNsp = frame.bytesBefore(endIndex, (byte) ',') != -1;
         if (hasNsp) {
             String nspAckId = readString(frame, endIndex);
             String[] parts = nspAckId.split(",");
@@ -242,9 +242,9 @@ public class PacketDecoder {
 
                 ByteBuf prefixBuf = source.slice(source.readerIndex(), pos - source.readerIndex());
                 slices.add(prefixBuf);
-                slices.add(QUOTES);
+                slices.add(quotes);
                 slices.add(attachment);
-                slices.add(QUOTES);
+                slices.add(quotes);
 
                 source.readerIndex(pos + scanValue.readableBytes());
             }

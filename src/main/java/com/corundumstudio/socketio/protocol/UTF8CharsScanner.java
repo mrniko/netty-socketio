@@ -23,7 +23,7 @@ public class UTF8CharsScanner {
      * Lookup table used for determining which input characters need special
      * handling when contained in text segment.
      */
-    static final int[] sInputCodes;
+    static final int[] S_INPUT_CODES;
     static {
         /*
          * 96 would do for most cases (backslash is ascii 94) but if we want to
@@ -37,16 +37,16 @@ public class UTF8CharsScanner {
         // And then string end and quote markers are special too
         table['"'] = 1;
         table['\\'] = 1;
-        sInputCodes = table;
+        S_INPUT_CODES = table;
     }
 
     /**
      * Additionally we can combine UTF-8 decoding info into similar data table.
      */
-    static final int[] sInputCodesUtf8;
+    static final int[] S_INPUT_CODES_UTF8;
     static {
-        int[] table = new int[sInputCodes.length];
-        System.arraycopy(sInputCodes, 0, table, 0, sInputCodes.length);
+        int[] table = new int[S_INPUT_CODES.length];
+        System.arraycopy(S_INPUT_CODES, 0, table, 0, S_INPUT_CODES.length);
         for (int c = 128; c < 256; ++c) {
             int code;
 
@@ -64,12 +64,12 @@ public class UTF8CharsScanner {
             }
             table[c] = code;
         }
-        sInputCodesUtf8 = table;
+        S_INPUT_CODES_UTF8 = table;
     }
 
     private int getCharTailIndex(ByteBuf inputBuffer, int i) {
         int c = (int) inputBuffer.getByte(i) & 0xFF;
-        switch (sInputCodesUtf8[c]) {
+        switch (S_INPUT_CODES_UTF8[c]) {
         case 2: // 2-byte UTF
             i += 2;
             break;

@@ -102,7 +102,7 @@ public class EncoderHandler extends ChannelOutboundHandlerAdapter {
                     continue;
                 }
                 String name = attrs.getValue("Bundle-Name");
-                if (name != null && name.equals("netty-socketio")) {
+                if (name != null && "netty-socketio".equals(name)) {
                     version = name + "/" + attrs.getValue("Bundle-Version");
                     break;
                 }
@@ -325,7 +325,9 @@ public class EncoderHandler extends ChannelOutboundHandlerAdapter {
 
         private void cleanup() {
             promise = null;
-            for (ChannelFuture f : futureList) f.removeListener(this);
+            for (ChannelFuture f : futureList) {
+                f.removeListener(this);
+            }
         }
 
         private void validate() {
@@ -337,8 +339,7 @@ public class EncoderHandler extends ChannelOutboundHandlerAdapter {
                         cleanup();
                         return;
                     }
-                }
-                else {
+                } else {
                     allSuccess = false;
                 }
             }

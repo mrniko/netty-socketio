@@ -200,8 +200,8 @@ public class Namespace implements SocketIONamespace {
     }
 
     public void onConnect(SocketIOClient client) {
-        if (roomClients.containsKey(getName()) &&
-                roomClients.get(getName()).contains(client.getSessionId())) {
+        if (roomClients.containsKey(getName())
+                && roomClients.get(getName()).contains(client.getSessionId())) {
             return;
         }
 
@@ -257,16 +257,16 @@ public class Namespace implements SocketIONamespace {
         return new SingleRoomBroadcastOperations(getName(), room, getRoomClients(room), storeFactory);
     }
 
-	@Override
-	public BroadcastOperations getRoomOperations(String... rooms) {
+    @Override
+    public BroadcastOperations getRoomOperations(String... rooms) {
         List<BroadcastOperations> list = new ArrayList<>();
-        for( String room : rooms ) {
-            list.add( new SingleRoomBroadcastOperations(getName(), room, getRoomClients(room), storeFactory) );
+        for (String room : rooms) {
+            list.add(new SingleRoomBroadcastOperations(getName(), room, getRoomClients(room), storeFactory));
         }
-        return new MultiRoomBroadcastOperations( list );
+        return new MultiRoomBroadcastOperations(list);
     }
 
-	@Override
+    @Override
     public int hashCode() {
         final int prime = 31;
         int result = 1;
@@ -409,7 +409,7 @@ public class Namespace implements SocketIONamespace {
         List<SocketIOClient> result = new ArrayList<SocketIOClient>();
         for (UUID sessionId : sessionIds) {
             SocketIOClient client = allClients.get(sessionId);
-            if(client != null) {
+            if (client != null) {
                 result.add(client);
             }
         }
@@ -448,7 +448,7 @@ public class Namespace implements SocketIONamespace {
                 return result;
               }
           }
-          return AuthTokenResult.AuthTokenResultSuccess;
+          return AuthTokenResult.AUTH_TOKEN_RESULT_SUCCESS;
       } catch (Exception e) {
           exceptionListener.onAuthException(e, client);
       }

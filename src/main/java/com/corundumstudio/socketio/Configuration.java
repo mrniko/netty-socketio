@@ -325,7 +325,7 @@ public class Configuration {
      *
      * @param transports - list of transports
      */
-    public void setTransports(Transport ... transports) {
+    public void setTransports(Transport... transports) {
         if (transports.length == 0) {
             throw new IllegalArgumentException("Transports list can't be empty");
         }

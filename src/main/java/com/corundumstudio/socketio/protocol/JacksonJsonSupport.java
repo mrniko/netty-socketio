@@ -202,8 +202,7 @@ public class JacksonJsonSupport implements JsonSupport {
 
     }
 
-    public static class ByteArraySerializer extends StdSerializer<byte[]>
-    {
+    public static class ByteArraySerializer extends StdSerializer<byte[]> {
 
         private static final long serialVersionUID = 3420082888596468148L;
 
@@ -220,13 +219,12 @@ public class JacksonJsonSupport implements JsonSupport {
 
         @Override
         public boolean isEmpty(byte[] value) {
-            return (value == null) || (value.length == 0);
+            return value == null || value.length == 0;
         }
 
         @Override
         public void serialize(byte[] value, JsonGenerator jgen, SerializerProvider provider)
-            throws IOException, JsonGenerationException
-        {
+            throws IOException, JsonGenerationException {
             Map<String, Object> map = new HashMap<String, Object>();
             map.put("num", arrays.get().size());
             map.put("_placeholder", true);
@@ -237,14 +235,12 @@ public class JacksonJsonSupport implements JsonSupport {
         @Override
         public void serializeWithType(byte[] value, JsonGenerator jgen, SerializerProvider provider,
                 TypeSerializer typeSer)
-            throws IOException, JsonGenerationException
-        {
+            throws IOException, JsonGenerationException {
             serialize(value, jgen, provider);
         }
 
         @Override
-        public JsonNode getSchema(SerializerProvider provider, Type typeHint)
-        {
+        public JsonNode getSchema(SerializerProvider provider, Type typeHint) {
             ObjectNode o = createSchemaNode("array", true);
             ObjectNode itemSchema = createSchemaNode("string"); //binary values written as strings?
             return o.set("items", itemSchema);
@@ -252,8 +248,7 @@ public class JacksonJsonSupport implements JsonSupport {
 
         @Override
         public void acceptJsonFormatVisitor(JsonFormatVisitorWrapper visitor, JavaType typeHint)
-                throws JsonMappingException
-        {
+                throws JsonMappingException {
             if (visitor != null) {
                 JsonArrayFormatVisitor v2 = visitor.expectArrayFormat(typeHint);
                 if (v2 != null) {
@@ -327,7 +322,7 @@ public class JacksonJsonSupport implements JsonSupport {
     }
 
     @Override
-    public void addEventMapping(String namespaceName, String eventName, Class<?> ... eventClass) {
+    public void addEventMapping(String namespaceName, String eventName, Class<?>... eventClass) {
         eventDeserializer.eventMapping.put(new EventKey(namespaceName, eventName), Arrays.asList(eventClass));
     }
 
@@ -339,19 +334,19 @@ public class JacksonJsonSupport implements JsonSupport {
     @Override
     public <T> T readValue(String namespaceName, ByteBufInputStream src, Class<T> valueType) throws IOException {
         namespaceClass.set(namespaceName);
-        return objectMapper.readValue((InputStream)src, valueType);
+        return objectMapper.readValue((InputStream) src, valueType);
     }
 
     @Override
     public AckArgs readAckArgs(ByteBufInputStream src, AckCallback<?> callback) throws IOException {
         currentAckClass.set(callback);
-        return objectMapper.readValue((InputStream)src, AckArgs.class);
+        return objectMapper.readValue((InputStream) src, AckArgs.class);
     }
 
     @Override
     public void writeValue(ByteBufOutputStream out, Object value) throws IOException {
         modifier.getSerializer().clear();
-        objectMapper.writeValue((OutputStream)out, value);
+        objectMapper.writeValue((OutputStream) out, value);
     }
 
     @Override

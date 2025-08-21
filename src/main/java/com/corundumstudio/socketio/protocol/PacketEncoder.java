@@ -129,8 +129,8 @@ public class PacketEncoder {
             }
             // Multiple packets are separated by 0x1e from protocol version 3 on
             // see https://socket.io/docs/v4/socket-io-protocol/#sample-session
-            final boolean isV3OrNewer = EngineIOVersion.V4.equals(packet.getEngineIOVersion()) ||
-                EngineIOVersion.V3.equals(packet.getEngineIOVersion());
+            final boolean isV3OrNewer = EngineIOVersion.V4.equals(packet.getEngineIOVersion())
+                || EngineIOVersion.V3.equals(packet.getEngineIOVersion());
             if (hasPrecedingPacket && isV3OrNewer) {
                 buffer.writeByte(0x1e);
             }
@@ -153,36 +153,39 @@ public class PacketEncoder {
         return (byte) (number ^ 0x30);
     }
 
-    static final char[] DigitTens = {'0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '1', '1', '1', '1',
+    static final char[] DIGIT_TENS = {'0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '1', '1', '1', '1',
             '1', '1', '1', '1', '1', '1', '2', '2', '2', '2', '2', '2', '2', '2', '2', '2', '3', '3', '3',
             '3', '3', '3', '3', '3', '3', '3', '4', '4', '4', '4', '4', '4', '4', '4', '4', '4', '5', '5',
             '5', '5', '5', '5', '5', '5', '5', '5', '6', '6', '6', '6', '6', '6', '6', '6', '6', '6', '7',
             '7', '7', '7', '7', '7', '7', '7', '7', '7', '8', '8', '8', '8', '8', '8', '8', '8', '8', '8',
-            '9', '9', '9', '9', '9', '9', '9', '9', '9', '9',};
+            '9', '9', '9', '9', '9', '9', '9', '9', '9', '9'};
 
-    static final char[] DigitOnes = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '1', '2', '3',
+    static final char[] DIGIT_ONES = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '1', '2', '3',
             '4', '5', '6', '7', '8', '9', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '1', '2',
             '3', '4', '5', '6', '7', '8', '9', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '1',
             '2', '3', '4', '5', '6', '7', '8', '9', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0',
             '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
-            '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',};
+            '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'};
 
-    static final char[] digits = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e',
+    static final char[] DIGITS = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e',
             'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x',
             'y', 'z'};
 
-    static final int[] sizeTable = {9, 99, 999, 9999, 99999, 999999, 9999999, 99999999, 999999999,
+    static final int[] SIZE_TABLE = {9, 99, 999, 9999, 99999, 999999, 9999999, 99999999, 999999999,
             Integer.MAX_VALUE};
 
     // Requires positive x
     static int stringSize(long x) {
-        for (int i = 0;; i++)
-            if (x <= sizeTable[i])
+        for (int i = 0;; i++) {
+            if (x <= SIZE_TABLE[i]) {
                 return i + 1;
+            }
+        }
     }
 
     static void getChars(long i, int index, byte[] buf) {
-        long q, r;
+        long q;
+        long r;
         int charPos = index;
         byte sign = 0;
 
@@ -197,8 +200,8 @@ public class PacketEncoder {
             // really: r = i - (q * 100);
             r = i - ((q << 6) + (q << 5) + (q << 2));
             i = q;
-            buf[--charPos] = (byte) DigitOnes[(int)r];
-            buf[--charPos] = (byte) DigitTens[(int)r];
+            buf[--charPos] = (byte) DIGIT_ONES[(int) r];
+            buf[--charPos] = (byte) DIGIT_TENS[(int) r];
         }
 
         // Fall thru to fast mode for smaller numbers
@@ -206,7 +209,7 @@ public class PacketEncoder {
         for (;;) {
             q = (i * 52429) >>> (16 + 3);
             r = i - ((q << 3) + (q << 1)); // r = i-(q*10) ...
-            buf[--charPos] = (byte) digits[(int)r];
+            buf[--charPos] = (byte) DIGITS[(int) r];
             i = q;
             if (i == 0)
                 break;
@@ -225,7 +228,7 @@ public class PacketEncoder {
 
     public static byte[] longToBytes(long number) {
         // TODO optimize
-        int length = (int)(Math.log10(number)+1);
+        int length = (int) (Math.log10(number) + 1);
         byte[] res = new byte[length];
         int i = length;
         while (number > 0) {

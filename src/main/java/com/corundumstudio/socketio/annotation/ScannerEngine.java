@@ -30,7 +30,7 @@ public class ScannerEngine {
 
     private static final Logger log = LoggerFactory.getLogger(ScannerEngine.class);
 
-    private static final List<? extends AnnotationScanner> annotations =
+    private static final List<? extends AnnotationScanner> ANNOTATIONS =
                     Arrays.asList(new OnConnectScanner(), new OnDisconnectScanner(), new OnEventScanner());
 
     private Method findSimilarMethod(Class<?> objectClazz, Method method) {
@@ -49,7 +49,7 @@ public class ScannerEngine {
 
         if (!clazz.isAssignableFrom(object.getClass())) {
             for (Method method : methods) {
-                for (AnnotationScanner annotationScanner : annotations) {
+                for (AnnotationScanner annotationScanner : ANNOTATIONS) {
                     Annotation ann = method.getAnnotation(annotationScanner.getScanAnnotation());
                     if (ann != null) {
                         annotationScanner.validate(method, clazz);
@@ -65,7 +65,7 @@ public class ScannerEngine {
             }
         } else {
             for (Method method : methods) {
-                for (AnnotationScanner annotationScanner : annotations) {
+                for (AnnotationScanner annotationScanner : ANNOTATIONS) {
                     Annotation ann = method.getAnnotation(annotationScanner.getScanAnnotation());
                     if (ann != null) {
                         annotationScanner.validate(method, clazz);

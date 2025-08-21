@@ -36,8 +36,7 @@ public enum EngineIOVersion {
      */
     V4("4"),
 
-    UNKNOWN(""),
-    ;
+    UNKNOWN("");
 
     public static final String EIO = "EIO";
 
@@ -51,7 +50,7 @@ public enum EngineIOVersion {
 
     private final String value;
 
-    private EngineIOVersion(String value) {
+    EngineIOVersion(String value) {
         this.value = value;
     }
 

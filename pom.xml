@@ -402,7 +402,6 @@
         </configuration>
       </plugin>
 
-<!--
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-checkstyle-plugin</artifactId>
@@ -422,7 +421,6 @@
           <excludes>**/module-info.java</excludes>
         </configuration>
       </plugin>
--->
 
       <plugin>
         <!-- this trick double-compiles everything so we can have a module-info.class

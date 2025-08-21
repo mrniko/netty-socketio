@@ -44,6 +44,6 @@ public interface ClientOperations {
      * @param name - event name
      * @param data - event data
      */
-    void sendEvent(String name, Object ... data);
+    void sendEvent(String name, Object... data);
 
 }

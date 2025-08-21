@@ -96,9 +96,7 @@ public class InPacketHandler extends SimpleChannelInboundHandler<PacketsMessage>
                                 p.setSubType(PacketType.ERROR);
                                 p.setNsp(packet.getNsp());
                                 final Object errorData = allowAuth.getErrorData();
-                                if (errorData != null) {
-                                    p.setData(errorData);
-                                }
+                                p.setData(errorData);
                                 client.send(p);
                                 return;
                             }

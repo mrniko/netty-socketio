@@ -73,7 +73,7 @@ public class NamespaceClient implements SocketIOClient {
     }
 
     @Override
-    public void sendEvent(String name, Object ... data) {
+    public void sendEvent(String name, Object... data) {
         Packet packet = new Packet(PacketType.MESSAGE, getEngineIOVersion());
         packet.setSubType(PacketType.EVENT);
         packet.setName(name);
@@ -82,7 +82,7 @@ public class NamespaceClient implements SocketIOClient {
     }
 
     @Override
-    public void sendEvent(String name, AckCallback<?> ackCallback, Object ... data) {
+    public void sendEvent(String name, AckCallback<?> ackCallback, Object... data) {
         Packet packet = new Packet(PacketType.MESSAGE, getEngineIOVersion());
         packet.setSubType(PacketType.EVENT);
         packet.setName(name);

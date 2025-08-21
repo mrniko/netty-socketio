@@ -70,7 +70,7 @@ class JsonSupportWrapper implements JsonSupport {
     }
 
     @Override
-    public void addEventMapping(String namespaceName, String eventName, Class<?> ... eventClass) {
+    public void addEventMapping(String namespaceName, String eventName, Class<?>... eventClass) {
         delegate.addEventMapping(namespaceName, eventName, eventClass);
     }
 

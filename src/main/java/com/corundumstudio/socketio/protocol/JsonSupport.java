@@ -37,7 +37,7 @@ public interface JsonSupport {
 
     void writeValue(ByteBufOutputStream out, Object value) throws IOException;
 
-    void addEventMapping(String namespaceName, String eventName, Class<?> ... eventClass);
+    void addEventMapping(String namespaceName, String eventName, Class<?>... eventClass);
 
     void removeEventMapping(String namespaceName, String eventName);
 

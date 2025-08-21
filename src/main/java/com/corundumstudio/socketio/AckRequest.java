@@ -64,7 +64,7 @@ public class AckRequest {
      *
      * @param objs - ack data objects
      */
-    public void sendAckData(Object ... objs) {
+    public void sendAckData(Object... objs) {
         List<Object> args = Arrays.asList(objs);
         sendAckData(args);
     }

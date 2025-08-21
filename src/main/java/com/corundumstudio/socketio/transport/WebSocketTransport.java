@@ -185,9 +185,9 @@ public class WebSocketTransport extends ChannelInboundHandlerAdapter {
         }
         ClientHead clientHead = clientsBox.get(sessionId);
         if (clientHead != null && clientHead.getNamespaces().isEmpty()) {
-        	clientsBox.removeClient(sessionId);
-        	clientHead.disconnect();
-    	}
+            clientsBox.removeClient(sessionId);
+            clientHead.disconnect();
+        }
         log.info("Client with sessionId: {} was disconnected", sessionId);
     }
 

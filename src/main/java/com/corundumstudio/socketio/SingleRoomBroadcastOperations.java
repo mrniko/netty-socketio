@@ -83,9 +83,9 @@ public class SingleRoomBroadcastOperations implements BroadcastOperations {
 
     @Override
     public void sendEvent(String name, SocketIOClient excludedClient, Object... data) {
-		Predicate<SocketIOClient> excludePredicate = (socketIOClient) -> Objects.equals(
-				socketIOClient.getSessionId(), excludedClient.getSessionId()
-		);
+        Predicate<SocketIOClient> excludePredicate = socketIOClient -> Objects.equals(
+                socketIOClient.getSessionId(), excludedClient.getSessionId()
+        );
         sendEvent(name, excludePredicate, data);
     }
 
@@ -125,20 +125,20 @@ public class SingleRoomBroadcastOperations implements BroadcastOperations {
 
     @Override
     public <T> void sendEvent(String name, Object data, SocketIOClient excludedClient, BroadcastAckCallback<T> ackCallback) {
-		Predicate<SocketIOClient> excludePredicate = (socketIOClient) -> Objects.equals(
-				socketIOClient.getSessionId(), excludedClient.getSessionId()
-		);
-		sendEvent(name, data, excludePredicate, ackCallback);
+        Predicate<SocketIOClient> excludePredicate = socketIOClient -> Objects.equals(
+                socketIOClient.getSessionId(), excludedClient.getSessionId()
+        );
+        sendEvent(name, data, excludePredicate, ackCallback);
     }
 
-	@Override
-	public <T> void sendEvent(String name, Object data, Predicate<SocketIOClient> excludePredicate, BroadcastAckCallback<T> ackCallback) {
-		for (SocketIOClient client : clients) {
-			if (excludePredicate.test(client)) {
-				continue;
-			}
-			client.sendEvent(name, ackCallback.createClientCallback(client), data);
-		}
-		ackCallback.loopFinished();
-	}
+    @Override
+    public <T> void sendEvent(String name, Object data, Predicate<SocketIOClient> excludePredicate, BroadcastAckCallback<T> ackCallback) {
+        for (SocketIOClient client : clients) {
+            if (excludePredicate.test(client)) {
+                continue;
+            }
+            client.sendEvent(name, ackCallback.createClientCallback(client), data);
+        }
+        ackCallback.loopFinished();
+    }
 }

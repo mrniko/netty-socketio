@@ -111,7 +111,7 @@ public class ClientHead {
 
     public void releasePollingChannel(Channel channel) {
         TransportState state = channels.get(Transport.POLLING);
-        if(channel.equals(state.getChannel())) {
+        if (channel.equals(state.getChannel())) {
             clientsBox.remove(channel);
             state.update(null);
         }
@@ -244,9 +244,9 @@ public class ClientHead {
         Packet packet = new Packet(PacketType.MESSAGE, engineIOVersion);
         packet.setSubType(PacketType.DISCONNECT);
         ChannelFuture future = send(packet);
-		if(future != null) {
-			future.addListener(ChannelFutureListener.CLOSE);
-		}
+        if (future != null) {
+            future.addListener(ChannelFutureListener.CLOSE);
+        }
 
         onChannelDisconnect();
     }

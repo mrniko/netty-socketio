@@ -54,9 +54,9 @@ public class OnDisconnectScanner implements AnnotationScanner {
         }
 
         for (Class<?> eventType : method.getParameterTypes()) {
-			if (SocketIOClient.class.equals(eventType)) {
+            if (SocketIOClient.class.equals(eventType)) {
                 return;
-			}
+            }
         }
 
         throw new IllegalArgumentException("Wrong OnDisconnect listener signature: " + clazz + "." + method.getName());
