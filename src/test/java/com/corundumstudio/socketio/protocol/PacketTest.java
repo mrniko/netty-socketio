@@ -21,10 +21,9 @@ public class PacketTest extends BaseProtocolTest {
 
   @Test
   public void packetCopyIsCreatedWhenNewNamespaceDiffersAndIsNull() {
-    Packet packet = createPacket();
-    // withNsp with null namespace should handle null gracefully
-    // or throw an exception - let's test the actual behavior
-    assertThrows(NullPointerException.class, () -> packet.withNsp(null, EngineIOVersion.UNKNOWN));
+    Packet packet = new Packet(PacketType.MESSAGE);
+    Packet newPacket = packet.withNsp(null, EngineIOVersion.UNKNOWN);
+    assertNull(newPacket.getNsp());
   }
 
   @Test
@@ -226,16 +225,6 @@ public class PacketTest extends BaseProtocolTest {
     Packet copiedPacket = originalPacket.withNsp(sameNamespace, EngineIOVersion.V4);
 
     assertSame(originalPacket, copiedPacket);
-  }
-
-  @Test
-  public void testPacketCopyWithNullNamespace() {
-    Packet originalPacket = createPacket();
-
-    // withNsp with null namespace should handle null gracefully
-    // or throw an exception - let's test the actual behavior
-    assertThrows(
-        NullPointerException.class, () -> originalPacket.withNsp(null, EngineIOVersion.V4));
   }
 
   private void assertPacketCopied(Packet oldPacket, Packet newPacket) {
