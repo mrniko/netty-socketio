@@ -17,6 +17,7 @@ package com.corundumstudio.socketio.annotation;
 
 import com.corundumstudio.socketio.Configuration;
 import com.corundumstudio.socketio.namespace.Namespace;
+import com.corundumstudio.socketio.protocol.JacksonJsonSupport;
 import com.github.javafaker.Faker;
 
 public abstract class AnnotationTestBase {
@@ -24,7 +25,9 @@ public abstract class AnnotationTestBase {
     private static final Faker FAKER = new Faker();
 
     protected Configuration newConfiguration() {
-        return new Configuration();
+        Configuration config = new Configuration();
+        config.setJsonSupport(new JacksonJsonSupport());
+        return config;
     }
 
     protected Namespace newNamespace(Configuration configuration) {
