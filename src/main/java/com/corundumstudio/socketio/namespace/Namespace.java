@@ -455,7 +455,7 @@ public class Namespace implements SocketIONamespace {
                 return result;
               }
           }
-          return AuthTokenResult.AuthTokenResultSuccess;
+          return AuthTokenResult.AUTH_TOKEN_RESULT_SUCCESS;
       } catch (Exception e) {
           exceptionListener.onAuthException(e, client);
       }
