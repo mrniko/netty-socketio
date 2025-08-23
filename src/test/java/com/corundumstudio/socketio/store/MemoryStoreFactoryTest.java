@@ -15,12 +15,17 @@
  */
 package com.corundumstudio.socketio.store;
 
-import com.corundumstudio.socketio.store.pubsub.PubSubStore;
-import org.junit.jupiter.api.Test;
-
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Test;
+
+import com.corundumstudio.socketio.store.pubsub.PubSubStore;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Test class for MemoryStoreFactory - no container needed as it's in-memory

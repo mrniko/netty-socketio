@@ -15,9 +15,38 @@
  */
 package com.corundumstudio.socketio.namespace;
 
-import com.corundumstudio.socketio.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Queue;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ConcurrentMap;
+
+import com.corundumstudio.socketio.AckMode;
+import com.corundumstudio.socketio.AckRequest;
+import com.corundumstudio.socketio.AuthTokenListener;
+import com.corundumstudio.socketio.AuthTokenResult;
+import com.corundumstudio.socketio.BroadcastOperations;
+import com.corundumstudio.socketio.Configuration;
+import com.corundumstudio.socketio.MultiRoomBroadcastOperations;
+import com.corundumstudio.socketio.MultiTypeArgs;
+import com.corundumstudio.socketio.SingleRoomBroadcastOperations;
+import com.corundumstudio.socketio.SocketIOClient;
+import com.corundumstudio.socketio.SocketIONamespace;
 import com.corundumstudio.socketio.annotation.ScannerEngine;
-import com.corundumstudio.socketio.listener.*;
+import com.corundumstudio.socketio.listener.ConnectListener;
+import com.corundumstudio.socketio.listener.DataListener;
+import com.corundumstudio.socketio.listener.DisconnectListener;
+import com.corundumstudio.socketio.listener.EventInterceptor;
+import com.corundumstudio.socketio.listener.ExceptionListener;
+import com.corundumstudio.socketio.listener.MultiTypeEventListener;
+import com.corundumstudio.socketio.listener.PingListener;
+import com.corundumstudio.socketio.listener.PongListener;
 import com.corundumstudio.socketio.protocol.JsonSupport;
 import com.corundumstudio.socketio.protocol.Packet;
 import com.corundumstudio.socketio.store.StoreFactory;
@@ -25,11 +54,8 @@ import com.corundumstudio.socketio.store.pubsub.BulkJoinLeaveMessage;
 import com.corundumstudio.socketio.store.pubsub.JoinLeaveMessage;
 import com.corundumstudio.socketio.store.pubsub.PubSubType;
 import com.corundumstudio.socketio.transport.NamespaceClient;
-import io.netty.util.internal.PlatformDependent;
 
-import java.util.*;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.ConcurrentMap;
+import io.netty.util.internal.PlatformDependent;
 
 /**
  * Hub object for all clients in one namespace.

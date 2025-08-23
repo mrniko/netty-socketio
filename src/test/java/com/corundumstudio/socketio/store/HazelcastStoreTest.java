@@ -15,16 +15,17 @@
  */
 package com.corundumstudio.socketio.store;
 
-import com.hazelcast.client.HazelcastClient;
-import com.hazelcast.client.config.ClientConfig;
-import com.hazelcast.core.HazelcastInstance;
-import org.junit.jupiter.api.AfterEach;
+import java.util.UUID;
+
 import org.junit.jupiter.api.Test;
 import org.testcontainers.containers.GenericContainer;
 
-import java.util.UUID;
+import com.hazelcast.client.HazelcastClient;
+import com.hazelcast.client.config.ClientConfig;
+import com.hazelcast.core.HazelcastInstance;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * Test class for HazelcastStore using testcontainers

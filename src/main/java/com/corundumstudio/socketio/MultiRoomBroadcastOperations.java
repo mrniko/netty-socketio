@@ -15,13 +15,13 @@
  */
 package com.corundumstudio.socketio;
 
-import com.corundumstudio.socketio.protocol.Packet;
-
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Predicate;
+
+import com.corundumstudio.socketio.protocol.Packet;
 
 /**
  * author: liangjiaqi

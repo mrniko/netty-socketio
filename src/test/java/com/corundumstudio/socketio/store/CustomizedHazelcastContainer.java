@@ -15,12 +15,13 @@
  */
 package com.corundumstudio.socketio.store;
 
-import com.github.dockerjava.api.command.InspectContainerResponse;
+import java.util.concurrent.TimeUnit;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.GenericContainer;
 
-import java.util.concurrent.TimeUnit;
+import com.github.dockerjava.api.command.InspectContainerResponse;
 
 /**
  * Customized Hazelcast container for testing purposes.

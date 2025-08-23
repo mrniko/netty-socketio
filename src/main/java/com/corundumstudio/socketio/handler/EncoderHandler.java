@@ -15,7 +15,18 @@
  */
 package com.corundumstudio.socketio.handler;
 
-import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.List;
+import java.util.Queue;
+import java.util.jar.Attributes;
+import java.util.jar.Manifest;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.corundumstudio.socketio.Configuration;
 import com.corundumstudio.socketio.Transport;
@@ -26,6 +37,7 @@ import com.corundumstudio.socketio.messages.XHROptionsMessage;
 import com.corundumstudio.socketio.messages.XHRPostMessage;
 import com.corundumstudio.socketio.protocol.Packet;
 import com.corundumstudio.socketio.protocol.PacketEncoder;
+
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufOutputStream;
 import io.netty.buffer.ByteBufUtil;
@@ -53,17 +65,8 @@ import io.netty.util.AttributeKey;
 import io.netty.util.CharsetUtil;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.List;
-import java.util.Queue;
-import java.util.jar.Attributes;
-import java.util.jar.Manifest;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 
 @Sharable
 public class EncoderHandler extends ChannelOutboundHandlerAdapter {

@@ -15,19 +15,21 @@
  */
 package com.corundumstudio.socketio.protocol;
 
+import java.io.IOException;
+import java.net.URLDecoder;
+import java.util.LinkedList;
+import java.util.Map;
+
 import com.corundumstudio.socketio.AckCallback;
 import com.corundumstudio.socketio.ack.AckManager;
 import com.corundumstudio.socketio.handler.ClientHead;
 import com.corundumstudio.socketio.namespace.Namespace;
+
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufInputStream;
 import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.base64.Base64;
 import io.netty.util.CharsetUtil;
-import java.io.IOException;
-import java.net.URLDecoder;
-import java.util.LinkedList;
-import java.util.Map;
 
 public class PacketDecoder {
 

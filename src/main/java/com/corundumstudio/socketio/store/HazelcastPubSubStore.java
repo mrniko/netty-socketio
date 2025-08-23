@@ -15,8 +15,6 @@
  */
 package com.corundumstudio.socketio.store;
 
-import io.netty.util.internal.PlatformDependent;
-
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentMap;
@@ -29,6 +27,8 @@ import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.ITopic;
 import com.hazelcast.core.Message;
 import com.hazelcast.core.MessageListener;
+
+import io.netty.util.internal.PlatformDependent;
 
 
 public class HazelcastPubSubStore implements PubSubStore {

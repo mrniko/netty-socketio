@@ -15,15 +15,6 @@
  */
 package com.corundumstudio.socketio.transport;
 
-import com.corundumstudio.socketio.Configuration;
-import com.corundumstudio.socketio.SocketConfig;
-import com.corundumstudio.socketio.SocketIOClient;
-import com.corundumstudio.socketio.SocketIOServer;
-import com.corundumstudio.socketio.Transport;
-import com.corundumstudio.socketio.listener.ExceptionListener;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.netty.channel.ChannelHandlerContext;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -39,12 +30,27 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.corundumstudio.socketio.Configuration;
+import com.corundumstudio.socketio.SocketConfig;
+import com.corundumstudio.socketio.SocketIOClient;
+import com.corundumstudio.socketio.SocketIOServer;
+import com.corundumstudio.socketio.Transport;
+import com.corundumstudio.socketio.listener.ExceptionListener;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import io.netty.channel.ChannelHandlerContext;
 
 public class HttpTransportTest {
 

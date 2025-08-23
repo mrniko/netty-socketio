@@ -15,13 +15,13 @@
  */
 package com.corundumstudio.socketio.handler;
 
-import io.netty.channel.Channel;
-import io.netty.util.internal.PlatformDependent;
-
 import java.util.Map;
 import java.util.UUID;
 
 import com.corundumstudio.socketio.HandshakeData;
+
+import io.netty.channel.Channel;
+import io.netty.util.internal.PlatformDependent;
 
 public class ClientsBox {
 

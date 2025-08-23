@@ -15,18 +15,20 @@
  */
 package com.corundumstudio.socketio.store;
 
-import com.hazelcast.client.HazelcastClient;
-import com.hazelcast.client.config.ClientConfig;
-import com.hazelcast.core.HazelcastInstance;
-import com.corundumstudio.socketio.store.CustomizedHazelcastContainer;
-import com.corundumstudio.socketio.store.pubsub.PubSubStore;
+import java.util.UUID;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.containers.GenericContainer;
 
-import java.util.UUID;
+import com.corundumstudio.socketio.store.pubsub.PubSubStore;
+import com.hazelcast.client.HazelcastClient;
+import com.hazelcast.client.config.ClientConfig;
+import com.hazelcast.core.HazelcastInstance;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Test class for HazelcastStoreFactory using testcontainers

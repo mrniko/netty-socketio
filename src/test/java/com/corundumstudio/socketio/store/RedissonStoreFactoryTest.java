@@ -15,8 +15,8 @@
  */
 package com.corundumstudio.socketio.store;
 
-import com.corundumstudio.socketio.store.CustomizedRedisContainer;
-import com.corundumstudio.socketio.store.pubsub.PubSubStore;
+import java.util.UUID;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.redisson.Redisson;
@@ -24,9 +24,11 @@ import org.redisson.api.RedissonClient;
 import org.redisson.config.Config;
 import org.testcontainers.containers.GenericContainer;
 
-import java.util.UUID;
+import com.corundumstudio.socketio.store.pubsub.PubSubStore;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Test class for RedissonStoreFactory using testcontainers

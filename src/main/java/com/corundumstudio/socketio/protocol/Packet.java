@@ -15,14 +15,14 @@
  */
 package com.corundumstudio.socketio.protocol;
 
-import io.netty.buffer.ByteBuf;
-
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 import com.corundumstudio.socketio.namespace.Namespace;
+
+import io.netty.buffer.ByteBuf;
 
 public class Packet implements Serializable {
 

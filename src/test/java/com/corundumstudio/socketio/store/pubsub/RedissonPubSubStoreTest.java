@@ -15,12 +15,13 @@
  */
 package com.corundumstudio.socketio.store.pubsub;
 
-import com.corundumstudio.socketio.store.CustomizedRedisContainer;
-import com.corundumstudio.socketio.store.RedissonPubSubStore;
 import org.redisson.Redisson;
 import org.redisson.api.RedissonClient;
 import org.redisson.config.Config;
 import org.testcontainers.containers.GenericContainer;
+
+import com.corundumstudio.socketio.store.CustomizedRedisContainer;
+import com.corundumstudio.socketio.store.RedissonPubSubStore;
 
 /**
  * Test class for RedissonPubSubStore using testcontainers

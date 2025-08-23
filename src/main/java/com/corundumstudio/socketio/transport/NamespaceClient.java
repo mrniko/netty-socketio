@@ -21,7 +21,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import com.corundumstudio.socketio.protocol.EngineIOVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,6 +30,7 @@ import com.corundumstudio.socketio.SocketIOClient;
 import com.corundumstudio.socketio.Transport;
 import com.corundumstudio.socketio.handler.ClientHead;
 import com.corundumstudio.socketio.namespace.Namespace;
+import com.corundumstudio.socketio.protocol.EngineIOVersion;
 import com.corundumstudio.socketio.protocol.Packet;
 import com.corundumstudio.socketio.protocol.PacketType;
 

@@ -17,12 +17,12 @@ package com.corundumstudio.socketio.store.pubsub;
 
 import java.util.Set;
 
-import com.corundumstudio.socketio.namespace.Namespace;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.corundumstudio.socketio.handler.AuthorizeHandler;
 import com.corundumstudio.socketio.handler.ClientHead;
+import com.corundumstudio.socketio.namespace.Namespace;
 import com.corundumstudio.socketio.namespace.NamespacesHub;
 import com.corundumstudio.socketio.protocol.JsonSupport;
 import com.corundumstudio.socketio.store.StoreFactory;

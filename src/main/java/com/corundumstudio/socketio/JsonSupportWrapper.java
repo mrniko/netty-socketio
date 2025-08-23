@@ -15,9 +15,6 @@
  */
 package com.corundumstudio.socketio;
 
-import io.netty.buffer.ByteBufInputStream;
-import io.netty.buffer.ByteBufOutputStream;
-
 import java.io.IOException;
 import java.util.List;
 
@@ -26,6 +23,9 @@ import org.slf4j.LoggerFactory;
 
 import com.corundumstudio.socketio.protocol.AckArgs;
 import com.corundumstudio.socketio.protocol.JsonSupport;
+
+import io.netty.buffer.ByteBufInputStream;
+import io.netty.buffer.ByteBufOutputStream;
 
 class JsonSupportWrapper implements JsonSupport {
 

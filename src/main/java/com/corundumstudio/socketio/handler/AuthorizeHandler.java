@@ -15,19 +15,20 @@
  */
 package com.corundumstudio.socketio.handler;
 
-import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
-
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
-import com.corundumstudio.socketio.*;
-import com.corundumstudio.socketio.protocol.EngineIOVersion;
-import com.corundumstudio.socketio.store.Store;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.corundumstudio.socketio.AuthorizationResult;
 import com.corundumstudio.socketio.Configuration;
 import com.corundumstudio.socketio.Disconnectable;
 import com.corundumstudio.socketio.DisconnectableHub;
@@ -39,11 +40,13 @@ import com.corundumstudio.socketio.messages.HttpErrorMessage;
 import com.corundumstudio.socketio.namespace.Namespace;
 import com.corundumstudio.socketio.namespace.NamespacesHub;
 import com.corundumstudio.socketio.protocol.AuthPacket;
+import com.corundumstudio.socketio.protocol.EngineIOVersion;
 import com.corundumstudio.socketio.protocol.Packet;
 import com.corundumstudio.socketio.protocol.PacketType;
 import com.corundumstudio.socketio.scheduler.CancelableScheduler;
 import com.corundumstudio.socketio.scheduler.SchedulerKey;
 import com.corundumstudio.socketio.scheduler.SchedulerKey.Type;
+import com.corundumstudio.socketio.store.Store;
 import com.corundumstudio.socketio.store.StoreFactory;
 import com.corundumstudio.socketio.store.pubsub.ConnectMessage;
 import com.corundumstudio.socketio.store.pubsub.PubSubType;
@@ -62,6 +65,8 @@ import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.QueryStringDecoder;
 import io.netty.handler.codec.http.cookie.Cookie;
 import io.netty.handler.codec.http.cookie.ServerCookieDecoder;
+
+import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 
 @Sharable
 public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Disconnectable {

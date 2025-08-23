@@ -15,6 +15,9 @@
  */
 package com.corundumstudio.socketio.handler;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.corundumstudio.socketio.AuthTokenResult;
 import com.corundumstudio.socketio.listener.ExceptionListener;
 import com.corundumstudio.socketio.messages.PacketsMessage;
@@ -26,13 +29,12 @@ import com.corundumstudio.socketio.protocol.Packet;
 import com.corundumstudio.socketio.protocol.PacketDecoder;
 import com.corundumstudio.socketio.protocol.PacketType;
 import com.corundumstudio.socketio.transport.NamespaceClient;
+
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.util.CharsetUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @Sharable
 public class InPacketHandler extends SimpleChannelInboundHandler<PacketsMessage> {

@@ -15,13 +15,13 @@
  */
 package com.corundumstudio.socketio.protocol;
 
-import io.netty.buffer.ByteBufInputStream;
-import io.netty.buffer.ByteBufOutputStream;
-
 import java.io.IOException;
 import java.util.List;
 
 import com.corundumstudio.socketio.AckCallback;
+
+import io.netty.buffer.ByteBufInputStream;
+import io.netty.buffer.ByteBufOutputStream;
 
 /**
  * JSON infrastructure interface.

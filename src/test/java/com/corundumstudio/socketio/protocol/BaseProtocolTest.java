@@ -15,14 +15,14 @@
  */
 package com.corundumstudio.socketio.protocol;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
+import java.util.Arrays;
+import java.util.UUID;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.mockito.MockitoAnnotations;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 
 /**
  * Base class for protocol tests providing common utilities and setup

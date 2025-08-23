@@ -15,12 +15,13 @@
  */
 package com.corundumstudio.socketio.store.pubsub;
 
+import org.testcontainers.containers.GenericContainer;
+
+import com.corundumstudio.socketio.store.CustomizedHazelcastContainer;
+import com.corundumstudio.socketio.store.HazelcastPubSubStore;
 import com.hazelcast.client.HazelcastClient;
 import com.hazelcast.client.config.ClientConfig;
 import com.hazelcast.core.HazelcastInstance;
-import com.corundumstudio.socketio.store.CustomizedHazelcastContainer;
-import com.corundumstudio.socketio.store.HazelcastPubSubStore;
-import org.testcontainers.containers.GenericContainer;
 
 /**
  * Test class for HazelcastPubSubStore using testcontainers

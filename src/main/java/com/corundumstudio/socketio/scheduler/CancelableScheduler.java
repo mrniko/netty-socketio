@@ -15,9 +15,9 @@
  */
 package com.corundumstudio.socketio.scheduler;
 
-import io.netty.channel.ChannelHandlerContext;
-
 import java.util.concurrent.TimeUnit;
+
+import io.netty.channel.ChannelHandlerContext;
 
 public interface CancelableScheduler {
 

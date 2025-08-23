@@ -15,9 +15,9 @@
  */
 package com.corundumstudio.socketio.store;
 
-import io.netty.util.internal.PlatformDependent;
-
 import java.util.Map;
+
+import io.netty.util.internal.PlatformDependent;
 
 public class MemoryStore implements Store {
 

@@ -15,20 +15,25 @@
  */
 package com.corundumstudio.socketio.store;
 
-import com.corundumstudio.socketio.handler.AuthorizeHandler;
-import com.corundumstudio.socketio.namespace.NamespacesHub;
-import com.corundumstudio.socketio.protocol.JsonSupport;
-import com.corundumstudio.socketio.store.pubsub.PubSubStore;
+import java.util.Map;
+import java.util.UUID;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import java.util.Map;
-import java.util.UUID;
+import com.corundumstudio.socketio.handler.AuthorizeHandler;
+import com.corundumstudio.socketio.namespace.NamespacesHub;
+import com.corundumstudio.socketio.protocol.JsonSupport;
+import com.corundumstudio.socketio.store.pubsub.PubSubStore;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Test class for StoreFactory implementations

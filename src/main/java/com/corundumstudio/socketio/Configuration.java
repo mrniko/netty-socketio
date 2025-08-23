@@ -15,18 +15,20 @@
  */
 package com.corundumstudio.socketio;
 
+import java.io.InputStream;
+import java.util.Arrays;
+import java.util.List;
+
+import javax.net.ssl.KeyManagerFactory;
+
 import com.corundumstudio.socketio.handler.SuccessAuthorizationListener;
 import com.corundumstudio.socketio.listener.DefaultExceptionListener;
 import com.corundumstudio.socketio.listener.ExceptionListener;
 import com.corundumstudio.socketio.protocol.JsonSupport;
 import com.corundumstudio.socketio.store.MemoryStoreFactory;
 import com.corundumstudio.socketio.store.StoreFactory;
-import io.netty.handler.codec.http.HttpDecoderConfig;
 
-import javax.net.ssl.KeyManagerFactory;
-import java.io.InputStream;
-import java.util.Arrays;
-import java.util.List;
+import io.netty.handler.codec.http.HttpDecoderConfig;
 
 public class Configuration {
 

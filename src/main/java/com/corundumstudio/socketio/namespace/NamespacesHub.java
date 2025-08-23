@@ -15,8 +15,6 @@
  */
 package com.corundumstudio.socketio.namespace;
 
-import io.netty.util.internal.PlatformDependent;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -26,6 +24,8 @@ import com.corundumstudio.socketio.Configuration;
 import com.corundumstudio.socketio.SocketIOClient;
 import com.corundumstudio.socketio.SocketIONamespace;
 import com.corundumstudio.socketio.misc.CompositeIterable;
+
+import io.netty.util.internal.PlatformDependent;
 
 public class NamespacesHub {
 

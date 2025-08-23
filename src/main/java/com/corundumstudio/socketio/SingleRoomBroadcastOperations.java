@@ -15,6 +15,11 @@
  */
 package com.corundumstudio.socketio;
 
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Objects;
+import java.util.function.Predicate;
+
 import com.corundumstudio.socketio.misc.IterableCollection;
 import com.corundumstudio.socketio.protocol.EngineIOVersion;
 import com.corundumstudio.socketio.protocol.Packet;
@@ -22,11 +27,6 @@ import com.corundumstudio.socketio.protocol.PacketType;
 import com.corundumstudio.socketio.store.StoreFactory;
 import com.corundumstudio.socketio.store.pubsub.DispatchMessage;
 import com.corundumstudio.socketio.store.pubsub.PubSubType;
-
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Objects;
-import java.util.function.Predicate;
 
 /**
  * Author: liangjiaqi

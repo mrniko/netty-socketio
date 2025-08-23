@@ -15,14 +15,9 @@
  */
 package com.corundumstudio.socketio.protocol;
 
-import com.corundumstudio.socketio.AckCallback;
-import com.corundumstudio.socketio.ack.AckManager;
-import com.corundumstudio.socketio.handler.ClientHead;
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
-import io.netty.util.CharsetUtil;
-import io.socket.parser.IOParser;
-import io.socket.parser.Packet;
+import java.io.IOException;
+import java.util.UUID;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,14 +27,21 @@ import org.mockito.MockitoAnnotations;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.util.UUID;
+import com.corundumstudio.socketio.AckCallback;
+import com.corundumstudio.socketio.ack.AckManager;
+import com.corundumstudio.socketio.handler.ClientHead;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
+
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
+import io.netty.util.CharsetUtil;
+import io.socket.parser.IOParser;
+import io.socket.parser.Packet;
 
 public class NativeSocketIOClientTest {
 

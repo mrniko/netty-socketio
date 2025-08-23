@@ -15,10 +15,9 @@
  */
 package com.corundumstudio.socketio.protocol;
 
+import java.util.concurrent.atomic.AtomicReference;
 import io.socket.parser.IOParser;
 import io.socket.parser.Packet;
-
-import java.util.concurrent.atomic.AtomicReference;
 
 public class NativeSocketIOClientUtil {
     private static final IOParser.Encoder ENCODER = new IOParser.Encoder();

@@ -15,11 +15,11 @@
  */
 package com.corundumstudio.socketio.listener;
 
-import io.netty.channel.ChannelHandlerContext;
-
 import java.util.List;
 
 import com.corundumstudio.socketio.SocketIOClient;
+
+import io.netty.channel.ChannelHandlerContext;
 
 public interface ExceptionListener {
 

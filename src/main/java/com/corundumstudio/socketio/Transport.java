@@ -15,8 +15,8 @@
  */
 package com.corundumstudio.socketio;
 
-import com.corundumstudio.socketio.transport.WebSocketTransport;
 import com.corundumstudio.socketio.transport.PollingTransport;
+import com.corundumstudio.socketio.transport.WebSocketTransport;
 
 public enum Transport {
 
