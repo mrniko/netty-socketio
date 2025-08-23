@@ -397,12 +397,11 @@
         <configuration>
           <linkXref>true</linkXref>
           <minimumTokens>100</minimumTokens>
-          <targetJdk>1.6</targetJdk>
+          <targetJdk>1.8</targetJdk>
           <verbose>true</verbose>
         </configuration>
       </plugin>
 
-<!--
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-checkstyle-plugin</artifactId>
@@ -422,7 +421,6 @@
           <excludes>**/module-info.java</excludes>
         </configuration>
       </plugin>
--->
 
       <plugin>
         <!-- this trick double-compiles everything so we can have a module-info.class

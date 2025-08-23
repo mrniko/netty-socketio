@@ -33,7 +33,7 @@ package com.corundumstudio.socketio;
 
 public class AuthTokenResult {
 
-  public final static AuthTokenResult AuthTokenResultSuccess = new AuthTokenResult(true, null);
+  public static final AuthTokenResult AUTH_TOKEN_RESULT_SUCCESS = new AuthTokenResult(true, null);
   private final boolean success;
   private final Object errorData;
 

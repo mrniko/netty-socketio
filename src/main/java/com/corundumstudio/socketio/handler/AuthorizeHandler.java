@@ -145,9 +145,9 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
         }
 
         HandshakeData data = new HandshakeData(req.headers(), params,
-                (InetSocketAddress)channel.remoteAddress(),
-                (InetSocketAddress)channel.localAddress(),
-                req.uri(), origin != null && !origin.equalsIgnoreCase("null"));
+                (InetSocketAddress) channel.remoteAddress(),
+                (InetSocketAddress) channel.localAddress(),
+                req.uri(), origin != null && !"null".equalsIgnoreCase(origin));
 
         boolean result = false;
         Map<String, Object> storeParams = Collections.emptyMap();
@@ -205,8 +205,8 @@ public class AuthorizeHandler extends ChannelInboundHandlerAdapter implements Di
         //:TODO lyjnew   Current WEBSOCKET retrun upgrade[] engine-io protocol
         // the test case line
         // https://github.com/socketio/engine.io-protocol/blob/de247df875ddcd4778d1165829c8644301750e9f/test-suite/test-suite.js#L131C43-L131C43
-        if (configuration.getTransports().contains(Transport.WEBSOCKET) &&
-                !(EngineIOVersion.V4.equals(client.getEngineIOVersion()) && Transport.WEBSOCKET.equals(client.getCurrentTransport())))  {
+        if (configuration.getTransports().contains(Transport.WEBSOCKET)
+                && !(EngineIOVersion.V4.equals(client.getEngineIOVersion()) && Transport.WEBSOCKET.equals(client.getCurrentTransport())))  {
             transports = new String[]{"websocket"};
         }
 

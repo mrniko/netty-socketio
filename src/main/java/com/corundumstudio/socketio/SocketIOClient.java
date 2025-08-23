@@ -64,7 +64,7 @@ public interface SocketIOClient extends ClientOperations, Store {
      * @param data - event data
      * @param ackCallback - ack callback
      */
-    void sendEvent(String name, AckCallback<?> ackCallback, Object ... data);
+    void sendEvent(String name, AckCallback<?> ackCallback, Object... data);
 
     /**
      * Send packet with ack callback

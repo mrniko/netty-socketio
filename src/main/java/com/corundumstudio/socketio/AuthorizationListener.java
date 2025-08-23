@@ -19,7 +19,7 @@ public interface AuthorizationListener {
 
     /**
      * Checks whether a client with handshake data is authorized on connection
-	   * Optionally returns storeParams that will be added to {@link SocketIOClient} store
+     * Optionally returns storeParams that will be added to {@link SocketIOClient} store
      *
      * @param data handshake data
      * @return - {@link AuthorizationResult}

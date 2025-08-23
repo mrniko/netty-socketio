@@ -99,13 +99,13 @@ public class SocketIOServer implements ClientListeners {
         Collection<SocketIONamespace> namespaces = namespacesHub.getAllNamespaces();
         List<BroadcastOperations> list = new ArrayList<BroadcastOperations>();
         BroadcastOperations broadcast = null;
-        if( namespaces != null && namespaces.size() > 0 ) {
-            for( SocketIONamespace n : namespaces ) {
+        if (namespaces != null && namespaces.size() > 0) {
+            for (SocketIONamespace n : namespaces) {
                 broadcast = n.getBroadcastOperations();
-                list.add( broadcast );
+                list.add(broadcast);
             }
         }
-        return new MultiRoomBroadcastOperations( list );
+        return new MultiRoomBroadcastOperations(list);
     }
 
     /**
@@ -119,15 +119,15 @@ public class SocketIOServer implements ClientListeners {
         Collection<SocketIONamespace> namespaces = namespacesHub.getAllNamespaces();
         List<BroadcastOperations> list = new ArrayList<BroadcastOperations>();
         BroadcastOperations broadcast = null;
-        if( namespaces != null && namespaces.size() > 0 ) {
-            for( SocketIONamespace n : namespaces ) {
-				for ( String room : rooms ) {
-                    broadcast = n.getRoomOperations( room );
-                    list.add( broadcast );
+        if (namespaces != null && namespaces.size() > 0) {
+            for (SocketIONamespace n : namespaces) {
+                for (String room : rooms) {
+                    broadcast = n.getRoomOperations(room);
+                    list.add(broadcast);
                 }
-			}
+            }
         }
-        return new MultiRoomBroadcastOperations( list );
+        return new MultiRoomBroadcastOperations(list);
     }
 
     /**

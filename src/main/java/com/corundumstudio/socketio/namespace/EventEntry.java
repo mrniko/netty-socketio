@@ -22,7 +22,7 @@ import com.corundumstudio.socketio.listener.DataListener;
 
 public class EventEntry<T> {
 
-    private final Queue<DataListener<T>> listeners = new ConcurrentLinkedQueue<DataListener<T>>();;
+    private final Queue<DataListener<T>> listeners = new ConcurrentLinkedQueue<DataListener<T>>();
 
     public EventEntry() {
         super();

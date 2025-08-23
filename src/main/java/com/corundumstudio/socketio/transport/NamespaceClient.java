@@ -73,7 +73,7 @@ public class NamespaceClient implements SocketIOClient {
     }
 
     @Override
-    public void sendEvent(String name, Object ... data) {
+    public void sendEvent(String name, Object... data) {
         Packet packet = new Packet(PacketType.MESSAGE, getEngineIOVersion());
         packet.setSubType(PacketType.EVENT);
         packet.setName(name);
@@ -82,7 +82,7 @@ public class NamespaceClient implements SocketIOClient {
     }
 
     @Override
-    public void sendEvent(String name, AckCallback<?> ackCallback, Object ... data) {
+    public void sendEvent(String name, AckCallback<?> ackCallback, Object... data) {
         Packet packet = new Packet(PacketType.MESSAGE, getEngineIOVersion());
         packet.setSubType(PacketType.EVENT);
         packet.setName(name);
@@ -150,9 +150,16 @@ public class NamespaceClient implements SocketIOClient {
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result + ((getSessionId() == null) ? 0 : getSessionId().hashCode());
-        result = prime * result
-                + ((getNamespace().getName() == null) ? 0 : getNamespace().getName().hashCode());
+        if (getSessionId() == null) {
+            result = prime * result + 0;
+        } else {
+            result = prime * result + getSessionId().hashCode();
+        }
+        if (getNamespace().getName() == null) {
+            result = prime * result + 0;
+        } else {
+            result = prime * result + getNamespace().getName().hashCode();
+        }
         return result;
     }
 

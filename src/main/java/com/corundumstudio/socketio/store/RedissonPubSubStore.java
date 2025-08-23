@@ -58,7 +58,7 @@ public class RedissonPubSubStore implements PubSubStore {
             @Override
             public void onMessage(CharSequence channel, PubSubMessage msg) {
                 if (!nodeId.equals(msg.getNodeId())) {
-                    listener.onMessage((T)msg);
+                    listener.onMessage((T) msg);
                 }
             }
         });

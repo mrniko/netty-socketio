@@ -132,7 +132,7 @@ public class WebSocketTransport extends ChannelInboundHandlerAdapter {
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         final  Channel channel = ctx.channel();
         ClientHead client = clientsBox.get(channel);
-        Packet packet = new Packet(PacketType.MESSAGE, client != null ? client.getEngineIOVersion() : EngineIOVersion.UNKNOWN);
+        Packet packet = new Packet(PacketType.MESSAGE, getEngineIOVersion(client));
         packet.setSubType(PacketType.DISCONNECT);
         if (client != null && client.isTransportChannel(ctx.channel(), Transport.WEBSOCKET)) {
             log.debug("channel inactive {}", client.getSessionId());
@@ -168,7 +168,7 @@ public class WebSocketTransport extends ChannelInboundHandlerAdapter {
                         connectClient(channel, sessionId);
                     }
                 });
-            } catch (Throwable e) {
+            } catch (Exception e) {
                 log.warn("Can't handshake {}, {}", sessionId, e.getMessage(), e);
                 closeClient(sessionId, channel);
             }
@@ -180,14 +180,14 @@ public class WebSocketTransport extends ChannelInboundHandlerAdapter {
     private void closeClient(UUID sessionId, Channel channel) {
         try {
             channel.close();
-        } catch (Throwable t) {
+        } catch (Exception t) {
             log.warn("Can't close channel for sessionId: {}", sessionId, t);
         }
         ClientHead clientHead = clientsBox.get(sessionId);
         if (clientHead != null && clientHead.getNamespaces().isEmpty()) {
-        	clientsBox.removeClient(sessionId);
-        	clientHead.disconnect();
-    	}
+            clientsBox.removeClient(sessionId);
+            clientHead.disconnect();
+        }
         log.info("Client with sessionId: {} was disconnected", sessionId);
     }
 
@@ -229,6 +229,13 @@ public class WebSocketTransport extends ChannelInboundHandlerAdapter {
             protocol = "wss://";
         }
         return protocol + req.headers().get(HttpHeaderNames.HOST) + req.uri();
+    }
+
+    private EngineIOVersion getEngineIOVersion(ClientHead client) {
+        if (client != null) {
+            return client.getEngineIOVersion();
+        }
+        return EngineIOVersion.UNKNOWN;
     }
 
 }
