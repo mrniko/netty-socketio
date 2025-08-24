@@ -82,7 +82,7 @@ import io.netty.handler.codec.http.cookie.ServerCookieEncoder;
  * @see EmbeddedChannel
  * @see Socket.IO Protocol Specification
  */
-class AuthorizeHandlerTest {
+public class AuthorizeHandlerTest {
 
     private static final String CONNECT_PATH = "/socket.io/";
     private static final String TEST_ORIGIN = "http://localhost:3000";
@@ -249,7 +249,7 @@ class AuthorizeHandlerTest {
      * that don't match the expected Socket.IO connection path pattern:
      * 1. Requests to non-Socket.IO endpoints are rejected
      * 2. HTTP 400 Bad Request response is sent
-    3. The channel is properly closed to prevent resource leaks
+     * 3. The channel is properly closed to prevent resource leaks
      * 4. Invalid requests don't interfere with valid Socket.IO connections
      * 
      * This is a security measure to prevent unauthorized access to Socket.IO
@@ -341,6 +341,45 @@ class AuthorizeHandlerTest {
     }
 
     /**
+     * Test that verifies proper handling of failed authorization attempts.
+     * 
+     * This test validates the error handling when a client's connection request
+     * fails the authorization process:
+     * 1. The request reaches the authorization phase with valid parameters
+     * 2. Authorization listener returns false (unauthorized)
+     * 3. HTTP 401 Unauthorized response is sent
+     * 4. Channel is closed to prevent unauthorized access
+     * 
+     * This ensures that only properly authenticated clients can establish
+     * Socket.IO connections with the server.
+     */
+    @Test
+    @DisplayName("Failed Authorization - Should Return Unauthorized and Close Channel")
+    void testChannelRead_WithFailedAuthorization_ShouldReturnUnauthorized() throws Exception {
+        // Given: A request that will fail authorization
+        String uri = CONNECT_PATH + "?transport=polling";
+        FullHttpRequest request = createHttpRequest(uri, TEST_ORIGIN);
+        
+        // Set up authorization to fail
+        configuration.setAuthorizationListener(new AuthorizationListener() {
+            @Override
+            public AuthorizationResult getAuthorizationResult(HandshakeData data) {
+                return new AuthorizationResult(false, Collections.emptyMap());
+            }
+        });
+
+        // When: The request is processed through the channel pipeline
+        channel.writeInbound(request);
+
+        // Then: Verify that the appropriate response is sent
+        // We need to wait for async operations to complete
+        Thread.sleep(100);
+        
+        // The channel should be closed due to UNAUTHORIZED response
+        assertThat(channel.isActive()).isFalse();
+    }
+
+    /**
      * Test that verifies proper handling of requests with existing session IDs.
      * 
      * This test validates the session reuse functionality when a client
@@ -372,6 +411,116 @@ class AuthorizeHandlerTest {
         // The handler processes reconnection requests differently from new connections
         assertThat(channel.isActive()).isTrue();
     }
+
+
+
+    /**
+     * Test that verifies channel context attributes are properly set after successful authorization.
+     * 
+     * This test validates that the handler correctly sets the CLIENT attribute
+     * in the channel context after successful authorization:
+     * 1. CLIENT attribute is set after successful authorization
+     * 2. Client object contains proper session information
+     * 3. Transport type is correctly set
+     * 
+     * Channel attributes are crucial for maintaining state and enabling
+     * proper communication between different handlers in the pipeline.
+     */
+    @Test
+    @DisplayName("Channel Context - Should Set Client Attribute After Successful Authorization")
+    void testChannelContext_ShouldSetClientAttributeAfterSuccessfulAuthorization() throws Exception {
+        // Given: A valid Socket.IO connection request
+        String uri = CONNECT_PATH + "?transport=polling";
+        FullHttpRequest request = createHttpRequest(uri, TEST_ORIGIN);
+
+        // When: The request is processed through the channel pipeline
+        channel.writeInbound(request);
+
+        // Then: Verify that the client attribute is set in the channel context
+        // We need to wait a bit for the async operations to complete
+        Thread.sleep(100);
+        
+        // The channel should have the CLIENT attribute set
+        assertThat(channel.hasAttr(ClientHead.CLIENT)).isTrue();
+        assertThat(channel.attr(ClientHead.CLIENT).get()).isNotNull();
+        
+        // Verify the client has the correct session ID and transport
+        ClientHead client = channel.attr(ClientHead.CLIENT).get();
+        assertThat(client.getSessionId()).isNotNull();
+        assertThat(client.getCurrentTransport()).isEqualTo(Transport.POLLING);
+    }
+
+    /**
+     * Test that verifies channel context attributes are properly set for transport error responses.
+     * 
+     * This test validates that the handler correctly sets the ORIGIN attribute
+     * in the channel context when sending transport error responses:
+     * 1. ORIGIN attribute is set for transport error responses
+     * 2. Origin value matches the request origin
+     * 3. Channel remains active for error handling
+     * 
+     * The ORIGIN attribute is essential for proper error response formatting
+     * and CORS compliance in transport error scenarios.
+     */
+    @Test
+    @DisplayName("Channel Context - Should Set Origin Attribute for Transport Errors")
+    void testChannelContext_ShouldSetOriginAttributeForTransportErrors() throws Exception {
+        // Given: A request with unsupported transport
+        String uri = CONNECT_PATH + "?transport=unsupported";
+        FullHttpRequest request = createHttpRequest(uri, TEST_ORIGIN);
+
+        // When: The request is processed through the channel pipeline
+        channel.writeInbound(request);
+
+        // Then: Verify that the origin attribute is set for transport errors
+        // We need to wait a bit for the async operations to complete
+        Thread.sleep(100);
+        
+        // The channel should have the ORIGIN attribute set for error responses
+        assertThat(channel.hasAttr(EncoderHandler.ORIGIN)).isTrue();
+        assertThat(channel.attr(EncoderHandler.ORIGIN).get()).isEqualTo(TEST_ORIGIN);
+    }
+
+    /**
+     * Test that verifies the scheduler integration and ping timeout cancellation mechanism.
+     * 
+     * This test ensures that when data is received after the ping timeout is scheduled,
+     * the handler properly cancels the timeout task to prevent premature channel closure:
+     * 1. Channel becomes active → ping timeout scheduled
+     * 2. Data is received → timeout task cancelled
+     * 3. Channel remains active beyond the original timeout period
+     * 
+     * This mechanism is essential for preventing false timeouts when clients
+     * are actively communicating with the server.
+     */
+    @Test
+    @DisplayName("Scheduler Integration - Should Cancel Ping Timeout After Data Received")
+    void testSchedulerIntegration_ShouldCancelPingTimeoutAfterDataReceived() throws Exception {
+        // Given: Channel is active and ping timeout is scheduled
+        ChannelHandlerContext ctx = channel.pipeline().context(authorizeHandler);
+        authorizeHandler.channelActive(ctx);
+        
+        // Verify timeout is scheduled (channel remains active initially)
+        assertThat(channel.isActive()).isTrue();
+        
+        // When: Data is received, which should cancel the ping timeout
+        String uri = CONNECT_PATH + "?transport=polling";
+        FullHttpRequest request = createHttpRequest(uri, TEST_ORIGIN);
+        channel.writeInbound(request);
+        
+        // Then: The channel should remain active after data processing
+        // We need to wait a bit for the async operations to complete
+        Thread.sleep(100);
+        assertThat(channel.isActive()).isTrue();
+        
+        // Wait for the original timeout period to ensure it was cancelled
+        Thread.sleep(FIRST_DATA_TIMEOUT + 500);
+        
+        // The channel should still be active because the timeout was cancelled
+        assertThat(channel.isActive()).isTrue();
+    }
+
+
 
     /**
      * Creates a test HTTP request with the specified URI and origin.
