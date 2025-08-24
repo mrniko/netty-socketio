@@ -26,7 +26,7 @@
     <logger name="com.hazelcast" level="INFO"/>
     <logger name="org.testcontainers" level="INFO"/>
     
-    <root level="WARN">
+    <root level="DEBUG">
         <appender-ref ref="STDOUT"/>
     </root>
 </configuration>
