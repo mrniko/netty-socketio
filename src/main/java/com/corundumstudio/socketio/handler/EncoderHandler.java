@@ -419,7 +419,7 @@ public class EncoderHandler extends ChannelOutboundHandlerAdapter {
                 if (f.isDone()) {
                     if (!f.isSuccess()) {
                         if (log.isDebugEnabled()) {
-                            log.debug("ChannelFuture failed, setting promise failure, cause: {}", f.cause());
+                            log.debug("ChannelFuture failed, setting promise failure, cause: {}", f.cause().getMessage());
                         }
                         promise.tryFailure(f.cause());
                         cleanup();
