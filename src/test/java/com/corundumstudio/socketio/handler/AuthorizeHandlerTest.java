@@ -21,12 +21,15 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.embedded.EmbeddedChannel;
 import io.netty.handler.codec.http.DefaultFullHttpRequest;
 import io.netty.handler.codec.http.DefaultHttpHeaders;
+import io.netty.handler.codec.http.DefaultHttpResponse;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
+import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
 import java.util.Collections;
+import java.util.Map;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -39,13 +42,16 @@ import com.corundumstudio.socketio.DisconnectableHub;
 import com.corundumstudio.socketio.HandshakeData;
 import com.corundumstudio.socketio.Transport;
 import com.corundumstudio.socketio.ack.AckManager;
+import com.corundumstudio.socketio.messages.HttpErrorMessage;
 import com.corundumstudio.socketio.namespace.NamespacesHub;
+import com.corundumstudio.socketio.protocol.Packet;
 import com.corundumstudio.socketio.scheduler.CancelableScheduler;
 import com.corundumstudio.socketio.scheduler.HashedWheelScheduler;
 import com.corundumstudio.socketio.store.StoreFactory;
 
 import static java.time.Duration.ofSeconds;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.awaitility.Awaitility.await;
 
 /**
@@ -271,6 +277,16 @@ public class AuthorizeHandlerTest {
         // The channel should be closed because the handler sends BAD_REQUEST response
         // and explicitly closes the connection to prevent unauthorized access
         assertThat(channel.isActive()).isFalse();
+        
+        // Verify that an HTTP 400 Bad Request response was sent
+        assertThat(channel.outboundMessages()).isNotEmpty();
+        
+        Object outboundMessage = channel.outboundMessages().poll();
+        assertThat(outboundMessage).isInstanceOf(DefaultHttpResponse.class);
+        
+        DefaultHttpResponse response = (DefaultHttpResponse) outboundMessage;
+        assertThat(response.status()).isEqualTo(HttpResponseStatus.BAD_REQUEST);
+        assertThat(response.protocolVersion()).isEqualTo(HttpVersion.HTTP_1_1);
     }
 
     /**
@@ -304,6 +320,21 @@ public class AuthorizeHandlerTest {
         // sends an error response but doesn't close the connection, allowing for
         // potential retry or proper error handling by the client
         assertThat(channel.isActive()).isTrue();
+        
+        // Verify that an HttpErrorMessage was sent with transport error details
+        assertThat(channel.outboundMessages()).isNotEmpty();
+        
+        Object outboundMessage = channel.outboundMessages().poll();
+        assertThat(outboundMessage).isInstanceOf(HttpErrorMessage.class);
+        
+        HttpErrorMessage errorMessage = (HttpErrorMessage) outboundMessage;
+        
+        // Verify the error message contains the expected transport error data
+        Map<String, Object> errorData = errorMessage.getData();
+        assertThat(errorData).containsKey("code");
+        assertThat(errorData).containsKey("message");
+        assertThat(errorData.get("code")).isEqualTo(0);
+        assertThat(errorData.get("message")).isEqualTo("Transport unknown");
     }
 
     /**
@@ -337,6 +368,21 @@ public class AuthorizeHandlerTest {
         // sends an error response but doesn't close the connection, allowing the client
         // to potentially retry with a supported transport type
         assertThat(channel.isActive()).isTrue();
+        
+        // Verify that an HttpErrorMessage was sent with transport error details
+        assertThat(channel.outboundMessages()).isNotEmpty();
+        
+        Object outboundMessage = channel.outboundMessages().poll();
+        assertThat(outboundMessage).isInstanceOf(HttpErrorMessage.class);
+        
+        HttpErrorMessage errorMessage = (HttpErrorMessage) outboundMessage;
+        
+        // Verify the error message contains the expected transport error data
+        Map<String, Object> errorData = errorMessage.getData();
+        assertThat(errorData).containsKey("code");
+        assertThat(errorData).containsKey("message");
+        assertThat(errorData.get("code")).isEqualTo(0);
+        assertThat(errorData.get("message")).isEqualTo("Transport unknown");
     }
 
     /**
@@ -376,6 +422,18 @@ public class AuthorizeHandlerTest {
 
         // The channel should be closed due to UNAUTHORIZED response
         assertThat(channel.isActive()).isFalse();
+        
+        // Verify that an HTTP 401 Unauthorized response was sent
+        // The AuthorizeHandler sends DefaultHttpResponse with HTTP_1_1 and UNAUTHORIZED status
+        assertThat(channel.outboundMessages()).isNotEmpty();
+        
+        // Check that the response contains the expected HTTP status
+        Object outboundMessage = channel.outboundMessages().poll();
+        assertThat(outboundMessage).isInstanceOf(DefaultHttpResponse.class);
+        
+        DefaultHttpResponse response = (DefaultHttpResponse) outboundMessage;
+        assertThat(response.status()).isEqualTo(HttpResponseStatus.UNAUTHORIZED);
+        assertThat(response.protocolVersion()).isEqualTo(HttpVersion.HTTP_1_1);
     }
 
     /**
@@ -446,6 +504,52 @@ public class AuthorizeHandlerTest {
         ClientHead client = channel.attr(ClientHead.CLIENT).get();
         assertThat(client.getSessionId()).isNotNull();
         assertThat(client.getCurrentTransport()).isEqualTo(Transport.POLLING);
+        
+        // Verify that the AuthorizeHandler sent an OPEN packet to the client
+        ClientPacketTestUtils.assertOpenPacketSent(client);
+    }
+
+    /**
+     * Test that verifies OPEN packet is sent to client after successful authorization.
+     * <p>
+     * This test validates that the AuthorizeHandler correctly sends an OPEN packet
+     * to the client after successful authorization:
+     * 1. Client is successfully authorized
+     * 2. OPEN packet is sent via client.send() method
+     * 3. OPEN packet contains proper session information
+     * 4. Client receives authentication token and configuration
+     * <p>
+     * The OPEN packet is crucial for establishing the Socket.IO session and
+     * providing the client with necessary connection parameters.
+     */
+    @Test
+    @DisplayName("OPEN Packet - Should Send OPEN Packet After Successful Authorization")
+    void testOpenPacket_ShouldSendOpenPacketAfterSuccessfulAuthorization() throws Exception {
+        // Given: A valid Socket.IO connection request
+        String uri = CONNECT_PATH + "?transport=polling";
+        FullHttpRequest request = createHttpRequest(uri, TEST_ORIGIN);
+
+        // When: The request is processed through the channel pipeline
+        channel.writeInbound(request);
+
+        // Then: Verify that the client was created and received an OPEN packet
+        // We need to wait a bit for the async operations to complete
+        await().atMost(ofSeconds(1)).until(() -> channel.hasAttr(ClientHead.CLIENT));
+
+        ClientHead client = channel.attr(ClientHead.CLIENT).get();
+        assertThat(client).isNotNull();
+        
+        // Verify that the AuthorizeHandler sent an OPEN packet to the client
+        // This validates that client.send() was called with the proper packet
+        ClientPacketTestUtils.assertOpenPacketSent(client);
+        
+        // Verify that exactly one packet was sent (the OPEN packet)
+        assertThat(ClientPacketTestUtils.getPacketCount(client)).isEqualTo(1);
+        
+        // Verify the OPEN packet contains session information
+        Packet openPacket = ClientPacketTestUtils.peekFirstPacket(client);
+        assertNotNull(openPacket.getData());
+        assertThat(openPacket.getEngineIOVersion()).isEqualTo(client.getEngineIOVersion());
     }
 
     /**
