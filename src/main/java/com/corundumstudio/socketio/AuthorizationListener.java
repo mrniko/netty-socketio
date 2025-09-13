@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2012-2023 Nikita Koksharov
+ * Copyright (c) 2012-2025 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ public interface AuthorizationListener {
 
     /**
      * Checks whether a client with handshake data is authorized on connection
-	   * Optionally returns storeParams that will be added to {@link SocketIOClient} store
+     * Optionally returns storeParams that will be added to {@link SocketIOClient} store
      *
      * @param data handshake data
      * @return - {@link AuthorizationResult}

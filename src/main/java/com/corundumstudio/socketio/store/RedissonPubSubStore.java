@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2012-2023 Nikita Koksharov
+ * Copyright (c) 2012-2025 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,7 +58,7 @@ public class RedissonPubSubStore implements PubSubStore {
             @Override
             public void onMessage(CharSequence channel, PubSubMessage msg) {
                 if (!nodeId.equals(msg.getNodeId())) {
-                    listener.onMessage((T)msg);
+                    listener.onMessage((T) msg);
                 }
             }
         });

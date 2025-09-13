@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2012-2023 Nikita Koksharov
+ * Copyright (c) 2012-2025 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,8 @@
  */
 package com.corundumstudio.socketio;
 
-import com.corundumstudio.socketio.transport.WebSocketTransport;
 import com.corundumstudio.socketio.transport.PollingTransport;
+import com.corundumstudio.socketio.transport.WebSocketTransport;
 
 public enum Transport {
 

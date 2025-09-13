@@ -103,12 +103,19 @@
 
         <!-- Checks for imports                              -->
         <!-- See http://checkstyle.sf.net/config_import.html -->
-        <!--module name="AvoidStarImport"/-->
+        <module name="AvoidStarImport"/>
         <module name="IllegalImport"/>
-        <!-- defaults to sun.* packages -->
         <module name="RedundantImport"/>
         <module name="UnusedImports"/>
-
+        <module name="ImportOrder">
+            <property name="groups" value="java,javax,org,com"/>
+            <property name="ordered" value="true"/>
+            <property name="separated" value="true"/>
+            <property name="caseSensitive" value="true"/>
+            <!-- 支持静态导入排序 -->
+            <property name="option" value="bottom"/>
+            <property name="sortStaticImportsAlphabetically" value="true"/>
+        </module>
 
         <!-- Checks for Size Violations.                    -->
         <!-- See http://checkstyle.sf.net/config_sizes.html -->

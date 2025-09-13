@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2012-2023 Nikita Koksharov
+ * Copyright (c) 2012-2025 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ public class ScannerEngine {
 
     private static final Logger log = LoggerFactory.getLogger(ScannerEngine.class);
 
-    private static final List<? extends AnnotationScanner> annotations =
+    private static final List<? extends AnnotationScanner> ANNOTATION_SCANNERS =
                     Arrays.asList(new OnConnectScanner(), new OnDisconnectScanner(), new OnEventScanner());
 
     private Method findSimilarMethod(Class<?> objectClazz, Method method) {
@@ -49,7 +49,7 @@ public class ScannerEngine {
 
         if (!clazz.isAssignableFrom(object.getClass())) {
             for (Method method : methods) {
-                for (AnnotationScanner annotationScanner : annotations) {
+                for (AnnotationScanner annotationScanner : ANNOTATION_SCANNERS) {
                     Annotation ann = method.getAnnotation(annotationScanner.getScanAnnotation());
                     if (ann != null) {
                         annotationScanner.validate(method, clazz);
@@ -65,7 +65,7 @@ public class ScannerEngine {
             }
         } else {
             for (Method method : methods) {
-                for (AnnotationScanner annotationScanner : annotations) {
+                for (AnnotationScanner annotationScanner : ANNOTATION_SCANNERS) {
                     Annotation ann = method.getAnnotation(annotationScanner.getScanAnnotation());
                     if (ann != null) {
                         annotationScanner.validate(method, clazz);
