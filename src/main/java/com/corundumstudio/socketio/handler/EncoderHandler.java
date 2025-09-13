@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2012-2023 Nikita Koksharov
+ * Copyright (c) 2012-2025 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,18 @@
  */
 package com.corundumstudio.socketio.handler;
 
-import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.List;
+import java.util.Queue;
+import java.util.jar.Attributes;
+import java.util.jar.Manifest;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.corundumstudio.socketio.Configuration;
 import com.corundumstudio.socketio.Transport;
@@ -26,6 +37,7 @@ import com.corundumstudio.socketio.messages.XHROptionsMessage;
 import com.corundumstudio.socketio.messages.XHRPostMessage;
 import com.corundumstudio.socketio.protocol.Packet;
 import com.corundumstudio.socketio.protocol.PacketEncoder;
+
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufOutputStream;
 import io.netty.buffer.ByteBufUtil;
@@ -53,17 +65,8 @@ import io.netty.util.AttributeKey;
 import io.netty.util.CharsetUtil;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.List;
-import java.util.Queue;
-import java.util.jar.Attributes;
-import java.util.jar.Manifest;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 
 @Sharable
 public class EncoderHandler extends ChannelOutboundHandlerAdapter {
@@ -102,7 +105,7 @@ public class EncoderHandler extends ChannelOutboundHandlerAdapter {
                     continue;
                 }
                 String name = attrs.getValue("Bundle-Name");
-                if (name != null && name.equals("netty-socketio")) {
+                if (name != null && "netty-socketio".equals(name)) {
                     version = name + "/" + attrs.getValue("Bundle-Version");
                     break;
                 }
@@ -176,6 +179,11 @@ public class EncoderHandler extends ChannelOutboundHandlerAdapter {
         channel.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT, promise).addListener(ChannelFutureListener.CLOSE);
     }
     private void sendError(HttpErrorMessage errorMsg, ChannelHandlerContext ctx, ChannelPromise promise) throws IOException {
+        if (log.isDebugEnabled()) {
+            log.debug("Sending HTTP error response, sessionId: {}, status: {}", 
+                errorMsg.getSessionId(), HttpResponseStatus.BAD_REQUEST);
+        }
+        
         final ByteBuf encBuf = encoder.allocateBuffer(ctx.alloc());
         ByteBufOutputStream out = new ByteBufOutputStream(encBuf);
         encoder.getJsonSupport().writeValue(out, errorMsg.getData());
@@ -213,19 +221,43 @@ public class EncoderHandler extends ChannelOutboundHandlerAdapter {
             return;
         }
 
+        if (log.isDebugEnabled()) {
+            String sessionId = "N/A";
+            if (msg instanceof HttpMessage) {
+                sessionId = String.valueOf(((HttpMessage) msg).getSessionId());
+            }
+            log.debug("Processing message type: {}, sessionId: {}", 
+                msg.getClass().getSimpleName(), sessionId);
+        }
+
         if (msg instanceof OutPacketMessage) {
             OutPacketMessage m = (OutPacketMessage) msg;
             if (m.getTransport() == Transport.WEBSOCKET) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Routing to WebSocket handler, sessionId: {}", m.getSessionId());
+                }
                 handleWebsocket((OutPacketMessage) msg, ctx, promise);
             }
             if (m.getTransport() == Transport.POLLING) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Routing to HTTP polling handler, sessionId: {}", m.getSessionId());
+                }
                 handleHTTP((OutPacketMessage) msg, ctx, promise);
             }
         } else if (msg instanceof XHROptionsMessage) {
+            if (log.isDebugEnabled()) {
+                log.debug("Processing XHR options message, sessionId: {}", ((XHROptionsMessage) msg).getSessionId());
+            }
             write((XHROptionsMessage) msg, ctx, promise);
         } else if (msg instanceof XHRPostMessage) {
+            if (log.isDebugEnabled()) {
+                log.debug("Processing XHR POST message, sessionId: {}", ((XHRPostMessage) msg).getSessionId());
+            }
             write((XHRPostMessage) msg, ctx, promise);
         } else if (msg instanceof HttpErrorMessage) {
+            if (log.isDebugEnabled()) {
+                log.debug("Processing HTTP error message, sessionId: {}", ((HttpErrorMessage) msg).getSessionId());
+            }
             sendError((HttpErrorMessage) msg, ctx, promise);
         }
     }
@@ -235,14 +267,25 @@ public class EncoderHandler extends ChannelOutboundHandlerAdapter {
 
 
     private void handleWebsocket(final OutPacketMessage msg, ChannelHandlerContext ctx, ChannelPromise promise) throws IOException {
+        if (log.isDebugEnabled()) {
+            log.debug("Starting WebSocket message processing, sessionId: {}", msg.getSessionId());
+        }
+        
         ChannelFutureList writeFutureList = new ChannelFutureList();
 
         while (true) {
             Queue<Packet> queue = msg.getClientHead().getPacketsQueue(msg.getTransport());
             Packet packet = queue.poll();
             if (packet == null) {
+                if (log.isDebugEnabled()) {
+                    log.debug("No more packets in queue, setting promise, sessionId: {}", msg.getSessionId());
+                }
                 writeFutureList.setChannelPromise(promise);
                 break;
+            }
+
+            if (log.isDebugEnabled()) {
+                log.debug("Processing packet type: {}, sessionId: {}", packet.getType(), msg.getSessionId());
             }
 
             ByteBuf out = encoder.allocateBuffer(ctx.alloc());
@@ -251,24 +294,46 @@ public class EncoderHandler extends ChannelOutboundHandlerAdapter {
             if (log.isTraceEnabled()) {
                 log.trace("Out message: {} sessionId: {}", out.toString(CharsetUtil.UTF_8), msg.getSessionId());
             }
+            
             if (out.isReadable() && out.readableBytes() > configuration.getMaxFramePayloadLength()) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Message exceeds max frame payload length ({} > {}), fragmenting into {} frames, sessionId: {}", 
+                        out.readableBytes(), configuration.getMaxFramePayloadLength(), 
+                        (out.readableBytes() + FRAME_BUFFER_SIZE - 1) / FRAME_BUFFER_SIZE, msg.getSessionId());
+                }
+                
                 ByteBuf dstStart = out.readSlice(FRAME_BUFFER_SIZE);
                 dstStart.retain();
                 WebSocketFrame start = new TextWebSocketFrame(false, 0, dstStart);
                 ctx.channel().write(start);
+                
+                int fragmentCount = 1;
                 while (out.isReadable()) {
                     int re = Math.min(out.readableBytes(), FRAME_BUFFER_SIZE);
                     ByteBuf dst = out.readSlice(re);
                     dst.retain();
                     WebSocketFrame res = new ContinuationWebSocketFrame(!out.isReadable(), 0, dst);
                     ctx.channel().write(res);
+                    fragmentCount++;
                 }
+                
+                if (log.isDebugEnabled()) {
+                    log.debug("Message fragmented into {} frames, sessionId: {}", fragmentCount, msg.getSessionId());
+                }
+                
                 out.release();
                 ctx.channel().flush();
             } else if (out.isReadable()){
+                if (log.isDebugEnabled()) {
+                    log.debug("Sending single WebSocket frame, size: {} bytes, sessionId: {}", 
+                        out.readableBytes(), msg.getSessionId());
+                }
                 WebSocketFrame res = new TextWebSocketFrame(out);
                 ctx.channel().writeAndFlush(res);
             } else {
+                if (log.isDebugEnabled()) {
+                    log.debug("Empty packet, releasing buffer, sessionId: {}", msg.getSessionId());
+                }
                 out.release();
             }
 
@@ -285,20 +350,35 @@ public class EncoderHandler extends ChannelOutboundHandlerAdapter {
     }
 
     private void handleHTTP(OutPacketMessage msg, ChannelHandlerContext ctx, ChannelPromise promise) throws IOException {
+        if (log.isDebugEnabled()) {
+            log.debug("Starting HTTP polling message processing, sessionId: {}", msg.getSessionId());
+        }
+        
         Channel channel = ctx.channel();
         Attribute<Boolean> attr = channel.attr(WRITE_ONCE);
 
         Queue<Packet> queue = msg.getClientHead().getPacketsQueue(msg.getTransport());
 
         if (!channel.isActive() || queue.isEmpty() || !attr.compareAndSet(null, true)) {
+            if (log.isDebugEnabled()) {
+                log.debug("HTTP processing skipped - channel active: {}, queue empty: {}, write once set: {}, sessionId: {}", 
+                    channel.isActive(), queue.isEmpty(), attr.get() != null, msg.getSessionId());
+            }
             promise.trySuccess();
             return;
+        }
+
+        if (log.isDebugEnabled()) {
+            log.debug("Processing HTTP polling with {} packets, sessionId: {}", queue.size(), msg.getSessionId());
         }
 
         ByteBuf out = encoder.allocateBuffer(ctx.alloc());
         Boolean b64 = ctx.channel().attr(EncoderHandler.B64).get();
         if (b64 != null && b64) {
             Integer jsonpIndex = ctx.channel().attr(EncoderHandler.JSONP_INDEX).get();
+            if (log.isDebugEnabled()) {
+                log.debug("Using JSONP encoding, index: {}, sessionId: {}", jsonpIndex, msg.getSessionId());
+            }
             encoder.encodeJsonP(jsonpIndex, queue, out, ctx.alloc(), 50);
             String type = "application/javascript";
             if (jsonpIndex == null) {
@@ -306,6 +386,9 @@ public class EncoderHandler extends ChannelOutboundHandlerAdapter {
             }
             sendMessage(msg, channel, out, type, promise, HttpResponseStatus.OK);
         } else {
+            if (log.isDebugEnabled()) {
+                log.debug("Using binary encoding, sessionId: {}", msg.getSessionId());
+            }
             encoder.encodePackets(queue, out, ctx.alloc(), 50);
             sendMessage(msg, channel, out, "application/octet-stream", promise, HttpResponseStatus.OK);
         }
@@ -325,7 +408,9 @@ public class EncoderHandler extends ChannelOutboundHandlerAdapter {
 
         private void cleanup() {
             promise = null;
-            for (ChannelFuture f : futureList) f.removeListener(this);
+            for (ChannelFuture f : futureList) {
+                f.removeListener(this);
+            }
         }
 
         private void validate() {
@@ -333,16 +418,21 @@ public class EncoderHandler extends ChannelOutboundHandlerAdapter {
             for (ChannelFuture f : futureList) {
                 if (f.isDone()) {
                     if (!f.isSuccess()) {
+                        if (log.isDebugEnabled()) {
+                            log.debug("ChannelFuture failed, setting promise failure, cause: {}", f.cause().getMessage());
+                        }
                         promise.tryFailure(f.cause());
                         cleanup();
                         return;
                     }
-                }
-                else {
+                } else {
                     allSuccess = false;
                 }
             }
             if (allSuccess) {
+                if (log.isDebugEnabled()) {
+                    log.debug("All ChannelFutures completed successfully, setting promise success");
+                }
                 promise.trySuccess();
                 cleanup();
             }

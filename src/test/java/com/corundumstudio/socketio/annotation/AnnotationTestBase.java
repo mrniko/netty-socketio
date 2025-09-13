@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2012-2023 Nikita Koksharov
+ * Copyright (c) 2012-2025 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,14 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.corundumstudio.socketio.parser;
+package com.corundumstudio.socketio.annotation;
 
 import com.corundumstudio.socketio.Configuration;
-import com.corundumstudio.socketio.protocol.PacketEncoder;
+import com.corundumstudio.socketio.namespace.Namespace;
 import com.corundumstudio.socketio.protocol.JacksonJsonSupport;
+import com.github.javafaker.Faker;
 
-public class EncoderBaseTest {
+public abstract class AnnotationTestBase {
 
-    final PacketEncoder encoder = new PacketEncoder(new Configuration(), new JacksonJsonSupport());
+    private static final Faker FAKER = new Faker();
 
+    protected Configuration newConfiguration() {
+        Configuration config = new Configuration();
+        config.setJsonSupport(new JacksonJsonSupport());
+        return config;
+    }
+
+    protected Namespace newNamespace(Configuration configuration) {
+        return new Namespace(FAKER.name().name(), configuration);
+    }
 }

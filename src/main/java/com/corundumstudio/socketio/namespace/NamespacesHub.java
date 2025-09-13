@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2012-2023 Nikita Koksharov
+ * Copyright (c) 2012-2025 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,6 @@
  */
 package com.corundumstudio.socketio.namespace;
 
-import io.netty.util.internal.PlatformDependent;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -26,6 +24,8 @@ import com.corundumstudio.socketio.Configuration;
 import com.corundumstudio.socketio.SocketIOClient;
 import com.corundumstudio.socketio.SocketIONamespace;
 import com.corundumstudio.socketio.misc.CompositeIterable;
+
+import io.netty.util.internal.PlatformDependent;
 
 public class NamespacesHub {
 
@@ -51,7 +51,7 @@ public class NamespacesHub {
     public Iterable<SocketIOClient> getRoomClients(String room) {
         List<Iterable<SocketIOClient>> allClients = new ArrayList<Iterable<SocketIOClient>>();
         for (SocketIONamespace namespace : namespaces.values()) {
-            Iterable<SocketIOClient> clients = ((Namespace)namespace).getRoomClients(room);
+            Iterable<SocketIOClient> clients = ((Namespace) namespace).getRoomClients(room);
             allClients.add(clients);
         }
         return new CompositeIterable<SocketIOClient>(allClients);

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2012-2023 Nikita Koksharov
+ * Copyright (c) 2012-2025 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,13 @@
  */
 package com.corundumstudio.socketio.protocol;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Queue;
+
 import com.corundumstudio.socketio.Configuration;
+
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.ByteBufOutputStream;
@@ -23,11 +29,6 @@ import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.base64.Base64;
 import io.netty.handler.codec.base64.Base64Dialect;
 import io.netty.util.CharsetUtil;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Queue;
 
 public class PacketEncoder {
 
@@ -129,8 +130,8 @@ public class PacketEncoder {
             }
             // Multiple packets are separated by 0x1e from protocol version 3 on
             // see https://socket.io/docs/v4/socket-io-protocol/#sample-session
-            final boolean isV3OrNewer = EngineIOVersion.V4.equals(packet.getEngineIOVersion()) ||
-                EngineIOVersion.V3.equals(packet.getEngineIOVersion());
+            final boolean isV3OrNewer = EngineIOVersion.V4.equals(packet.getEngineIOVersion())
+                || EngineIOVersion.V3.equals(packet.getEngineIOVersion());
             if (hasPrecedingPacket && isV3OrNewer) {
                 buffer.writeByte(0x1e);
             }
@@ -153,36 +154,39 @@ public class PacketEncoder {
         return (byte) (number ^ 0x30);
     }
 
-    static final char[] DigitTens = {'0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '1', '1', '1', '1',
+    static final char[] DIGIT_TENS = {'0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '1', '1', '1', '1',
             '1', '1', '1', '1', '1', '1', '2', '2', '2', '2', '2', '2', '2', '2', '2', '2', '3', '3', '3',
             '3', '3', '3', '3', '3', '3', '3', '4', '4', '4', '4', '4', '4', '4', '4', '4', '4', '5', '5',
             '5', '5', '5', '5', '5', '5', '5', '5', '6', '6', '6', '6', '6', '6', '6', '6', '6', '6', '7',
             '7', '7', '7', '7', '7', '7', '7', '7', '7', '8', '8', '8', '8', '8', '8', '8', '8', '8', '8',
-            '9', '9', '9', '9', '9', '9', '9', '9', '9', '9',};
+            '9', '9', '9', '9', '9', '9', '9', '9', '9', '9'};
 
-    static final char[] DigitOnes = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '1', '2', '3',
+    static final char[] DIGIT_ONES = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '1', '2', '3',
             '4', '5', '6', '7', '8', '9', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '1', '2',
             '3', '4', '5', '6', '7', '8', '9', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '1',
             '2', '3', '4', '5', '6', '7', '8', '9', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0',
             '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
-            '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',};
+            '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'};
 
-    static final char[] digits = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e',
+    static final char[] DIGITS = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e',
             'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x',
             'y', 'z'};
 
-    static final int[] sizeTable = {9, 99, 999, 9999, 99999, 999999, 9999999, 99999999, 999999999,
+    static final int[] SIZE_TABLE = {9, 99, 999, 9999, 99999, 999999, 9999999, 99999999, 999999999,
             Integer.MAX_VALUE};
 
     // Requires positive x
     static int stringSize(long x) {
-        for (int i = 0;; i++)
-            if (x <= sizeTable[i])
+        for (int i = 0;; i++) {
+            if (x <= SIZE_TABLE[i]) {
                 return i + 1;
+            }
+        }
     }
 
     static void getChars(long i, int index, byte[] buf) {
-        long q, r;
+        long q;
+        long r;
         int charPos = index;
         byte sign = 0;
 
@@ -197,8 +201,8 @@ public class PacketEncoder {
             // really: r = i - (q * 100);
             r = i - ((q << 6) + (q << 5) + (q << 2));
             i = q;
-            buf[--charPos] = (byte) DigitOnes[(int)r];
-            buf[--charPos] = (byte) DigitTens[(int)r];
+            buf[--charPos] = (byte) DIGIT_ONES[(int) r];
+            buf[--charPos] = (byte) DIGIT_TENS[(int) r];
         }
 
         // Fall thru to fast mode for smaller numbers
@@ -206,7 +210,7 @@ public class PacketEncoder {
         for (;;) {
             q = (i * 52429) >>> (16 + 3);
             r = i - ((q << 3) + (q << 1)); // r = i-(q*10) ...
-            buf[--charPos] = (byte) digits[(int)r];
+            buf[--charPos] = (byte) DIGITS[(int) r];
             i = q;
             if (i == 0)
                 break;
@@ -217,7 +221,12 @@ public class PacketEncoder {
     }
 
     public static byte[] toChars(long i) {
-        int size = (i < 0) ? stringSize(-i) + 1 : stringSize(i);
+        int size;
+        if (i < 0) {
+            size = stringSize(-i) + 1;
+        } else {
+            size = stringSize(i);
+        }
         byte[] buf = new byte[size];
         getChars(i, size, buf);
         return buf;
@@ -225,7 +234,7 @@ public class PacketEncoder {
 
     public static byte[] longToBytes(long number) {
         // TODO optimize
-        int length = (int)(Math.log10(number)+1);
+        int length = (int) (Math.log10(number) + 1);
         byte[] res = new byte[length];
         int i = length;
         while (number > 0) {
@@ -288,8 +297,11 @@ public class PacketEncoder {
                             for (byte[] array : jsonSupport.getArrays()) {
                                 packet.addAttachment(Unpooled.wrappedBuffer(array));
                             }
-                            packet.setSubType(packet.getSubType() == PacketType.ACK
-                                    ? PacketType.BINARY_ACK : PacketType.BINARY_EVENT);
+                            if (packet.getSubType() == PacketType.ACK) {
+                                packet.setSubType(PacketType.BINARY_ACK);
+                            } else {
+                                packet.setSubType(PacketType.BINARY_EVENT);
+                            }
                         }
                     }
 

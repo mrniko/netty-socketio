@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2012-2023 Nikita Koksharov
+ * Copyright (c) 2012-2025 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,6 @@
  */
 package com.corundumstudio.socketio.handler;
 
-import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,6 +29,8 @@ import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.QueryStringDecoder;
+
+import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 
 @Sharable
 public class WrongUrlHandler extends ChannelInboundHandlerAdapter {

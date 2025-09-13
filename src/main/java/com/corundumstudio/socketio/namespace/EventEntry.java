@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2012-2023 Nikita Koksharov
+ * Copyright (c) 2012-2025 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import com.corundumstudio.socketio.listener.DataListener;
 
 public class EventEntry<T> {
 
-    private final Queue<DataListener<T>> listeners = new ConcurrentLinkedQueue<DataListener<T>>();;
+    private final Queue<DataListener<T>> listeners = new ConcurrentLinkedQueue<DataListener<T>>();
 
     public EventEntry() {
         super();

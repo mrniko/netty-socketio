@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2012-2023 Nikita Koksharov
+ * Copyright (c) 2012-2025 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,18 +15,20 @@
  */
 package com.corundumstudio.socketio;
 
+import java.io.InputStream;
+import java.util.Arrays;
+import java.util.List;
+
+import javax.net.ssl.KeyManagerFactory;
+
 import com.corundumstudio.socketio.handler.SuccessAuthorizationListener;
 import com.corundumstudio.socketio.listener.DefaultExceptionListener;
 import com.corundumstudio.socketio.listener.ExceptionListener;
 import com.corundumstudio.socketio.protocol.JsonSupport;
 import com.corundumstudio.socketio.store.MemoryStoreFactory;
 import com.corundumstudio.socketio.store.StoreFactory;
-import io.netty.handler.codec.http.HttpDecoderConfig;
 
-import javax.net.ssl.KeyManagerFactory;
-import java.io.InputStream;
-import java.util.Arrays;
-import java.util.List;
+import io.netty.handler.codec.http.HttpDecoderConfig;
 
 public class Configuration {
 
@@ -325,7 +327,7 @@ public class Configuration {
      *
      * @param transports - list of transports
      */
-    public void setTransports(Transport ... transports) {
+    public void setTransports(Transport... transports) {
         if (transports.length == 0) {
             throw new IllegalArgumentException("Transports list can't be empty");
         }
