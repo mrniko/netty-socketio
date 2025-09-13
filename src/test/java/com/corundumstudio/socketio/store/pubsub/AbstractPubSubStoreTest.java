@@ -35,11 +35,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 public abstract class AbstractPubSubStoreTest {
 
-    protected PubSubStore publisherStore;  // 用于发布消息的 store
-    protected PubSubStore subscriberStore; // 用于订阅消息的 store
+    protected PubSubStore publisherStore;  // store for publishing messages
+    protected PubSubStore subscriberStore; // store for subscribing to messages
     protected GenericContainer<?> container;
-    protected Long publisherNodeId = 2L;   // 发布者的 nodeId
-    protected Long subscriberNodeId = 1L;  // 订阅者的 nodeId
+    protected Long publisherNodeId = 2L;   // publisher's nodeId
+    protected Long subscriberNodeId = 1L;  // subscriber's nodeId
 
     @BeforeEach
     public void setUp() throws Exception {
