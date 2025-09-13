@@ -28,6 +28,7 @@ import com.corundumstudio.socketio.Configuration;
 import com.corundumstudio.socketio.SocketIOServer;
 import com.corundumstudio.socketio.store.CustomizedRedisContainer;
 import com.corundumstudio.socketio.store.RedissonStoreFactory;
+import com.github.javafaker.Faker;
 
 import io.socket.client.IO;
 import io.socket.client.Socket;
@@ -43,6 +44,8 @@ import io.socket.client.Socket;
  * - Utility methods for client creation and management
  */
 public abstract class AbstractSocketIOIntegrationTest {
+
+    protected final Faker faker = new Faker();
 
     private GenericContainer<?> redisContainer;
     private SocketIOServer server;
@@ -261,5 +264,96 @@ public abstract class AbstractSocketIOIntegrationTest {
     protected void additionalTeardown() throws Exception {
         // Default implementation does nothing
         // Subclasses can override to add custom teardown
+    }
+
+    /**
+     * Generate a random event name using faker
+     */
+    protected String generateEventName() {
+        return faker.lorem().word() + "Event";
+    }
+
+    /**
+     * Generate a random event name with a specific prefix
+     */
+    protected String generateEventName(String prefix) {
+        return prefix + faker.lorem().word() + "Event";
+    }
+
+    /**
+     * Generate a random event name with a specific suffix
+     */
+    protected String generateEventNameWithSuffix(String suffix) {
+        return faker.lorem().word() + suffix;
+    }
+
+    /**
+     * Generate a random test data string
+     */
+    protected String generateTestData() {
+        return faker.lorem().sentence();
+    }
+
+    /**
+     * Generate a random test data string with specific length
+     */
+    protected String generateTestData(int wordCount) {
+        return faker.lorem().sentence(wordCount);
+    }
+
+    /**
+     * Generate a random room name
+     */
+    protected String generateRoomName() {
+        return faker.lorem().word() + "Room";
+    }
+
+    /**
+     * Generate a random room name with a specific prefix
+     */
+    protected String generateRoomName(String prefix) {
+        return prefix + faker.lorem().word() + "Room";
+    }
+
+    /**
+     * Generate a random namespace name
+     */
+    protected String generateNamespaceName() {
+        return "/" + faker.lorem().word();
+    }
+
+    /**
+     * Generate a random namespace name with a specific prefix
+     */
+    protected String generateNamespaceName(String prefix) {
+        return "/" + prefix + faker.lorem().word();
+    }
+
+    /**
+     * Generate a random acknowledgment message
+     */
+    protected String generateAckMessage() {
+        return "Acknowledged: " + faker.lorem().sentence();
+    }
+
+    /**
+     * Generate a random acknowledgment message with specific data
+     */
+    protected String generateAckMessage(String data) {
+        return "Acknowledged: " + data;
+    }
+
+    /**
+     * Generate a random error message
+     */
+    protected String generateErrorMessage() {
+        return faker.lorem().sentence() + " error";
+    }
+
+    /**
+     * Generate a random status message
+     */
+    protected String generateStatusMessage() {
+        return faker.lorem().word() + " status: " + faker.lorem().sentence();
     }
 }

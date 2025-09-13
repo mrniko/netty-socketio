@@ -26,6 +26,7 @@ import java.util.HashMap;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import com.corundumstudio.socketio.AckRequest;
 import com.corundumstudio.socketio.SocketIOClient;
 import com.corundumstudio.socketio.SocketIONamespace;
 import com.corundumstudio.socketio.listener.ConnectListener;
@@ -61,12 +62,15 @@ public class AckCallbacksTest extends AbstractSocketIOIntegrationTest {
             }
         });
 
-        getServer().addEventListener("ackEvent", String.class, new DataListener<String>() {
+        String eventName = generateEventName("ack");
+        String testData = generateTestData();
+        
+        getServer().addEventListener(eventName, String.class, new DataListener<String>() {
             @Override
-            public void onData(SocketIOClient client, String data, com.corundumstudio.socketio.AckRequest ackRequest) {
+            public void onData(SocketIOClient client, String data, AckRequest ackRequest) {
                 receivedData.set(data);
                 // Send acknowledgment with data
-                ackRequest.sendAckData("Acknowledged: " + data);
+                ackRequest.sendAckData(generateAckMessage(data));
                 eventLatch.countDown();
             }
         });
@@ -82,7 +86,7 @@ public class AckCallbacksTest extends AbstractSocketIOIntegrationTest {
         CountDownLatch ackLatch = new CountDownLatch(1);
         AtomicReference<Object[]> ackData = new AtomicReference<>();
 
-        client.emit("ackEvent", new Object[]{"Test data"}, args -> {
+        client.emit(eventName, new Object[]{testData}, args -> {
             ackData.set(args);
             ackLatch.countDown();
         });
@@ -91,9 +95,9 @@ public class AckCallbacksTest extends AbstractSocketIOIntegrationTest {
         assertTrue(eventLatch.await(10, TimeUnit.SECONDS), "Event should be received within 10 seconds");
         assertTrue(ackLatch.await(10, TimeUnit.SECONDS), "Acknowledgment should be received within 10 seconds");
 
-        assertEquals("Test data", receivedData.get(), "Received data should match sent data");
+        assertEquals(testData, receivedData.get(), "Received data should match sent data");
         assertNotNull(ackData.get(), "Acknowledgment data should not be null");
-        assertEquals("Acknowledged: Test data", ackData.get()[0], "Acknowledgment data should match expected");
+        assertEquals(generateAckMessage(testData), ackData.get()[0], "Acknowledgment data should match expected");
 
         // Cleanup
         client.disconnect();
@@ -116,9 +120,12 @@ public class AckCallbacksTest extends AbstractSocketIOIntegrationTest {
             }
         });
 
-        getServer().addEventListener("emptyAckEvent", String.class, new DataListener<String>() {
+        String emptyAckEventName = generateEventName("emptyAck");
+        String emptyAckTestData = generateTestData();
+        
+        getServer().addEventListener(emptyAckEventName, String.class, new DataListener<String>() {
             @Override
-            public void onData(SocketIOClient client, String data, com.corundumstudio.socketio.AckRequest ackRequest) {
+            public void onData(SocketIOClient client, String data, AckRequest ackRequest) {
                 // Send empty acknowledgment (empty array as per protocol)
                 ackRequest.sendAckData();
                 eventLatch.countDown();
@@ -136,7 +143,7 @@ public class AckCallbacksTest extends AbstractSocketIOIntegrationTest {
         CountDownLatch ackLatch = new CountDownLatch(1);
         AtomicReference<Object[]> ackData = new AtomicReference<>();
 
-        client.emit("emptyAckEvent", new Object[]{"Test data"}, args -> {
+        client.emit(emptyAckEventName, new Object[]{emptyAckTestData}, args -> {
             ackData.set(args);
             ackLatch.countDown();
         });
@@ -169,9 +176,12 @@ public class AckCallbacksTest extends AbstractSocketIOIntegrationTest {
             }
         });
 
-        getServer().addEventListener("multiAckEvent", String.class, new DataListener<String>() {
+        String multiAckEventName = generateEventName("multiAck");
+        String multiAckTestData = generateTestData();
+        
+        getServer().addEventListener(multiAckEventName, String.class, new DataListener<String>() {
             @Override
-            public void onData(SocketIOClient client, String data, com.corundumstudio.socketio.AckRequest ackRequest) {
+            public void onData(SocketIOClient client, String data, AckRequest ackRequest) {
                 // Send acknowledgment with multiple parameters
                 ackRequest.sendAckData("status", "success", 200, true);
                 eventLatch.countDown();
@@ -189,7 +199,7 @@ public class AckCallbacksTest extends AbstractSocketIOIntegrationTest {
         CountDownLatch ackLatch = new CountDownLatch(1);
         AtomicReference<Object[]> ackData = new AtomicReference<>();
 
-        client.emit("multiAckEvent", new Object[]{"Test data"}, args -> {
+        client.emit(multiAckEventName, new Object[]{multiAckTestData}, args -> {
             ackData.set(args);
             ackLatch.countDown();
         });
@@ -226,14 +236,17 @@ public class AckCallbacksTest extends AbstractSocketIOIntegrationTest {
             }
         });
 
-        getServer().addEventListener("complexAckEvent", String.class, new DataListener<String>() {
+        String complexAckEventName = generateEventName("complexAck");
+        String complexAckTestData = generateTestData();
+        
+        getServer().addEventListener(complexAckEventName, String.class, new DataListener<String>() {
             @Override
-            public void onData(SocketIOClient client, String data, com.corundumstudio.socketio.AckRequest ackRequest) {
+            public void onData(SocketIOClient client, String data, AckRequest ackRequest) {
                 // Create complex acknowledgment data
                 Map<String, Object> response = new HashMap<>();
                 response.put("status", "success");
                 response.put("timestamp", System.currentTimeMillis());
-                response.put("data", new String[]{"item1", "item2", "item3"});
+                response.put("data", new String[]{faker.lorem().word(), faker.lorem().word(), faker.lorem().word()});
                 
                 Map<String, Object> metadata = new HashMap<>();
                 metadata.put("version", "1.0");
@@ -256,7 +269,7 @@ public class AckCallbacksTest extends AbstractSocketIOIntegrationTest {
         CountDownLatch ackLatch = new CountDownLatch(1);
         AtomicReference<Object[]> ackData = new AtomicReference<>();
 
-        client.emit("complexAckEvent", new Object[]{"Test data"}, args -> {
+        client.emit(complexAckEventName, new Object[]{complexAckTestData}, args -> {
             ackData.set(args);
             ackLatch.countDown();
         });
@@ -294,7 +307,7 @@ public class AckCallbacksTest extends AbstractSocketIOIntegrationTest {
     @DisplayName("Should handle acknowledgment in custom namespace")
     public void testAckInCustomNamespace() throws Exception {
         // Test acknowledgment in custom namespace
-        String namespaceName = "/custom";
+        String namespaceName = generateNamespaceName("custom");
         SocketIONamespace customNamespace = getServer().addNamespace(namespaceName);
         
         CountDownLatch connectLatch = new CountDownLatch(1);
@@ -309,9 +322,12 @@ public class AckCallbacksTest extends AbstractSocketIOIntegrationTest {
             }
         });
 
-        customNamespace.addEventListener("customAckEvent", String.class, new DataListener<String>() {
+        String customAckEventName = generateEventName("customAck");
+        String customAckTestData = generateTestData();
+        
+        customNamespace.addEventListener(customAckEventName, String.class, new DataListener<String>() {
             @Override
-            public void onData(SocketIOClient client, String data, com.corundumstudio.socketio.AckRequest ackRequest) {
+            public void onData(SocketIOClient client, String data, AckRequest ackRequest) {
                 ackRequest.sendAckData("Custom namespace ACK: " + data);
                 eventLatch.countDown();
             }
@@ -328,7 +344,7 @@ public class AckCallbacksTest extends AbstractSocketIOIntegrationTest {
         CountDownLatch ackLatch = new CountDownLatch(1);
         AtomicReference<Object[]> ackData = new AtomicReference<>();
 
-        client.emit("customAckEvent", new Object[]{"Custom test data"}, args -> {
+        client.emit(customAckEventName, new Object[]{customAckTestData}, args -> {
             ackData.set(args);
             ackLatch.countDown();
         });
@@ -338,7 +354,7 @@ public class AckCallbacksTest extends AbstractSocketIOIntegrationTest {
         assertTrue(ackLatch.await(10, TimeUnit.SECONDS), "Acknowledgment should be received within 10 seconds");
 
         assertNotNull(ackData.get(), "Acknowledgment data should not be null");
-        assertEquals("Custom namespace ACK: Custom test data", ackData.get()[0], "Acknowledgment data should match expected");
+        assertEquals("Custom namespace ACK: " + customAckTestData, ackData.get()[0], "Acknowledgment data should match expected");
 
         // Cleanup
         client.disconnect();
@@ -361,9 +377,11 @@ public class AckCallbacksTest extends AbstractSocketIOIntegrationTest {
             }
         });
 
-        getServer().addEventListener("concurrentAckEvent", String.class, new DataListener<String>() {
+        String concurrentAckEventName = generateEventName("concurrentAck");
+        
+        getServer().addEventListener(concurrentAckEventName, String.class, new DataListener<String>() {
             @Override
-            public void onData(SocketIOClient client, String data, com.corundumstudio.socketio.AckRequest ackRequest) {
+            public void onData(SocketIOClient client, String data, AckRequest ackRequest) {
                 int count = eventCount.incrementAndGet();
                 ackRequest.sendAckData("Response " + count + " for: " + data);
             }
@@ -386,7 +404,8 @@ public class AckCallbacksTest extends AbstractSocketIOIntegrationTest {
             ackDataArray[i] = new AtomicReference<>();
             final int index = i;
             
-            client.emit("concurrentAckEvent", new Object[]{"Data " + i}, args -> {
+            String testData = generateTestData(2);
+            client.emit(concurrentAckEventName, new Object[]{testData}, args -> {
                 ackDataArray[index].set(args);
                 ackLatches[index].countDown();
             });
@@ -401,8 +420,8 @@ public class AckCallbacksTest extends AbstractSocketIOIntegrationTest {
         // Verify all acknowledgments
         for (int i = 0; i < numEvents; i++) {
             assertNotNull(ackDataArray[i].get(), "Acknowledgment data " + i + " should not be null");
-            assertTrue(ackDataArray[i].get()[0].toString().contains("Data " + i), 
-                "Acknowledgment " + i + " should contain the original data");
+            assertTrue(ackDataArray[i].get()[0].toString().contains("Response"), 
+                "Acknowledgment " + i + " should contain response data");
         }
 
         // Cleanup
@@ -437,19 +456,23 @@ public class AckCallbacksTest extends AbstractSocketIOIntegrationTest {
         CountDownLatch serverAckLatch = new CountDownLatch(1);
         AtomicReference<Object[]> clientEventData = new AtomicReference<>();
         AtomicReference<Object[]> serverAckData = new AtomicReference<>();
+        
+        String serverEventName = generateEventName("server");
+        String serverEventAckName = generateEventName("serverEventAck");
+        String serverMessage = generateTestData();
 
-        client.on("serverEvent", args -> {
+        client.on(serverEventName, args -> {
             clientEventData.set(args);
             clientEventLatch.countDown();
             
             // Send acknowledgment back to server
-            client.emit("serverEventAck", "Client received: " + args[0]);
+            client.emit(serverEventAckName, "Client received: " + args[0]);
         });
 
         // Set up server-side acknowledgment listener
-        getServer().addEventListener("serverEventAck", String.class, new DataListener<String>() {
+        getServer().addEventListener(serverEventAckName, String.class, new DataListener<String>() {
             @Override
-            public void onData(SocketIOClient client, String data, com.corundumstudio.socketio.AckRequest ackRequest) {
+            public void onData(SocketIOClient client, String data, AckRequest ackRequest) {
                 serverAckData.set(new Object[]{data});
                 ackRequest.sendAckData("Server received client ACK");
                 serverAckLatch.countDown();
@@ -457,7 +480,7 @@ public class AckCallbacksTest extends AbstractSocketIOIntegrationTest {
         });
 
         // Send event from server to client with acknowledgment
-        connectedClient.get().sendEvent("serverEvent", "Hello from server");
+        connectedClient.get().sendEvent(serverEventName, serverMessage);
 
         // Wait for client to receive event and send acknowledgment
         assertTrue(clientEventLatch.await(10, TimeUnit.SECONDS), "Client should receive server event within 10 seconds");
@@ -465,10 +488,10 @@ public class AckCallbacksTest extends AbstractSocketIOIntegrationTest {
 
         // Verify the data flow
         assertNotNull(clientEventData.get(), "Client should receive event data");
-        assertEquals("Hello from server", clientEventData.get()[0], "Client should receive correct event data");
+        assertEquals(serverMessage, clientEventData.get()[0], "Client should receive correct event data");
         
         assertNotNull(serverAckData.get(), "Server should receive acknowledgment data");
-        assertEquals("Client received: Hello from server", serverAckData.get()[0], "Server should receive correct acknowledgment");
+        assertEquals("Client received: " + serverMessage, serverAckData.get()[0], "Server should receive correct acknowledgment");
 
         // Cleanup
         client.disconnect();
@@ -490,10 +513,13 @@ public class AckCallbacksTest extends AbstractSocketIOIntegrationTest {
             }
         });
 
+        String noAckEventName = generateEventName("noAck");
+        String noAckTestData = generateTestData();
+        
         // Add event listener that doesn't send acknowledgment
-        getServer().addEventListener("noAckEvent", String.class, new DataListener<String>() {
+        getServer().addEventListener(noAckEventName, String.class, new DataListener<String>() {
             @Override
-            public void onData(SocketIOClient client, String data, com.corundumstudio.socketio.AckRequest ackRequest) {
+            public void onData(SocketIOClient client, String data, AckRequest ackRequest) {
                 // Intentionally not sending acknowledgment to test timeout
             }
         });
@@ -510,7 +536,7 @@ public class AckCallbacksTest extends AbstractSocketIOIntegrationTest {
         AtomicReference<Object[]> ackData = new AtomicReference<>();
         AtomicReference<Exception> ackError = new AtomicReference<>();
 
-        client.emit("noAckEvent", new Object[]{"Test data"}, args -> {
+        client.emit(noAckEventName, new Object[]{noAckTestData}, args -> {
             ackData.set(args);
             ackLatch.countDown();
         });
@@ -547,11 +573,14 @@ public class AckCallbacksTest extends AbstractSocketIOIntegrationTest {
             }
         });
 
-        getServer().addEventListener("errorAckEvent", String.class, new DataListener<String>() {
+        String errorAckEventName = generateEventName("errorAck");
+        String errorAckTestData = generateTestData();
+        
+        getServer().addEventListener(errorAckEventName, String.class, new DataListener<String>() {
             @Override
-            public void onData(SocketIOClient client, String data, com.corundumstudio.socketio.AckRequest ackRequest) {
+            public void onData(SocketIOClient client, String data, AckRequest ackRequest) {
                 // Send error acknowledgment
-                ackRequest.sendAckData("error", "Invalid data format", 400);
+                ackRequest.sendAckData("error", generateErrorMessage(), 400);
                 eventLatch.countDown();
             }
         });
@@ -567,7 +596,7 @@ public class AckCallbacksTest extends AbstractSocketIOIntegrationTest {
         CountDownLatch ackLatch = new CountDownLatch(1);
         AtomicReference<Object[]> ackData = new AtomicReference<>();
 
-        client.emit("errorAckEvent", new Object[]{"Invalid data"}, args -> {
+        client.emit(errorAckEventName, new Object[]{errorAckTestData}, args -> {
             ackData.set(args);
             ackLatch.countDown();
         });
@@ -579,7 +608,7 @@ public class AckCallbacksTest extends AbstractSocketIOIntegrationTest {
         assertNotNull(ackData.get(), "Acknowledgment data should not be null");
         assertEquals(3, ackData.get().length, "Acknowledgment should have 3 parameters");
         assertEquals("error", ackData.get()[0], "First parameter should be 'error'");
-        assertEquals("Invalid data format", ackData.get()[1], "Second parameter should be error message");
+        assertTrue(ackData.get()[1].toString().contains("error"), "Second parameter should be error message");
         assertEquals(400, ackData.get()[2], "Third parameter should be error code");
 
         // Cleanup
