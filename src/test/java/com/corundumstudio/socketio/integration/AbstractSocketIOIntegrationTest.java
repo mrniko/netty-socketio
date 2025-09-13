@@ -56,7 +56,7 @@ public abstract class AbstractSocketIOIntegrationTest {
     private static final int BASE_PORT = 9000;
     private static final int PORT_RANGE = 2000; // Increased range for better distribution
     private static final AtomicInteger PORT_COUNTER = new AtomicInteger(0);
-    private static final int MAX_PORT_RETRIES = 5;
+    private static final int MAX_PORT_RETRIES = 15;
 
     /**
      * Get the current server port for this test instance
