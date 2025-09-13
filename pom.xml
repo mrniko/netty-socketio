@@ -52,7 +52,7 @@
     <skipTests>false</skipTests>
     <netty.version>4.1.119.Final</netty.version>
     <jmockit.version>1.49</jmockit.version>
-    <byte-buddy.version>1.14.9</byte-buddy.version>
+      <byte-buddy.version>1.14.13</byte-buddy.version>
   </properties>
 
   <profiles>
@@ -497,6 +497,8 @@
             <include>**/*Test.java</include>
             <include>**/*Tests.java</include>
           </includes>
+            <forkCount>1</forkCount>
+            <reuseForks>false</reuseForks>
         </configuration>
       </plugin>
 
