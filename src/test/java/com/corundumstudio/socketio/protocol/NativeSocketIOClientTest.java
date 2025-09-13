@@ -20,6 +20,7 @@ import java.util.UUID;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -31,17 +32,17 @@ import com.corundumstudio.socketio.AckCallback;
 import com.corundumstudio.socketio.ack.AckManager;
 import com.corundumstudio.socketio.handler.ClientHead;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.when;
-
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.util.CharsetUtil;
 import io.socket.parser.IOParser;
 import io.socket.parser.Packet;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.when;
 
 public class NativeSocketIOClientTest {
 
@@ -50,6 +51,8 @@ public class NativeSocketIOClientTest {
     private PacketDecoder decoder;
 
     private JsonSupport jsonSupport = new JacksonJsonSupport();
+
+    private AutoCloseable closeableMocks;
 
     @Mock
     private AckManager ackManager;
@@ -62,12 +65,17 @@ public class NativeSocketIOClientTest {
 
     @BeforeEach
     public void setUp() {
-        MockitoAnnotations.openMocks(this);
+        closeableMocks = MockitoAnnotations.openMocks(this);
         decoder = new PacketDecoder(jsonSupport, ackManager);
 
         // Setup default client behavior
         when(clientHead.getEngineIOVersion()).thenReturn(EngineIOVersion.V4);
         when(clientHead.getSessionId()).thenReturn(UUID.randomUUID());
+    }
+
+    @AfterEach
+    public void tearDown() throws Exception {
+        closeableMocks.close();
     }
 
     @Test

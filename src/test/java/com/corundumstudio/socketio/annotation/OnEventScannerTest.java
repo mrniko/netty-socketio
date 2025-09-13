@@ -19,6 +19,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.UUID;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -35,7 +36,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -230,24 +230,31 @@ class OnEventScannerTest extends AnnotationTestBase {
         }
     }
 
+    private AutoCloseable closeableMocks;
+
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.openMocks(this);
+        closeableMocks = MockitoAnnotations.openMocks(this);
         scanner = new OnEventScanner();
         testHandler = new TestHandler();
-        
+
         // Create fresh configuration and namespace for each test
         config = newConfiguration();
         realNamespace = newNamespace(config);
-        
+
         // Setup mock client with session ID
         when(mockClient.getSessionId()).thenReturn(UUID.randomUUID());
-        
+
         // Setup mock ack request
         when(mockAckRequest.isAckRequested()).thenReturn(true);
-        
+
         // Setup mock namespace for testing - these methods return void, so we just need to ensure they don't throw
         // No need to mock void methods
+    }
+
+    @AfterEach
+    public void tearDown() throws Exception {
+        closeableMocks.close();
     }
 
     @Test

@@ -24,6 +24,7 @@ import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -47,6 +48,8 @@ import static org.mockito.Mockito.when;
 class NamespaceRoomManagementTest extends BaseNamespaceTest {
 
     private Namespace namespace;
+
+    private AutoCloseable closeableMocks;
 
     @Mock
     private Configuration configuration;
@@ -78,7 +81,7 @@ class NamespaceRoomManagementTest extends BaseNamespaceTest {
 
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.initMocks(this);
+        closeableMocks = MockitoAnnotations.openMocks(this);
         when(configuration.getJsonSupport()).thenReturn(jsonSupport);
         when(configuration.getStoreFactory()).thenReturn(storeFactory);
         when(configuration.getAckMode()).thenReturn(com.corundumstudio.socketio.AckMode.AUTO);
@@ -107,6 +110,11 @@ class NamespaceRoomManagementTest extends BaseNamespaceTest {
         namespace.joinRoom(ROOM_NAME_1, CLIENT_2_SESSION_ID);
         namespace.joinRoom(ROOM_NAME_2, CLIENT_2_SESSION_ID);
         namespace.joinRoom(ROOM_NAME_2, CLIENT_3_SESSION_ID);
+    }
+
+    @AfterEach
+    void tearDown() throws Exception {
+        closeableMocks.close();
     }
 
     /**

@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -30,6 +31,10 @@ import org.mockito.MockitoAnnotations;
 import com.corundumstudio.socketio.AckCallback;
 import com.corundumstudio.socketio.ack.AckManager;
 import com.corundumstudio.socketio.handler.ClientHead;
+
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
+import io.netty.util.CharsetUtil;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -41,10 +46,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
-import io.netty.util.CharsetUtil;
-
 /**
  * Comprehensive test suite for PacketDecoder class
  * Tests all packet types and encoding formats according to Socket.IO V4 protocol
@@ -52,6 +53,8 @@ import io.netty.util.CharsetUtil;
 public class PacketDecoderTest extends BaseProtocolTest {
 
     private PacketDecoder decoder;
+
+    private AutoCloseable closeableMocks;
     
     @Mock
     private JsonSupport jsonSupport;
@@ -67,12 +70,17 @@ public class PacketDecoderTest extends BaseProtocolTest {
 
     @BeforeEach
     public void setUp() {
-        MockitoAnnotations.openMocks(this);
+        closeableMocks = MockitoAnnotations.openMocks(this);
         decoder = new PacketDecoder(jsonSupport, ackManager);
         
         // Setup default client behavior
         when(clientHead.getEngineIOVersion()).thenReturn(EngineIOVersion.V4);
         when(clientHead.getSessionId()).thenReturn(UUID.randomUUID());
+    }
+
+    @AfterEach
+    public void tearDown() throws Exception {
+        closeableMocks.close();
     }
 
     // ==================== CONNECT Packet Tests ====================

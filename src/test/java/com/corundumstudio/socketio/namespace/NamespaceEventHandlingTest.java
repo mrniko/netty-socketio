@@ -1,12 +1,12 @@
 /**
  * Copyright (c) 2012-2025 Nikita Koksharov
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -24,6 +24,7 @@ import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -64,6 +65,8 @@ class NamespaceEventHandlingTest extends BaseNamespaceTest {
 
     private Namespace namespace;
 
+    private AutoCloseable closeableMocks;
+
     @Mock
     private Configuration configuration;
 
@@ -91,7 +94,7 @@ class NamespaceEventHandlingTest extends BaseNamespaceTest {
 
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.initMocks(this);
+        closeableMocks = MockitoAnnotations.openMocks(this);
         when(configuration.getJsonSupport()).thenReturn(jsonSupport);
         when(configuration.getStoreFactory()).thenReturn(storeFactory);
         when(configuration.getAckMode()).thenReturn(AckMode.AUTO);
@@ -103,6 +106,11 @@ class NamespaceEventHandlingTest extends BaseNamespaceTest {
         when(mockNamespaceClient.getSessionId()).thenReturn(CLIENT_SESSION_ID);
         when(mockClient.getSessionId()).thenReturn(CLIENT_SESSION_ID);
         when(mockClient.getAllRooms()).thenReturn(Collections.emptySet());
+    }
+
+    @AfterEach
+    void tearDown() throws Exception {
+        closeableMocks.close();
     }
 
     /**

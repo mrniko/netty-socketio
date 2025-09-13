@@ -1,12 +1,12 @@
 /**
  * Copyright (c) 2012-2025 Nikita Koksharov
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -15,36 +15,43 @@
  */
 package com.corundumstudio.socketio.scheduler;
 
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.EventLoop;
-import io.netty.util.concurrent.EventExecutor;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Timeout;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.EventLoop;
+import io.netty.util.concurrent.EventExecutor;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.verify;
 
 @DisplayName("HashedWheelScheduler Tests")
 class HashedWheelSchedulerTest {
 
+    private AutoCloseable autoCloseableMocks;
+
     @Mock
     private ChannelHandlerContext mockCtx;
-    
+
     @Mock
     private EventExecutor mockExecutor;
-    
+
     @Mock
     private EventLoop mockEventLoop;
 
@@ -52,22 +59,23 @@ class HashedWheelSchedulerTest {
 
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.openMocks(this);
+        autoCloseableMocks = MockitoAnnotations.openMocks(this);
         doReturn(mockExecutor).when(mockCtx).executor();
         doAnswer(invocation -> {
             Runnable runnable = invocation.getArgument(0);
             runnable.run();
             return null;
         }).when(mockExecutor).execute(any(Runnable.class));
-        
+
         scheduler = new HashedWheelScheduler();
     }
 
     @AfterEach
-    void tearDown() {
+    void tearDown() throws Exception {
         if (scheduler != null) {
             scheduler.shutdown();
         }
+        autoCloseableMocks.close();
     }
 
     @Nested
@@ -82,7 +90,7 @@ class HashedWheelSchedulerTest {
 
             // Then
             assertThat(newScheduler).isNotNull();
-            
+
             // Cleanup
             newScheduler.shutdown();
         }
@@ -102,7 +110,7 @@ class HashedWheelSchedulerTest {
 
             // Then
             assertThat(newScheduler).isNotNull();
-            
+
             // Cleanup
             newScheduler.shutdown();
         }
@@ -387,7 +395,7 @@ class HashedWheelSchedulerTest {
         void shouldHandleCancelOfNullKey() {
             // When & Then
             assertThatThrownBy(() -> scheduler.cancel(null))
-                .isInstanceOf(NullPointerException.class);
+                    .isInstanceOf(NullPointerException.class);
         }
     }
 
@@ -474,15 +482,15 @@ class HashedWheelSchedulerTest {
                     try {
                         startLatch.await();
                         SchedulerKey key = new SchedulerKey(SchedulerKey.Type.PING, "session-" + threadId);
-                        
+
                         // Schedule and immediately cancel
                         scheduler.schedule(key, () -> {
                             executionCount.incrementAndGet();
                             completionLatch.countDown();
                         }, 200, TimeUnit.MILLISECONDS);
-                        
+
                         scheduler.cancel(key);
-                        
+
                     } catch (InterruptedException e) {
                         Thread.currentThread().interrupt();
                     }
@@ -574,7 +582,7 @@ class HashedWheelSchedulerTest {
             scheduler.schedule(key, null, 100, TimeUnit.MILLISECONDS);
             scheduler.schedule(null, 100, TimeUnit.MILLISECONDS);
             scheduler.scheduleCallback(key, null, 100, TimeUnit.MILLISECONDS);
-            
+
             // The methods should not throw exception during scheduling
             assertThat(scheduler).isNotNull();
         }
@@ -584,17 +592,18 @@ class HashedWheelSchedulerTest {
         void shouldHandleNullTimeUnit() {
             // Given
             SchedulerKey key = new SchedulerKey(SchedulerKey.Type.PING, "test-session");
-            Runnable runnable = () -> {};
+            Runnable runnable = () -> {
+            };
 
             // When & Then
             assertThatThrownBy(() -> scheduler.schedule(key, runnable, 100, null))
-                .isInstanceOf(NullPointerException.class);
+                    .isInstanceOf(NullPointerException.class);
 
             assertThatThrownBy(() -> scheduler.schedule(runnable, 100, null))
-                .isInstanceOf(NullPointerException.class);
+                    .isInstanceOf(NullPointerException.class);
 
             assertThatThrownBy(() -> scheduler.scheduleCallback(key, runnable, 100, null))
-                .isInstanceOf(NullPointerException.class);
+                    .isInstanceOf(NullPointerException.class);
         }
     }
 }

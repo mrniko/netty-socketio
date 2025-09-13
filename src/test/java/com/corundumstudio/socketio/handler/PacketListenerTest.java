@@ -1,12 +1,12 @@
 /**
  * Copyright (c) 2012-2025 Nikita Koksharov
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -20,6 +20,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -41,7 +42,6 @@ import com.corundumstudio.socketio.protocol.Packet;
 import com.corundumstudio.socketio.protocol.PacketType;
 import com.corundumstudio.socketio.scheduler.CancelableScheduler;
 import com.corundumstudio.socketio.scheduler.SchedulerKey;
-import com.corundumstudio.socketio.handler.ClientHead;
 import com.corundumstudio.socketio.transport.NamespaceClient;
 import com.corundumstudio.socketio.transport.PollingTransport;
 
@@ -59,7 +59,7 @@ import static org.mockito.Mockito.when;
 
 /**
  * Comprehensive unit test suite for PacketListener class.
- * 
+ *
  * This test class covers all packet types and their processing logic:
  * - PING packets (including probe ping)
  * - PONG packets
@@ -70,7 +70,7 @@ import static org.mockito.Mockito.when;
  * - Engine.IO version compatibility
  * - Namespace interactions
  * - Scheduler operations
- * 
+ *
  * Test Coverage:
  * - All packet type branches
  * - All conditional logic paths
@@ -122,18 +122,25 @@ class PacketListenerTest {
     private static final String EVENT_NAME = "testEvent";
     private static final Long ACK_ID = 123L;
 
+    private AutoCloseable closeableMocks;
+
+    @AfterEach
+    public void tearDown() throws Exception {
+        closeableMocks.close();
+    }
+
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.openMocks(this);
-        
+        closeableMocks = MockitoAnnotations.openMocks(this);
+
         // Setup default mock behavior
         when(namespaceClient.getSessionId()).thenReturn(SESSION_ID);
         when(namespaceClient.getBaseClient()).thenReturn(baseClient);
         when(namespaceClient.getEngineIOVersion()).thenReturn(EngineIOVersion.V3);
         when(namespaceClient.getNamespace()).thenReturn(namespace);
-        
+
         when(namespacesHub.get(NAMESPACE_NAME)).thenReturn(namespace);
-        
+
         packetListener = new PacketListener(ackManager, namespacesHub, xhrPollingTransport, scheduler);
     }
 
@@ -664,14 +671,14 @@ class PacketListenerTest {
 
         @Test
         @DisplayName("Should handle different transport types correctly")
-        void shouldHandleDifferentTransportTypesCorrectly() {
+        void shouldHandleDifferentTransportTypesCorrectly() throws Exception {
             // Given
             Packet packet = createPacket(PacketType.PING);
             Transport[] transports = {Transport.WEBSOCKET, Transport.POLLING};
 
             for (Transport transport : transports) {
                 // Reset mocks
-                MockitoAnnotations.openMocks(this);
+                AutoCloseable autoCloseable = MockitoAnnotations.openMocks(this);
                 when(namespaceClient.getSessionId()).thenReturn(SESSION_ID);
                 when(namespaceClient.getBaseClient()).thenReturn(baseClient);
                 when(namespaceClient.getEngineIOVersion()).thenReturn(EngineIOVersion.V3);
@@ -683,6 +690,7 @@ class PacketListenerTest {
 
                 // Then
                 verify(baseClient, times(1)).send(any(Packet.class), eq(transport));
+                autoCloseable.close();
             }
         }
     }
@@ -722,7 +730,7 @@ class PacketListenerTest {
             verify(baseClient, never()).send(any(Packet.class), any(Transport.class));
         }
 
-                @Test
+        @Test
         @DisplayName("Should handle probe ping correctly")
         void shouldHandleProbePingCorrectly() {
             // Given

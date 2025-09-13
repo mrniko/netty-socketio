@@ -18,6 +18,7 @@ package com.corundumstudio.socketio.namespace;
 import java.util.Collection;
 import java.util.concurrent.CountDownLatch;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -43,6 +44,8 @@ class NamespacesHubTest extends BaseNamespaceTest {
 
     private NamespacesHub namespacesHub;
 
+    private AutoCloseable closeableMocks;
+
     @Mock
     private Configuration mockConfiguration;
 
@@ -58,8 +61,13 @@ class NamespacesHubTest extends BaseNamespaceTest {
 
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.initMocks(this);
+        closeableMocks = MockitoAnnotations.openMocks(this);
         namespacesHub = new NamespacesHub(mockConfiguration);
+    }
+
+    @AfterEach
+    void tearDown() throws Exception {
+        closeableMocks.close();
     }
 
     /**

@@ -19,6 +19,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.UUID;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -47,6 +48,7 @@ class OnConnectScannerTest extends AnnotationTestBase {
     private OnConnectScanner scanner;
     private Configuration config;
     private Namespace realNamespace;
+    private AutoCloseable closeableMocks;
 
     @Mock
     private Namespace mockNamespace;
@@ -156,7 +158,7 @@ class OnConnectScannerTest extends AnnotationTestBase {
 
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.openMocks(this);
+        closeableMocks = MockitoAnnotations.openMocks(this);
         scanner = new OnConnectScanner();
         testHandler = new TestHandler();
         
@@ -166,6 +168,11 @@ class OnConnectScannerTest extends AnnotationTestBase {
         
         // Setup mock client with session ID
         when(mockClient.getSessionId()).thenReturn(UUID.randomUUID());
+    }
+
+    @AfterEach
+    void tearDown() throws Exception {
+        closeableMocks.close();
     }
 
     @Test

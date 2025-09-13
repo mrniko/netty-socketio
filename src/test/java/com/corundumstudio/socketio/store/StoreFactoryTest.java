@@ -18,6 +18,7 @@ package com.corundumstudio.socketio.store;
 import java.util.Map;
 import java.util.UUID;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -40,6 +41,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 public abstract class StoreFactoryTest {
 
+    private AutoCloseable closeableMocks;
+
     @Mock
     protected NamespacesHub namespacesHub;
     
@@ -53,9 +56,14 @@ public abstract class StoreFactoryTest {
 
     @BeforeEach
     public void setUp() throws Exception {
-        MockitoAnnotations.openMocks(this);
+        closeableMocks = MockitoAnnotations.openMocks(this);
         storeFactory = createStoreFactory();
         storeFactory.init(namespacesHub, authorizeHandler, jsonSupport);
+    }
+
+    @AfterEach
+    public void tearDown() throws Exception {
+        closeableMocks.close();
     }
 
     /**

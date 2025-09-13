@@ -21,6 +21,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -52,6 +53,8 @@ class NamespaceTest extends BaseNamespaceTest {
 
     private Namespace namespace;
 
+    private AutoCloseable closeableMocks;
+
     @Mock
     private Configuration configuration;
 
@@ -72,7 +75,7 @@ class NamespaceTest extends BaseNamespaceTest {
 
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.initMocks(this);
+        closeableMocks = MockitoAnnotations.openMocks(this);
         when(configuration.getJsonSupport()).thenReturn(jsonSupport);
         when(configuration.getStoreFactory()).thenReturn(storeFactory);
         when(configuration.getAckMode()).thenReturn(AckMode.AUTO);
@@ -86,6 +89,11 @@ class NamespaceTest extends BaseNamespaceTest {
 
         // Mock StoreFactory pubSubStore to avoid NullPointerException
         when(storeFactory.pubSubStore()).thenReturn(mock(PubSubStore.class));
+    }
+
+    @AfterEach
+    void tearDown() throws Exception {
+        closeableMocks.close();
     }
 
     /**

@@ -19,6 +19,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.UUID;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -154,18 +155,25 @@ class OnDisconnectScannerTest extends AnnotationTestBase {
         }
     }
 
+    private AutoCloseable closeableMocks;
+
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.openMocks(this);
+        closeableMocks = MockitoAnnotations.openMocks(this);
         scanner = new OnDisconnectScanner();
         testHandler = new TestHandler();
-        
+
         // Create fresh configuration and namespace for each test
         config = newConfiguration();
         realNamespace = newNamespace(config);
-        
+
         // Setup mock client with session ID
         when(mockClient.getSessionId()).thenReturn(UUID.randomUUID());
+    }
+
+    @AfterEach
+    public void tearDown() throws Exception {
+        closeableMocks.close();
     }
 
     @Test

@@ -23,6 +23,7 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.Queue;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -30,15 +31,15 @@ import org.mockito.MockitoAnnotations;
 
 import com.corundumstudio.socketio.Configuration;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.Unpooled;
 import io.netty.util.CharsetUtil;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Comprehensive test suite for PacketEncoder class
@@ -47,6 +48,8 @@ import io.netty.util.CharsetUtil;
 public class PacketEncoderTest extends BaseProtocolTest {
 
     private PacketEncoder encoder;
+
+    private AutoCloseable closeableMocks;
     
     @Mock
     private JsonSupport jsonSupport;
@@ -59,7 +62,7 @@ public class PacketEncoderTest extends BaseProtocolTest {
 
     @BeforeEach
     public void setUp() {
-        MockitoAnnotations.openMocks(this);
+        closeableMocks = MockitoAnnotations.openMocks(this);
         
         configuration = new Configuration();
         configuration.setPreferDirectBuffer(false);
@@ -69,6 +72,11 @@ public class PacketEncoderTest extends BaseProtocolTest {
         allocator = Unpooled.buffer().alloc();
 
         encoder = new PacketEncoder(configuration, jsonSupport);
+    }
+
+    @AfterEach
+    public void tearDown() throws Exception {
+        closeableMocks.close();
     }
 
     // ==================== CONNECT Packet Tests ====================
