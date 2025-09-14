@@ -131,8 +131,10 @@ public class AuthPayloadTest extends AbstractSocketIOIntegrationTest {
             }
         });
 
+        String testEventName = generateEventName();
+
         getServer().addEventListener(
-                "testEvent", String.class,
+                testEventName, String.class,
                 (client, data, ackSender) -> receivedEvent.set(true)
         );
 
@@ -149,7 +151,7 @@ public class AuthPayloadTest extends AbstractSocketIOIntegrationTest {
         client.connect();
 
         // Emit a test event to ensure connection is fully established
-        client.emit("testEvent", "testData");
+        client.emit(testEventName, generateTestData());
 
         // Wait for connection
         await().atMost(10, SECONDS).until(() -> connectedClient.get() != null);
