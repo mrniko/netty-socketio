@@ -11,11 +11,11 @@ jobs:
     steps:
       - name: Get PR Commits
         id: 'get-pr-commits'
-        uses: tim-actions/get-pr-commits@master
+        uses: tim-actions/get-pr-commits@v1.2.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: DCO Check
-        uses: tim-actions/dco@master
+        uses: tim-actions/dco@v1.0.0
         with:
           commits: ${{ steps.get-pr-commits.outputs.commits }}
