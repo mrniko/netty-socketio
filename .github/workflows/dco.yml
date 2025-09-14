@@ -16,6 +16,6 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: DCO Check
-        uses: tim-actions/dco@v1.0.0
+        uses: tim-actions/dco@v1.1.0
         with:
           commits: ${{ steps.get-pr-commits.outputs.commits }}
