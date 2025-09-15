@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2012-2023 Nikita Koksharov
+ * Copyright (c) 2012-2025 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,6 @@
  */
 package com.corundumstudio.socketio;
 
-import io.netty.buffer.ByteBufInputStream;
-import io.netty.buffer.ByteBufOutputStream;
-
 import java.io.IOException;
 import java.util.List;
 
@@ -26,6 +23,9 @@ import org.slf4j.LoggerFactory;
 
 import com.corundumstudio.socketio.protocol.AckArgs;
 import com.corundumstudio.socketio.protocol.JsonSupport;
+
+import io.netty.buffer.ByteBufInputStream;
+import io.netty.buffer.ByteBufOutputStream;
 
 class JsonSupportWrapper implements JsonSupport {
 
@@ -70,7 +70,7 @@ class JsonSupportWrapper implements JsonSupport {
     }
 
     @Override
-    public void addEventMapping(String namespaceName, String eventName, Class<?> ... eventClass) {
+    public void addEventMapping(String namespaceName, String eventName, Class<?>... eventClass) {
         delegate.addEventMapping(namespaceName, eventName, eventClass);
     }
 

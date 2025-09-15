@@ -49,8 +49,10 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-    <skipTests>true</skipTests>
+    <skipTests>false</skipTests>
     <netty.version>4.1.119.Final</netty.version>
+    <jmockit.version>1.49</jmockit.version>
+      <byte-buddy.version>1.14.13</byte-buddy.version>
   </properties>
 
   <profiles>
@@ -174,13 +176,30 @@
     <dependency>
       <groupId>org.jmockit</groupId>
       <artifactId>jmockit</artifactId>
-      <version>1.49</version>
+      <version>${jmockit.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>4.13.2</version>
+      <groupId>net.bytebuddy</groupId>
+      <artifactId>byte-buddy-agent</artifactId>
+      <version>${byte-buddy.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <version>5.10.1</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.vintage</groupId>
+      <artifactId>junit-vintage-engine</artifactId>
+      <version>5.10.1</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.platform</groupId>
+      <artifactId>junit-platform-launcher</artifactId>
+      <version>1.10.1</version>
       <scope>test</scope>
     </dependency>
 
@@ -234,7 +253,65 @@
       <version>3.12.12</version>
       <scope>provided</scope>
     </dependency>
+
+    <!-- Test dependencies -->
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>testcontainers</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.awaitility</groupId>
+      <artifactId>awaitility</artifactId>
+      <version>4.2.0</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.assertj</groupId>
+      <artifactId>assertj-core</artifactId>
+      <version>3.24.2</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
+      <version>5.7.0</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-classic</artifactId>
+      <version>1.4.11</version>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- Socket.IO client for testing -->
+    <dependency>
+      <groupId>io.socket</groupId>
+      <artifactId>socket.io-client</artifactId>
+      <version>2.1.0</version>
+      <scope>test</scope>
+    </dependency>
+    <!-- https://mvnrepository.com/artifact/com.github.javafaker/javafaker -->
+    <dependency>
+      <groupId>com.github.javafaker</groupId>
+      <artifactId>javafaker</artifactId>
+      <version>1.0.2</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>org.testcontainers</groupId>
+        <artifactId>testcontainers-bom</artifactId>
+        <version>1.21.3</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
 
 
   <build>
@@ -320,12 +397,11 @@
         <configuration>
           <linkXref>true</linkXref>
           <minimumTokens>100</minimumTokens>
-          <targetJdk>1.6</targetJdk>
+          <targetJdk>1.8</targetJdk>
           <verbose>true</verbose>
         </configuration>
       </plugin>
 
-<!--
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-checkstyle-plugin</artifactId>
@@ -345,7 +421,6 @@
           <excludes>**/module-info.java</excludes>
         </configuration>
       </plugin>
--->
 
       <plugin>
         <!-- this trick double-compiles everything so we can have a module-info.class
@@ -411,8 +486,19 @@
         <version>3.2.5</version>
         <configuration>
           <argLine>
-            -javaagent:"${settings.localRepository}"/org/jmockit/jmockit/1.46/jmockit-1.46.jar
+            -javaagent:"${settings.localRepository}"/org/jmockit/jmockit/${jmockit.version}/jmockit-${jmockit.version}.jar
+            -javaagent:"${settings.localRepository}"/net/bytebuddy/byte-buddy-agent/${byte-buddy.version}/byte-buddy-agent-${byte-buddy.version}.jar
+            --add-opens netty.socketio/com.corundumstudio.socketio.store.pubsub=ALL-UNNAMED
+            --add-opens netty.socketio/com.corundumstudio.socketio.store=ALL-UNNAMED
+            --add-opens netty.socketio/com.corundumstudio.socketio.store.pubsub=redisson
+            --add-opens netty.socketio/com.corundumstudio.socketio.store=redisson
           </argLine>
+          <includes>
+            <include>**/*Test.java</include>
+            <include>**/*Tests.java</include>
+          </includes>
+            <forkCount>1</forkCount>
+            <reuseForks>false</reuseForks>
         </configuration>
       </plugin>
 

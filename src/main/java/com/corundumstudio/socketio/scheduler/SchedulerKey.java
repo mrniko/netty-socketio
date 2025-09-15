@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2012-2023 Nikita Koksharov
+ * Copyright (c) 2012-2025 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,9 +32,16 @@ public class SchedulerKey {
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result
-                + ((sessionId == null) ? 0 : sessionId.hashCode());
-        result = prime * result + ((type == null) ? 0 : type.hashCode());
+        if (sessionId == null) {
+            result = prime * result + 0;
+        } else {
+            result = prime * result + sessionId.hashCode();
+        }
+        if (type == null) {
+            result = prime * result + 0;
+        } else {
+            result = prime * result + type.hashCode();
+        }
         return result;
     }
 

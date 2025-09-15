@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2012-2023 Nikita Koksharov
+ * Copyright (c) 2012-2025 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import com.corundumstudio.socketio.protocol.EngineIOVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,6 +30,7 @@ import com.corundumstudio.socketio.SocketIOClient;
 import com.corundumstudio.socketio.Transport;
 import com.corundumstudio.socketio.handler.ClientHead;
 import com.corundumstudio.socketio.namespace.Namespace;
+import com.corundumstudio.socketio.protocol.EngineIOVersion;
 import com.corundumstudio.socketio.protocol.Packet;
 import com.corundumstudio.socketio.protocol.PacketType;
 
@@ -73,7 +73,7 @@ public class NamespaceClient implements SocketIOClient {
     }
 
     @Override
-    public void sendEvent(String name, Object ... data) {
+    public void sendEvent(String name, Object... data) {
         Packet packet = new Packet(PacketType.MESSAGE, getEngineIOVersion());
         packet.setSubType(PacketType.EVENT);
         packet.setName(name);
@@ -82,7 +82,7 @@ public class NamespaceClient implements SocketIOClient {
     }
 
     @Override
-    public void sendEvent(String name, AckCallback<?> ackCallback, Object ... data) {
+    public void sendEvent(String name, AckCallback<?> ackCallback, Object... data) {
         Packet packet = new Packet(PacketType.MESSAGE, getEngineIOVersion());
         packet.setSubType(PacketType.EVENT);
         packet.setName(name);
@@ -150,9 +150,16 @@ public class NamespaceClient implements SocketIOClient {
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result + ((getSessionId() == null) ? 0 : getSessionId().hashCode());
-        result = prime * result
-                + ((getNamespace().getName() == null) ? 0 : getNamespace().getName().hashCode());
+        if (getSessionId() == null) {
+            result = prime * result + 0;
+        } else {
+            result = prime * result + getSessionId().hashCode();
+        }
+        if (getNamespace().getName() == null) {
+            result = prime * result + 0;
+        } else {
+            result = prime * result + getNamespace().getName().hashCode();
+        }
         return result;
     }
 
