@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2012-2023 Nikita Koksharov
+ * Copyright (c) 2012-2025 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,13 @@
  */
 package com.corundumstudio.socketio.transport;
 
+import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.corundumstudio.socketio.Configuration;
 import com.corundumstudio.socketio.SocketIOChannelInitializer;
 import com.corundumstudio.socketio.Transport;
@@ -27,20 +34,24 @@ import com.corundumstudio.socketio.protocol.Packet;
 import com.corundumstudio.socketio.protocol.PacketType;
 import com.corundumstudio.socketio.scheduler.CancelableScheduler;
 import com.corundumstudio.socketio.scheduler.SchedulerKey;
+
 import io.netty.buffer.ByteBufHolder;
-import io.netty.channel.*;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler.Sharable;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.QueryStringDecoder;
-import io.netty.handler.codec.http.websocketx.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.List;
-import java.util.UUID;
-import java.util.concurrent.TimeUnit;
+import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
+import io.netty.handler.codec.http.websocketx.CloseWebSocketFrame;
+import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
+import io.netty.handler.codec.http.websocketx.WebSocketFrameAggregator;
+import io.netty.handler.codec.http.websocketx.WebSocketServerHandshaker;
+import io.netty.handler.codec.http.websocketx.WebSocketServerHandshakerFactory;
 
 @Sharable
 public class WebSocketTransport extends ChannelInboundHandlerAdapter {
@@ -132,7 +143,7 @@ public class WebSocketTransport extends ChannelInboundHandlerAdapter {
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         final  Channel channel = ctx.channel();
         ClientHead client = clientsBox.get(channel);
-        Packet packet = new Packet(PacketType.MESSAGE, client != null ? client.getEngineIOVersion() : EngineIOVersion.UNKNOWN);
+        Packet packet = new Packet(PacketType.MESSAGE, getEngineIOVersion(client));
         packet.setSubType(PacketType.DISCONNECT);
         if (client != null && client.isTransportChannel(ctx.channel(), Transport.WEBSOCKET)) {
             log.debug("channel inactive {}", client.getSessionId());
@@ -168,7 +179,7 @@ public class WebSocketTransport extends ChannelInboundHandlerAdapter {
                         connectClient(channel, sessionId);
                     }
                 });
-            } catch (Throwable e) {
+            } catch (Exception e) {
                 log.warn("Can't handshake {}, {}", sessionId, e.getMessage(), e);
                 closeClient(sessionId, channel);
             }
@@ -180,14 +191,14 @@ public class WebSocketTransport extends ChannelInboundHandlerAdapter {
     private void closeClient(UUID sessionId, Channel channel) {
         try {
             channel.close();
-        } catch (Throwable t) {
+        } catch (Exception t) {
             log.warn("Can't close channel for sessionId: {}", sessionId, t);
         }
         ClientHead clientHead = clientsBox.get(sessionId);
         if (clientHead != null && clientHead.getNamespaces().isEmpty()) {
-        	clientsBox.removeClient(sessionId);
-        	clientHead.disconnect();
-    	}
+            clientsBox.removeClient(sessionId);
+            clientHead.disconnect();
+        }
         log.info("Client with sessionId: {} was disconnected", sessionId);
     }
 
@@ -229,6 +240,13 @@ public class WebSocketTransport extends ChannelInboundHandlerAdapter {
             protocol = "wss://";
         }
         return protocol + req.headers().get(HttpHeaderNames.HOST) + req.uri();
+    }
+
+    private EngineIOVersion getEngineIOVersion(ClientHead client) {
+        if (client != null) {
+            return client.getEngineIOVersion();
+        }
+        return EngineIOVersion.UNKNOWN;
     }
 
 }

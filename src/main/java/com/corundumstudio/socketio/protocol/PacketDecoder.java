@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2012-2023 Nikita Koksharov
+ * Copyright (c) 2012-2025 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,25 +15,27 @@
  */
 package com.corundumstudio.socketio.protocol;
 
-import com.corundumstudio.socketio.AckCallback;
-import com.corundumstudio.socketio.ack.AckManager;
-import com.corundumstudio.socketio.handler.ClientHead;
-import com.corundumstudio.socketio.namespace.Namespace;
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufInputStream;
-import io.netty.buffer.Unpooled;
-import io.netty.handler.codec.base64.Base64;
-import io.netty.util.CharsetUtil;
 import java.io.IOException;
 import java.net.URLDecoder;
 import java.util.LinkedList;
 import java.util.Map;
 
+import com.corundumstudio.socketio.AckCallback;
+import com.corundumstudio.socketio.ack.AckManager;
+import com.corundumstudio.socketio.handler.ClientHead;
+import com.corundumstudio.socketio.namespace.Namespace;
+
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufInputStream;
+import io.netty.buffer.Unpooled;
+import io.netty.handler.codec.base64.Base64;
+import io.netty.util.CharsetUtil;
+
 public class PacketDecoder {
 
     private final UTF8CharsScanner utf8scanner = new UTF8CharsScanner();
 
-    private final ByteBuf QUOTES = Unpooled.copiedBuffer("\"", CharsetUtil.UTF_8);
+    private final ByteBuf quotes = Unpooled.copiedBuffer("\"", CharsetUtil.UTF_8);
 
     private final JsonSupport jsonSupport;
     private final AckManager ackManager;
@@ -71,7 +73,7 @@ public class PacketDecoder {
     private long readLong(ByteBuf chars, int length) {
         long result = 0;
         for (int i = chars.readerIndex(); i < chars.readerIndex() + length; i++) {
-            int digit = ((int)chars.getByte(i) & 0xF);
+            int digit = ((int) chars.getByte(i) & 0xF);
             for (int j = 0; j < chars.readerIndex() + length-1-i; j++) {
                 digit *= 10;
             }
@@ -82,19 +84,19 @@ public class PacketDecoder {
     }
 
     private PacketType readType(ByteBuf buffer) {
-        int typeId = buffer.readByte() & 0xF;
+        int typeId = (int) buffer.readByte() & 0xF;
         return PacketType.valueOf(typeId);
     }
 
     private PacketType readInnerType(ByteBuf buffer) {
-        int typeId = buffer.readByte() & 0xF;
+        int typeId = (int) buffer.readByte() & 0xF;
         return PacketType.valueOfInner(typeId);
     }
 
     private boolean hasLengthHeader(ByteBuf buffer) {
         for (int i = 0; i < Math.min(buffer.readableBytes(), 10); i++) {
             byte b = buffer.getByte(buffer.readerIndex() + i);
-            if (b == (byte)':' && i > 0) {
+            if (b == (byte) ':' && i > 0) {
                 return true;
             }
             if (b > 57 || b < 48) {
@@ -108,9 +110,9 @@ public class PacketDecoder {
         if (isStringPacket(buffer)) {
             // TODO refactor
             int maxLength = Math.min(buffer.readableBytes(), 10);
-            int headEndIndex = buffer.bytesBefore(maxLength, (byte)-1);
+            int headEndIndex = buffer.bytesBefore(maxLength, (byte) -1);
             if (headEndIndex == -1) {
-                headEndIndex = buffer.bytesBefore(maxLength, (byte)0x3f);
+                headEndIndex = buffer.bytesBefore(maxLength, (byte) 0x3f);
             }
             int len = (int) readLong(buffer, headEndIndex);
 
@@ -120,7 +122,7 @@ public class PacketDecoder {
             return decode(client, frame);
         } else if (hasLengthHeader(buffer)) {
             // TODO refactor
-            int lengthEndIndex = buffer.bytesBefore((byte)':');
+            int lengthEndIndex = buffer.bytesBefore((byte) ':');
             int lenHeader = (int) readLong(buffer, lengthEndIndex);
             int len = utf8scanner.getActualLength(buffer, lenHeader);
 
@@ -183,12 +185,12 @@ public class PacketDecoder {
     }
 
     private void parseHeader(ByteBuf frame, Packet packet, PacketType innerType) {
-        int endIndex = frame.bytesBefore((byte)'[');
+        int endIndex = frame.bytesBefore((byte) '[');
         if (endIndex <= 0) {
             return;
         }
 
-        int attachmentsDividerIndex = frame.bytesBefore(endIndex, (byte)'-');
+        int attachmentsDividerIndex = frame.bytesBefore(endIndex, (byte) '-');
         boolean hasAttachments = attachmentsDividerIndex != -1;
         if (hasAttachments && (PacketType.BINARY_EVENT.equals(innerType)
                 || PacketType.BINARY_ACK.equals(innerType))) {
@@ -203,7 +205,7 @@ public class PacketDecoder {
         }
 
         // TODO optimize
-        boolean hasNsp = frame.bytesBefore(endIndex, (byte)',') != -1;
+        boolean hasNsp = frame.bytesBefore(endIndex, (byte) ',') != -1;
         if (hasNsp) {
             String nspAckId = readString(frame, endIndex);
             String[] parts = nspAckId.split(",");
@@ -242,9 +244,9 @@ public class PacketDecoder {
 
                 ByteBuf prefixBuf = source.slice(source.readerIndex(), pos - source.readerIndex());
                 slices.add(prefixBuf);
-                slices.add(QUOTES);
+                slices.add(quotes);
                 slices.add(attachment);
-                slices.add(QUOTES);
+                slices.add(quotes);
 
                 source.readerIndex(pos + scanValue.readableBytes());
             }
@@ -326,7 +328,11 @@ public class PacketDecoder {
 
         String namespace = readString(buffer, namespaceEndIndex);
         if (namespace.startsWith("/")) {
-            frame.skipBytes(namespaceFieldEndIndex + (withSpecialChar ? 1 : 0));
+            if (withSpecialChar) {
+                frame.skipBytes(namespaceFieldEndIndex + 1);
+            } else {
+                frame.skipBytes(namespaceFieldEndIndex);
+            }
             return namespace;
         }
 

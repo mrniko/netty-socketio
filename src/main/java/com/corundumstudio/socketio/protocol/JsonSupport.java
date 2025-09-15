@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2012-2023 Nikita Koksharov
+ * Copyright (c) 2012-2025 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,13 +15,13 @@
  */
 package com.corundumstudio.socketio.protocol;
 
-import io.netty.buffer.ByteBufInputStream;
-import io.netty.buffer.ByteBufOutputStream;
-
 import java.io.IOException;
 import java.util.List;
 
 import com.corundumstudio.socketio.AckCallback;
+
+import io.netty.buffer.ByteBufInputStream;
+import io.netty.buffer.ByteBufOutputStream;
 
 /**
  * JSON infrastructure interface.
@@ -37,7 +37,7 @@ public interface JsonSupport {
 
     void writeValue(ByteBufOutputStream out, Object value) throws IOException;
 
-    void addEventMapping(String namespaceName, String eventName, Class<?> ... eventClass);
+    void addEventMapping(String namespaceName, String eventName, Class<?>... eventClass);
 
     void removeEventMapping(String namespaceName, String eventName);
 
