@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2012-2023 Nikita Koksharov
+ * Copyright (c) 2012-2025 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,15 +24,15 @@
 
 package com.corundumstudio.socketio.scheduler;
 
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
+
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.util.HashedWheelTimer;
 import io.netty.util.Timeout;
 import io.netty.util.TimerTask;
 import io.netty.util.internal.PlatformDependent;
-
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.TimeUnit;
 
 public class HashedWheelTimeoutScheduler implements CancelableScheduler {
 
@@ -80,7 +80,7 @@ public class HashedWheelTimeoutScheduler implements CancelableScheduler {
                 ctx.executor().execute(new Runnable() {
                     @Override
                     public void run() {
-                    	scheduledFutures.remove(key);
+                        scheduledFutures.remove(key);
                         runnable.run();
                     }
                 });

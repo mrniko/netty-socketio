@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2012-2023 Nikita Koksharov
+ * Copyright (c) 2012-2025 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,7 +64,7 @@ public interface SocketIOClient extends ClientOperations, Store {
      * @param data - event data
      * @param ackCallback - ack callback
      */
-    void sendEvent(String name, AckCallback<?> ackCallback, Object ... data);
+    void sendEvent(String name, AckCallback<?> ackCallback, Object... data);
 
     /**
      * Send packet with ack callback

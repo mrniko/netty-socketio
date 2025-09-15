@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2012-2023 Nikita Koksharov
+ * Copyright (c) 2012-2025 Nikita Koksharov
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,38 @@
  */
 package com.corundumstudio.socketio.namespace;
 
-import com.corundumstudio.socketio.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Queue;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ConcurrentMap;
+
+import com.corundumstudio.socketio.AckMode;
+import com.corundumstudio.socketio.AckRequest;
+import com.corundumstudio.socketio.AuthTokenListener;
+import com.corundumstudio.socketio.AuthTokenResult;
+import com.corundumstudio.socketio.BroadcastOperations;
+import com.corundumstudio.socketio.Configuration;
+import com.corundumstudio.socketio.MultiRoomBroadcastOperations;
+import com.corundumstudio.socketio.MultiTypeArgs;
+import com.corundumstudio.socketio.SingleRoomBroadcastOperations;
+import com.corundumstudio.socketio.SocketIOClient;
+import com.corundumstudio.socketio.SocketIONamespace;
 import com.corundumstudio.socketio.annotation.ScannerEngine;
-import com.corundumstudio.socketio.listener.*;
+import com.corundumstudio.socketio.listener.ConnectListener;
+import com.corundumstudio.socketio.listener.DataListener;
+import com.corundumstudio.socketio.listener.DisconnectListener;
+import com.corundumstudio.socketio.listener.EventInterceptor;
+import com.corundumstudio.socketio.listener.ExceptionListener;
+import com.corundumstudio.socketio.listener.MultiTypeEventListener;
+import com.corundumstudio.socketio.listener.PingListener;
+import com.corundumstudio.socketio.listener.PongListener;
 import com.corundumstudio.socketio.protocol.JsonSupport;
 import com.corundumstudio.socketio.protocol.Packet;
 import com.corundumstudio.socketio.store.StoreFactory;
@@ -25,11 +54,8 @@ import com.corundumstudio.socketio.store.pubsub.BulkJoinLeaveMessage;
 import com.corundumstudio.socketio.store.pubsub.JoinLeaveMessage;
 import com.corundumstudio.socketio.store.pubsub.PubSubType;
 import com.corundumstudio.socketio.transport.NamespaceClient;
-import io.netty.util.internal.PlatformDependent;
 
-import java.util.*;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.ConcurrentMap;
+import io.netty.util.internal.PlatformDependent;
 
 /**
  * Hub object for all clients in one namespace.
@@ -200,8 +226,8 @@ public class Namespace implements SocketIONamespace {
     }
 
     public void onConnect(SocketIOClient client) {
-        if (roomClients.containsKey(getName()) &&
-                roomClients.get(getName()).contains(client.getSessionId())) {
+        if (roomClients.containsKey(getName())
+                && roomClients.get(getName()).contains(client.getSessionId())) {
             return;
         }
 
@@ -257,20 +283,24 @@ public class Namespace implements SocketIONamespace {
         return new SingleRoomBroadcastOperations(getName(), room, getRoomClients(room), storeFactory);
     }
 
-	@Override
-	public BroadcastOperations getRoomOperations(String... rooms) {
+    @Override
+    public BroadcastOperations getRoomOperations(String... rooms) {
         List<BroadcastOperations> list = new ArrayList<>();
-        for( String room : rooms ) {
-            list.add( new SingleRoomBroadcastOperations(getName(), room, getRoomClients(room), storeFactory) );
+        for (String room : rooms) {
+            list.add(new SingleRoomBroadcastOperations(getName(), room, getRoomClients(room), storeFactory));
         }
-        return new MultiRoomBroadcastOperations( list );
+        return new MultiRoomBroadcastOperations(list);
     }
 
-	@Override
+    @Override
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result + ((name == null) ? 0 : name.hashCode());
+        if (name == null) {
+            result = prime * result + 0;
+        } else {
+            result = prime * result + name.hashCode();
+        }
         return result;
     }
 
@@ -409,7 +439,7 @@ public class Namespace implements SocketIONamespace {
         List<SocketIOClient> result = new ArrayList<SocketIOClient>();
         for (UUID sessionId : sessionIds) {
             SocketIOClient client = allClients.get(sessionId);
-            if(client != null) {
+            if (client != null) {
                 result.add(client);
             }
         }
@@ -418,7 +448,10 @@ public class Namespace implements SocketIONamespace {
 
     public int getRoomClientsInCluster(String room) {
         Set<UUID> sessionIds = roomClients.get(room);
-        return sessionIds == null ? 0 : sessionIds.size();
+        if (sessionIds == null) {
+            return 0;
+        }
+        return sessionIds.size();
     }
 
     @Override
@@ -448,7 +481,7 @@ public class Namespace implements SocketIONamespace {
                 return result;
               }
           }
-          return AuthTokenResult.AuthTokenResultSuccess;
+          return AuthTokenResult.AUTH_TOKEN_RESULT_SUCCESS;
       } catch (Exception e) {
           exceptionListener.onAuthException(e, client);
       }
