@@ -1,4 +1,4 @@
-module netty.socketio {
+module netty.socketio.core {
   exports com.corundumstudio.socketio;
   exports com.corundumstudio.socketio.ack;
   exports com.corundumstudio.socketio.annotation;
@@ -8,9 +8,10 @@ module netty.socketio {
   exports com.corundumstudio.socketio.misc;
   exports com.corundumstudio.socketio.messages;
   exports com.corundumstudio.socketio.protocol;
-
-  requires static spring.beans;
-  requires static spring.core;
+  exports com.corundumstudio.socketio.scheduler;
+  exports com.corundumstudio.socketio.store;
+  exports com.corundumstudio.socketio.store.pubsub;
+  exports com.corundumstudio.socketio.transport;
 
   requires com.fasterxml.jackson.core;
   requires com.fasterxml.jackson.annotation;
