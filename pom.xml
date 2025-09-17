@@ -513,7 +513,7 @@
         <version>2.6</version>
         <configuration>
           <basedir>${basedir}</basedir>
-          <header>${basedir}/header.txt</header>
+          <header>${maven.multiModuleProjectDirectory}/header.txt</header>
           <quiet>false</quiet>
           <failIfMissing>true</failIfMissing>
           <aggregate>false</aggregate>
