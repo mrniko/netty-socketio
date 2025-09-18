@@ -21,16 +21,17 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import com.corundumstudio.socketio.SocketIOClient;
+import com.corundumstudio.socketio.Transport;
 import com.corundumstudio.socketio.listener.ConnectListener;
-
-import io.socket.client.IO;
-import io.socket.client.Socket;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import io.socket.client.IO;
+import io.socket.client.Socket;
 
 /**
  * Test class for SocketIO transport upgrade functionality.
@@ -73,14 +74,9 @@ public class TransportUpgradeTest extends AbstractSocketIOIntegrationTest {
         // Verify connection is established
         assertNotNull(connectedClient.get(), "Client should be connected");
         assertTrue(client.connected(), "Client should be connected");
-
-        // The transport upgrade happens automatically in the background
-        // We can verify that the connection is stable after upgrade
-        await().atMost(5, SECONDS)
-                .until(() -> client.connected());
-
-        assertTrue(client.connected(), "Connection should remain stable after transport upgrade");
-
+        // Assert transport is upgraded to WebSocket
+        assertEquals(Transport.WEBSOCKET, connectedClient.get().getTransport(),
+                "Expected transport to upgrade to WebSocket");
         client.disconnect();
     }
 
@@ -119,12 +115,8 @@ public class TransportUpgradeTest extends AbstractSocketIOIntegrationTest {
         // Verify connection is established
         assertNotNull(connectedClient.get(), "Client should be connected");
         assertTrue(client.connected(), "Client should be connected");
-
-        // Connection should remain stable with polling only
-        await().atMost(5, SECONDS)
-                .until(() -> client.connected());
-
-        assertTrue(client.connected(), "Connection should remain stable with polling transport");
+        assertEquals(Transport.POLLING, connectedClient.get().getTransport(),
+                "Expected transport to be Polling");
 
         client.disconnect();
     }
@@ -164,13 +156,8 @@ public class TransportUpgradeTest extends AbstractSocketIOIntegrationTest {
         // Verify connection is established
         assertNotNull(connectedClient.get(), "Client should be connected");
         assertTrue(client.connected(), "Client should be connected");
-
-        // Connection should remain stable with websocket only
-        await().atMost(5, SECONDS)
-                .until(() -> client.connected());
-
-        assertTrue(client.connected(), "Connection should remain stable with websocket transport");
-
+        assertEquals(Transport.WEBSOCKET, connectedClient.get().getTransport(),
+                "Expected transport to be WebSocket");
         client.disconnect();
     }
 
@@ -244,10 +231,6 @@ public class TransportUpgradeTest extends AbstractSocketIOIntegrationTest {
         assertTrue(client1.connected(), "Client 1 should be connected");
         assertTrue(client2.connected(), "Client 2 should be connected");
         assertTrue(client3.connected(), "Client 3 should be connected");
-
-        // All connections should remain stable
-        await().atMost(5, SECONDS)
-                .until(() -> client1.connected() && client2.connected() && client3.connected());
 
         // Disconnect all clients
         client1.disconnect();
