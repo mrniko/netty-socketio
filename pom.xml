@@ -20,6 +20,7 @@
   <modules>
     <module>netty-socketio-core</module>
     <module>netty-socketio-spring</module>
+    <module>netty-socketio-spring-boot-starter</module>
   </modules>
 
   <licenses>
@@ -67,7 +68,7 @@
     <awaitility.version>4.2.0</awaitility.version>
     <assertj.version>3.24.2</assertj.version>
     <mockito.version>5.7.0</mockito.version>
-    <logback.version>1.4.11</logback.version>
+    <logback.version>1.5.18</logback.version>
     <socketio.version>2.1.0</socketio.version>
     <javafaker.version>1.0.2</javafaker.version>
   </properties>
