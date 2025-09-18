@@ -1,9 +1,9 @@
 
-/.settings
-/.classpath
-/.project
-/target
+**/.settings
+**/.classpath
+**/.project
+**/target
 
-/gnupg
-.idea
-*.iml
+**/gnupg
+**/.idea
+**/*.iml
