@@ -30,31 +30,9 @@ import com.corundumstudio.socketio.store.StoreFactory;
 
 import io.netty.handler.codec.http.HttpDecoderConfig;
 
-public class Configuration {
+public class Configuration extends BasicConfiguration {
 
     private ExceptionListener exceptionListener = new DefaultExceptionListener();
-
-    private String context = "/socket.io";
-
-    private List<Transport> transports = Arrays.asList(Transport.WEBSOCKET, Transport.POLLING);
-
-    private int bossThreads = 0; // 0 = current_processors_amount * 2
-    private int workerThreads = 0; // 0 = current_processors_amount * 2
-    private boolean useLinuxNativeEpoll;
-
-    private boolean allowCustomRequests = false;
-
-    private int upgradeTimeout = 10000;
-    private int pingTimeout = 60000;
-    private int pingInterval = 25000;
-    private int firstDataTimeout = 5000;
-
-    private int maxHttpContentLength = 64 * 1024;
-    private int maxFramePayloadLength = 64 * 1024;
-
-    private String packagePrefix;
-    private String hostname;
-    private int port = -1;
 
     private String sslProtocol = "TLSv1";
 
@@ -62,15 +40,11 @@ public class Configuration {
     private InputStream keyStore;
     private String keyStorePassword;
 
-    private String allowHeaders;
-
     private String trustStoreFormat = "JKS";
     private InputStream trustStore;
     private String trustStorePassword;
 
     private String keyManagerFactoryAlgorithm = KeyManagerFactory.getDefaultAlgorithm();
-
-    private boolean preferDirectBuffer = true;
 
     private SocketConfig socketConfig = new SocketConfig();
 
@@ -80,25 +54,10 @@ public class Configuration {
 
     private AuthorizationListener authorizationListener = new SuccessAuthorizationListener();
 
-    private AckMode ackMode = AckMode.AUTO_SUCCESS_ONLY;
-
-    private boolean addVersionHeader = true;
-
-    private String origin;
-
-    private boolean enableCors = true;
-
-    private boolean httpCompression = true;
-
-    private boolean websocketCompression = true;
-
-    private boolean randomSession = false;
-
-    private boolean needClientAuth = false;
-
     private HttpRequestDecoderConfiguration httpRequestDecoderConfiguration = new HttpRequestDecoderConfiguration();
 
     public Configuration() {
+        super();
     }
 
     /**
@@ -107,6 +66,7 @@ public class Configuration {
      * @param conf - Configuration object to clone
      */
     Configuration(Configuration conf) {
+        super();
         setBossThreads(conf.getBossThreads());
         setWorkerThreads(conf.getWorkerThreads());
         setUseLinuxNativeEpoll(conf.isUseLinuxNativeEpoll());
@@ -187,92 +147,6 @@ public class Configuration {
         this.jsonSupport = jsonSupport;
     }
 
-    public String getHostname() {
-        return hostname;
-    }
-
-    /**
-     * Optional parameter. If not set then bind address
-     * will be 0.0.0.0 or ::0
-     *
-     * @param hostname - name of host
-     */
-    public void setHostname(String hostname) {
-        this.hostname = hostname;
-    }
-
-    public int getPort() {
-        return port;
-    }
-    public void setPort(int port) {
-        this.port = port;
-    }
-
-    public int getBossThreads() {
-        return bossThreads;
-    }
-    public void setBossThreads(int bossThreads) {
-        this.bossThreads = bossThreads;
-    }
-
-    public int getWorkerThreads() {
-        return workerThreads;
-    }
-    public void setWorkerThreads(int workerThreads) {
-        this.workerThreads = workerThreads;
-    }
-
-    /**
-     * Ping interval
-     *
-     * @param heartbeatIntervalSecs - time in milliseconds
-     */
-    public void setPingInterval(int heartbeatIntervalSecs) {
-        this.pingInterval = heartbeatIntervalSecs;
-    }
-    public int getPingInterval() {
-        return pingInterval;
-    }
-
-    /**
-     * Ping timeout
-     * Use <code>0</code> to disable it
-     *
-     * @param heartbeatTimeoutSecs - time in milliseconds
-     */
-    public void setPingTimeout(int heartbeatTimeoutSecs) {
-        this.pingTimeout = heartbeatTimeoutSecs;
-    }
-    public int getPingTimeout() {
-        return pingTimeout;
-    }
-    public boolean isHeartbeatsEnabled() {
-        return pingTimeout > 0;
-    }
-
-    public String getContext() {
-        return context;
-    }
-    public void setContext(String context) {
-        this.context = context;
-    }
-
-    public boolean isAllowCustomRequests() {
-        return allowCustomRequests;
-    }
-
-    /**
-     * Allow to service custom requests differs from socket.io protocol.
-     * In this case it's necessary to add own handler which handle them
-     * to avoid hang connections.
-     * Default is {@code false}
-     *
-     * @param allowCustomRequests - {@code true} to allow
-     */
-    public void setAllowCustomRequests(boolean allowCustomRequests) {
-        this.allowCustomRequests = allowCustomRequests;
-    }
-
     /**
      * SSL key store password
      *
@@ -307,67 +181,6 @@ public class Configuration {
     }
     public String getKeyStoreFormat() {
         return keyStoreFormat;
-    }
-
-    /**
-     * Set maximum http content length limit
-     *
-     * @param value
-     *        the maximum length of the aggregated http content.
-     */
-    public void setMaxHttpContentLength(int value) {
-        this.maxHttpContentLength = value;
-    }
-    public int getMaxHttpContentLength() {
-        return maxHttpContentLength;
-    }
-
-    /**
-     * Transports supported by server
-     *
-     * @param transports - list of transports
-     */
-    public void setTransports(Transport... transports) {
-        if (transports.length == 0) {
-            throw new IllegalArgumentException("Transports list can't be empty");
-        }
-        this.transports = Arrays.asList(transports);
-    }
-    public List<Transport> getTransports() {
-        return transports;
-    }
-
-    /**
-     * Package prefix for sending json-object from client
-     * without full class name.
-     *
-     * With defined package prefix socket.io client
-     * just need to define '@class: 'SomeType'' in json object
-     * instead of '@class: 'com.full.package.name.SomeType''
-     *
-     * @param packagePrefix - prefix string
-     *
-     */
-    public void setPackagePrefix(String packagePrefix) {
-        this.packagePrefix = packagePrefix;
-    }
-    public String getPackagePrefix() {
-        return packagePrefix;
-    }
-
-    /**
-     * Buffer allocation method used during packet encoding.
-     * Default is {@code true}
-     *
-     * @param preferDirectBuffer    {@code true} if a direct buffer should be tried to be used as target for
-     *                              the encoded messages. If {@code false} is used it will allocate a heap
-     *                              buffer, which is backed by an byte array.
-     */
-    public void setPreferDirectBuffer(boolean preferDirectBuffer) {
-        this.preferDirectBuffer = preferDirectBuffer;
-    }
-    public boolean isPreferDirectBuffer() {
-        return preferDirectBuffer;
     }
 
     /**
@@ -430,21 +243,6 @@ public class Configuration {
         this.socketConfig = socketConfig;
     }
 
-    /**
-     * Auto ack-response mode
-     * Default is {@code AckMode.AUTO_SUCCESS_ONLY}
-     *
-     * @see AckMode
-     *
-     * @param ackMode - ack mode
-     */
-    public void setAckMode(AckMode ackMode) {
-        this.ackMode = ackMode;
-    }
-    public AckMode getAckMode() {
-        return ackMode;
-    }
-
 
     public String getTrustStoreFormat() {
         return trustStoreFormat;
@@ -474,85 +272,6 @@ public class Configuration {
         this.keyManagerFactoryAlgorithm = keyManagerFactoryAlgorithm;
     }
 
-
-    /**
-     * Set maximum websocket frame content length limit
-     *
-     * @param maxFramePayloadLength - length
-     */
-    public void setMaxFramePayloadLength(int maxFramePayloadLength) {
-        this.maxFramePayloadLength = maxFramePayloadLength;
-    }
-    public int getMaxFramePayloadLength() {
-        return maxFramePayloadLength;
-    }
-
-    /**
-     * Transport upgrade timeout in milliseconds
-     *
-     * @param upgradeTimeout - upgrade timeout
-     */
-    public void setUpgradeTimeout(int upgradeTimeout) {
-        this.upgradeTimeout = upgradeTimeout;
-    }
-    public int getUpgradeTimeout() {
-        return upgradeTimeout;
-    }
-
-    /**
-     * Adds <b>Server</b> header with lib version to http response.
-     * <p>
-     * Default is <code>true</code>
-     *
-     * @param addVersionHeader - <code>true</code> to add header
-     */
-    public void setAddVersionHeader(boolean addVersionHeader) {
-        this.addVersionHeader = addVersionHeader;
-    }
-    public boolean isAddVersionHeader() {
-        return addVersionHeader;
-    }
-
-    /**
-     * Set <b>Access-Control-Allow-Origin</b> header value for http each
-     * response.
-     * Default is <code>null</code>
-     *
-     * If value is <code>null</code> then request <b>ORIGIN</b> header value used.
-     *
-     * @param origin - origin
-     */
-    public void setOrigin(String origin) {
-        this.origin = origin;
-    }
-
-    public String getOrigin() {
-        return origin;
-    }
-
-    /**
-     * cors dispose
-     * <p>
-     * Default is <code>true</code>
-     *
-     * @param enableCors enableCors
-     */
-    public void setEnableCors(boolean enableCors) {
-        this.enableCors = enableCors;
-    }
-
-    public boolean isEnableCors() {
-        return enableCors;
-    }
-
-    public boolean isUseLinuxNativeEpoll() {
-        return useLinuxNativeEpoll;
-    }
-
-    public void setUseLinuxNativeEpoll(boolean useLinuxNativeEpoll) {
-        this.useLinuxNativeEpoll = useLinuxNativeEpoll;
-    }
-
     /**
      * Set the name of the requested SSL protocol
      *
@@ -563,85 +282,6 @@ public class Configuration {
     }
     public String getSSLProtocol() {
         return sslProtocol;
-    }
-
-
-    /**
-     * Set the response Access-Control-Allow-Headers
-     * @param allowHeaders - allow headers
-     * */
-    public void setAllowHeaders(String allowHeaders) {
-        this.allowHeaders = allowHeaders;
-    }
-    public String getAllowHeaders() {
-        return allowHeaders;
-    }
-
-    /**
-     * Timeout between channel opening and first data transfer
-     * Helps to avoid 'silent channel' attack and prevents
-     * 'Too many open files' problem in this case
-     *
-     * @param firstDataTimeout - timeout value
-     */
-    public void setFirstDataTimeout(int firstDataTimeout) {
-        this.firstDataTimeout = firstDataTimeout;
-    }
-    public int getFirstDataTimeout() {
-        return firstDataTimeout;
-    }
-
-    /**
-     * Activate http protocol compression. Uses {@code gzip} or
-     * {@code deflate} encoding choice depends on the {@code "Accept-Encoding"} header value.
-     * <p>
-     * Default is <code>true</code>
-     *
-     * @param httpCompression - <code>true</code> to use http compression
-     */
-    public void setHttpCompression(boolean httpCompression) {
-        this.httpCompression = httpCompression;
-    }
-    public boolean isHttpCompression() {
-        return httpCompression;
-    }
-
-    /**
-     * Activate websocket protocol compression.
-     * Uses {@code permessage-deflate} encoding only.
-     * <p>
-     * Default is <code>true</code>
-     *
-     * @param websocketCompression - <code>true</code> to use websocket compression
-     */
-    public void setWebsocketCompression(boolean websocketCompression) {
-        this.websocketCompression = websocketCompression;
-    }
-    public boolean isWebsocketCompression() {
-        return websocketCompression;
-    }
-
-    public boolean isRandomSession() {
-        return randomSession;
-    }
-
-    public void setRandomSession(boolean randomSession) {
-        this.randomSession = randomSession;
-    }
-
-    /**
-     * Enable/disable client authentication.
-     * Has no effect unless a trust store has been provided.
-     *
-     * Default is <code>false</code>
-     *
-     * @param needClientAuth - <code>true</code> to use client authentication
-     */
-    public void setNeedClientAuth(boolean needClientAuth) {
-        this.needClientAuth = needClientAuth;
-    }
-    public boolean isNeedClientAuth() {
-        return needClientAuth;
     }
 
     public HttpRequestDecoderConfiguration getHttpRequestDecoderConfiguration() {
