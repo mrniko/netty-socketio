@@ -15,6 +15,7 @@
  */
 package com.corundumstudio.socketio.integration;
 
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.jupiter.api.DisplayName;
@@ -172,7 +173,7 @@ public class TransportUpgradeTest extends AbstractSocketIOIntegrationTest {
 
         getServer().addConnectListener(new ConnectListener() {
             @Override
-            public void onConnect(SocketIOClient client) {
+            public synchronized void onConnect(SocketIOClient client) {
                 // Simple round-robin assignment for testing, now thread-safe
                 synchronized (assignmentLock) {
                     if (connectedClient1.get() == null) {
