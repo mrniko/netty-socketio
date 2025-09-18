@@ -181,17 +181,20 @@ public class TransportUpgradeTest extends AbstractSocketIOIntegrationTest {
         AtomicReference<SocketIOClient> connectedClient1 = new AtomicReference<>();
         AtomicReference<SocketIOClient> connectedClient2 = new AtomicReference<>();
         AtomicReference<SocketIOClient> connectedClient3 = new AtomicReference<>();
+        final Object assignmentLock = new Object();
 
         getServer().addConnectListener(new ConnectListener() {
             @Override
             public void onConnect(SocketIOClient client) {
-                // Simple round-robin assignment for testing
-                if (connectedClient1.get() == null) {
-                    connectedClient1.set(client);
-                } else if (connectedClient2.get() == null) {
-                    connectedClient2.set(client);
-                } else {
-                    connectedClient3.set(client);
+                // Simple round-robin assignment for testing, now thread-safe
+                synchronized (assignmentLock) {
+                    if (connectedClient1.get() == null) {
+                        connectedClient1.set(client);
+                    } else if (connectedClient2.get() == null) {
+                        connectedClient2.set(client);
+                    } else {
+                        connectedClient3.set(client);
+                    }
                 }
             }
         });
