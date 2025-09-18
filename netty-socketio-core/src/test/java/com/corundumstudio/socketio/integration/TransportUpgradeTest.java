@@ -70,7 +70,7 @@ public class TransportUpgradeTest extends AbstractSocketIOIntegrationTest {
 
         // Wait for connection
         await().atMost(10, SECONDS)
-                .until(() -> connectedClient.get() != null);
+                .until(() -> connectedClient.get() != null && client.connected());
 
         // Verify connection is established
         assertNotNull(connectedClient.get(), "Client should be connected");
@@ -115,7 +115,7 @@ public class TransportUpgradeTest extends AbstractSocketIOIntegrationTest {
 
         // Wait for connection
         await().atMost(10, SECONDS)
-                .until(() -> connectedClient.get() != null);
+                .until(() -> connectedClient.get() != null && client.connected());
 
         // Verify connection is established
         assertNotNull(connectedClient.get(), "Client should be connected");
@@ -156,7 +156,7 @@ public class TransportUpgradeTest extends AbstractSocketIOIntegrationTest {
 
         // Wait for connection
         await().atMost(10, SECONDS)
-                .until(() -> connectedClient.get() != null);
+                .until(() -> connectedClient.get() != null && client.connected());
 
         // Verify connection is established
         assertNotNull(connectedClient.get(), "Client should be connected");
@@ -226,7 +226,10 @@ public class TransportUpgradeTest extends AbstractSocketIOIntegrationTest {
         await().atMost(10, SECONDS)
                 .until(() -> connectedClient1.get() != null &&
                         connectedClient2.get() != null &&
-                        connectedClient3.get() != null);
+                        connectedClient3.get() != null &&
+                        client1.connected() &&
+                        client2.connected() &&
+                        client3.connected());
 
         // Verify all connections are established
         assertNotNull(connectedClient1.get(), "Client 1 should be connected");
