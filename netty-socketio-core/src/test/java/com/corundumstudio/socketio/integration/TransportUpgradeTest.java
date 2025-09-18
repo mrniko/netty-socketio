@@ -75,6 +75,10 @@ public class TransportUpgradeTest extends AbstractSocketIOIntegrationTest {
         // Verify connection is established
         assertNotNull(connectedClient.get(), "Client should be connected");
         assertTrue(client.connected(), "Client should be connected");
+
+        // Wait for transport upgrade
+        await().atMost(10, SECONDS)
+                .until(() -> connectedClient.get().getTransport() == Transport.WEBSOCKET);
         // Assert transport is upgraded to WebSocket
         assertEquals(Transport.WEBSOCKET, connectedClient.get().getTransport(),
                 "Expected transport to upgrade to WebSocket");
