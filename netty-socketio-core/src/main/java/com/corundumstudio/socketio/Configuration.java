@@ -1,12 +1,12 @@
 /**
  * Copyright (c) 2012-2025 Nikita Koksharov
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,8 +16,6 @@
 package com.corundumstudio.socketio;
 
 import java.io.InputStream;
-import java.util.Arrays;
-import java.util.List;
 
 import javax.net.ssl.KeyManagerFactory;
 
@@ -66,17 +64,7 @@ public class Configuration extends BasicConfiguration {
      * @param conf - Configuration object to clone
      */
     Configuration(Configuration conf) {
-        super();
-        setBossThreads(conf.getBossThreads());
-        setWorkerThreads(conf.getWorkerThreads());
-        setUseLinuxNativeEpoll(conf.isUseLinuxNativeEpoll());
-
-        setPingInterval(conf.getPingInterval());
-        setPingTimeout(conf.getPingTimeout());
-        setFirstDataTimeout(conf.getFirstDataTimeout());
-
-        setHostname(conf.getHostname());
-        setPort(conf.getPort());
+        super(conf);
 
         if (conf.getJsonSupport() == null) {
             try {
@@ -94,8 +82,6 @@ public class Configuration extends BasicConfiguration {
         }
 
         setJsonSupport(new JsonSupportWrapper(conf.getJsonSupport()));
-        setContext(conf.getContext());
-        setAllowCustomRequests(conf.isAllowCustomRequests());
 
         setKeyStorePassword(conf.getKeyStorePassword());
         setKeyStore(conf.getKeyStore());
@@ -105,29 +91,13 @@ public class Configuration extends BasicConfiguration {
         setTrustStorePassword(conf.getTrustStorePassword());
         setKeyManagerFactoryAlgorithm(conf.getKeyManagerFactoryAlgorithm());
 
-        setTransports(conf.getTransports().toArray(new Transport[0]));
-        setMaxHttpContentLength(conf.getMaxHttpContentLength());
-        setPackagePrefix(conf.getPackagePrefix());
-
-        setPreferDirectBuffer(conf.isPreferDirectBuffer());
         setStoreFactory(conf.getStoreFactory());
         setAuthorizationListener(conf.getAuthorizationListener());
         setExceptionListener(conf.getExceptionListener());
         setSocketConfig(conf.getSocketConfig());
-        setAckMode(conf.getAckMode());
-        setMaxFramePayloadLength(conf.getMaxFramePayloadLength());
-        setUpgradeTimeout(conf.getUpgradeTimeout());
 
-        setAddVersionHeader(conf.isAddVersionHeader());
-        setOrigin(conf.getOrigin());
-        setEnableCors(conf.isEnableCors());
-        setAllowHeaders(conf.getAllowHeaders());
         setSSLProtocol(conf.getSSLProtocol());
 
-        setHttpCompression(conf.isHttpCompression());
-        setWebsocketCompression(conf.isWebsocketCompression());
-        setRandomSession(conf.randomSession);
-        setNeedClientAuth(conf.isNeedClientAuth());
         setHttpRequestDecoderConfiguration(conf.getHttpRequestDecoderConfiguration());
     }
 
@@ -155,6 +125,7 @@ public class Configuration extends BasicConfiguration {
     public void setKeyStorePassword(String keyStorePassword) {
         this.keyStorePassword = keyStorePassword;
     }
+
     public String getKeyStorePassword() {
         return keyStorePassword;
     }
@@ -167,6 +138,7 @@ public class Configuration extends BasicConfiguration {
     public void setKeyStore(InputStream keyStore) {
         this.keyStore = keyStore;
     }
+
     public InputStream getKeyStore() {
         return keyStore;
     }
@@ -179,6 +151,7 @@ public class Configuration extends BasicConfiguration {
     public void setKeyStoreFormat(String keyStoreFormat) {
         this.keyStoreFormat = keyStoreFormat;
     }
+
     public String getKeyStoreFormat() {
         return keyStoreFormat;
     }
@@ -196,6 +169,7 @@ public class Configuration extends BasicConfiguration {
     public void setStoreFactory(StoreFactory clientStoreFactory) {
         this.storeFactory = clientStoreFactory;
     }
+
     public StoreFactory getStoreFactory() {
         return storeFactory;
     }
@@ -212,6 +186,7 @@ public class Configuration extends BasicConfiguration {
     public void setAuthorizationListener(AuthorizationListener authorizationListener) {
         this.authorizationListener = authorizationListener;
     }
+
     public AuthorizationListener getAuthorizationListener() {
         return authorizationListener;
     }
@@ -227,6 +202,7 @@ public class Configuration extends BasicConfiguration {
     public void setExceptionListener(ExceptionListener exceptionListener) {
         this.exceptionListener = exceptionListener;
     }
+
     public ExceptionListener getExceptionListener() {
         return exceptionListener;
     }
@@ -234,6 +210,7 @@ public class Configuration extends BasicConfiguration {
     public SocketConfig getSocketConfig() {
         return socketConfig;
     }
+
     /**
      * TCP socket configuration
      *
@@ -247,6 +224,7 @@ public class Configuration extends BasicConfiguration {
     public String getTrustStoreFormat() {
         return trustStoreFormat;
     }
+
     public void setTrustStoreFormat(String trustStoreFormat) {
         this.trustStoreFormat = trustStoreFormat;
     }
@@ -254,6 +232,7 @@ public class Configuration extends BasicConfiguration {
     public InputStream getTrustStore() {
         return trustStore;
     }
+
     public void setTrustStore(InputStream trustStore) {
         this.trustStore = trustStore;
     }
@@ -261,6 +240,7 @@ public class Configuration extends BasicConfiguration {
     public String getTrustStorePassword() {
         return trustStorePassword;
     }
+
     public void setTrustStorePassword(String trustStorePassword) {
         this.trustStorePassword = trustStorePassword;
     }
@@ -268,6 +248,7 @@ public class Configuration extends BasicConfiguration {
     public String getKeyManagerFactoryAlgorithm() {
         return keyManagerFactoryAlgorithm;
     }
+
     public void setKeyManagerFactoryAlgorithm(String keyManagerFactoryAlgorithm) {
         this.keyManagerFactoryAlgorithm = keyManagerFactoryAlgorithm;
     }
@@ -280,6 +261,7 @@ public class Configuration extends BasicConfiguration {
     public void setSSLProtocol(String sslProtocol) {
         this.sslProtocol = sslProtocol;
     }
+
     public String getSSLProtocol() {
         return sslProtocol;
     }

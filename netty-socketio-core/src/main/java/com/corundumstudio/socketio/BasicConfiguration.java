@@ -51,6 +51,44 @@ public abstract class BasicConfiguration {
 
     protected boolean needClientAuth = false;
 
+    protected BasicConfiguration() {
+    }
+
+    protected BasicConfiguration(BasicConfiguration conf) {
+        setBossThreads(conf.getBossThreads());
+        setWorkerThreads(conf.getWorkerThreads());
+        setUseLinuxNativeEpoll(conf.isUseLinuxNativeEpoll());
+
+        setPingInterval(conf.getPingInterval());
+        setPingTimeout(conf.getPingTimeout());
+        setFirstDataTimeout(conf.getFirstDataTimeout());
+
+        setHostname(conf.getHostname());
+        setPort(conf.getPort());
+
+        setContext(conf.getContext());
+        setAllowCustomRequests(conf.isAllowCustomRequests());
+
+        setTransports(conf.getTransports().toArray(new Transport[0]));
+        setMaxHttpContentLength(conf.getMaxHttpContentLength());
+        setPackagePrefix(conf.getPackagePrefix());
+
+        setPreferDirectBuffer(conf.isPreferDirectBuffer());
+        setAckMode(conf.getAckMode());
+        setMaxFramePayloadLength(conf.getMaxFramePayloadLength());
+        setUpgradeTimeout(conf.getUpgradeTimeout());
+
+        setAddVersionHeader(conf.isAddVersionHeader());
+        setOrigin(conf.getOrigin());
+        setEnableCors(conf.isEnableCors());
+        setAllowHeaders(conf.getAllowHeaders());
+
+        setHttpCompression(conf.isHttpCompression());
+        setWebsocketCompression(conf.isWebsocketCompression());
+        setRandomSession(conf.randomSession);
+        setNeedClientAuth(conf.isNeedClientAuth());
+    }
+
     public String getHostname() {
         return hostname;
     }
