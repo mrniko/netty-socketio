@@ -150,27 +150,51 @@ public class SessionRecoveryTest extends AbstractSocketIOIntegrationTest {
         client1.connect();
         client2.connect();
 
-        // Wait for both connections
-        await().atMost(10, SECONDS)
-                .until(() -> connectedClient1.get() != null && connectedClient2.get() != null);
+        java.util.concurrent.CountDownLatch initialConnected = new java.util.concurrent.CountDownLatch(2);
+        java.util.concurrent.CountDownLatch bothDisconnected = new java.util.concurrent.CountDownLatch(2);
+        java.util.concurrent.CountDownLatch bothReconnected = new java.util.concurrent.CountDownLatch(2);
+        java.util.concurrent.atomic.AtomicBoolean reconnectPhase = new java.util.concurrent.atomic.AtomicBoolean(false);
 
+        // Replace existing connect listener to drive latches
+        getServer().addConnectListener(new ConnectListener() {
+            @Override
+            public synchronized void onConnect(SocketIOClient client) {
+                if (!reconnectPhase.get()) {
+                    if (connectedClient1.get() == null) {
+                        connectedClient1.set(client);
+                        initialConnected.countDown();
+                    } else if (connectedClient2.get() == null) {
+                        connectedClient2.set(client);
+                        initialConnected.countDown();
+                    }
+                } else {
+                    bothReconnected.countDown();
+                }
+            }
+        });
+        getServer().addDisconnectListener(new DisconnectListener() {
+            @Override
+            public void onDisconnect(SocketIOClient client) {
+                bothDisconnected.countDown();
+            }
+        });
+
+        // Wait for both connections
+        await().atMost(10, SECONDS).until(() -> initialConnected.getCount() == 0);
         assertNotNull(connectedClient1.get(), "Client 1 should be connected initially");
         assertNotNull(connectedClient2.get(), "Client 2 should be connected initially");
 
         // Disconnect and reconnect both clients
         client1.disconnect();
         client2.disconnect();
+        await().atMost(5, SECONDS).until(() -> bothDisconnected.getCount() == 0);
 
+        reconnectPhase.set(true);
         client1.connect();
         client2.connect();
 
-        // Wait for both reconnections (simplified - just verify they can reconnect)
-        await().atMost(10, SECONDS)
-                .until(() -> connectedClient1.get() != null && connectedClient2.get() != null);
-
-        assertNotNull(connectedClient1.get(), "Client 1 should be reconnected");
-        assertNotNull(connectedClient2.get(), "Client 2 should be reconnected");
-
+        // Wait for both reconnections
+        await().atMost(10, SECONDS).until(() -> bothReconnected.getCount() == 0);
         client1.disconnect();
         client2.disconnect();
 
