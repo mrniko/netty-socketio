@@ -16,6 +16,8 @@
 package com.corundumstudio.socketio.integration;
 
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.CountDownLatch;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -150,10 +152,10 @@ public class SessionRecoveryTest extends AbstractSocketIOIntegrationTest {
         client1.connect();
         client2.connect();
 
-        java.util.concurrent.CountDownLatch initialConnected = new java.util.concurrent.CountDownLatch(2);
-        java.util.concurrent.CountDownLatch bothDisconnected = new java.util.concurrent.CountDownLatch(2);
-        java.util.concurrent.CountDownLatch bothReconnected = new java.util.concurrent.CountDownLatch(2);
-        java.util.concurrent.atomic.AtomicBoolean reconnectPhase = new java.util.concurrent.atomic.AtomicBoolean(false);
+        CountDownLatch initialConnected = new CountDownLatch(2);
+        CountDownLatch bothDisconnected = new CountDownLatch(2);
+        CountDownLatch bothReconnected = new CountDownLatch(2);
+        AtomicBoolean reconnectPhase = new AtomicBoolean(false);
 
         // Replace existing connect listener to drive latches
         getServer().addConnectListener(new ConnectListener() {
@@ -197,9 +199,6 @@ public class SessionRecoveryTest extends AbstractSocketIOIntegrationTest {
         await().atMost(10, SECONDS).until(() -> bothReconnected.getCount() == 0);
         client1.disconnect();
         client2.disconnect();
-
-        // Wait a bit for cleanup
-        Thread.sleep(500);
     }
 
     @Test
@@ -255,8 +254,5 @@ public class SessionRecoveryTest extends AbstractSocketIOIntegrationTest {
         assertTrue(reconnected.get(), "Client should be reconnected");
 
         client.disconnect();
-
-        // Wait a bit for cleanup
-        Thread.sleep(500);
     }
 }
