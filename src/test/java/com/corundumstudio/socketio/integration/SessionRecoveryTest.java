@@ -119,18 +119,6 @@ public class SessionRecoveryTest extends AbstractSocketIOIntegrationTest {
         AtomicReference<SocketIOClient> connectedClient1 = new AtomicReference<>();
         AtomicReference<SocketIOClient> connectedClient2 = new AtomicReference<>();
 
-        getServer().addConnectListener(new ConnectListener() {
-            @Override
-            //must be synchronized, because multiple clients can connect simultaneously
-            public synchronized void onConnect(SocketIOClient client) {
-                if (connectedClient1.get() == null) {
-                    connectedClient1.set(client);
-                } else if (connectedClient2.get() == null) {
-                    connectedClient2.set(client);
-                }
-            }
-        });
-
         // Create two clients with reconnection enabled
         Socket client1;
         Socket client2;
@@ -147,10 +135,6 @@ public class SessionRecoveryTest extends AbstractSocketIOIntegrationTest {
         } catch (Exception e) {
             throw new RuntimeException("Failed to create socket clients", e);
         }
-
-        // Connect both clients
-        client1.connect();
-        client2.connect();
 
         CountDownLatch initialConnected = new CountDownLatch(2);
         CountDownLatch bothDisconnected = new CountDownLatch(2);
@@ -180,6 +164,10 @@ public class SessionRecoveryTest extends AbstractSocketIOIntegrationTest {
                 bothDisconnected.countDown();
             }
         });
+        
+        // Connect both clients
+        client1.connect();
+        client2.connect();
 
         // Wait for both connections
         await().atMost(10, SECONDS).until(() -> initialConnected.getCount() == 0);
