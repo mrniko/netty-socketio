@@ -22,6 +22,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.redisson.Redisson;
 import org.redisson.api.RedissonClient;
 import org.redisson.config.Config;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.GenericContainer;
 
 import com.corundumstudio.socketio.Configuration;
@@ -45,6 +47,7 @@ import io.socket.client.Socket;
  */
 public abstract class AbstractSocketIOIntegrationTest {
 
+    private static final Logger log = LoggerFactory.getLogger(AbstractSocketIOIntegrationTest.class);
     protected final Faker faker = new Faker();
 
     private GenericContainer<?> redisContainer;
@@ -56,7 +59,7 @@ public abstract class AbstractSocketIOIntegrationTest {
     private static final int BASE_PORT = 9000;
     private static final int PORT_RANGE = 2000; // Increased range for better distribution
     private static final AtomicInteger PORT_COUNTER = new AtomicInteger(0);
-    private static final int MAX_PORT_RETRIES = 15;
+    private static final int MAX_PORT_RETRIES = 30;
 
     /**
      * Get the current server port for this test instance
@@ -140,7 +143,8 @@ public abstract class AbstractSocketIOIntegrationTest {
                 return port;
             }
             // Wait a bit before retrying
-            Thread.sleep(100);
+            Thread.sleep(1000);
+            log.info("Waiting to available on port {} ", port);
         }
         throw new RuntimeException("Could not find available port after " + MAX_PORT_RETRIES + " attempts");
     }
