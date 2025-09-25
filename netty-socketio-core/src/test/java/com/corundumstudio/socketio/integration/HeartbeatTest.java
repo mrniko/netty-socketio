@@ -73,8 +73,6 @@ public class HeartbeatTest extends AbstractSocketIOIntegrationTest {
         // Create client with custom options
         Socket client;
         IO.Options options = new IO.Options();
-        options.forceNew = true;
-        options.timeout = 60;
         client = IO.socket("http://localhost:" + getServerPort(), options);
         client.connect();
 
