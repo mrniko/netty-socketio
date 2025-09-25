@@ -27,5 +27,5 @@ import static com.corundumstudio.socketio.spring.boot.starter.config.NettySocket
  */
 @ConfigurationProperties(prefix = PREFIX)
 public class NettySocketIOSocketConfigProperties extends SocketConfig {
-    public static final String PREFIX = "server.netty-socket-io.socket";
+    public static final String PREFIX = "netty-socket-io.socket";
 }

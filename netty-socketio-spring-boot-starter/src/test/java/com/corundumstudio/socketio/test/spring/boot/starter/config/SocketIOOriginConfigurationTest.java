@@ -24,12 +24,15 @@ import org.springframework.test.context.DynamicPropertySource;
 import com.corundumstudio.socketio.Configuration;
 import com.corundumstudio.socketio.HttpRequestDecoderConfiguration;
 import com.corundumstudio.socketio.SocketConfig;
+import com.corundumstudio.socketio.SocketSslConfig;
 import com.corundumstudio.socketio.spring.boot.starter.config.NettySocketIOBasicConfigurationProperties;
 import com.corundumstudio.socketio.spring.boot.starter.config.NettySocketIOHttpRequestDecoderConfigurationProperties;
 import com.corundumstudio.socketio.spring.boot.starter.config.NettySocketIOSocketConfigProperties;
+import com.corundumstudio.socketio.spring.boot.starter.config.NettySocketIOSslConfigProperties;
 import com.corundumstudio.socketio.test.spring.boot.starter.BaseSpringApplicationTest;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @DisplayName("Test for Socket.IO configuration properties")
 public class SocketIOOriginConfigurationTest extends BaseSpringApplicationTest {
@@ -44,12 +47,16 @@ public class SocketIOOriginConfigurationTest extends BaseSpringApplicationTest {
             nettySocketIOHttpRequestDecoderConfigurationProperties;
     @Autowired
     private NettySocketIOSocketConfigProperties nettySocketIOSocketConfigProperties;
+    @Autowired
+    private NettySocketIOSslConfigProperties nettySocketIOSslConfigProperties;
 
     @DynamicPropertySource
     public static void setProperties(DynamicPropertyRegistry registry) {
-        registry.add("server.netty-socket-io.port", () -> PORT);
-        registry.add("server.netty-socket-io.http-request-decoder.max-header-size", () -> MAX_HEADER_SIZE);
-        registry.add("server.netty-socket-io.socket.tcp-keep-alive", () -> TCP_KEEP_ALIVE);
+        registry.add("netty-socket-io.port", () -> PORT);
+        registry.add("netty-socket-io.http-request-decoder.max-header-size", () -> MAX_HEADER_SIZE);
+        registry.add("netty-socket-io.socket.tcp-keep-alive", () -> TCP_KEEP_ALIVE);
+        registry.add("netty-socket-io.ssl.key-store", () -> "classpath:keystore.jks");
+        registry.add("netty-socket-io.ssl.key-store-password", () -> "test123456");
     }
 
     @Test
@@ -136,5 +143,26 @@ public class SocketIOOriginConfigurationTest extends BaseSpringApplicationTest {
                 socketConfig.getWriteBufferWaterMarkLow());
         assertEquals(nettySocketIOSocketConfigProperties.getWriteBufferWaterMarkHigh(),
                 socketConfig.getWriteBufferWaterMarkHigh());
+    }
+
+    @Test
+    @DisplayName("Test SSL configuration properties")
+    public void testSslConfigProperties() {
+        assertNotNull(nettySocketIOSslConfigProperties.getKeyStore(), "Key store should be loaded");
+        assertNotNull(nettySocketIOSslConfigProperties.getKeyStorePassword(), "Key store password should be loaded");
+
+        SocketSslConfig socketSslConfig = new SocketSslConfig();
+        assertEquals(nettySocketIOSslConfigProperties.getTrustStore(),
+                socketSslConfig.getTrustStore());
+        assertEquals(nettySocketIOSslConfigProperties.getTrustStorePassword(),
+                socketSslConfig.getTrustStorePassword());
+        assertEquals(nettySocketIOSslConfigProperties.getKeyStoreFormat(),
+                socketSslConfig.getKeyStoreFormat());
+        assertEquals(nettySocketIOSslConfigProperties.getTrustStoreFormat(),
+                socketSslConfig.getTrustStoreFormat());
+        assertEquals(nettySocketIOSslConfigProperties.getSSLProtocol(),
+                socketSslConfig.getSSLProtocol());
+        assertEquals(nettySocketIOSslConfigProperties.getKeyManagerFactoryAlgorithm(),
+                socketSslConfig.getKeyManagerFactoryAlgorithm());
     }
 }

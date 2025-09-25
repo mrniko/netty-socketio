@@ -16,6 +16,8 @@
 package com.corundumstudio.socketio.integration;
 
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.CountDownLatch;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -117,18 +119,6 @@ public class SessionRecoveryTest extends AbstractSocketIOIntegrationTest {
         AtomicReference<SocketIOClient> connectedClient1 = new AtomicReference<>();
         AtomicReference<SocketIOClient> connectedClient2 = new AtomicReference<>();
 
-        getServer().addConnectListener(new ConnectListener() {
-            @Override
-            //must be synchronized, because multiple clients can connect simultaneously
-            public synchronized void onConnect(SocketIOClient client) {
-                if (connectedClient1.get() == null) {
-                    connectedClient1.set(client);
-                } else if (connectedClient2.get() == null) {
-                    connectedClient2.set(client);
-                }
-            }
-        });
-
         // Create two clients with reconnection enabled
         Socket client1;
         Socket client2;
@@ -146,36 +136,57 @@ public class SessionRecoveryTest extends AbstractSocketIOIntegrationTest {
             throw new RuntimeException("Failed to create socket clients", e);
         }
 
+        CountDownLatch initialConnected = new CountDownLatch(2);
+        CountDownLatch bothDisconnected = new CountDownLatch(2);
+        CountDownLatch bothReconnected = new CountDownLatch(2);
+        AtomicBoolean reconnectPhase = new AtomicBoolean(false);
+
+        // Replace existing connect listener to drive latches
+        getServer().addConnectListener(new ConnectListener() {
+            @Override
+            public synchronized void onConnect(SocketIOClient client) {
+                if (!reconnectPhase.get()) {
+                    if (connectedClient1.get() == null) {
+                        connectedClient1.set(client);
+                        initialConnected.countDown();
+                    } else if (connectedClient2.get() == null) {
+                        connectedClient2.set(client);
+                        initialConnected.countDown();
+                    }
+                } else {
+                    bothReconnected.countDown();
+                }
+            }
+        });
+        getServer().addDisconnectListener(new DisconnectListener() {
+            @Override
+            public void onDisconnect(SocketIOClient client) {
+                bothDisconnected.countDown();
+            }
+        });
+
         // Connect both clients
         client1.connect();
         client2.connect();
 
         // Wait for both connections
-        await().atMost(10, SECONDS)
-                .until(() -> connectedClient1.get() != null && connectedClient2.get() != null);
-
+        await().atMost(10, SECONDS).until(() -> initialConnected.getCount() == 0);
         assertNotNull(connectedClient1.get(), "Client 1 should be connected initially");
         assertNotNull(connectedClient2.get(), "Client 2 should be connected initially");
 
         // Disconnect and reconnect both clients
         client1.disconnect();
         client2.disconnect();
+        await().atMost(5, SECONDS).until(() -> bothDisconnected.getCount() == 0);
 
+        reconnectPhase.set(true);
         client1.connect();
         client2.connect();
 
-        // Wait for both reconnections (simplified - just verify they can reconnect)
-        await().atMost(10, SECONDS)
-                .until(() -> connectedClient1.get() != null && connectedClient2.get() != null);
-
-        assertNotNull(connectedClient1.get(), "Client 1 should be reconnected");
-        assertNotNull(connectedClient2.get(), "Client 2 should be reconnected");
-
+        // Wait for both reconnections
+        await().atMost(10, SECONDS).until(() -> bothReconnected.getCount() == 0);
         client1.disconnect();
         client2.disconnect();
-
-        // Wait a bit for cleanup
-        Thread.sleep(500);
     }
 
     @Test
@@ -231,8 +242,5 @@ public class SessionRecoveryTest extends AbstractSocketIOIntegrationTest {
         assertTrue(reconnected.get(), "Client should be reconnected");
 
         client.disconnect();
-
-        // Wait a bit for cleanup
-        Thread.sleep(500);
     }
 }

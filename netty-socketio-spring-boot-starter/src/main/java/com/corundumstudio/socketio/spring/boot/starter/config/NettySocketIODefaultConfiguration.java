@@ -36,7 +36,8 @@ import com.corundumstudio.socketio.store.StoreFactory;
 @EnableConfigurationProperties({
         NettySocketIOBasicConfigurationProperties.class,
         NettySocketIOSocketConfigProperties.class,
-        NettySocketIOHttpRequestDecoderConfigurationProperties.class
+        NettySocketIOHttpRequestDecoderConfigurationProperties.class,
+        NettySocketIOSslConfigProperties.class
 })
 public class NettySocketIODefaultConfiguration {
     @Bean
@@ -47,7 +48,8 @@ public class NettySocketIODefaultConfiguration {
             StoreFactory storeFactory,
             JsonSupport jsonSupport,
             AuthorizationListener authorizationListener,
-            NettySocketIOHttpRequestDecoderConfigurationProperties nettySocketIOHttpRequestDecoderConfigurationProperties
+            NettySocketIOHttpRequestDecoderConfigurationProperties nettySocketIOHttpRequestDecoderConfigurationProperties,
+            NettySocketIOSslConfigProperties nettySocketIOSslConfigProperties
     ) {
         com.corundumstudio.socketio.Configuration configuration = new com.corundumstudio.socketio.Configuration(properties);
         configuration.setExceptionListener(exceptionListener);
@@ -56,6 +58,7 @@ public class NettySocketIODefaultConfiguration {
         configuration.setJsonSupport(jsonSupport);
         configuration.setAuthorizationListener(authorizationListener);
         configuration.setHttpRequestDecoderConfiguration(nettySocketIOHttpRequestDecoderConfigurationProperties);
+        configuration.setSocketSslConfig(nettySocketIOSslConfigProperties);
         return configuration;
     }
 

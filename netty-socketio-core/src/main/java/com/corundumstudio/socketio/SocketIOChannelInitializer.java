@@ -109,10 +109,11 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
 
         String connectPath = configuration.getContext() + "/";
 
-        boolean isSsl = configuration.getKeyStore() != null;
+        SocketSslConfig socketSslConfig = configuration.getSocketSslConfig();
+        boolean isSsl = socketSslConfig != null && socketSslConfig.getKeyStore() != null;
         if (isSsl) {
             try {
-                sslContext = createSSLContext(configuration);
+                sslContext = createSSLContext(socketSslConfig);
             } catch (Exception e) {
                 throw new IllegalStateException(e);
             }
@@ -154,7 +155,9 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
         if (sslContext != null) {
             SSLEngine engine = sslContext.createSSLEngine();
             engine.setUseClientMode(false);
-            if (configuration.isNeedClientAuth() && configuration.getTrustStore() != null) {
+            if (configuration.isNeedClientAuth()
+                    && configuration.getSocketSslConfig() != null
+                    && configuration.getSocketSslConfig().getTrustStore() != null) {
                 engine.setNeedClientAuth(true);
             }
             pipeline.addLast(SSL_HANDLER, new SslHandler(engine));
@@ -196,23 +199,24 @@ public class SocketIOChannelInitializer extends ChannelInitializer<Channel> impl
         pipeline.addLast(WRONG_URL_HANDLER, wrongUrlHandler);
     }
 
-    private SSLContext createSSLContext(Configuration configuration) throws Exception {
+    private SSLContext createSSLContext(SocketSslConfig socketSslConfig) throws Exception {
         TrustManager[] managers = null;
-        if (configuration.getTrustStore() != null) {
-            KeyStore ts = KeyStore.getInstance(configuration.getTrustStoreFormat());
-            ts.load(configuration.getTrustStore(), configuration.getTrustStorePassword().toCharArray());
+
+        if (socketSslConfig.getTrustStore() != null) {
+            KeyStore ts = KeyStore.getInstance(socketSslConfig.getTrustStoreFormat());
+            ts.load(socketSslConfig.getTrustStore(), socketSslConfig.getTrustStorePassword().toCharArray());
             TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
             tmf.init(ts);
             managers = tmf.getTrustManagers();
         }
 
-        KeyStore ks = KeyStore.getInstance(configuration.getKeyStoreFormat());
-        ks.load(configuration.getKeyStore(), configuration.getKeyStorePassword().toCharArray());
+        KeyStore ks = KeyStore.getInstance(socketSslConfig.getKeyStoreFormat());
+        ks.load(socketSslConfig.getKeyStore(), socketSslConfig.getKeyStorePassword().toCharArray());
 
-        KeyManagerFactory kmf = KeyManagerFactory.getInstance(configuration.getKeyManagerFactoryAlgorithm());
-        kmf.init(ks, configuration.getKeyStorePassword().toCharArray());
+        KeyManagerFactory kmf = KeyManagerFactory.getInstance(socketSslConfig.getKeyManagerFactoryAlgorithm());
+        kmf.init(ks, socketSslConfig.getKeyStorePassword().toCharArray());
 
-        SSLContext serverContext = SSLContext.getInstance(configuration.getSSLProtocol());
+        SSLContext serverContext = SSLContext.getInstance(socketSslConfig.getSSLProtocol());
         serverContext.init(kmf.getKeyManagers(), managers, null);
         return serverContext;
     }
