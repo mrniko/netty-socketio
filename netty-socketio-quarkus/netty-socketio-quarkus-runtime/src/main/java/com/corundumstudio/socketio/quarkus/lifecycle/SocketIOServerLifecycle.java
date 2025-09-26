@@ -37,6 +37,11 @@ import jakarta.enterprise.inject.spi.BeanManager;
 import jakarta.enterprise.inject.spi.CDI;
 import jakarta.inject.Inject;
 
+/**
+ * Manages the lifecycle of the SocketIOServer within a Quarkus application.
+ * It starts the server on application startup and stops it on shutdown.
+ * It also scans for beans with Socket.IO event listener annotations and registers them with the server.
+ */
 @ApplicationScoped
 public class SocketIOServerLifecycle {
     private static final Logger log = Logger.getLogger(SocketIOServerLifecycle.class);

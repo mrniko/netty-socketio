@@ -35,7 +35,7 @@ import io.quarkus.runtime.RuntimeValue;
 import jakarta.enterprise.context.ApplicationScoped;
 
 /**
- * SocketIO Quarkus 扩展处理器
+ * Socket.IO Quarkus extension processor.
  */
 class SocketIOExtensionProcessor {
 
@@ -46,6 +46,10 @@ class SocketIOExtensionProcessor {
         return new FeatureBuildItem(FEATURE);
     }
 
+    /**
+     * Register default Socket.IO beans.
+     * @return
+     */
     @BuildStep
     AdditionalBeanBuildItem defaultSocketIOBeans() {
         return AdditionalBeanBuildItem.builder()
@@ -56,6 +60,10 @@ class SocketIOExtensionProcessor {
                 .build();
     }
 
+    /**
+     * Register Socket.IO annotations for reflection.
+     * @return
+     */
     @BuildStep
     ReflectiveClassBuildItem reflection() {
         return ReflectiveClassBuildItem.builder(
@@ -66,6 +74,11 @@ class SocketIOExtensionProcessor {
     }
 
 
+    /**
+     * Create SocketIOServer bean.
+     * @param nettySocketIOConfigRecorder
+     * @param syntheticBeanBuildItemProducer
+     */
     @BuildStep
     @Record(ExecutionTime.RUNTIME_INIT)
     void createSocketIOServer(
@@ -83,6 +96,10 @@ class SocketIOExtensionProcessor {
         );
     }
 
+    /**
+     * Register SocketIOServerLifecycle bean.
+     * @return
+     */
     @BuildStep
     AdditionalBeanBuildItem socketIOServerLifecycle() {
         return AdditionalBeanBuildItem.builder()
