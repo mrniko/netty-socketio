@@ -79,14 +79,11 @@ public class RoomBroadcastTest extends AbstractSocketIOIntegrationTest {
         assertEquals(2, connectedClients.get(), "Two clients should be connected");
 
         // Get server clients
-        SocketIOClient serverClient1 = getServer().getAllClients().iterator().next();
-        SocketIOClient serverClient2 = null;
-        for (SocketIOClient client : getServer().getAllClients()) {
-            if (!client.equals(serverClient1)) {
-                serverClient2 = client;
-                break;
-            }
-        }
+        // Get server clients in a straightforward way
+        java.util.List<SocketIOClient> serverClients = new java.util.ArrayList<>(getServer().getAllClients());
+        assertEquals(2, serverClients.size(), "There should be exactly two server clients");
+        SocketIOClient serverClient1 = serverClients.get(0);
+        SocketIOClient serverClient2 = serverClients.get(1);
         assertNotNull(serverClient2, "Second server client should not be null");
 
         // Join both clients to the same room
@@ -103,8 +100,10 @@ public class RoomBroadcastTest extends AbstractSocketIOIntegrationTest {
         getServer().getRoomOperations(roomName).sendEvent(testEvent, testData);
 
         // Wait for messages to be received
-        await().atMost(5, TimeUnit.SECONDS).until(() -> testData.equals(receivedData1.get()) && testData.equals(receivedData2.get()));
-
+        await().atMost(5, TimeUnit.SECONDS)
+                .until(() -> receivedData1.get() != null && receivedData2.get() != null);
+        assertEquals(testData, receivedData1.get(), "Client 1 should receive the correct data");
+        assertEquals(testData, receivedData2.get(), "Client 2 should receive the correct data");
         // Cleanup
         client1.disconnect();
         client1.close();
