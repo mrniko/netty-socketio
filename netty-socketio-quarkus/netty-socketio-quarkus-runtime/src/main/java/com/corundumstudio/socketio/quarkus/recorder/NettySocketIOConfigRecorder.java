@@ -42,6 +42,10 @@ import io.quarkus.arc.InstanceHandle;
 import io.quarkus.runtime.RuntimeValue;
 import io.quarkus.runtime.annotations.Recorder;
 
+/**
+ * Recorder class for Netty Socket.IO configuration.
+ * Used to create and configure the SocketIOServer instance at runtime.
+ */
 @Recorder
 public class NettySocketIOConfigRecorder {
     private static final Logger log = LoggerFactory.getLogger(NettySocketIOConfigRecorder.class);

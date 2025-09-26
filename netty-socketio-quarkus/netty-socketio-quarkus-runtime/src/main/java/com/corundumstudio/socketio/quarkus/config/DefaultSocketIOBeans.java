@@ -30,24 +30,40 @@ import jakarta.enterprise.inject.Produces;
 
 @Dependent
 public class DefaultSocketIOBeans {
+    /**
+     * Produce default ExceptionListener bean if none is provided by the user.
+     * @return DefaultExceptionListener instance
+     */
     @Produces
     @DefaultBean
     public ExceptionListener defaultExceptionListener() {
         return new DefaultExceptionListener();
     }
 
+    /**
+     * Produce default StoreFactory bean if none is provided by the user.
+     * @return MemoryStoreFactory instance
+     */
     @Produces
     @DefaultBean
     public StoreFactory defaultStoreFactory() {
         return new MemoryStoreFactory();
     }
 
+    /**
+     * Produce default JsonSupport bean if none is provided by the user.
+     * @return JacksonJsonSupport instance
+     */
     @Produces
     @DefaultBean
     public JsonSupport defaultJsonSupport() {
         return new JacksonJsonSupport();
     }
 
+    /**
+     * Produce default AuthorizationListener bean if none is provided by the user.
+     * @return SuccessAuthorizationListener instance
+     */
     @Produces
     @DefaultBean
     public AuthorizationListener defaultAuthorizationListener() {

@@ -8,6 +8,12 @@ import com.corundumstudio.socketio.annotation.OnConnect;
 import io.quarkus.arc.Unremovable;
 import jakarta.enterprise.context.ApplicationScoped;
 
+/**
+ * Test controller to demonstrate Socket.IO event handling in a Quarkus application.
+ * This controller listens for client connections and stores the connected client reference.
+ * It throws a RuntimeException in the onConnect method to simulate an error scenario.
+ * @Unremovable ensures that this bean is not removed during build optimization.
+ */
 @Unremovable
 @ApplicationScoped
 public class TestController {

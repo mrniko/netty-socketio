@@ -25,6 +25,12 @@ public class CustomizedSocketIOConfiguration {
         return lastException.get();
     }
 
+    /**
+     * Produce a custom ExceptionListener bean to handle exceptions in Socket.IO events.
+     * replaces the default ExceptionListener.
+     * @Unremovable ensures that this bean is not removed during build optimization.
+     * @return
+     */
     @Produces
     @Unremovable
     public ExceptionListener getExceptionListener() {
