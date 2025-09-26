@@ -47,7 +47,7 @@ public class QuarkusBaseTest {
         await().atMost(10, TimeUnit.SECONDS)
                 .until(() -> socketIOServer != null && socketIOServer.isStarted());
 
-        socket = IO.socket("http://localhost:9100");
+        socket = IO.socket("http://localhost:9201");
         socket.connect();
 
         await().atMost(5, TimeUnit.SECONDS)

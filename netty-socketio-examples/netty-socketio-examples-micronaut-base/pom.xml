@@ -5,14 +5,13 @@
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>com.corundumstudio.socketio</groupId>
-    <artifactId>netty-socketio-parent</artifactId>
+    <artifactId>netty-socketio-examples</artifactId>
     <version>2.0.14-SNAPSHOT</version>
+    <relativePath>../pom.xml</relativePath>
   </parent>
 
-  <artifactId>netty-socketio-micronaut</artifactId>
-  <packaging>bundle</packaging>
-  <name>NettySocketIO Micronaut</name>
-  <description>Socket.IO server Micronaut integration</description>
+  <artifactId>netty-socketio-examples-micronaut-base</artifactId>
+  <description>NettySocketIO Micronaut Examples</description>
 
   <properties>
     <micronaut.version>4.8.1</micronaut.version>
@@ -33,68 +32,58 @@
   <dependencies>
     <dependency>
       <groupId>com.corundumstudio.socketio</groupId>
-      <artifactId>netty-socketio-core</artifactId>
+      <artifactId>netty-socketio-micronaut</artifactId>
       <version>2.0.14-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>io.micronaut</groupId>
       <artifactId>micronaut-context</artifactId>
-      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>io.micronaut</groupId>
       <artifactId>micronaut-inject</artifactId>
-      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>io.micronaut</groupId>
       <artifactId>micronaut-runtime</artifactId>
-      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>io.micronaut</groupId>
       <artifactId>micronaut-http</artifactId>
-      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>io.micronaut</groupId>
       <artifactId>micronaut-http-server</artifactId>
-      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>io.micronaut</groupId>
       <artifactId>micronaut-http-server-netty</artifactId>
-      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>io.micronaut</groupId>
       <artifactId>micronaut-jackson-databind</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>io.micronaut.test</groupId>
-      <artifactId>micronaut-test-junit5</artifactId>
-      <scope>test</scope>
-      <version>${micronaut.version}</version>
     </dependency>
     <dependency>
       <groupId>ch.qos.logback</groupId>
       <artifactId>logback-classic</artifactId>
-      <scope>test</scope>
+      <version>1.5.18</version>
     </dependency>
     <dependency>
-      <groupId>io.socket</groupId>
-      <artifactId>socket.io-client</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>com.github.javafaker</groupId>
-      <artifactId>javafaker</artifactId>
+      <groupId>io.micronaut.test</groupId>
+      <artifactId>micronaut-test-junit5</artifactId>
+      <version>${micronaut.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.awaitility</groupId>
       <artifactId>awaitility</artifactId>
+      <version>4.2.2</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.socket</groupId>
+      <artifactId>socket.io-client</artifactId>
+      <version>2.1.0</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
@@ -138,4 +127,5 @@
       </plugin>
     </plugins>
   </build>
+
 </project>
