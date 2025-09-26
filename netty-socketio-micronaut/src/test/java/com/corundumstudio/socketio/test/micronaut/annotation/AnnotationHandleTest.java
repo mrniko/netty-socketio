@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.corundumstudio.socketio.test.spring.boot.starter.annotation;
+package com.corundumstudio.socketio.test.micronaut.annotation;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
@@ -25,42 +25,39 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Import;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
 
 import com.corundumstudio.socketio.AckRequest;
 import com.corundumstudio.socketio.SocketIOClient;
 import com.corundumstudio.socketio.annotation.OnConnect;
 import com.corundumstudio.socketio.annotation.OnDisconnect;
 import com.corundumstudio.socketio.annotation.OnEvent;
-import com.corundumstudio.socketio.test.spring.boot.starter.BaseSpringApplicationTest;
+import com.corundumstudio.socketio.test.micronaut.BaseMicronautApplicationTest;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import io.micronaut.context.annotation.Property;
 import io.socket.client.Ack;
 import io.socket.client.IO;
 import io.socket.client.Socket;
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@Import(AnnotationHandleTest.TestConfig.class)
-public class AnnotationHandleTest extends BaseSpringApplicationTest {
+
+@DisplayName("Test for Annotation-based Event Handling")
+@Property(name = "netty-socket-io.port", value = AnnotationHandleTest.PORT + "")
+public class AnnotationHandleTest extends BaseMicronautApplicationTest {
     private static final Logger log = LoggerFactory.getLogger(AnnotationHandleTest.class);
-    private static final int PORT = 9091;
+    public static final int PORT = 9094;
 
-    @DynamicPropertySource
-    public static void setProperties(DynamicPropertyRegistry registry) {
-        registry.add("netty-socket-io.port", () -> PORT);
-    }
-
+    @Singleton
     public static class TestConnectController {
         private final AtomicInteger counter = new AtomicInteger(0);
         private final Vector<Object> params = new Vector<>();
@@ -78,6 +75,7 @@ public class AnnotationHandleTest extends BaseSpringApplicationTest {
         }
     }
 
+    @Singleton
     public static class TestDisconnectController {
         private final AtomicInteger counter = new AtomicInteger(0);
         private final Vector<Object> params = new Vector<>();
@@ -95,6 +93,7 @@ public class AnnotationHandleTest extends BaseSpringApplicationTest {
         }
     }
 
+    @Singleton
     public static class TestOnEventController {
         private final AtomicInteger counter = new AtomicInteger(0);
         private final Vector<Object> params = new Vector<>();
@@ -141,23 +140,6 @@ public class AnnotationHandleTest extends BaseSpringApplicationTest {
         public void reset() {
             counter.set(0);
             params.clear();
-        }
-    }
-
-    public static class TestConfig {
-        @Bean
-        public TestConnectController testConnectController() {
-            return new TestConnectController();
-        }
-
-        @Bean
-        public TestDisconnectController testDisconnectController() {
-            return new TestDisconnectController();
-        }
-
-        @Bean
-        public TestOnEventController testOnEventController() {
-            return new TestOnEventController();
         }
     }
 
@@ -257,11 +239,11 @@ public class AnnotationHandleTest extends BaseSpringApplicationTest {
         }
     }
 
-    @Autowired
+    @Inject
     private TestConnectController testConnectController;
-    @Autowired
+    @Inject
     private TestDisconnectController testDisconnectController;
-    @Autowired
+    @Inject
     private TestOnEventController testOnEventController;
 
     private ObjectMapper objectMapper = new ObjectMapper();
