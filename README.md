@@ -25,12 +25,23 @@ JAR is compatible with Java 8 but needs Java 11+ for building the module-info.
 
 ### Maven 
 
-Include the following to your dependency list:
+#### Core Module
+Include the following to your dependency list for core functionality:
 ```xml
     <dependency>
      <groupId>com.corundumstudio.socketio</groupId>
-     <artifactId>netty-socketio</artifactId>
-     <version>2.0.13</version>
+     <artifactId>netty-socketio-core</artifactId>
+     <version>2.0.14-SNAPSHOT</version>
+    </dependency>
+```
+
+#### Spring Integration
+For Spring integration, include the spring modules:
+```xml
+    <dependency>
+     <groupId>com.corundumstudio.socketio</groupId>
+     <artifactId>netty-socketio-spring</artifactId>
+     <version>2.0.14-SNAPSHOT</version>
     </dependency>
 ```
 
@@ -309,7 +320,7 @@ Improvement - Configuration.autoAck parameter added
 Fixed - AckCallback handling during client disconnect  
 Fixed - unauthorized handshake HTTP code changed to 401  
 __Breaking api change__ - Configuration.heartbeatThreadPoolSize setting removed  
-Feature - annotated Spring beans support via _SpringAnnotationScanner_  
+Feature - annotated Spring beans support via _SpringAnnotationScanner_ (available in netty-socketio-spring module)  
 Feature - common exception listener  
 Improvement - _ScheduledExecutorService_ replaced with _HashedWheelTimer_  
 
