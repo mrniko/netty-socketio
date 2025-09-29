@@ -144,7 +144,7 @@ public abstract class AbstractSocketIOIntegrationTest {
             }
             // Wait a bit before retrying
             Thread.sleep(1000);
-            log.info("Waiting to available on port {} ", port);
+            log.info("Waiting for port {} to become available", port);
         }
         throw new RuntimeException("Could not find available port after " + MAX_PORT_RETRIES + " attempts");
     }
