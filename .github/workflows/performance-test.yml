@@ -11,8 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        java-version: [8, 11, 17]
-    
+        java-version: [8, 11, 17, 21]
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -37,8 +36,8 @@ jobs:
     - name: Commit and push performance report
       run: |
         cd netty-socketio-smoke-test
-        git config --local user.email "action@github.com"
-        git config --local user.name "GitHub Action"
+        git config --local user.email "15627489+NeatGuyCoding@users.noreply.github.com"
+        git config --local user.name "NeatGuyCoding"
         git add PERFORMANCE_REPORT.md
         git add performance-results/*
         git diff --staged --quiet || git commit -m "Update performance report - Java ${{ matrix.java-version }} - $(date)"
