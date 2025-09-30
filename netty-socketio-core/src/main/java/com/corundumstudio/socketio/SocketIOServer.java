@@ -1,12 +1,12 @@
 /**
  * Copyright (c) 2012-2025 Nikita Koksharov
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,6 +38,7 @@ import com.corundumstudio.socketio.namespace.NamespacesHub;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelOption;
+import io.netty.channel.DefaultEventLoop;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.FixedRecvByteBufAllocator;
 import io.netty.channel.ServerChannel;
@@ -47,6 +49,7 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.FutureListener;
+import io.netty.util.concurrent.SucceededFuture;
 
 /**
  * Fully thread-safe.
@@ -55,6 +58,8 @@ import io.netty.util.concurrent.FutureListener;
 public class SocketIOServer implements ClientListeners {
 
     private static final Logger log = LoggerFactory.getLogger(SocketIOServer.class);
+
+    private final AtomicReference<ServerStatus> serverStatus = new AtomicReference<ServerStatus>(ServerStatus.INIT);
 
     private final Configuration configCopy;
     private final Configuration configuration;
@@ -149,42 +154,62 @@ public class SocketIOServer implements ClientListeners {
     }
 
     /**
+     * Returns true if server is started
+     */
+    public boolean isStarted() {
+        return serverStatus.get() == ServerStatus.STARTED;
+    }
+
+    /**
      * Start server asynchronously
-     * 
+     *
      * @return void
      */
     public Future<Void> startAsync() {
-        log.info("Session store / pubsub factory used: {}", configCopy.getStoreFactory());
-        initGroups();
-
-        pipelineFactory.start(configCopy, namespacesHub);
-
-        Class<? extends ServerChannel> channelClass = NioServerSocketChannel.class;
-        if (configCopy.isUseLinuxNativeEpoll()) {
-            channelClass = EpollServerSocketChannel.class;
+        if (!serverStatus.compareAndSet(ServerStatus.INIT, ServerStatus.STARTING)) {
+            log.warn("Invalid server state: {}, should be: {}, ignoring start request", serverStatus.get(), ServerStatus.INIT);
+            return new SucceededFuture<Void>(new DefaultEventLoop(), null);
         }
 
-        ServerBootstrap b = new ServerBootstrap();
-        b.group(bossGroup, workerGroup)
-        .channel(channelClass)
-        .childHandler(pipelineFactory);
-        applyConnectionOptions(b);
+        try {
+            log.info("Session store / pubsub factory used: {}", configCopy.getStoreFactory());
+            initGroups();
 
-        InetSocketAddress addr = new InetSocketAddress(configCopy.getPort());
-        if (configCopy.getHostname() != null) {
-            addr = new InetSocketAddress(configCopy.getHostname(), configCopy.getPort());
-        }
+            pipelineFactory.start(configCopy, namespacesHub);
 
-        return b.bind(addr).addListener(new FutureListener<Void>() {
-            @Override
-            public void operationComplete(Future<Void> future) throws Exception {
-                if (future.isSuccess()) {
-                    log.info("SocketIO server started at port: {}", configCopy.getPort());
-                } else {
-                    log.error("SocketIO server start failed at port: {}!", configCopy.getPort());
-                }
+            Class<? extends ServerChannel> channelClass = NioServerSocketChannel.class;
+            if (configCopy.isUseLinuxNativeEpoll()) {
+                channelClass = EpollServerSocketChannel.class;
             }
-        });
+
+            ServerBootstrap b = new ServerBootstrap();
+            b.group(bossGroup, workerGroup)
+                    .channel(channelClass)
+                    .childHandler(pipelineFactory);
+            applyConnectionOptions(b);
+
+            InetSocketAddress addr = new InetSocketAddress(configCopy.getPort());
+            if (configCopy.getHostname() != null) {
+                addr = new InetSocketAddress(configCopy.getHostname(), configCopy.getPort());
+            }
+
+            return b.bind(addr).addListener(new FutureListener<Void>() {
+                @Override
+                public void operationComplete(Future<Void> future) throws Exception {
+                    if (future.isSuccess()) {
+                        serverStatus.set(ServerStatus.STARTED);
+                        log.info("SocketIO server started at port: {}", configCopy.getPort());
+                    } else {
+                        serverStatus.set(ServerStatus.INIT);
+                        log.error("SocketIO server start failed at port: {}!", configCopy.getPort());
+                    }
+                }
+            });
+        } catch (Exception e) {
+            serverStatus.set(ServerStatus.INIT);
+            log.error("SocketIO server start error at port: {}! {}", configCopy.getPort(), e.getMessage(), e);
+            throw e;
+        }
     }
 
     protected void applyConnectionOptions(ServerBootstrap bootstrap) {
@@ -225,11 +250,19 @@ public class SocketIOServer implements ClientListeners {
      * Stop server
      */
     public void stop() {
-        bossGroup.shutdownGracefully().syncUninterruptibly();
-        workerGroup.shutdownGracefully().syncUninterruptibly();
-
-        pipelineFactory.stop();
-        log.info("SocketIO server stopped");
+        if (!serverStatus.compareAndSet(ServerStatus.STARTED, ServerStatus.STOPPING)) {
+            log.warn("Invalid server state: {}, should be: {}, ignoring stop request", serverStatus.get(), ServerStatus.STARTED);
+            return;
+        }
+        try {
+            log.info("Stopping SocketIO server...");
+            bossGroup.shutdownGracefully().syncUninterruptibly();
+            workerGroup.shutdownGracefully().syncUninterruptibly();
+            pipelineFactory.stop();
+            log.info("SocketIO server stopped");
+        } finally {
+            serverStatus.set(ServerStatus.INIT);
+        }
     }
 
     public SocketIONamespace addNamespace(String name) {
@@ -291,6 +324,7 @@ public class SocketIOServer implements ClientListeners {
     public void addPingListener(PingListener listener) {
         mainNamespace.addPingListener(listener);
     }
+
     @Override
     public void addPongListener(PongListener listener) {
         mainNamespace.addPongListener(listener);
