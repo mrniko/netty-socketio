@@ -170,39 +170,46 @@ public class SocketIOServer implements ClientListeners {
             log.warn("Invalid server state: {}, should be: {}, ignoring start request", serverStatus.get(), ServerStatus.INIT);
             return new SucceededFuture<Void>(new DefaultEventLoop(), null);
         }
-        log.info("Session store / pubsub factory used: {}", configCopy.getStoreFactory());
-        initGroups();
 
-        pipelineFactory.start(configCopy, namespacesHub);
+        try {
+            log.info("Session store / pubsub factory used: {}", configCopy.getStoreFactory());
+            initGroups();
 
-        Class<? extends ServerChannel> channelClass = NioServerSocketChannel.class;
-        if (configCopy.isUseLinuxNativeEpoll()) {
-            channelClass = EpollServerSocketChannel.class;
-        }
+            pipelineFactory.start(configCopy, namespacesHub);
 
-        ServerBootstrap b = new ServerBootstrap();
-        b.group(bossGroup, workerGroup)
-                .channel(channelClass)
-                .childHandler(pipelineFactory);
-        applyConnectionOptions(b);
-
-        InetSocketAddress addr = new InetSocketAddress(configCopy.getPort());
-        if (configCopy.getHostname() != null) {
-            addr = new InetSocketAddress(configCopy.getHostname(), configCopy.getPort());
-        }
-
-        return b.bind(addr).addListener(new FutureListener<Void>() {
-            @Override
-            public void operationComplete(Future<Void> future) throws Exception {
-                if (future.isSuccess()) {
-                    serverStatus.set(ServerStatus.STARTED);
-                    log.info("SocketIO server started at port: {}", configCopy.getPort());
-                } else {
-                    serverStatus.set(ServerStatus.INIT);
-                    log.error("SocketIO server start failed at port: {}!", configCopy.getPort());
-                }
+            Class<? extends ServerChannel> channelClass = NioServerSocketChannel.class;
+            if (configCopy.isUseLinuxNativeEpoll()) {
+                channelClass = EpollServerSocketChannel.class;
             }
-        });
+
+            ServerBootstrap b = new ServerBootstrap();
+            b.group(bossGroup, workerGroup)
+                    .channel(channelClass)
+                    .childHandler(pipelineFactory);
+            applyConnectionOptions(b);
+
+            InetSocketAddress addr = new InetSocketAddress(configCopy.getPort());
+            if (configCopy.getHostname() != null) {
+                addr = new InetSocketAddress(configCopy.getHostname(), configCopy.getPort());
+            }
+
+            return b.bind(addr).addListener(new FutureListener<Void>() {
+                @Override
+                public void operationComplete(Future<Void> future) throws Exception {
+                    if (future.isSuccess()) {
+                        serverStatus.set(ServerStatus.STARTED);
+                        log.info("SocketIO server started at port: {}", configCopy.getPort());
+                    } else {
+                        serverStatus.set(ServerStatus.INIT);
+                        log.error("SocketIO server start failed at port: {}!", configCopy.getPort());
+                    }
+                }
+            });
+        } catch (Exception e) {
+            serverStatus.set(ServerStatus.INIT);
+            log.error("SocketIO server start error at port: {}! {}", configCopy.getPort(), e.getMessage(), e);
+            throw e;
+        }
     }
 
     protected void applyConnectionOptions(ServerBootstrap bootstrap) {
