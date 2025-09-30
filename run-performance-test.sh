@@ -25,11 +25,12 @@ cd netty-socketio-smoke-test
 
 # Run performance test
 echo "Running performance test..."
-java -Xmx256m -XX:+UseG1GC -XX:+AlwaysPreTouch \
+java -Xmx256m -XX:+UseG1GC -XX:+AlwaysPreTouch -XX:+HeapDumpOnOutOfMemoryError \
      -cp target/netty-socketio-smoke-test.jar:target/dependency/* \
      com.corundumstudio.socketio.smoketest.PerformanceTestRunner \
-     8899 10 1000 128
+     8899 10 50000 128
 
 echo "Performance test completed!"
 echo "Results saved in: netty-socketio-smoke-test/performance-results/"
 echo "Report updated: netty-socketio-smoke-test/PERFORMANCE_REPORT.md"
+

@@ -38,6 +38,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static org.awaitility.Awaitility.await;
+
 /**
  * SocketIO Client for smoke testing.
  * Sends messages and measures performance.
@@ -49,22 +51,21 @@ public class ClientMain {
     private static final Faker faker = new Faker();
     
     private final List<Socket> clients = new ArrayList<>();
-    private final ClientMetrics metrics = new ClientMetrics();
+    private final ClientMetrics metrics;
     private final AtomicBoolean running = new AtomicBoolean(false);
     private final AtomicInteger connectedCount = new AtomicInteger(0);
-    private final CountDownLatch messageAckCountDownLatch;
     private final SystemInfo systemInfo = new SystemInfo();
     private final int port;
     private final int clientCount;
     private final int eachMsgCount;
     private final int eachMsgSize;
 
-    public ClientMain(int port, int clientCount, int eachMsgCount, int eachMsgSize) throws Exception {
+    public ClientMain(int port, int clientCount, int eachMsgCount, int eachMsgSize, ClientMetrics metrics) throws Exception {
         this.port = port;
         this.clientCount = clientCount;
         this.eachMsgCount = eachMsgCount;
         this.eachMsgSize = eachMsgSize;
-        this.messageAckCountDownLatch = new CountDownLatch(clientCount * eachMsgCount);
+        this.metrics = metrics;
     }
     
     public void start() throws Exception {
@@ -155,7 +156,9 @@ public class ClientMain {
                 Thread.currentThread().interrupt();
             }
         }
-        messageAckCountDownLatch.await(10, TimeUnit.MINUTES);
+        await().atMost(10, TimeUnit.MINUTES).until(() ->
+                metrics.getTotalMessagesSent() == metrics.getTotalMessagesReceived()
+        );
         metrics.stop();
         log.info(metrics.toString());
     }
@@ -168,21 +171,8 @@ public class ClientMain {
             // Record message sent
             metrics.recordMessageSent(message.length());
             
-            // Send with ACK callback
-            client.emit("echo", message, new io.socket.client.Ack() {
-                @Override
-                public void call(Object... args) {
-                    long latency = System.currentTimeMillis() - startTime;
-                    metrics.recordLatency(latency);
-                    messageAckCountDownLatch.countDown();
-                    
-                    // Record received message (ACK response)
-                    if (args.length > 0) {
-                        String response = args[0].toString();
-                        metrics.recordMessageReceived(response.length());
-                    }
-                }
-            });
+            // Send without ACK callback
+            client.emit("echo", startTime + ":" + message);
             
         } catch (Exception e) {
             log.debug("Failed to send message", e);

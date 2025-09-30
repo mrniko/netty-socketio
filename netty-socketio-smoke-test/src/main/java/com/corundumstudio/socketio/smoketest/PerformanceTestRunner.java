@@ -67,21 +67,23 @@ public class PerformanceTestRunner {
         log.info("Starting performance test...");
         log.info("Java Version: {}", javaVersion);
         log.info("JVM Args: {}", jvmArgs);
-        
+
+        ClientMetrics clientMetrics = new ClientMetrics();
+
         // Start server
-        ServerMain server = new ServerMain();
+        ServerMain server = new ServerMain(clientMetrics);
         server.start(port);
         
         try {
             // Run client test, preheating
-            ClientMain client = new ClientMain(port, clientCount, eachMsgCount, eachMsgSize);
+            ClientMain client = new ClientMain(port, clientCount, eachMsgCount, eachMsgSize, clientMetrics);
             client.start();
 
             // Wait a bit before actual measurement, for JIT optimizations
             Thread.sleep(5000);
 
             // Run client test, actual measurement
-            client = new ClientMain(port, clientCount, eachMsgCount, eachMsgSize);
+            client = new ClientMain(port, clientCount, eachMsgCount, eachMsgSize, clientMetrics);
             client.start();
             
             // Collect metrics

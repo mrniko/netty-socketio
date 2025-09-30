@@ -40,6 +40,11 @@ public class ServerMain {
 
     private SocketIOServer server;
     private final SystemInfo systemInfo = new SystemInfo();
+    private final ClientMetrics clientMetrics;
+
+    public ServerMain(ClientMetrics clientMetrics) {
+        this.clientMetrics = clientMetrics;
+    }
 
     public void start(int port) throws Exception {
         systemInfo.printSystemInfo();
@@ -60,11 +65,11 @@ public class ServerMain {
             @Override
             public void onData(com.corundumstudio.socketio.SocketIOClient client, String data,
                                com.corundumstudio.socketio.AckRequest ackRequest) throws Exception {
-
-                // Echo back the message via ACK
-                if (ackRequest != null) {
-                    ackRequest.sendAckData(data);
-                }
+                String time = data.split(":")[0];
+                long startTime = Long.parseLong(time);
+                long rtt = System.currentTimeMillis() - startTime;
+                clientMetrics.recordLatency(rtt);
+                clientMetrics.recordMessageReceived(data.length());
             }
         });
     }
