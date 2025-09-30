@@ -18,9 +18,10 @@ JAVA_VERSION=$(java -version 2>&1 | head -n 1 | cut -d'"' -f2 | cut -d'.' -f1)
 echo "Using Java version: $JAVA_VERSION"
 
 # Build the project
-echo "Building smoke test module..."
-cd netty-socketio-smoke-test
+echo "Building whole module..."
 mvn clean package -DskipTests
+echo "Go to smoke test module..."
+cd netty-socketio-smoke-test
 
 # Run performance test
 echo "Running performance test..."
@@ -30,5 +31,5 @@ java -Xmx256m -XX:+UseG1GC -XX:+AlwaysPreTouch \
      8899 10 1000 128
 
 echo "Performance test completed!"
-echo "Results saved in: performance-results/"
-echo "Report updated: PERFORMANCE_REPORT.md"
+echo "Results saved in: netty-socketio-smoke-test/performance-results/"
+echo "Report updated: netty-socketio-smoke-test/PERFORMANCE_REPORT.md"
