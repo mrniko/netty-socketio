@@ -21,6 +21,7 @@
     <module>netty-socketio-core</module>
     <module>netty-socketio-spring</module>
     <module>netty-socketio-spring-boot-starter</module>
+    <module>netty-socketio-quarkus</module>
   </modules>
 
   <licenses>
@@ -114,7 +115,7 @@
                 <id>sign-artifacts</id>
                 <phase>verify</phase>
                 <goals>
-                  <goal>sign</goal>
+<!--                  <goal>sign</goal>-->
                 </goals>
               </execution>
             </executions>

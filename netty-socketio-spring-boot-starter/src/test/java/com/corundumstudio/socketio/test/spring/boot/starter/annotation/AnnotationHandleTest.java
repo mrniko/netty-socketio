@@ -61,7 +61,7 @@ public class AnnotationHandleTest extends BaseSpringApplicationTest {
 
     @DynamicPropertySource
     public static void setProperties(DynamicPropertyRegistry registry) {
-        registry.add("server.netty-socket-io.port", () -> PORT);
+        registry.add("netty-socket-io.port", () -> PORT);
     }
 
     public static class TestConnectController {

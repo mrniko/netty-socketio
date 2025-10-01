@@ -17,15 +17,18 @@ package com.corundumstudio.socketio.spring.boot.starter.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-import com.corundumstudio.socketio.HttpRequestDecoderConfiguration;
+import com.corundumstudio.socketio.SocketConfig;
+import com.corundumstudio.socketio.SocketSslConfig;
 
-import static com.corundumstudio.socketio.spring.boot.starter.config.NettySocketIOHttpRequestDecoderConfigurationProperties.PREFIX;
+import static com.corundumstudio.socketio.spring.boot.starter.config.NettySocketIOSslConfigProperties.PREFIX;
+
 
 /**
- * HTTP request decoder configuration properties for Netty Socket.IO server.
- * @see com.corundumstudio.socketio.HttpRequestDecoderConfiguration
+ * SSL configuration properties for Netty Socket.IO server.
+ * @see SocketSslConfig
+ */
  */
 @ConfigurationProperties(prefix = PREFIX)
-public class NettySocketIOHttpRequestDecoderConfigurationProperties extends HttpRequestDecoderConfiguration {
-    public static final String PREFIX = "netty-socket-io.http-request-decoder";
+public class NettySocketIOSslConfigProperties extends SocketSslConfig {
+    public static final String PREFIX = "netty-socket-io.ssl";
 }

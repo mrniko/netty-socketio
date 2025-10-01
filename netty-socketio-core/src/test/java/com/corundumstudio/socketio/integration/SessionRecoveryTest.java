@@ -164,7 +164,7 @@ public class SessionRecoveryTest extends AbstractSocketIOIntegrationTest {
                 bothDisconnected.countDown();
             }
         });
-        
+
         // Connect both clients
         client1.connect();
         client2.connect();

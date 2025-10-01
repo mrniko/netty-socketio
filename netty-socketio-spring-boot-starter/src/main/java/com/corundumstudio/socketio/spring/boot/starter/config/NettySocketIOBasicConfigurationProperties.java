@@ -30,7 +30,7 @@ import static com.corundumstudio.socketio.spring.boot.starter.config.NettySocket
  */
 @ConfigurationProperties(prefix = PREFIX)
 public class NettySocketIOBasicConfigurationProperties extends BasicConfiguration {
-    public static final String PREFIX = "server.netty-socket-io";
+    public static final String PREFIX = "netty-socket-io";
 
     /**
      * The order of the server lifecycle. Default is 0.
