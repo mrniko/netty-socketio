@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.corundumstudio.socketio.examples.quakus.base;
+package com.corundumstudio.socketio.examples.quarkus.base;
 
 import com.corundumstudio.socketio.SocketIOServer;
 

@@ -25,7 +25,8 @@ import static com.corundumstudio.socketio.spring.boot.starter.config.NettySocket
 
 /**
  * SSL configuration properties for Netty Socket.IO server.
- * @see SocketConfig
+ * @see SocketSslConfig
+ */
  */
 @ConfigurationProperties(prefix = PREFIX)
 public class NettySocketIOSslConfigProperties extends SocketSslConfig {
