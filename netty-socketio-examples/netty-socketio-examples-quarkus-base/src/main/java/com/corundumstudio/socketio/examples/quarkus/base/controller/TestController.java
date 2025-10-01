@@ -1,4 +1,4 @@
-package com.corundumstudio.socketio.examples.quakus.base.controller;
+package com.corundumstudio.socketio.examples.quarkus.base.controller;
 
 import java.util.concurrent.atomic.AtomicReference;
 
