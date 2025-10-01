@@ -1,4 +1,4 @@
-package com.corundumstudio.socketio.examples.quakus.base;
+package com.corundumstudio.socketio.examples.quarkus.base;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -8,8 +8,8 @@ import org.junit.jupiter.api.Test;
 
 import com.corundumstudio.socketio.SocketIOClient;
 import com.corundumstudio.socketio.SocketIOServer;
-import com.corundumstudio.socketio.examples.quakus.base.config.CustomizedSocketIOConfiguration;
-import com.corundumstudio.socketio.examples.quakus.base.controller.TestController;
+import com.corundumstudio.socketio.examples.quarkus.base.config.CustomizedSocketIOConfiguration;
+import com.corundumstudio.socketio.examples.quarkus.base.controller.TestController;
 
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.QuarkusTestProfile;
