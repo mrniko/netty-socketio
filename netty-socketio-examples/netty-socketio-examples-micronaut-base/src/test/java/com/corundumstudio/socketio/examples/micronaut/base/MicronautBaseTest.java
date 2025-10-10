@@ -2,6 +2,7 @@ package com.corundumstudio.socketio.examples.micronaut.base;
 
 import java.util.concurrent.TimeUnit;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 import com.corundumstudio.socketio.SocketIOClient;
@@ -30,7 +31,7 @@ public class MicronautBaseTest {
 
     private Socket socket;
 
-    @org.junit.jupiter.api.AfterEach
+    @AfterEach
     public void tearDown() {
         if (socket != null) {
             socket.close();
