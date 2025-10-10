@@ -1,42 +1,31 @@
-package com.corundumstudio.socketio.examples.quarkus.base;
+package com.corundumstudio.socketio.examples.springboot.base;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 
 import com.corundumstudio.socketio.SocketIOClient;
 import com.corundumstudio.socketio.SocketIOServer;
-import com.corundumstudio.socketio.examples.quarkus.base.config.CustomizedSocketIOConfiguration;
-import com.corundumstudio.socketio.examples.quarkus.base.controller.TestController;
+import com.corundumstudio.socketio.examples.springboot.base.config.CustomizedSocketIOConfiguration;
+import com.corundumstudio.socketio.examples.springboot.base.controller.TestController;
 
-import io.quarkus.test.junit.QuarkusTest;
-import io.quarkus.test.junit.QuarkusTestProfile;
-import io.quarkus.test.junit.TestProfile;
 import io.socket.client.IO;
 import io.socket.client.Socket;
-import jakarta.inject.Inject;
 
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
-import static org.wildfly.common.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-@QuarkusTest
-@TestProfile(QuarkusBaseTest.TestProfile.class)
-public class QuarkusBaseTest {
-    public static class TestProfile implements QuarkusTestProfile {
-        @Override
-        public Map<String, String> getConfigOverrides() {
-            return new HashMap<>();
-        }
-    }
+@SpringBootTest
+public class SpringBootBaseTest {
 
-    @Inject
+    @Autowired
     SocketIOServer socketIOServer;
-    @Inject
+    @Autowired
     CustomizedSocketIOConfiguration customizedSocketIOConfiguration;
-    @Inject
+    @Autowired
     TestController testController;
 
     private Socket socket;
@@ -47,7 +36,7 @@ public class QuarkusBaseTest {
         await().atMost(10, TimeUnit.SECONDS)
                 .until(() -> socketIOServer != null && socketIOServer.isStarted());
 
-        socket = IO.socket("http://localhost:9201");
+        socket = IO.socket("http://localhost:9200");
         socket.connect();
 
         await().atMost(5, TimeUnit.SECONDS)

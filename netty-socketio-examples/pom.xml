@@ -12,6 +12,8 @@
 
   <modules>
     <module>netty-socketio-examples-quarkus-base</module>
+    <module>netty-socketio-examples-micronaut-base</module>
+    <module>netty-socketio-examples-spring-boot-base</module>
   </modules>
 
 </project>
