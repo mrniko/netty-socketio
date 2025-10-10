@@ -30,6 +30,13 @@ public class MicronautBaseTest {
 
     private Socket socket;
 
+    @org.junit.jupiter.api.AfterEach
+    public void tearDown() {
+        if (socket != null) {
+            socket.close();
+        }
+    }
+
     @Test
     public void testSocketIOServerConnect() throws Exception {
         // wait for server start
