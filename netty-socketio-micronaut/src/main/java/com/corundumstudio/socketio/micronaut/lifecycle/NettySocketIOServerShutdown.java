@@ -24,7 +24,7 @@ import io.micronaut.context.event.ApplicationEventListener;
 import io.micronaut.runtime.event.ApplicationShutdownEvent;
 
 /**
- * Listener to stop the Netty Socket.IO server when the Micronaut application shutdown.
+ * Listener to stop the Netty Socket.IO server when the Micronaut application shuts down.
  */
 public class NettySocketIOServerShutdown implements ApplicationEventListener<ApplicationShutdownEvent> {
 
