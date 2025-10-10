@@ -14,7 +14,7 @@ import com.corundumstudio.socketio.annotation.OnConnect;
  */
 @Component
 public class TestController {
-    AtomicReference<SocketIOClient> baseClient = new AtomicReference<>();
+    private final AtomicReference<SocketIOClient> baseClient = new AtomicReference<>();
 
     public SocketIOClient getBaseClient() {
         return baseClient.get();
