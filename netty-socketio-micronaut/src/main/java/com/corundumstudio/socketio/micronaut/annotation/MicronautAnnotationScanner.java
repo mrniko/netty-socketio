@@ -89,6 +89,12 @@ public class MicronautAnnotationScanner {
             }
         }
 
+        for (Class<?> iface : beanClass.getInterfaces()) {
+            if (hasSocketIOAnnotations(iface)) {
+                return true;
+            }
+        }
+
         return false;
     }
 }
