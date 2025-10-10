@@ -67,14 +67,14 @@ public class NettySocketIOConfigurationFactory {
         socketSslConfig.setSSLProtocol(nettySocketIOSslConfigProperties.getSslProtocol());
         if (nettySocketIOSslConfigProperties.getKeyStore() != null) {
             socketSslConfig.setKeyStore(
-                    this.getClass().getResourceAsStream(nettySocketIOSslConfigProperties.getKeyStore())
+                    this.getClass().getClassLoader().getResourceAsStream(nettySocketIOSslConfigProperties.getKeyStore())
             );
         }
         socketSslConfig.setKeyStorePassword(nettySocketIOSslConfigProperties.getKeyStorePassword());
         socketSslConfig.setKeyStoreFormat(nettySocketIOSslConfigProperties.getKeyStoreFormat());
         if (nettySocketIOSslConfigProperties.getTrustStore() != null) {
             socketSslConfig.setTrustStore(
-                    this.getClass().getResourceAsStream(nettySocketIOSslConfigProperties.getTrustStore())
+                    this.getClass().getClassLoader().getResourceAsStream(nettySocketIOSslConfigProperties.getTrustStore())
             );
         }
         socketSslConfig.setTrustStorePassword(nettySocketIOSslConfigProperties.getTrustStorePassword());
