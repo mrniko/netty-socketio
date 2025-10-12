@@ -23,6 +23,7 @@
     <module>netty-socketio-spring-boot-starter</module>
     <module>netty-socketio-quarkus</module>
     <module>netty-socketio-micronaut</module>
+    <module>netty-socketio-smoke-test</module>
   </modules>
 
   <licenses>

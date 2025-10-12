@@ -1,0 +1,47 @@
+name: Daily Performance Test
+
+on:
+  schedule:
+    # Run daily at 2:00 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  performance-test:
+    runs-on: ubuntu-latest
+    strategy:
+      max-parallel: 1
+      matrix:
+        java-version: [8, 11, 17, 21]
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up JDK ${{ matrix.java-version }}
+      uses: actions/setup-java@v4
+      with:
+        java-version: ${{ matrix.java-version }}
+        distribution: 'temurin'
+        
+    - name: Cache Maven dependencies
+      uses: actions/cache@v4
+      with:
+        path: ~/.m2
+        key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+        restore-keys: ${{ runner.os }}-m2
+        
+    - name: Build and run smoke test module
+      run: |
+        ./run-performance-test.sh
+        
+    - name: Commit and push performance report
+      run: |
+        cd netty-socketio-smoke-test
+        git config --local user.email "15627489+NeatGuyCoding@users.noreply.github.com"
+        git config --local user.name "NeatGuyCoding"
+        git add PERFORMANCE_REPORT.md
+        git add performance-results/*
+        git diff --staged --quiet || git commit -m "Update performance report - Java ${{ matrix.java-version }} - $(date)"
+        git push
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
