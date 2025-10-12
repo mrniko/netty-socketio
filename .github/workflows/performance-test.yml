@@ -10,6 +10,7 @@ jobs:
   performance-test:
     runs-on: ubuntu-latest
     strategy:
+      max-parallel: 1
       matrix:
         java-version: [8, 11, 17, 21]
     steps:
