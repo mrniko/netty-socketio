@@ -71,10 +71,10 @@ public class MicronautAnnotationScanner {
     }
 
     /**
-     * Checks if the given class has any Socket.IO annotations.
+     * Checks if the given class has any Socket.IO event listener annotations.
      *
-     * @param beanClass
-     * @return
+     * @param beanClass the class to check for Socket.IO event listener annotations
+     * @return {@code true} if any method in the class is annotated with {@link OnConnect}, {@link OnDisconnect}, or {@link OnEvent}; {@code false} otherwise
      */
     private boolean hasSocketIOAnnotations(Class<?> beanClass) {
         Method[] methods = beanClass.getDeclaredMethods();
@@ -85,6 +85,12 @@ public class MicronautAnnotationScanner {
                             || method.isAnnotationPresent(OnDisconnect.class)
                             || method.isAnnotationPresent(OnEvent.class)
             ) {
+                return true;
+            }
+        }
+
+        for (Class<?> iface : beanClass.getInterfaces()) {
+            if (hasSocketIOAnnotations(iface)) {
                 return true;
             }
         }
