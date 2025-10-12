@@ -14,7 +14,7 @@ if ! command -v java &> /dev/null; then
 fi
 
 # Get Java version
-JAVA_VERSION=$(java -version 2>&1 | head -n 1 | cut -d'"' -f2 | cut -d'.' -f1)
+JAVA_VERSION=$(java -version 2>&1 | head -n 1 | cut -d'"' -f2 | sed 's/^1\.//' | cut -d'.' -f1)
 echo "Using Java version: $JAVA_VERSION"
 
 # Build the project
@@ -23,9 +23,16 @@ mvn clean package -DskipTests
 echo "Go to smoke test module..."
 cd netty-socketio-smoke-test
 
+# Determine GC flags based on Java version
+if [ "$JAVA_VERSION" -ge 17 ]; then
+  GC_OPTS="-XX:+UseZGC"
+else
+  GC_OPTS="-XX:+UseG1GC"
+fi
+
 # Run performance test
 echo "Running performance test..."
-java -Xms256m -Xmx256m -XX:+UseZGC -XX:+AlwaysPreTouch \
+java -Xms256m -Xmx256m $GC_OPTS -XX:+AlwaysPreTouch \
      -cp target/netty-socketio-smoke-test.jar:target/dependency/* \
      com.corundumstudio.socketio.smoketest.PerformanceTestRunner \
      8899 10 20000 128

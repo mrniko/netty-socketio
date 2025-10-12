@@ -78,6 +78,7 @@ public class PerformanceTestRunner {
             // Run client test, preheating
             ClientMain client = new ClientMain(port, clientCount, eachMsgCount, eachMsgSize, clientMetrics);
             client.start();
+            clientMetrics.reset();
 
             // Wait a bit before actual measurement, for JIT optimizations
             Thread.sleep(5000);

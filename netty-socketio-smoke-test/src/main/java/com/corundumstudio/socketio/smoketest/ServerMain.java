@@ -30,7 +30,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * SocketIO Server for smoke testing.
- * Echoes back all received messages via ACK.
  */
 public class ServerMain {
     public static final int DEFAULT_PORT = 8899;
