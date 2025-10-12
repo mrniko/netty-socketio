@@ -78,7 +78,7 @@ jobs:
 
           Please review and merge if the performance results look good." \
             --base master \
-            --head "$BRANCH_NAME" \
+            --head "$BRANCH_NAME" 
         else
           echo "No changes to commit, skipping PR creation"
         fi
