@@ -19,4 +19,5 @@ This report contains daily performance test results for Netty SocketIO.
 
 | Date | Java Version | OS | CPU Cores | Messages/sec | Avg Latency (ms) | P99 Latency (ms) | Error Rate (%) | Max Heap (MB) | JVM Args | Git Branch | Version | Test Duration (ms) |
 |------|-------------|----|-----------|--------------|------------------|------------------|----------------|---------------|-----------|------------|---------|-------------------|
+| 2025-10-14 12:25:57 | 17.0.16 | Linux 6.11.0-1018-azure | 4 | 82,767.75 | 3927.09 | 5535 | 0.0000 | 256 | -Xms256m -Xmx256m -XX:+UseZGC -XX:+AlwaysPreTouch | master | 2.0.14-SNAPSHOT | 6041 |
 | 2025-10-14 12:18:27 | 11.0.28 | Linux 6.11.0-1018-azure | 4 | 194,704.05 | 1434.71 | 2079 | 0.0000 | 256 | -Xms256m -Xmx256m -XX:+UseG1GC -XX:+AlwaysPreTouch | master | 2.0.14-SNAPSHOT | 2568 |
