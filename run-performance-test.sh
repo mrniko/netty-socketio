@@ -36,7 +36,7 @@ echo "Running performance test..."
 java -Xms256m -Xmx256m $GC_OPTS -XX:+AlwaysPreTouch \
      -cp target/netty-socketio-smoke-test.jar:target/dependency/* \
      com.corundumstudio.socketio.smoketest.PerformanceTestRunner \
-     8899 10 20000 128
+     8899 15 100000 128
 
 echo "Performance test completed!"
 echo "Results saved in: netty-socketio-smoke-test/performance-results/"
