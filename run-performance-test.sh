@@ -25,11 +25,11 @@ echo "Go to smoke test module..."
 cd netty-socketio-smoke-test
 
 # Determine GC flags based on Java version
-if [ "$JAVA_VERSION" -ge 17 ]; then
-  GC_OPTS="-XX:+UseZGC"
-else
+#if [ "$JAVA_VERSION" -ge 17 ]; then
+#  GC_OPTS="-XX:+UseZGC"
+#else
   GC_OPTS="-XX:+UseG1GC"
-fi
+#fi
 
 # Run performance test
 echo "Running performance test..."
