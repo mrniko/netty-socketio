@@ -33,7 +33,7 @@ fi
 
 # Run performance test
 echo "Running performance test..."
-java -Xms256m -Xmx256m $GC_OPTS -XX:+AlwaysPreTouch \
+java -Xms1g -Xmx1g $GC_OPTS -XX:+AlwaysPreTouch \
      -cp target/netty-socketio-smoke-test.jar:target/dependency/* \
      com.corundumstudio.socketio.smoketest.PerformanceTestRunner \
      8899 15 100000 128
