@@ -1,9 +1,17 @@
 name: Daily Performance Test
 
 on:
-  schedule:
-    - cron: '0 1 * * *'
-  workflow_dispatch: # Allow manual trigger
+  workflow_call:
+    inputs:
+      javaVersion:
+        required: true
+        type: string
+  workflow_dispatch:
+     inputs:
+       javaVersion:
+         description: java version to test against
+         required: true
+         type: string
 
 permissions:
   contents: write
@@ -12,20 +20,16 @@ permissions:
 jobs:
   performance-test:
     runs-on: ubuntu-latest
-    strategy:
-      max-parallel: 1
-      matrix:
-        java-version: [17, 21]
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
       
-    - name: Set up JDK ${{ matrix.java-version }}
+    - name: Set up JDK ${{ inputs.javaVersion }}
       uses: actions/setup-java@v4
       with:
-        java-version: ${{ matrix.java-version }}
+        java-version: ${{ inputs.javaVersion }}
         distribution: 'temurin'
         
     - name: Cache Maven dependencies

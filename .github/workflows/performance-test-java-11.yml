@@ -1,0 +1,15 @@
+name: Daily Performance Test Java 11
+
+on:
+  schedule:
+    - cron: '0 0 * * *'
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  performance-test:
+    uses: ./.github/workflows/performance-test-base.yml
+    with:
+      javaVersion: "11"
