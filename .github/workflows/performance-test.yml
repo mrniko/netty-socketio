@@ -48,7 +48,7 @@ jobs:
         git add PERFORMANCE_REPORT.md
         git add performance-results/*
 
-        COMMIT_MSG="🤖 Auto-update Performance Test Results"
+        COMMIT_MSG="🤖 Auto-update Performance Test Results
 
         - Updated by GitHub Actions
         - Generated from config.yaml
