@@ -18,10 +18,10 @@ JAVA_VERSION=$(java -version 2>&1 | head -n 1 | cut -d'"' -f2 | sed 's/^1\.//' |
 echo "Using Java version: $JAVA_VERSION"
 
 # Build the project
-echo "Building whole module..."
+echo "Building netty-socketio-smoke-test..."
+cd netty-socketio-smoke-test
 mvn clean package -DskipTests
 echo "Go to smoke test module..."
-cd netty-socketio-smoke-test
 
 # Determine GC flags based on Java version
 if [ "$JAVA_VERSION" -ge 17 ]; then
