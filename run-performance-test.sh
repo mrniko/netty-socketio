@@ -25,15 +25,15 @@ echo "Go to smoke test module..."
 cd netty-socketio-smoke-test
 
 # Determine GC flags based on Java version
-#if [ "$JAVA_VERSION" -ge 17 ]; then
-#  GC_OPTS="-XX:+UseZGC"
-#else
-  GC_OPTS="-XX:+UseG1GC"
-#fi
+if [ "$JAVA_VERSION" -ge 25 ]; then
+  VM_OPTS="-XX:+UseG1GC -XX:+UseCompactObjectHeaders"
+else
+  VM_OPTS="-XX:+UseG1GC"
+fi
 
 # Run performance test
 echo "Running performance test..."
-java -Xms256m -Xmx256m $GC_OPTS -XX:+AlwaysPreTouch \
+java -Xms256m -Xmx256m $VM_OPTS -XX:+AlwaysPreTouch \
      -cp target/netty-socketio-smoke-test.jar:target/dependency/* \
      com.corundumstudio.socketio.smoketest.PerformanceTestRunner \
      8899 10 50000 32
