@@ -16,6 +16,7 @@
 package com.corundumstudio.socketio.protocol;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.LinkedList;
 import java.util.Map;
@@ -50,8 +51,8 @@ public class PacketDecoder {
     }
 
     // TODO optimize: directly work with ByteBuf without string conversion
-    public ByteBuf preprocessJson(Integer jsonIndex, ByteBuf content) {
-        String packet = URLDecoder.decode(content.toString(CharsetUtil.UTF_8), CharsetUtil.UTF_8);
+    public ByteBuf preprocessJson(Integer jsonIndex, ByteBuf content) throws UnsupportedEncodingException {
+        String packet = URLDecoder.decode(content.toString(CharsetUtil.UTF_8), CharsetUtil.UTF_8.name());
 
         if (jsonIndex != null) {
             /**
