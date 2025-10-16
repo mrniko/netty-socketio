@@ -49,9 +49,9 @@ public class PacketDecoder {
         return content.getByte(content.readerIndex()) == 0x0;
     }
 
-    // TODO optimize
-    public ByteBuf preprocessJson(Integer jsonIndex, ByteBuf content) throws IOException {
-        String packet = URLDecoder.decode(content.toString(CharsetUtil.UTF_8), CharsetUtil.UTF_8.name());
+    // TODO optimize: directly work with ByteBuf without string conversion
+    public ByteBuf preprocessJson(Integer jsonIndex, ByteBuf content) {
+        String packet = URLDecoder.decode(content.toString(CharsetUtil.UTF_8), CharsetUtil.UTF_8);
 
         if (jsonIndex != null) {
             /**
@@ -223,7 +223,7 @@ public class PacketDecoder {
             return;
         }
 
-        // TODO optimize
+        // TODO optimize: directly work with ByteBuf without string conversion
         boolean hasNsp = frame.bytesBefore(endIndex, (byte) ',') != -1;
         if (hasNsp) {
             String nspAckId = readString(frame, endIndex);
