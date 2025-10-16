@@ -17,7 +17,6 @@ package com.corundumstudio.socketio.spring.boot.starter.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-import com.corundumstudio.socketio.SocketConfig;
 import com.corundumstudio.socketio.SocketSslConfig;
 
 import static com.corundumstudio.socketio.spring.boot.starter.config.NettySocketIOSslConfigProperties.PREFIX;

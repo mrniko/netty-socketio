@@ -545,17 +545,12 @@ public class PacketEncoderTest extends BaseProtocolTest {
 
     @Test
     public void testLongToBytesZero() throws IOException {
-        // Test longToBytes with zero - this method has a bug with zero
-        // The current implementation uses Math.log10(0) which returns negative infinity
-        // This test documents the current behavior and should be updated when the method is fixed
-        try {
-            byte[] result = PacketEncoder.longToBytes(0L);
-            // If the method is fixed, this assertion should pass
-            assertNotNull(result);
-        } catch (NegativeArraySizeException e) {
-            // Current behavior - the method has a bug with zero
-            // This is expected until the method is fixed
-        }
+        // Test longToBytes with zero - now properly handled
+        byte[] result = PacketEncoder.longToBytes(0L);
+        
+        assertNotNull(result);
+        assertEquals(1, result.length);
+        assertEquals(0, result[0]);
     }
 
     // ==================== Find Method Tests ====================

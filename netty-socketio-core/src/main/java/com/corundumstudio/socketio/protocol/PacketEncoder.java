@@ -233,14 +233,28 @@ public class PacketEncoder {
     }
 
     public static byte[] longToBytes(long number) {
-        // TODO optimize
-        int length = (int) (Math.log10(number) + 1);
+        // Handle zero case
+        if (number == 0) {
+            return new byte[]{0};
+        }
+        
+        // Calculate length without using Math.log10 for better performance
+        int length = 0;
+        long temp = number;
+        while (temp > 0) {
+            temp /= 10;
+            length++;
+        }
+        
         byte[] res = new byte[length];
         int i = length;
+        
+        // Convert digits
         while (number > 0) {
             res[--i] = (byte) (number % 10);
-            number = number / 10;
+            number /= 10;
         }
+        
         return res;
     }
 
