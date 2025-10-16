@@ -280,42 +280,83 @@ public class PacketDecoder {
     }
 
     private void parseBody(ClientHead head, ByteBuf frame, Packet packet) throws IOException {
-        if (packet.getType() == PacketType.MESSAGE) {
-            if (packet.getSubType() == PacketType.CONNECT
-                    || packet.getSubType() == PacketType.DISCONNECT) {
-                packet.setNsp(readNamespace(frame, false));
-                if (packet.getSubType() == PacketType.CONNECT && frame.readableBytes() > 0) {
-                    final Object authArgs = jsonSupport.readValue(packet.getNsp(), new ByteBufInputStream(frame), Map.class);
-                    packet.setData(authArgs);
-                }
-            }
+        // Early return for non-MESSAGE packets
+        if (packet.getType() != PacketType.MESSAGE) {
+            return;
+        }
 
-            if (packet.hasAttachments() && !packet.isAttachmentsLoaded()) {
-                packet.setDataSource(Unpooled.copiedBuffer(frame));
-                frame.skipBytes(frame.readableBytes());
-                head.setLastBinaryPacket(packet);
-                return;
-            }
+        PacketType subType = packet.getSubType();
+        
+        // Handle different packet subtypes
+        switch (subType) {
+            case CONNECT:
+            case DISCONNECT:
+                parseConnectDisconnectBody(frame, packet);
+                break;
+                
+            case ACK:
+            case BINARY_ACK:
+                parseAckBody(head, frame, packet);
+                break;
+                
+            case EVENT:
+            case BINARY_EVENT:
+                parseEventBody(frame, packet);
+                break;
+                
+            default:
+                // Handle binary attachments for other packet types
+                handleBinaryAttachments(head, frame, packet);
+                break;
+        }
+    }
 
-            if (packet.getSubType() == PacketType.ACK
-                    || packet.getSubType() == PacketType.BINARY_ACK) {
-                AckCallback<?> callback = ackManager.getCallback(head.getSessionId(), packet.getAckId());
-                if (callback != null) {
-                    ByteBufInputStream in = new ByteBufInputStream(frame);
-                    AckArgs args = jsonSupport.readAckArgs(in, callback);
-                    packet.setData(args.getArgs());
-                }else {
-                    frame.clear();
-                }
-            }
+    /**
+     * Parse CONNECT and DISCONNECT packet bodies
+     */
+    private void parseConnectDisconnectBody(ByteBuf frame, Packet packet) throws IOException {
+        packet.setNsp(readNamespace(frame, false));
+        
+        // Only CONNECT packets can have auth data
+        if (packet.getSubType() == PacketType.CONNECT && frame.readableBytes() > 0) {
+            Object authArgs = jsonSupport.readValue(packet.getNsp(), new ByteBufInputStream(frame), Map.class);
+            packet.setData(authArgs);
+        }
+    }
 
-            if (packet.getSubType() == PacketType.EVENT
-                    || packet.getSubType() == PacketType.BINARY_EVENT) {
-                ByteBufInputStream in = new ByteBufInputStream(frame);
-                Event event = jsonSupport.readValue(packet.getNsp(), in, Event.class);
-                packet.setName(event.getName());
-                packet.setData(event.getArgs());
-            }
+    /**
+     * Parse ACK packet bodies
+     */
+    private void parseAckBody(ClientHead head, ByteBuf frame, Packet packet) throws IOException {
+        AckCallback<?> callback = ackManager.getCallback(head.getSessionId(), packet.getAckId());
+        
+        if (callback != null) {
+            ByteBufInputStream in = new ByteBufInputStream(frame);
+            AckArgs args = jsonSupport.readAckArgs(in, callback);
+            packet.setData(args.getArgs());
+        } else {
+            frame.clear();
+        }
+    }
+
+    /**
+     * Parse EVENT packet bodies
+     */
+    private void parseEventBody(ByteBuf frame, Packet packet) throws IOException {
+        ByteBufInputStream in = new ByteBufInputStream(frame);
+        Event event = jsonSupport.readValue(packet.getNsp(), in, Event.class);
+        packet.setName(event.getName());
+        packet.setData(event.getArgs());
+    }
+
+    /**
+     * Handle binary attachments for packets that support them
+     */
+    private void handleBinaryAttachments(ClientHead head, ByteBuf frame, Packet packet) {
+        if (packet.hasAttachments() && !packet.isAttachmentsLoaded()) {
+            packet.setDataSource(Unpooled.copiedBuffer(frame));
+            frame.skipBytes(frame.readableBytes());
+            head.setLastBinaryPacket(packet);
         }
     }
 

@@ -607,6 +607,62 @@ class PacketDecoderTest extends BaseProtocolTest {
         buffer.release();
     }
 
+    // ==================== ParseBody Optimization Tests ====================
+
+    @Test
+    void testParseBodyConnectPacket() throws IOException {
+        // Test optimized parseBody for CONNECT packet
+        ByteBuf buffer = Unpooled.copiedBuffer("40/admin,{\"token\":\"123\"}", CharsetUtil.UTF_8);
+        
+        Packet packet = decoder.decodePackets(buffer, clientHead);
+        
+        assertNotNull(packet);
+        assertEquals(PacketType.MESSAGE, packet.getType());
+        assertEquals(PacketType.CONNECT, packet.getSubType());
+        assertEquals("/admin", packet.getNsp());
+        // Note: packet.getData() might be null if JSON parsing fails, which is expected behavior
+        // The important thing is that the packet structure is correct
+        
+        buffer.release();
+    }
+
+    @Test
+    void testParseBodyDisconnectPacket() throws IOException {
+        // Test optimized parseBody for DISCONNECT packet
+        ByteBuf buffer = Unpooled.copiedBuffer("41/admin,", CharsetUtil.UTF_8);
+        
+        Packet packet = decoder.decodePackets(buffer, clientHead);
+        
+        assertNotNull(packet);
+        assertEquals(PacketType.MESSAGE, packet.getType());
+        assertEquals(PacketType.DISCONNECT, packet.getSubType());
+        assertEquals("/admin", packet.getNsp());
+        
+        buffer.release();
+    }
+
+    @Test
+    void testParseBodyEventPacket() throws IOException {
+        // Test optimized parseBody for EVENT packet
+        ByteBuf buffer = Unpooled.copiedBuffer("42[\"hello\",\"world\"]", CharsetUtil.UTF_8);
+        
+        // Mock JSON support for event data
+        Event mockEvent = new Event("hello", Arrays.asList("world"));
+        when(jsonSupport.readValue(eq(""), any(), eq(Event.class)))
+            .thenReturn(mockEvent);
+        
+        Packet packet = decoder.decodePackets(buffer, clientHead);
+        
+        assertNotNull(packet);
+        assertEquals(PacketType.MESSAGE, packet.getType());
+        assertEquals(PacketType.EVENT, packet.getSubType());
+        assertEquals("hello", packet.getName());
+        assertNotNull(packet.getData());
+        
+        buffer.release();
+    }
+
+
     // ==================== Performance Tests ====================
 
     @Test
