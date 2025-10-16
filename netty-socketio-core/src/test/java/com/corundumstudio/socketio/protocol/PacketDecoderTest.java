@@ -50,7 +50,7 @@ import static org.mockito.Mockito.when;
  * Comprehensive test suite for PacketDecoder class
  * Tests all packet types and encoding formats according to Socket.IO V4 protocol
  */
-public class PacketDecoderTest extends BaseProtocolTest {
+class PacketDecoderTest extends BaseProtocolTest {
 
     private PacketDecoder decoder;
 
@@ -68,6 +68,7 @@ public class PacketDecoderTest extends BaseProtocolTest {
     @Mock
     private AckCallback<?> ackCallback;
 
+    @Override
     @BeforeEach
     public void setUp() {
         closeableMocks = MockitoAnnotations.openMocks(this);
@@ -78,6 +79,7 @@ public class PacketDecoderTest extends BaseProtocolTest {
         when(clientHead.getSessionId()).thenReturn(UUID.randomUUID());
     }
 
+    @Override
     @AfterEach
     public void tearDown() throws Exception {
         closeableMocks.close();
@@ -86,7 +88,7 @@ public class PacketDecoderTest extends BaseProtocolTest {
     // ==================== CONNECT Packet Tests ====================
 
     @Test
-    public void testDecodeConnectPacketDefaultNamespace() throws IOException {
+    void testDecodeConnectPacketDefaultNamespace() throws IOException {
         // CONNECT packet for default namespace: "40" (MESSAGE + CONNECT)
         ByteBuf buffer = Unpooled.copiedBuffer("40", CharsetUtil.UTF_8);
         
@@ -103,7 +105,7 @@ public class PacketDecoderTest extends BaseProtocolTest {
     }
 
     @Test
-    public void testDecodeConnectPacketCustomNamespace() throws IOException {
+    void testDecodeConnectPacketCustomNamespace() throws IOException {
         // CONNECT packet for custom namespace: "40/admin," (MESSAGE + CONNECT)
         ByteBuf buffer = Unpooled.copiedBuffer("40/admin,", CharsetUtil.UTF_8);
         
@@ -120,7 +122,7 @@ public class PacketDecoderTest extends BaseProtocolTest {
     }
 
     @Test
-    public void testDecodeConnectPacketWithAuthData() throws IOException {
+    void testDecodeConnectPacketWithAuthData() throws IOException {
         // CONNECT packet with auth data: "40/admin,{\"token\":\"123\"}" (MESSAGE + CONNECT)
         ByteBuf buffer = Unpooled.copiedBuffer("40/admin,{\"token\":\"123\"}", CharsetUtil.UTF_8);
         
@@ -144,7 +146,7 @@ public class PacketDecoderTest extends BaseProtocolTest {
     // ==================== DISCONNECT Packet Tests ====================
 
     @Test
-    public void testDecodeDisconnectPacket() throws IOException {
+    void testDecodeDisconnectPacket() throws IOException {
         // DISCONNECT packet: "41/admin," (MESSAGE + DISCONNECT)
         ByteBuf buffer = Unpooled.copiedBuffer("41/admin,", CharsetUtil.UTF_8);
         
@@ -163,7 +165,7 @@ public class PacketDecoderTest extends BaseProtocolTest {
     // ==================== EVENT Packet Tests ====================
 
     @Test
-    public void testDecodeEventPacketSimple() throws IOException {
+    void testDecodeEventPacketSimple() throws IOException {
         // EVENT packet: "42[\"hello\",1]" (MESSAGE + EVENT)
         ByteBuf buffer = Unpooled.copiedBuffer("42[\"hello\",1]", CharsetUtil.UTF_8);
         
@@ -186,7 +188,7 @@ public class PacketDecoderTest extends BaseProtocolTest {
     }
 
     @Test
-    public void testDecodeEventPacketWithNamespace() throws IOException {
+    void testDecodeEventPacketWithNamespace() throws IOException {
         // EVENT packet with namespace: "42/admin,456[\"project:delete\",123]" (MESSAGE + EVENT)
         ByteBuf buffer = Unpooled.copiedBuffer("42/admin,456[\"project:delete\",123]", CharsetUtil.UTF_8);
         
@@ -211,7 +213,7 @@ public class PacketDecoderTest extends BaseProtocolTest {
     // ==================== ACK Packet Tests ====================
 
     @Test
-    public void testDecodeAckPacket() throws IOException {
+    void testDecodeAckPacket() throws IOException {
         // ACK packet: "43/admin,456[]" (MESSAGE + ACK)
         ByteBuf buffer = Unpooled.copiedBuffer("43/admin,456[]", CharsetUtil.UTF_8);
         
@@ -237,7 +239,7 @@ public class PacketDecoderTest extends BaseProtocolTest {
     }
 
     @Test
-    public void testDecodeAckPacketWithoutCallback() throws IOException {
+    void testDecodeAckPacketWithoutCallback() throws IOException {
         // ACK packet without callback: "43/admin,456[]" (MESSAGE + ACK)
         ByteBuf buffer = Unpooled.copiedBuffer("43/admin,456[]", CharsetUtil.UTF_8);
         
@@ -261,7 +263,7 @@ public class PacketDecoderTest extends BaseProtocolTest {
     // ==================== ERROR Packet Tests ====================
 
     @Test
-    public void testDecodeErrorPacket() throws IOException {
+    void testDecodeErrorPacket() throws IOException {
         // ERROR packet: "44/admin,\"Not authorized\"" (MESSAGE + ERROR)
         ByteBuf buffer = Unpooled.copiedBuffer("44/admin,\"Not authorized\"", CharsetUtil.UTF_8);
         
@@ -281,7 +283,7 @@ public class PacketDecoderTest extends BaseProtocolTest {
     // ==================== BINARY_EVENT Packet Tests ====================
 
     @Test
-    public void testDecodeBinaryEventPacket() throws IOException {
+    void testDecodeBinaryEventPacket() throws IOException {
         // BINARY_EVENT packet: "45-[\"hello\",{\"_placeholder\":true,\"num\":0}]" (MESSAGE + BINARY_EVENT)
         ByteBuf buffer = Unpooled.copiedBuffer("45-[\"hello\",{\"_placeholder\":true,\"num\":0}]", CharsetUtil.UTF_8);
         
@@ -311,7 +313,7 @@ public class PacketDecoderTest extends BaseProtocolTest {
     }
 
     @Test
-    public void testDecodeBinaryEventPacketWithNamespace() throws IOException {
+    void testDecodeBinaryEventPacketWithNamespace() throws IOException {
         // BINARY_EVENT packet with namespace: "45-/admin,456[\"project:delete\",{\"_placeholder\":true,\"num\":0}]" (MESSAGE + BINARY_EVENT)
         ByteBuf buffer = Unpooled.copiedBuffer("45-/admin,456[\"project:delete\",{\"_placeholder\":true,\"num\":0}]", CharsetUtil.UTF_8);
         
@@ -344,7 +346,7 @@ public class PacketDecoderTest extends BaseProtocolTest {
     // ==================== BINARY_ACK Packet Tests ====================
 
     @Test
-    public void testDecodeBinaryAckPacket() throws IOException {
+    void testDecodeBinaryAckPacket() throws IOException {
         // BINARY_ACK packet: "46-/admin,456[{\"_placeholder\":true,\"num\":0}]" (MESSAGE + BINARY_ACK)
         ByteBuf buffer = Unpooled.copiedBuffer("46-/admin,456[\"response\",{\"_placeholder\":true,\"num\":0}]", CharsetUtil.UTF_8);
         
@@ -380,7 +382,7 @@ public class PacketDecoderTest extends BaseProtocolTest {
     // ==================== PING Packet Tests ====================
 
     @Test
-    public void testDecodePingPacket() throws IOException {
+    void testDecodePingPacket() throws IOException {
         // PING packet: "2ping" (PING type)
         ByteBuf buffer = Unpooled.copiedBuffer("2ping", CharsetUtil.UTF_8);
         
@@ -397,7 +399,7 @@ public class PacketDecoderTest extends BaseProtocolTest {
     // ==================== Multiple Packets Tests ====================
 
     @Test
-    public void testDecodeMultiplePackets() throws IOException {
+    void testDecodeMultiplePackets() throws IOException {
         // Multiple packets separated by 0x1E: "40/admin,0x1E42[\"hello\"]" (MESSAGE + CONNECT, MESSAGE + EVENT)
         ByteBuf buffer = Unpooled.copiedBuffer("40/admin,\u001E42[\"hello\"]", CharsetUtil.UTF_8);
         
@@ -420,7 +422,7 @@ public class PacketDecoderTest extends BaseProtocolTest {
     // ==================== Edge Cases and Error Handling ====================
 
     @Test
-    public void testDecodeEmptyBuffer() throws IOException {
+    void testDecodeEmptyBuffer() {
         ByteBuf buffer = Unpooled.copiedBuffer("", CharsetUtil.UTF_8);
 
         // Attempting to decode an empty buffer should throw an exception
@@ -430,7 +432,7 @@ public class PacketDecoderTest extends BaseProtocolTest {
     }
 
     @Test
-    public void testDecodeInvalidPacketType() throws IOException {
+    void testDecodeInvalidPacketType() {
         // Invalid packet type: "9[data]" - this should cause issues
         ByteBuf buffer = Unpooled.copiedBuffer("9[data]", CharsetUtil.UTF_8);
 
@@ -440,7 +442,7 @@ public class PacketDecoderTest extends BaseProtocolTest {
     }
 
     @Test
-    public void testDecodePacketWithInvalidNamespace() throws IOException {
+    void testDecodePacketWithInvalidNamespace() {
         // Packet with invalid namespace format
         ByteBuf buffer = Unpooled.copiedBuffer("42invalid[data]", CharsetUtil.UTF_8);
 
@@ -452,7 +454,7 @@ public class PacketDecoderTest extends BaseProtocolTest {
     // ==================== Length Header Tests ====================
 
     @Test
-    public void testDecodePacketWithLengthHeader() throws IOException {
+    void testDecodePacketWithLengthHeader() throws IOException {
         // Packet with length header: "5:42[data]" (length: MESSAGE + EVENT)
         ByteBuf buffer = Unpooled.copiedBuffer("5:42[data]", CharsetUtil.UTF_8);
         
@@ -471,7 +473,7 @@ public class PacketDecoderTest extends BaseProtocolTest {
     }
 
     @Test
-    public void testDecodePacketWithStringLengthHeader() throws IOException {
+    void testDecodePacketWithStringLengthHeader() {
         // String packet with length header: "0x05:42[data]" (length: MESSAGE + EVENT)
         // This test is problematic due to buffer index issues, so we'll test a simpler case
         ByteBuf buffer = Unpooled.copiedBuffer("\u00005:42[data]", CharsetUtil.UTF_8);
@@ -484,7 +486,7 @@ public class PacketDecoderTest extends BaseProtocolTest {
     // ==================== JSONP Support Tests ====================
 
     @Test
-    public void testPreprocessJsonWithIndex() throws IOException {
+    void testPreprocessJsonWithIndex() throws IOException {
         // JSONP packet: "d=2[\"hello\"]"
         ByteBuf buffer = Unpooled.copiedBuffer("d=2[\"hello\"]", CharsetUtil.UTF_8);
         
@@ -499,7 +501,7 @@ public class PacketDecoderTest extends BaseProtocolTest {
     }
 
     @Test
-    public void testPreprocessJsonWithoutIndex() throws IOException {
+    void testPreprocessJsonWithoutIndex() throws IOException {
         // Regular packet: "2[\"hello\"]"
         ByteBuf buffer = Unpooled.copiedBuffer("2[\"hello\"]", CharsetUtil.UTF_8);
         
@@ -514,7 +516,7 @@ public class PacketDecoderTest extends BaseProtocolTest {
     }
 
     @Test
-    public void testPreprocessJsonWithEscapedNewlines() throws IOException {
+    void testPreprocessJsonWithEscapedNewlines() throws IOException {
         // JSONP packet with escaped newlines: "d=2[\"hello\\\\nworld\"]"
         ByteBuf buffer = Unpooled.copiedBuffer("d=2[\"hello\\\\nworld\"]", CharsetUtil.UTF_8);
         
@@ -531,7 +533,7 @@ public class PacketDecoderTest extends BaseProtocolTest {
     // ==================== Utility Method Tests ====================
 
     @Test
-    public void testReadLong() throws Exception {
+    void testReadLong() throws Exception {
         // Test reading long numbers from buffer
         ByteBuf buffer = Unpooled.copiedBuffer("12345", CharsetUtil.UTF_8);
         
@@ -546,7 +548,7 @@ public class PacketDecoderTest extends BaseProtocolTest {
     }
 
     @Test
-    public void testReadType() throws Exception {
+    void testReadType() throws Exception {
         // Test reading packet type from buffer
         ByteBuf buffer = Unpooled.copiedBuffer("4", CharsetUtil.UTF_8);
         
@@ -561,7 +563,7 @@ public class PacketDecoderTest extends BaseProtocolTest {
     }
 
     @Test
-    public void testReadInnerType() throws Exception {
+    void testReadInnerType() throws Exception {
         // Test reading inner packet type from buffer
         ByteBuf buffer = Unpooled.copiedBuffer("2", CharsetUtil.UTF_8);
         
@@ -576,7 +578,7 @@ public class PacketDecoderTest extends BaseProtocolTest {
     }
 
     @Test
-    public void testHasLengthHeader() throws Exception {
+    void testHasLengthHeader() throws Exception {
         // Test detecting length header in buffer
         ByteBuf buffer = Unpooled.copiedBuffer("5:data", CharsetUtil.UTF_8);
         
@@ -591,7 +593,7 @@ public class PacketDecoderTest extends BaseProtocolTest {
     }
 
     @Test
-    public void testHasLengthHeaderWithoutColon() throws Exception {
+    void testHasLengthHeaderWithoutColon() throws Exception {
         // Test buffer without length header
         ByteBuf buffer = Unpooled.copiedBuffer("data", CharsetUtil.UTF_8);
         
@@ -608,7 +610,7 @@ public class PacketDecoderTest extends BaseProtocolTest {
     // ==================== Performance Tests ====================
 
     @Test
-    public void testDecodePerformance() throws IOException {
+    void testDecodePerformance() throws IOException {
         // Test decoding performance with large packet
         StringBuilder largeData = new StringBuilder();
         largeData.append("42[\"largeEvent\",");
@@ -638,8 +640,4 @@ public class PacketDecoderTest extends BaseProtocolTest {
         
         buffer.release();
     }
-
-    // ==================== Cleanup ====================
-
-    // Cleanup is handled automatically by ByteBuf.release() calls in each test
 }

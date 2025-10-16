@@ -73,7 +73,7 @@ public class PacketDecoder {
     private long readLong(ByteBuf chars, int length) {
         long result = 0;
         for (int i = chars.readerIndex(); i < chars.readerIndex() + length; i++) {
-            int digit = ((int) chars.getByte(i) & 0xF);
+            int digit = (chars.getByte(i) & 0xF);
             for (int j = 0; j < chars.readerIndex() + length-1-i; j++) {
                 digit *= 10;
             }
@@ -84,12 +84,12 @@ public class PacketDecoder {
     }
 
     private PacketType readType(ByteBuf buffer) {
-        int typeId = (int) buffer.readByte() & 0xF;
+        int typeId = buffer.readByte() & 0xF;
         return PacketType.valueOf(typeId);
     }
 
     private PacketType readInnerType(ByteBuf buffer) {
-        int typeId = (int) buffer.readByte() & 0xF;
+        int typeId = buffer.readByte() & 0xF;
         return PacketType.valueOfInner(typeId);
     }
 
@@ -108,30 +108,46 @@ public class PacketDecoder {
 
     public Packet decodePackets(ByteBuf buffer, ClientHead client) throws IOException {
         if (isStringPacket(buffer)) {
-            // TODO refactor
-            int maxLength = Math.min(buffer.readableBytes(), 10);
-            int headEndIndex = buffer.bytesBefore(maxLength, (byte) -1);
-            if (headEndIndex == -1) {
-                headEndIndex = buffer.bytesBefore(maxLength, (byte) 0x3f);
-            }
-            int len = (int) readLong(buffer, headEndIndex);
-
-            ByteBuf frame = buffer.slice(buffer.readerIndex() + 1, len);
-            // skip this frame
-            buffer.readerIndex(buffer.readerIndex() + 1 + len);
-            return decode(client, frame);
+            return decodeWithStringHeader(buffer, client);
         } else if (hasLengthHeader(buffer)) {
-            // TODO refactor
-            int lengthEndIndex = buffer.bytesBefore((byte) ':');
-            int lenHeader = (int) readLong(buffer, lengthEndIndex);
-            int len = utf8scanner.getActualLength(buffer, lenHeader);
-
-            ByteBuf frame = buffer.slice(buffer.readerIndex() + 1, len);
-            // skip this frame
-            buffer.readerIndex(buffer.readerIndex() + 1 + len);
-            return decode(client, frame);
+            return decodeWithLengthHeader(buffer, client);
         }
         return decode(client, buffer);
+    }
+
+    /**
+     * Decode packet with string header format
+     * Handles packets that start with 0x0 byte
+     */
+    private Packet decodeWithStringHeader(ByteBuf buffer, ClientHead client) throws IOException {
+        int maxLength = Math.min(buffer.readableBytes(), 10);
+        int headEndIndex = buffer.bytesBefore(maxLength, (byte) -1);
+        if (headEndIndex == -1) {
+            headEndIndex = buffer.bytesBefore(maxLength, (byte) 0x3f);
+        }
+        int len = (int) readLong(buffer, headEndIndex);
+        return decodeFrame(buffer, client, len);
+    }
+
+    /**
+     * Decode packet with length header format
+     * Handles packets with format "length:data"
+     */
+    private Packet decodeWithLengthHeader(ByteBuf buffer, ClientHead client) throws IOException {
+        int lengthEndIndex = buffer.bytesBefore((byte) ':');
+        int lenHeader = (int) readLong(buffer, lengthEndIndex);
+        int len = utf8scanner.getActualLength(buffer, lenHeader);
+        return decodeFrame(buffer, client, len);
+    }
+
+    /**
+     * Common frame decoding logic
+     * Extracts frame data and advances buffer position
+     */
+    private Packet decodeFrame(ByteBuf buffer, ClientHead client, int len) throws IOException {
+        ByteBuf frame = buffer.slice(buffer.readerIndex() + 1, len);
+        buffer.readerIndex(buffer.readerIndex() + 1 + len);
+        return decode(client, frame);
     }
 
     private String readString(ByteBuf frame) {
@@ -148,11 +164,14 @@ public class PacketDecoder {
 
         Packet lastPacket = head.getLastBinaryPacket();
         // Assume attachments follow.
-        if (lastPacket != null) {
-            if (lastPacket.hasAttachments() && !lastPacket.isAttachmentsLoaded()) {
+        if (
+                lastPacket != null
+                && lastPacket.hasAttachments()
+                && !lastPacket.isAttachmentsLoaded()
+        ) {
                 return addAttachment(head, frame, lastPacket);
             }
-        }
+
 
         final int separatorPos = frame.bytesBefore((byte) 0x1E);
         final ByteBuf packetBuf;
@@ -228,7 +247,7 @@ public class PacketDecoder {
         frame.skipBytes(frame.readableBytes());
 
         if (binaryPacket.isAttachmentsLoaded()) {
-            LinkedList<ByteBuf> slices = new LinkedList<ByteBuf>();
+            LinkedList<ByteBuf> slices = new LinkedList<>();
             ByteBuf source = binaryPacket.getDataSource();
             for (int i = 0; i < binaryPacket.getAttachments().size(); i++) {
                 ByteBuf attachment = binaryPacket.getAttachments().get(i);
