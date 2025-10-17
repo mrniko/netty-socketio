@@ -16,7 +16,10 @@
 package com.corundumstudio.socketio.protocol;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -50,7 +53,7 @@ import static org.mockito.Mockito.when;
  * Comprehensive test suite for PacketDecoder class
  * Tests all packet types and encoding formats according to Socket.IO V4 protocol
  */
-class PacketDecoderTest extends BaseProtocolTest {
+public class PacketDecoderTest extends BaseProtocolTest {
 
     private PacketDecoder decoder;
 
@@ -486,48 +489,126 @@ class PacketDecoderTest extends BaseProtocolTest {
     // ==================== JSONP Support Tests ====================
 
     @Test
-    void testPreprocessJsonWithIndex() throws IOException {
-        // JSONP packet: "d=2[\"hello\"]"
-        ByteBuf buffer = Unpooled.copiedBuffer("d=2[\"hello\"]", CharsetUtil.UTF_8);
+    void testPreprocessJsonWithEscapedNewlinesAndUrlEncoding() throws IOException {
+        // Test cases with various URL encoded special characters
+        String[] testCases = {
+            // Basic escaped newlines
+            "d=2[\"hello\\\\nworld\"]",
+            
+            // Space encoding (%20 and +)
+            "d=2[\"hello%20world\"]",
+            "d=2[\"hello+world\"]",
+            
+            // Common special characters
+            "d=2[\"hello%21world\"]",  // !
+            "d=2[\"hello%22world\"]",  // "
+            "d=2[\"hello%23world\"]",  // #
+            "d=2[\"hello%24world\"]",  // $
+            "d=2[\"hello%25world\"]",  // %
+            "d=2[\"hello%26world\"]",  // &
+            "d=2[\"hello%27world\"]",  // '
+            "d=2[\"hello%28world\"]",  // (
+            "d=2[\"hello%29world\"]",  // )
+            "d=2[\"hello%2Aworld\"]",  // *
+            "d=2[\"hello%2Bworld\"]",  // +
+            "d=2[\"hello%2Cworld\"]",  // ,
+            "d=2[\"hello%2Dworld\"]",  // -
+            "d=2[\"hello%2Eworld\"]",  // .
+            "d=2[\"hello%2Fworld\"]",  // /
+            
+            // Colon and semicolon
+            "d=2[\"hello%3Aworld\"]",  // :
+            "d=2[\"hello%3Bworld\"]",  // ;
+            
+            // Less than, equal, greater than
+            "d=2[\"hello%3Cworld\"]",  // <
+            "d=2[\"hello%3Dworld\"]",  // =
+            "d=2[\"hello%3Eworld\"]",  // >
+            
+            // Question mark and at symbol
+            "d=2[\"hello%3Fworld\"]",  // ?
+            "d=2[\"hello%40world\"]",  // @
+            
+            // Square brackets
+            "d=2[\"hello%5Bworld\"]",  // [
+            "d=2[\"hello%5Dworld\"]",  // ]
+            
+            // Backslash and caret
+            "d=2[\"hello%5Cworld\"]",  // \
+            "d=2[\"hello%5Eworld\"]",  // ^
+            
+            // Underscore and backtick
+            "d=2[\"hello%5Fworld\"]",  // _
+            "d=2[\"hello%60world\"]",  // `
+            
+            // Curly braces
+            "d=2[\"hello%7Bworld\"]",  // {
+            "d=2[\"hello%7Dworld\"]",  // }
+            
+            // Pipe and tilde
+            "d=2[\"hello%7Cworld\"]",  // |
+            "d=2[\"hello%7Eworld\"]",  // ~
+            
+            // Complex combinations
+            "d=2[\"hello%20world%21test%22\"]",
+            "d=2[\"hello+world+test+\"]",
+            "d=2[\"hello%20\\\\nworld%21\"]",
+            "d=2[\"hello+\\\\nworld+test\"]",
+            
+            // Unicode characters (UTF-8 encoded)
+            "d=2[\"hello%E4%B8%ADworld\"]",  // 中
+            "d=2[\"hello%E6%96%87world\"]",  // 文
+            "d=2[\"hello%E6%B5%8Bworld\"]",  // 测
+            "d=2[\"hello%E8%AF%95world\"]",  // 试
+            
+            // Mixed case hex
+            "d=2[\"hello%2a%2B%2c%2Dworld\"]",  // *, +, ,, -
+        };
         
-        ByteBuf processed = decoder.preprocessJson(1, buffer);
-        
-        assertNotNull(processed);
-        String result = processed.toString(CharsetUtil.UTF_8);
-        assertEquals("2[\"hello\"]", result);
-        
-        buffer.release();
-        processed.release();
+        for (String testCase : testCases) {
+            System.out.println(testCase);
+            ByteBuf buffer = Unpooled.copiedBuffer(testCase, CharsetUtil.UTF_8);
+            
+            // Test original method
+            ByteBuf originalResult = preprocessJsonOld(testCase.startsWith("d=") ? 1 : null, buffer);
+            assertNotNull(originalResult, "Original method failed for: " + testCase);
+            
+            // Reset buffer for new method test
+            buffer.readerIndex(0);
+            ByteBuf newResult = decoder.preprocessJson(testCase.startsWith("d=") ? 1 : null, buffer);
+            assertNotNull(newResult, "New method failed for: " + testCase);
+            
+            // Compare results
+            String originalString = originalResult.toString(CharsetUtil.UTF_8);
+            String newString = newResult.toString(CharsetUtil.UTF_8);
+            
+            assertEquals(originalString, newString, 
+                "Results should be equivalent for test case: " + testCase);
+            
+            // Clean up
+            buffer.release();
+            originalResult.release();
+            newResult.release();
+        }
     }
 
-    @Test
-    void testPreprocessJsonWithoutIndex() throws IOException {
-        // Regular packet: "2[\"hello\"]"
-        ByteBuf buffer = Unpooled.copiedBuffer("2[\"hello\"]", CharsetUtil.UTF_8);
-        
-        ByteBuf processed = decoder.preprocessJson(null, buffer);
-        
-        assertNotNull(processed);
-        String result = processed.toString(CharsetUtil.UTF_8);
-        assertEquals("2[\"hello\"]", result);
-        
-        buffer.release();
-        processed.release();
-    }
+    public static ByteBuf preprocessJsonOld(Integer jsonIndex, ByteBuf content) throws UnsupportedEncodingException {
+        String packet = URLDecoder.decode(content.toString(CharsetUtil.UTF_8), CharsetUtil.UTF_8.name());
 
-    @Test
-    void testPreprocessJsonWithEscapedNewlines() throws IOException {
-        // JSONP packet with escaped newlines: "d=2[\"hello\\\\nworld\"]"
-        ByteBuf buffer = Unpooled.copiedBuffer("d=2[\"hello\\\\nworld\"]", CharsetUtil.UTF_8);
-        
-        ByteBuf processed = decoder.preprocessJson(1, buffer);
-        
-        assertNotNull(processed);
-        String result = processed.toString(CharsetUtil.UTF_8);
-        assertEquals("2[\"hello\\nworld\"]", result);
-        
-        buffer.release();
-        processed.release();
+        if (jsonIndex != null) {
+            /**
+             * double escaping is required for escaped new lines because unescaping of new lines can be done safely on server-side
+             * (c) socket.io.js
+             *
+             * @see https://github.com/Automattic/socket.io-client/blob/1.3.3/socket.io.js#L2682
+             */
+            packet = packet.replace("\\\\n", "\\n");
+
+            // skip "d="
+            packet = packet.substring(2);
+        }
+
+        return Unpooled.wrappedBuffer(packet.getBytes(CharsetUtil.UTF_8));
     }
 
     // ==================== Utility Method Tests ====================

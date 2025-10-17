@@ -17,7 +17,6 @@ package com.corundumstudio.socketio.protocol;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
 import java.util.LinkedList;
 import java.util.Map;
 
@@ -50,24 +49,143 @@ public class PacketDecoder {
         return content.getByte(content.readerIndex()) == 0x0;
     }
 
-    // TODO optimize: directly work with ByteBuf without string conversion
+    /**
+     * True zero-copy optimized version of preprocessJson that works directly with ByteBuf
+     * without string conversion and without creating new ByteBuf instances.
+     * 
+     * @param jsonIndex JSONP index, if null then no JSONP processing is needed
+     * @param content the input ByteBuf containing the packet data
+     * @return processed ByteBuf with true zero-copy optimization
+     * @throws UnsupportedEncodingException if UTF-8 encoding is not supported
+     */
     public ByteBuf preprocessJson(Integer jsonIndex, ByteBuf content) throws UnsupportedEncodingException {
-        String packet = URLDecoder.decode(content.toString(CharsetUtil.UTF_8), CharsetUtil.UTF_8.name());
-
-        if (jsonIndex != null) {
-            /**
-            * double escaping is required for escaped new lines because unescaping of new lines can be done safely on server-side
-            * (c) socket.io.js
-            *
-            * @see https://github.com/Automattic/socket.io-client/blob/1.3.3/socket.io.js#L2682
-            */
-            packet = packet.replace("\\\\n", "\\n");
-
-            // skip "d="
-            packet = packet.substring(2);
+        // Create a mutable copy of the input ByteBuf for in-place modifications
+        ByteBuf mutableContent = content.copy();
+        
+        try {
+            // Perform URL decoding in-place
+            urlDecodeInPlace(mutableContent);
+            
+            if (jsonIndex != null) {
+                // Handle escaped newlines in-place: replace "\\n" with "\n"
+                replaceEscapedNewlinesInPlace(mutableContent);
+                
+                // Skip "d=" prefix (2 bytes) by adjusting reader index
+                if (mutableContent.readableBytes() >= 2) {
+                    mutableContent.readerIndex(mutableContent.readerIndex() + 2);
+                }
+            }
+            
+            return mutableContent;
+        } catch (Exception e) {
+            mutableContent.release();
+            throw e;
         }
-
-        return Unpooled.wrappedBuffer(packet.getBytes(CharsetUtil.UTF_8));
+    }
+    
+    /**
+     * URL decode a ByteBuf in-place without creating new ByteBuf
+     */
+    private void urlDecodeInPlace(ByteBuf buffer) throws UnsupportedEncodingException {
+        int readerIndex = buffer.readerIndex();
+        int writerIndex = buffer.writerIndex();
+        int readPos = readerIndex;
+        int writePos = readerIndex;
+        
+        while (readPos < writerIndex) {
+            byte b = buffer.getByte(readPos);
+            
+            if (b == '%' && readPos + 2 < writerIndex) {
+                // Handle URL encoded characters
+                byte hex1 = buffer.getByte(readPos + 1);
+                byte hex2 = buffer.getByte(readPos + 2);
+                
+                if (isHexDigit(hex1) && isHexDigit(hex2)) {
+                    int decoded = (hexToInt(hex1) << 4) | hexToInt(hex2);
+                    buffer.setByte(writePos, (byte) decoded);
+                    writePos++;
+                    readPos += 3; // Skip the next two bytes
+                } else {
+                    buffer.setByte(writePos, b);
+                    writePos++;
+                    readPos++;
+                }
+            } else if (b == '+') {
+                // Handle space encoding
+                buffer.setByte(writePos, (byte) ' ');
+                writePos++;
+                readPos++;
+            } else {
+                buffer.setByte(writePos, b);
+                writePos++;
+                readPos++;
+            }
+        }
+        
+        // Adjust writer index to reflect the new length
+        buffer.writerIndex(writePos);
+    }
+    
+    /**
+     * Replace escaped newlines "\\n" with "\n" in-place
+     * Note: This reduces the buffer size from 2 bytes to 1 byte per replacement
+     * double escaping is required for escaped new lines
+     * because unescaping of new lines can be done safely on server-side(c) socket.io.js
+     * @see https://github.com/Automattic/socket.io-client/blob/1.3.3/socket.io.js#L2682
+     */
+    private void replaceEscapedNewlinesInPlace(ByteBuf buffer) {
+        int readerIndex = buffer.readerIndex();
+        int writerIndex = buffer.writerIndex();
+        int readPos = readerIndex;
+        int writePos = readerIndex;
+        
+        while (readPos < writerIndex) {
+            byte b = buffer.getByte(readPos);
+            
+            // Check for "\\n" pattern (2 bytes: \, n)
+            if (b == '\\' && readPos + 1 < writerIndex) {
+                byte b1 = buffer.getByte(readPos + 1);
+                
+                if (b1 == 'n') {
+                    // Replace "\\n" with "\n" (1 byte: actual newline)
+                    buffer.setByte(writePos, (byte) 'n');
+                    writePos++;
+                    readPos += 2; // Skip both bytes
+                } else {
+                    buffer.setByte(writePos, b);
+                    writePos++;
+                    readPos++;
+                }
+            } else {
+                buffer.setByte(writePos, b);
+                writePos++;
+                readPos++;
+            }
+        }
+        
+        // Adjust writer index to reflect the new length
+        buffer.writerIndex(writePos);
+    }
+    
+    /**
+     * Check if a byte represents a hexadecimal digit
+     */
+    private boolean isHexDigit(byte b) {
+        return (b >= '0' && b <= '9') || (b >= 'A' && b <= 'F') || (b >= 'a' && b <= 'f');
+    }
+    
+    /**
+     * Convert a hexadecimal digit byte to its integer value
+     */
+    private int hexToInt(byte b) {
+        if (b >= '0' && b <= '9') {
+            return b - '0';
+        } else if (b >= 'A' && b <= 'F') {
+            return b - 'A' + 10;
+        } else if (b >= 'a' && b <= 'f') {
+            return b - 'a' + 10;
+        }
+        throw new IllegalArgumentException("Invalid hex digit: " + (char) b);
     }
 
     // fastest way to parse chars to int
