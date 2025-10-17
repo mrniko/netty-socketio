@@ -128,8 +128,7 @@ public class PacketDecoder {
     
     /**
      * Replace escaped newlines "\\n" with "\n" in-place
-     * Note: This reduces the buffer size from 2 bytes to 1 byte per replacement
-     * double escaping is required for escaped new lines
+     * Note: This reduces the buffer size from 3 bytes("\\n") to 2 byte("\n") per replacement
      * because unescaping of new lines can be done safely on server-side(c) socket.io.js
      * @see https://github.com/Automattic/socket.io-client/blob/1.3.3/socket.io.js#L2682
      */
@@ -142,15 +141,17 @@ public class PacketDecoder {
         while (readPos < writerIndex) {
             byte b = buffer.getByte(readPos);
             
-            // Check for "\\n" pattern (2 bytes: \, n)
-            if (b == '\\' && readPos + 1 < writerIndex) {
+            // Check for "\\\\n" pattern (real 3 bytes: "\\n")
+            if (b == '\\' && readPos + 2 < writerIndex) {
                 byte b1 = buffer.getByte(readPos + 1);
-                
-                if (b1 == 'n') {
-                    // Replace "\\n" with "\n" (1 byte: actual newline)
+                byte b2 = buffer.getByte(readPos + 2);
+
+                if (b1 == '\\' && b2 == 'n') {
+                    buffer.setByte(writePos, (byte) '\\');
+                    writePos++;
                     buffer.setByte(writePos, (byte) 'n');
                     writePos++;
-                    readPos += 2; // Skip both bytes
+                    readPos += 3; // Skip both bytes
                 } else {
                     buffer.setByte(writePos, b);
                     writePos++;

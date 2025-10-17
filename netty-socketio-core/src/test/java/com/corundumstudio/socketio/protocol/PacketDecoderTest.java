@@ -20,8 +20,11 @@ import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -30,6 +33,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.corundumstudio.socketio.AckCallback;
 import com.corundumstudio.socketio.ack.AckManager;
@@ -54,20 +59,21 @@ import static org.mockito.Mockito.when;
  * Tests all packet types and encoding formats according to Socket.IO V4 protocol
  */
 public class PacketDecoderTest extends BaseProtocolTest {
+    private static final Logger log = LoggerFactory.getLogger(PacketDecoderTest.class);
 
     private PacketDecoder decoder;
 
     private AutoCloseable closeableMocks;
-    
+
     @Mock
     private JsonSupport jsonSupport;
-    
+
     @Mock
     private AckManager ackManager;
-    
+
     @Mock
     private ClientHead clientHead;
-    
+
     @Mock
     private AckCallback<?> ackCallback;
 
@@ -76,7 +82,7 @@ public class PacketDecoderTest extends BaseProtocolTest {
     public void setUp() {
         closeableMocks = MockitoAnnotations.openMocks(this);
         decoder = new PacketDecoder(jsonSupport, ackManager);
-        
+
         // Setup default client behavior
         when(clientHead.getEngineIOVersion()).thenReturn(EngineIOVersion.V4);
         when(clientHead.getSessionId()).thenReturn(UUID.randomUUID());
@@ -94,16 +100,16 @@ public class PacketDecoderTest extends BaseProtocolTest {
     void testDecodeConnectPacketDefaultNamespace() throws IOException {
         // CONNECT packet for default namespace: "40" (MESSAGE + CONNECT)
         ByteBuf buffer = Unpooled.copiedBuffer("40", CharsetUtil.UTF_8);
-        
+
         Packet packet = decoder.decodePackets(buffer, clientHead);
-        
+
         assertNotNull(packet);
         assertEquals(PacketType.MESSAGE, packet.getType());
         assertEquals(PacketType.CONNECT, packet.getSubType());
         assertEquals("", packet.getNsp());
         assertNull(packet.getData());
         assertNull(packet.getAckId());
-        
+
         buffer.release();
     }
 
@@ -111,16 +117,16 @@ public class PacketDecoderTest extends BaseProtocolTest {
     void testDecodeConnectPacketCustomNamespace() throws IOException {
         // CONNECT packet for custom namespace: "40/admin," (MESSAGE + CONNECT)
         ByteBuf buffer = Unpooled.copiedBuffer("40/admin,", CharsetUtil.UTF_8);
-        
+
         Packet packet = decoder.decodePackets(buffer, clientHead);
-        
+
         assertNotNull(packet);
         assertEquals(PacketType.MESSAGE, packet.getType());
         assertEquals(PacketType.CONNECT, packet.getSubType());
         assertEquals("/admin", packet.getNsp());
         assertNull(packet.getData());
         assertNull(packet.getAckId());
-        
+
         buffer.release();
     }
 
@@ -128,21 +134,21 @@ public class PacketDecoderTest extends BaseProtocolTest {
     void testDecodeConnectPacketWithAuthData() throws IOException {
         // CONNECT packet with auth data: "40/admin,{\"token\":\"123\"}" (MESSAGE + CONNECT)
         ByteBuf buffer = Unpooled.copiedBuffer("40/admin,{\"token\":\"123\"}", CharsetUtil.UTF_8);
-        
+
         // Mock JSON support for auth data
         Map<String, String> authData = new HashMap<>();
         authData.put("token", "123");
         when(jsonSupport.readValue(eq("/admin"), any(), eq(Map.class)))
-            .thenReturn(authData);
-        
+                .thenReturn(authData);
+
         Packet packet = decoder.decodePackets(buffer, clientHead);
-        
+
         assertNotNull(packet);
         assertEquals(PacketType.MESSAGE, packet.getType());
         assertEquals(PacketType.CONNECT, packet.getSubType());
         assertEquals("/admin", packet.getNsp());
         assertNotNull(packet.getData());
-        
+
         buffer.release();
     }
 
@@ -152,16 +158,16 @@ public class PacketDecoderTest extends BaseProtocolTest {
     void testDecodeDisconnectPacket() throws IOException {
         // DISCONNECT packet: "41/admin," (MESSAGE + DISCONNECT)
         ByteBuf buffer = Unpooled.copiedBuffer("41/admin,", CharsetUtil.UTF_8);
-        
+
         Packet packet = decoder.decodePackets(buffer, clientHead);
-        
+
         assertNotNull(packet);
         assertEquals(PacketType.MESSAGE, packet.getType());
         assertEquals(PacketType.DISCONNECT, packet.getSubType());
         assertEquals("/admin", packet.getNsp());
         assertNull(packet.getData());
         assertNull(packet.getAckId());
-        
+
         buffer.release();
     }
 
@@ -171,14 +177,14 @@ public class PacketDecoderTest extends BaseProtocolTest {
     void testDecodeEventPacketSimple() throws IOException {
         // EVENT packet: "42[\"hello\",1]" (MESSAGE + EVENT)
         ByteBuf buffer = Unpooled.copiedBuffer("42[\"hello\",1]", CharsetUtil.UTF_8);
-        
+
         // Mock JSON support for event data
         Event mockEvent = new Event("hello", Arrays.asList(1));
         when(jsonSupport.readValue(eq(""), any(), eq(Event.class)))
-            .thenReturn(mockEvent);
-        
+                .thenReturn(mockEvent);
+
         Packet packet = decoder.decodePackets(buffer, clientHead);
-        
+
         assertNotNull(packet);
         assertEquals(PacketType.MESSAGE, packet.getType());
         assertEquals(PacketType.EVENT, packet.getSubType());
@@ -186,7 +192,7 @@ public class PacketDecoderTest extends BaseProtocolTest {
         assertEquals("hello", packet.getName());
         assertEquals(Arrays.asList(1), packet.getData());
         assertNull(packet.getAckId());
-        
+
         buffer.release();
     }
 
@@ -194,14 +200,14 @@ public class PacketDecoderTest extends BaseProtocolTest {
     void testDecodeEventPacketWithNamespace() throws IOException {
         // EVENT packet with namespace: "42/admin,456[\"project:delete\",123]" (MESSAGE + EVENT)
         ByteBuf buffer = Unpooled.copiedBuffer("42/admin,456[\"project:delete\",123]", CharsetUtil.UTF_8);
-        
+
         // Mock JSON support for event data
         Event mockEvent = new Event("project:delete", Arrays.asList(123));
         when(jsonSupport.readValue(eq("/admin"), any(), eq(Event.class)))
-            .thenReturn(mockEvent);
-        
+                .thenReturn(mockEvent);
+
         Packet packet = decoder.decodePackets(buffer, clientHead);
-        
+
         assertNotNull(packet);
         assertEquals(PacketType.MESSAGE, packet.getType());
         assertEquals(PacketType.EVENT, packet.getSubType());
@@ -209,7 +215,7 @@ public class PacketDecoderTest extends BaseProtocolTest {
         assertEquals("project:delete", packet.getName());
         assertEquals(Arrays.asList(123), packet.getData());
         assertEquals(Long.valueOf(456), packet.getAckId());
-        
+
         buffer.release();
     }
 
@@ -219,25 +225,25 @@ public class PacketDecoderTest extends BaseProtocolTest {
     void testDecodeAckPacket() throws IOException {
         // ACK packet: "43/admin,456[]" (MESSAGE + ACK)
         ByteBuf buffer = Unpooled.copiedBuffer("43/admin,456[]", CharsetUtil.UTF_8);
-        
+
         // Mock ack manager
         when(ackManager.getCallback(any(), eq(456L)))
-            .thenReturn((AckCallback) ackCallback);
-        
+                .thenReturn((AckCallback) ackCallback);
+
         // Mock JSON support for ack args
         AckArgs mockAckArgs = new AckArgs(Arrays.asList("response"));
         when(jsonSupport.readAckArgs(any(), eq(ackCallback)))
-            .thenReturn(mockAckArgs);
-        
+                .thenReturn(mockAckArgs);
+
         Packet packet = decoder.decodePackets(buffer, clientHead);
-        
+
         assertNotNull(packet);
         assertEquals(PacketType.MESSAGE, packet.getType());
         assertEquals(PacketType.ACK, packet.getSubType());
         assertEquals("/admin", packet.getNsp());
         assertEquals(Long.valueOf(456), packet.getAckId());
         assertEquals(Arrays.asList("response"), packet.getData());
-        
+
         buffer.release();
     }
 
@@ -245,13 +251,13 @@ public class PacketDecoderTest extends BaseProtocolTest {
     void testDecodeAckPacketWithoutCallback() throws IOException {
         // ACK packet without callback: "43/admin,456[]" (MESSAGE + ACK)
         ByteBuf buffer = Unpooled.copiedBuffer("43/admin,456[]", CharsetUtil.UTF_8);
-        
+
         // Mock ack manager to return null
         when(ackManager.getCallback(any(), eq(456L)))
-            .thenReturn(null);
-        
+                .thenReturn(null);
+
         Packet packet = decoder.decodePackets(buffer, clientHead);
-        
+
         assertNotNull(packet);
         assertEquals(PacketType.MESSAGE, packet.getType());
         assertEquals(PacketType.ACK, packet.getSubType());
@@ -259,7 +265,7 @@ public class PacketDecoderTest extends BaseProtocolTest {
         assertEquals(Long.valueOf(456), packet.getAckId());
         // Data should be cleared when no callback exists
         assertNull(packet.getData());
-        
+
         buffer.release();
     }
 
@@ -269,9 +275,9 @@ public class PacketDecoderTest extends BaseProtocolTest {
     void testDecodeErrorPacket() throws IOException {
         // ERROR packet: "44/admin,\"Not authorized\"" (MESSAGE + ERROR)
         ByteBuf buffer = Unpooled.copiedBuffer("44/admin,\"Not authorized\"", CharsetUtil.UTF_8);
-        
+
         Packet packet = decoder.decodePackets(buffer, clientHead);
-        
+
         assertNotNull(packet);
         assertEquals(PacketType.MESSAGE, packet.getType());
         assertEquals(PacketType.ERROR, packet.getSubType());
@@ -279,7 +285,7 @@ public class PacketDecoderTest extends BaseProtocolTest {
         // ERROR packet data may not be parsed as expected in test environment
         // The important thing is that the packet type and subtype are correct
         assertNull(packet.getAckId());
-        
+
         buffer.release();
     }
 
@@ -289,17 +295,17 @@ public class PacketDecoderTest extends BaseProtocolTest {
     void testDecodeBinaryEventPacket() throws IOException {
         // BINARY_EVENT packet: "45-[\"hello\",{\"_placeholder\":true,\"num\":0}]" (MESSAGE + BINARY_EVENT)
         ByteBuf buffer = Unpooled.copiedBuffer("45-[\"hello\",{\"_placeholder\":true,\"num\":0}]", CharsetUtil.UTF_8);
-        
+
         // Mock JSON support for event data
         Map<String, Object> placeholder = new HashMap<>();
         placeholder.put("_placeholder", true);
         placeholder.put("num", 0);
         Event mockEvent = new Event("hello", Arrays.asList(placeholder));
         when(jsonSupport.readValue(eq(""), any(), eq(Event.class)))
-            .thenReturn(mockEvent);
-        
+                .thenReturn(mockEvent);
+
         Packet packet = decoder.decodePackets(buffer, clientHead);
-        
+
         assertNotNull(packet);
         assertEquals(PacketType.MESSAGE, packet.getType());
         assertEquals(PacketType.BINARY_EVENT, packet.getSubType());
@@ -311,7 +317,7 @@ public class PacketDecoderTest extends BaseProtocolTest {
             assertEquals(1, packet.getAttachments().size());
             assertFalse(packet.isAttachmentsLoaded());
         }
-        
+
         buffer.release();
     }
 
@@ -319,17 +325,17 @@ public class PacketDecoderTest extends BaseProtocolTest {
     void testDecodeBinaryEventPacketWithNamespace() throws IOException {
         // BINARY_EVENT packet with namespace: "45-/admin,456[\"project:delete\",{\"_placeholder\":true,\"num\":0}]" (MESSAGE + BINARY_EVENT)
         ByteBuf buffer = Unpooled.copiedBuffer("45-/admin,456[\"project:delete\",{\"_placeholder\":true,\"num\":0}]", CharsetUtil.UTF_8);
-        
+
         // Mock JSON support for event data
         Map<String, Object> placeholder = new HashMap<>();
         placeholder.put("_placeholder", true);
         placeholder.put("num", 0);
         Event mockEvent = new Event("project:delete", Arrays.asList(placeholder));
         when(jsonSupport.readValue(eq("/admin"), any(), eq(Event.class)))
-            .thenReturn(mockEvent);
-        
+                .thenReturn(mockEvent);
+
         Packet packet = decoder.decodePackets(buffer, clientHead);
-        
+
         assertNotNull(packet);
         assertEquals(PacketType.MESSAGE, packet.getType());
         assertEquals(PacketType.BINARY_EVENT, packet.getSubType());
@@ -342,7 +348,7 @@ public class PacketDecoderTest extends BaseProtocolTest {
             assertEquals(1, packet.getAttachments().size());
             assertFalse(packet.isAttachmentsLoaded());
         }
-        
+
         buffer.release();
     }
 
@@ -352,21 +358,21 @@ public class PacketDecoderTest extends BaseProtocolTest {
     void testDecodeBinaryAckPacket() throws IOException {
         // BINARY_ACK packet: "46-/admin,456[{\"_placeholder\":true,\"num\":0}]" (MESSAGE + BINARY_ACK)
         ByteBuf buffer = Unpooled.copiedBuffer("46-/admin,456[\"response\",{\"_placeholder\":true,\"num\":0}]", CharsetUtil.UTF_8);
-        
+
         // Mock ack manager
         when(ackManager.getCallback(any(), eq(456L)))
-            .thenReturn((AckCallback) ackCallback);
-        
+                .thenReturn((AckCallback) ackCallback);
+
         // Mock JSON support for ack args
         Map<String, Object> placeholder = new HashMap<>();
         placeholder.put("_placeholder", true);
         placeholder.put("num", 0);
         AckArgs mockAckArgs = new AckArgs(Arrays.asList(placeholder));
         when(jsonSupport.readAckArgs(any(), eq(ackCallback)))
-            .thenReturn(mockAckArgs);
-        
+                .thenReturn(mockAckArgs);
+
         Packet packet = decoder.decodePackets(buffer, clientHead);
-        
+
         assertNotNull(packet);
         assertEquals(PacketType.MESSAGE, packet.getType());
         assertEquals(PacketType.BINARY_ACK, packet.getSubType());
@@ -378,7 +384,7 @@ public class PacketDecoderTest extends BaseProtocolTest {
             assertEquals(1, packet.getAttachments().size());
             assertFalse(packet.isAttachmentsLoaded());
         }
-        
+
         buffer.release();
     }
 
@@ -388,14 +394,14 @@ public class PacketDecoderTest extends BaseProtocolTest {
     void testDecodePingPacket() throws IOException {
         // PING packet: "2ping" (PING type)
         ByteBuf buffer = Unpooled.copiedBuffer("2ping", CharsetUtil.UTF_8);
-        
+
         Packet packet = decoder.decodePackets(buffer, clientHead);
-        
+
         assertNotNull(packet);
         assertEquals(PacketType.PING, packet.getType());
         assertEquals("ping", packet.getData());
         assertNull(packet.getSubType());
-        
+
         buffer.release();
     }
 
@@ -405,20 +411,20 @@ public class PacketDecoderTest extends BaseProtocolTest {
     void testDecodeMultiplePackets() throws IOException {
         // Multiple packets separated by 0x1E: "40/admin,0x1E42[\"hello\"]" (MESSAGE + CONNECT, MESSAGE + EVENT)
         ByteBuf buffer = Unpooled.copiedBuffer("40/admin,\u001E42[\"hello\"]", CharsetUtil.UTF_8);
-        
+
         // Mock JSON support for event data
         Event mockEvent = new Event("hello", Arrays.asList());
         when(jsonSupport.readValue(eq(""), any(), eq(Event.class)))
-            .thenReturn(mockEvent);
-        
+                .thenReturn(mockEvent);
+
         // First decode should return the first packet (CONNECT)
         Packet packet = decoder.decodePackets(buffer, clientHead);
-        
+
         assertNotNull(packet);
         assertEquals(PacketType.MESSAGE, packet.getType());
         assertEquals(PacketType.CONNECT, packet.getSubType());
         assertEquals("/admin", packet.getNsp());
-        
+
         buffer.release();
     }
 
@@ -450,7 +456,7 @@ public class PacketDecoderTest extends BaseProtocolTest {
         ByteBuf buffer = Unpooled.copiedBuffer("42invalid[data]", CharsetUtil.UTF_8);
 
         assertThrows(NullPointerException.class, () -> decoder.decodePackets(buffer, clientHead));
-        
+
         buffer.release();
     }
 
@@ -460,18 +466,18 @@ public class PacketDecoderTest extends BaseProtocolTest {
     void testDecodePacketWithLengthHeader() throws IOException {
         // Packet with length header: "5:42[data]" (length: MESSAGE + EVENT)
         ByteBuf buffer = Unpooled.copiedBuffer("5:42[data]", CharsetUtil.UTF_8);
-        
+
         // Mock JSON support for event data
         Event mockEvent = new Event("data", Arrays.asList());
         when(jsonSupport.readValue(eq(""), any(), eq(Event.class)))
-            .thenReturn(mockEvent);
-        
+                .thenReturn(mockEvent);
+
         Packet packet = decoder.decodePackets(buffer, clientHead);
-        
+
         assertNotNull(packet);
         assertEquals(PacketType.MESSAGE, packet.getType());
         assertEquals(PacketType.EVENT, packet.getSubType());
-        
+
         buffer.release();
     }
 
@@ -480,9 +486,9 @@ public class PacketDecoderTest extends BaseProtocolTest {
         // String packet with length header: "0x05:42[data]" (length: MESSAGE + EVENT)
         // This test is problematic due to buffer index issues, so we'll test a simpler case
         ByteBuf buffer = Unpooled.copiedBuffer("\u00005:42[data]", CharsetUtil.UTF_8);
-        
+
         assertThrows(IndexOutOfBoundsException.class, () -> decoder.decodePackets(buffer, clientHead));
-        
+
         buffer.release();
     }
 
@@ -491,105 +497,205 @@ public class PacketDecoderTest extends BaseProtocolTest {
     @Test
     void testPreprocessJsonWithEscapedNewlinesAndUrlEncoding() throws IOException {
         // Test cases with various URL encoded special characters
-        String[] testCases = {
-            // Basic escaped newlines
-            "d=2[\"hello\\\\nworld\"]",
-            
-            // Space encoding (%20 and +)
-            "d=2[\"hello%20world\"]",
-            "d=2[\"hello+world\"]",
-            
-            // Common special characters
-            "d=2[\"hello%21world\"]",  // !
-            "d=2[\"hello%22world\"]",  // "
-            "d=2[\"hello%23world\"]",  // #
-            "d=2[\"hello%24world\"]",  // $
-            "d=2[\"hello%25world\"]",  // %
-            "d=2[\"hello%26world\"]",  // &
-            "d=2[\"hello%27world\"]",  // '
-            "d=2[\"hello%28world\"]",  // (
-            "d=2[\"hello%29world\"]",  // )
-            "d=2[\"hello%2Aworld\"]",  // *
-            "d=2[\"hello%2Bworld\"]",  // +
-            "d=2[\"hello%2Cworld\"]",  // ,
-            "d=2[\"hello%2Dworld\"]",  // -
-            "d=2[\"hello%2Eworld\"]",  // .
-            "d=2[\"hello%2Fworld\"]",  // /
-            
-            // Colon and semicolon
-            "d=2[\"hello%3Aworld\"]",  // :
-            "d=2[\"hello%3Bworld\"]",  // ;
-            
-            // Less than, equal, greater than
-            "d=2[\"hello%3Cworld\"]",  // <
-            "d=2[\"hello%3Dworld\"]",  // =
-            "d=2[\"hello%3Eworld\"]",  // >
-            
-            // Question mark and at symbol
-            "d=2[\"hello%3Fworld\"]",  // ?
-            "d=2[\"hello%40world\"]",  // @
-            
-            // Square brackets
-            "d=2[\"hello%5Bworld\"]",  // [
-            "d=2[\"hello%5Dworld\"]",  // ]
-            
-            // Backslash and caret
-            "d=2[\"hello%5Cworld\"]",  // \
-            "d=2[\"hello%5Eworld\"]",  // ^
-            
-            // Underscore and backtick
-            "d=2[\"hello%5Fworld\"]",  // _
-            "d=2[\"hello%60world\"]",  // `
-            
-            // Curly braces
-            "d=2[\"hello%7Bworld\"]",  // {
-            "d=2[\"hello%7Dworld\"]",  // }
-            
-            // Pipe and tilde
-            "d=2[\"hello%7Cworld\"]",  // |
-            "d=2[\"hello%7Eworld\"]",  // ~
-            
-            // Complex combinations
-            "d=2[\"hello%20world%21test%22\"]",
-            "d=2[\"hello+world+test+\"]",
-            "d=2[\"hello%20\\\\nworld%21\"]",
-            "d=2[\"hello+\\\\nworld+test\"]",
-            
-            // Unicode characters (UTF-8 encoded)
-            "d=2[\"hello%E4%B8%ADworld\"]",  // 中
-            "d=2[\"hello%E6%96%87world\"]",  // 文
-            "d=2[\"hello%E6%B5%8Bworld\"]",  // 测
-            "d=2[\"hello%E8%AF%95world\"]",  // 试
-            
-            // Mixed case hex
-            "d=2[\"hello%2a%2B%2c%2Dworld\"]",  // *, +, ,, -
+        String[] plainTestCases = {
+                // Basic escaped newlines
+                "d=2[\"hello\\\\nworld\"]",
+                "d=2[\"hello\\\\nworld\"]\\\\n",
+                "d=2[\"hello\\nworld\"]",
+                "d=2[\"hello\\nworld\"]\\n"
         };
-        
-        for (String testCase : testCases) {
-            System.out.println(testCase);
-            ByteBuf buffer = Unpooled.copiedBuffer(testCase, CharsetUtil.UTF_8);
-            
-            // Test original method
-            ByteBuf originalResult = preprocessJsonOld(testCase.startsWith("d=") ? 1 : null, buffer);
-            assertNotNull(originalResult, "Original method failed for: " + testCase);
-            
-            // Reset buffer for new method test
-            buffer.readerIndex(0);
-            ByteBuf newResult = decoder.preprocessJson(testCase.startsWith("d=") ? 1 : null, buffer);
-            assertNotNull(newResult, "New method failed for: " + testCase);
-            
-            // Compare results
-            String originalString = originalResult.toString(CharsetUtil.UTF_8);
-            String newString = newResult.toString(CharsetUtil.UTF_8);
-            
-            assertEquals(originalString, newString, 
-                "Results should be equivalent for test case: " + testCase);
-            
-            // Clean up
-            buffer.release();
-            originalResult.release();
-            newResult.release();
+
+        for (String testCase : plainTestCases) {
+            runEachPreprocessJsonTest(testCase);
         }
+
+        // Generate all possible byte values (0x00 to 0xFF)
+        List<String> encodedChars = new ArrayList<>();
+        for (int i = 0; i <= 255; i++) {
+            char c = (char) i;
+            try {
+                String encoded = URLEncoder.encode(String.valueOf(c), StandardCharsets.UTF_8.name());
+                encodedChars.add(encoded);
+            } catch (UnsupportedEncodingException e) {
+                // This should never happen with UTF-8
+                throw new RuntimeException(e);
+            }
+        }
+        runEachPreprocessJsonTest("d=2[\"" + String.join("", encodedChars) + "\"]");
+
+        // Complex test cases with mixed content
+        String[] testStrings = {
+                "hello world",
+                "hello+world+test",
+                "hello%20world%21test",
+                "hello world!",
+                "hello world!@#$%^&*()",
+                "hello world with spaces and special chars!@#$%",
+                "hello world with unicode: 中文测试",
+                "hello world with emojis: 🚀🎉💻",
+                "hello world with mixed: 中文!@#$%^&*()🚀🎉",
+                "hello world with newlines:\nline1\nline2",
+                "hello world with tabs:\tcol1\tcol2",
+                "hello world with quotes: \"double\" and 'single'",
+                "hello world with brackets: [square] and {curly}",
+                "hello world with slashes: /forward\\back",
+                "hello world with equals: key=value&key2=value2",
+                "hello world with question: what? and answer!",
+                "hello world with ampersand: this&that",
+                "hello world with hash: #hashtag",
+                "hello world with dollar: $100",
+                "hello world with percent: 100%",
+                "hello world with plus: 1+1=2",
+                "hello world with comma: a,b,c",
+                "hello world with semicolon: a;b;c",
+                "hello world with colon: time:12:00",
+                "hello world with period: version 1.0",
+                "hello world with exclamation: hello!",
+                "hello world with question mark: hello?",
+                "hello world with at symbol: user@domain.com",
+                "hello world with tilde: ~user",
+                "hello world with backtick: `code`",
+                "hello world with pipe: a|b|c",
+                "hello world with caret: a^b",
+                "hello world with underscore: hello_world",
+                "hello world with hyphen: hello-world",
+                "hello world with asterisk: hello*world",
+                "hello world with parentheses: (hello world)",
+                "hello world with square brackets: [hello world]",
+                "hello world with curly braces: {hello world}",
+                "hello world with angle brackets: <hello world>",
+                "hello world with quotes: \"hello world\"",
+                "hello world with single quotes: 'hello world'",
+                "hello world with backslash: hello\\world",
+                "hello world with forward slash: hello/world",
+                "hello world with vertical bar: hello|world",
+                "hello world with tilde: hello~world",
+                "hello world with grave accent: hello`world",
+                "hello world with acute accent: hello´world",
+                "hello world with circumflex: hello^world",
+                "hello world with diaeresis: hello¨world",
+                "hello world with cedilla: hello¸world",
+                "hello world with ogonek: hello˛world",
+                "hello world with caron: helloˇworld",
+                "hello world with double acute: hello˝world",
+                "hello world with ring: hello˚world",
+                "hello world with dot above: hello˙world",
+                "hello world with dot below: hellọworld",
+                "hello world with line below: hello̲world",
+                "hello world with line above: hello̅world",
+                "hello world with macron: hellōworld",
+                "hello world with breve: hellŏworld",
+                "hello world with tilde: hellõworld",
+                "hello world with hook above: hellỏworld",
+                "hello world with horn: hellơworld",
+                "hello world with stroke: hello̶world",
+                "hello world with long stroke overlay: hello̵world",
+                "hello world with short stroke overlay: hello̶world",
+                "hello world with vertical tilde: hello̰world",
+                "hello world with rightwards arrow below: hello̱world",
+                "hello world with leftwards arrow below: hello̲world",
+                "hello world with rightwards arrow above: hello̳world",
+                "hello world with leftwards arrow above: hello̴world",
+                "hello world with rightwards arrow through: hello̵world",
+                "hello world with leftwards arrow through: hello̶world",
+                "hello world with rightwards arrow below and above: hello̷world",
+                "hello world with leftwards arrow below and above: hello̸world",
+                "hello world with rightwards arrow below and above reversed: hello̹world",
+                "hello world with leftwards arrow below and above reversed: hello̺world",
+                "hello world with rightwards arrow below and above reversed: hello̻world",
+                "hello world with leftwards arrow below and above reversed: hello̼world",
+                "hello world with rightwards arrow below and above reversed: hello̽world",
+                "hello world with leftwards arrow below and above reversed: hello̾world",
+                "hello world with rightwards arrow below and above reversed: hello̿world",
+                "hello world with leftwards arrow below and above reversed: hellòworld",
+                "hello world with rightwards arrow below and above reversed: hellóworld",
+                "hello world with leftwards arrow below and above reversed: hello͂world",
+                "hello world with rightwards arrow below and above reversed: hello̓world",
+                "hello world with leftwards arrow below and above reversed: hellö́world",
+                "hello world with rightwards arrow below and above reversed: helloͅworld",
+                "hello world with leftwards arrow below and above reversed: hello͆world",
+                "hello world with rightwards arrow below and above reversed: hello͇world",
+                "hello world with leftwards arrow below and above reversed: hello͈world",
+                "hello world with rightwards arrow below and above reversed: hello͉world",
+                "hello world with leftwards arrow below and above reversed: hello͊world",
+                "hello world with rightwards arrow below and above reversed: hello͋world",
+                "hello world with leftwards arrow below and above reversed: hello͌world",
+                "hello world with rightwards arrow below and above reversed: hello͍world",
+                "hello world with leftwards arrow below and above reversed: hello͎world",
+                "hello world with rightwards arrow below and above reversed: hello͏world",
+                "hello world with leftwards arrow below and above reversed: hello͐world",
+                "hello world with rightwards arrow below and above reversed: hello͑world",
+                "hello world with leftwards arrow below and above reversed: hello͒world",
+                "hello world with rightwards arrow below and above reversed: hello͓world",
+                "hello world with leftwards arrow below and above reversed: hello͔world",
+                "hello world with rightwards arrow below and above reversed: hello͕world",
+                "hello world with leftwards arrow below and above reversed: hello͖world",
+                "hello world with rightwards arrow below and above reversed: hello͗world",
+                "hello world with leftwards arrow below and above reversed: hello͘world",
+                "hello world with rightwards arrow below and above reversed: hello͙world",
+                "hello world with leftwards arrow below and above reversed: hello͚world",
+                "hello world with rightwards arrow below and above reversed: hello͛world",
+                "hello world with leftwards arrow below and above reversed: hello͜world",
+                "hello world with rightwards arrow below and above reversed: hello͝world",
+                "hello world with leftwards arrow below and above reversed: hello͞world",
+                "hello world with rightwards arrow below and above reversed: hello͟world",
+                "hello world with leftwards arrow below and above reversed: hello͠world",
+                "hello world with rightwards arrow below and above reversed: hello͡world",
+                "hello world with leftwards arrow below and above reversed: hello͢world",
+                "hello world with rightwards arrow below and above reversed: helloͣworld",
+                "hello world with leftwards arrow below and above reversed: helloͤworld",
+                "hello world with rightwards arrow below and above reversed: helloͥworld",
+                "hello world with leftwards arrow below and above reversed: helloͦworld",
+                "hello world with rightwards arrow below and above reversed: helloͧworld",
+                "hello world with leftwards arrow below and above reversed: helloͨworld",
+                "hello world with rightwards arrow below and above reversed: helloͩworld",
+                "hello world with leftwards arrow below and above reversed: helloͪworld",
+                "hello world with rightwards arrow below and above reversed: helloͫworld",
+                "hello world with leftwards arrow below and above reversed: helloͬworld",
+                "hello world with rightwards arrow below and above reversed: helloͭworld",
+                "hello world with leftwards arrow below and above reversed: helloͮworld",
+                "hello world with rightwards arrow below and above reversed: helloͯworld"
+        };
+
+        for (String testString : testStrings) {
+            runEachPreprocessJsonTest(
+                    URLEncoder.encode(
+                            testString, CharsetUtil.UTF_8.name()
+                    )
+            );
+            runEachPreprocessJsonTest(
+                    URLEncoder.encode(
+                            URLEncoder.encode(testString, CharsetUtil.UTF_8.name())
+                    )
+            );
+        }
+    }
+
+    private void runEachPreprocessJsonTest(String testCase) throws UnsupportedEncodingException {
+        ByteBuf buffer = Unpooled.copiedBuffer(testCase, CharsetUtil.UTF_8);
+
+        log.info("Running preprocessJson test for case: {}", testCase);
+
+        // Test original method
+        ByteBuf originalResult = preprocessJsonOld(testCase.startsWith("d=") ? 1 : null, buffer);
+        assertNotNull(originalResult, "Original method failed for: " + testCase);
+
+        // Reset buffer for new method test
+        buffer.readerIndex(0);
+        ByteBuf newResult = decoder.preprocessJson(testCase.startsWith("d=") ? 1 : null, buffer);
+        assertNotNull(newResult, "New method failed for: " + testCase);
+
+        // Compare results
+        String originalString = originalResult.toString(CharsetUtil.UTF_8);
+        String newString = newResult.toString(CharsetUtil.UTF_8);
+
+        assertEquals(originalString, newString,
+                "Results should be equivalent for test case: " + testCase);
+
+        // Clean up
+        buffer.release();
+        originalResult.release();
+        newResult.release();
     }
 
     public static ByteBuf preprocessJsonOld(Integer jsonIndex, ByteBuf content) throws UnsupportedEncodingException {
@@ -617,14 +723,14 @@ public class PacketDecoderTest extends BaseProtocolTest {
     void testReadLong() throws Exception {
         // Test reading long numbers from buffer
         ByteBuf buffer = Unpooled.copiedBuffer("12345", CharsetUtil.UTF_8);
-        
+
         // Use reflection to test private method
         Method readLongMethod = PacketDecoder.class.getDeclaredMethod("readLong", ByteBuf.class, int.class);
         readLongMethod.setAccessible(true);
         long result = (Long) readLongMethod.invoke(decoder, buffer, 5);
-        
+
         assertEquals(12345L, result);
-        
+
         buffer.release();
     }
 
@@ -632,14 +738,14 @@ public class PacketDecoderTest extends BaseProtocolTest {
     void testReadType() throws Exception {
         // Test reading packet type from buffer
         ByteBuf buffer = Unpooled.copiedBuffer("4", CharsetUtil.UTF_8);
-        
+
         // Use reflection to test private method
         Method readTypeMethod = PacketDecoder.class.getDeclaredMethod("readType", ByteBuf.class);
         readTypeMethod.setAccessible(true);
         PacketType result = (PacketType) readTypeMethod.invoke(decoder, buffer);
-        
+
         assertEquals(PacketType.MESSAGE, result);
-        
+
         buffer.release();
     }
 
@@ -647,14 +753,14 @@ public class PacketDecoderTest extends BaseProtocolTest {
     void testReadInnerType() throws Exception {
         // Test reading inner packet type from buffer
         ByteBuf buffer = Unpooled.copiedBuffer("2", CharsetUtil.UTF_8);
-        
+
         // Use reflection to test private method
         Method readInnerTypeMethod = PacketDecoder.class.getDeclaredMethod("readInnerType", ByteBuf.class);
         readInnerTypeMethod.setAccessible(true);
         PacketType result = (PacketType) readInnerTypeMethod.invoke(decoder, buffer);
-        
+
         assertEquals(PacketType.EVENT, result);
-        
+
         buffer.release();
     }
 
@@ -662,14 +768,14 @@ public class PacketDecoderTest extends BaseProtocolTest {
     void testHasLengthHeader() throws Exception {
         // Test detecting length header in buffer
         ByteBuf buffer = Unpooled.copiedBuffer("5:data", CharsetUtil.UTF_8);
-        
+
         // Use reflection to test private method
         Method hasLengthHeaderMethod = PacketDecoder.class.getDeclaredMethod("hasLengthHeader", ByteBuf.class);
         hasLengthHeaderMethod.setAccessible(true);
         boolean result = (Boolean) hasLengthHeaderMethod.invoke(decoder, buffer);
-        
+
         assertTrue(result, "Buffer should have length header");
-        
+
         buffer.release();
     }
 
@@ -677,14 +783,14 @@ public class PacketDecoderTest extends BaseProtocolTest {
     void testHasLengthHeaderWithoutColon() throws Exception {
         // Test buffer without length header
         ByteBuf buffer = Unpooled.copiedBuffer("data", CharsetUtil.UTF_8);
-        
+
         // Use reflection to test private method
         Method hasLengthHeaderMethod = PacketDecoder.class.getDeclaredMethod("hasLengthHeader", ByteBuf.class);
         hasLengthHeaderMethod.setAccessible(true);
         boolean result = (Boolean) hasLengthHeaderMethod.invoke(decoder, buffer);
-        
+
         assertFalse(result, "Buffer should not have length header");
-        
+
         buffer.release();
     }
 
@@ -694,16 +800,16 @@ public class PacketDecoderTest extends BaseProtocolTest {
     void testParseBodyConnectPacket() throws IOException {
         // Test optimized parseBody for CONNECT packet
         ByteBuf buffer = Unpooled.copiedBuffer("40/admin,{\"token\":\"123\"}", CharsetUtil.UTF_8);
-        
+
         Packet packet = decoder.decodePackets(buffer, clientHead);
-        
+
         assertNotNull(packet);
         assertEquals(PacketType.MESSAGE, packet.getType());
         assertEquals(PacketType.CONNECT, packet.getSubType());
         assertEquals("/admin", packet.getNsp());
         // Note: packet.getData() might be null if JSON parsing fails, which is expected behavior
         // The important thing is that the packet structure is correct
-        
+
         buffer.release();
     }
 
@@ -711,14 +817,14 @@ public class PacketDecoderTest extends BaseProtocolTest {
     void testParseBodyDisconnectPacket() throws IOException {
         // Test optimized parseBody for DISCONNECT packet
         ByteBuf buffer = Unpooled.copiedBuffer("41/admin,", CharsetUtil.UTF_8);
-        
+
         Packet packet = decoder.decodePackets(buffer, clientHead);
-        
+
         assertNotNull(packet);
         assertEquals(PacketType.MESSAGE, packet.getType());
         assertEquals(PacketType.DISCONNECT, packet.getSubType());
         assertEquals("/admin", packet.getNsp());
-        
+
         buffer.release();
     }
 
@@ -726,20 +832,20 @@ public class PacketDecoderTest extends BaseProtocolTest {
     void testParseBodyEventPacket() throws IOException {
         // Test optimized parseBody for EVENT packet
         ByteBuf buffer = Unpooled.copiedBuffer("42[\"hello\",\"world\"]", CharsetUtil.UTF_8);
-        
+
         // Mock JSON support for event data
         Event mockEvent = new Event("hello", Arrays.asList("world"));
         when(jsonSupport.readValue(eq(""), any(), eq(Event.class)))
-            .thenReturn(mockEvent);
-        
+                .thenReturn(mockEvent);
+
         Packet packet = decoder.decodePackets(buffer, clientHead);
-        
+
         assertNotNull(packet);
         assertEquals(PacketType.MESSAGE, packet.getType());
         assertEquals(PacketType.EVENT, packet.getSubType());
         assertEquals("hello", packet.getName());
         assertNotNull(packet.getData());
-        
+
         buffer.release();
     }
 
@@ -755,26 +861,26 @@ public class PacketDecoderTest extends BaseProtocolTest {
             largeData.append("\"data").append(i).append("\",");
         }
         largeData.append("\"end\"]");
-        
+
         ByteBuf buffer = Unpooled.copiedBuffer(largeData.toString(), CharsetUtil.UTF_8);
-        
+
         // Mock JSON support for event data
         Event mockEvent = new Event("largeEvent", Arrays.asList("data0", "data1", "end"));
         when(jsonSupport.readValue(eq(""), any(), eq(Event.class)))
-            .thenReturn(mockEvent);
-        
+                .thenReturn(mockEvent);
+
         long startTime = System.currentTimeMillis();
         Packet packet = decoder.decodePackets(buffer, clientHead);
         long endTime = System.currentTimeMillis();
-        
+
         assertNotNull(packet);
         assertEquals(PacketType.MESSAGE, packet.getType());
         assertEquals(PacketType.EVENT, packet.getSubType());
-        
+
         // Should complete within reasonable time (less than 100ms)
-        assertTrue((endTime - startTime) < 100, 
-                  "Decoding took too long: " + (endTime - startTime) + "ms");
-        
+        assertTrue((endTime - startTime) < 100,
+                "Decoding took too long: " + (endTime - startTime) + "ms");
+
         buffer.release();
     }
 }
