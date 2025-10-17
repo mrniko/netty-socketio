@@ -20,6 +20,9 @@ import java.io.UnsupportedEncodingException;
 import java.util.LinkedList;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.corundumstudio.socketio.AckCallback;
 import com.corundumstudio.socketio.ack.AckManager;
 import com.corundumstudio.socketio.handler.ClientHead;
@@ -33,6 +36,7 @@ import io.netty.util.CharsetUtil;
 
 public class PacketDecoder {
 
+    private static final Logger log = LoggerFactory.getLogger(PacketDecoder.class);
     private final UTF8CharsScanner utf8scanner = new UTF8CharsScanner();
 
     private final ByteBuf quotes = Unpooled.copiedBuffer("\"", CharsetUtil.UTF_8);
@@ -60,8 +64,7 @@ public class PacketDecoder {
      */
     public ByteBuf preprocessJson(Integer jsonIndex, ByteBuf content) throws UnsupportedEncodingException {
         // Create a mutable copy of the input ByteBuf for in-place modifications
-        ByteBuf mutableContent = content.copy();
-        
+        ByteBuf mutableContent = content.slice();
         try {
             // Perform URL decoding in-place
             urlDecodeInPlace(mutableContent);
@@ -72,7 +75,14 @@ public class PacketDecoder {
                 
                 // Skip "d=" prefix (2 bytes) by adjusting reader index
                 if (mutableContent.readableBytes() >= 2) {
-                    mutableContent.readerIndex(mutableContent.readerIndex() + 2);
+                    int ri = mutableContent.readerIndex();
+                    // Check for 'd=' prefix
+                    if (mutableContent.getByte(ri) == (byte) 'd'
+                            && mutableContent.getByte(ri + 1) == (byte) '=') {
+                        mutableContent.readerIndex(ri + 2);
+                    } else {
+                        throw new IllegalArgumentException("Invalid JSONP format: missing 'd=' prefix");
+                    }
                 }
             }
             

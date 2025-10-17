@@ -695,7 +695,6 @@ public class PacketDecoderTest extends BaseProtocolTest {
         // Clean up
         buffer.release();
         originalResult.release();
-        newResult.release();
     }
 
     public static ByteBuf preprocessJsonOld(Integer jsonIndex, ByteBuf content) throws UnsupportedEncodingException {
