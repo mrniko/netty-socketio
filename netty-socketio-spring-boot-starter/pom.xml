@@ -15,7 +15,7 @@
   <description>Socket.IO server Spring Boot Starter</description>
 
   <properties>
-    <spring-boot.version>[3.0.7,4.0.0)</spring-boot.version>
+    <spring-boot.version>3.5.7</spring-boot.version>
   </properties>
 
   <dependencies>
