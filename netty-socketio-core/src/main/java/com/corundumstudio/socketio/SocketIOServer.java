@@ -22,6 +22,11 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
+import io.netty.channel.*;
+import io.netty.channel.epoll.EpollIoHandler;
+import io.netty.channel.nio.NioIoHandler;
+import io.netty.channel.uring.IoUringIoHandler;
+import io.netty.channel.uring.IoUringServerSocketChannel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,12 +42,6 @@ import com.corundumstudio.socketio.namespace.Namespace;
 import com.corundumstudio.socketio.namespace.NamespacesHub;
 
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.channel.ChannelOption;
-import io.netty.channel.DefaultEventLoop;
-import io.netty.channel.EventLoopGroup;
-import io.netty.channel.FixedRecvByteBufAllocator;
-import io.netty.channel.ServerChannel;
-import io.netty.channel.WriteBufferWaterMark;
 import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.epoll.EpollServerSocketChannel;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -113,9 +112,9 @@ public class SocketIOServer implements ClientListeners {
 
     public BroadcastOperations getBroadcastOperations() {
         Collection<SocketIONamespace> namespaces = namespacesHub.getAllNamespaces();
-        List<BroadcastOperations> list = new ArrayList<BroadcastOperations>();
+        List<BroadcastOperations> list = new ArrayList<>();
         BroadcastOperations broadcast = null;
-        if (namespaces != null && namespaces.size() > 0) {
+        if (namespaces != null && !namespaces.isEmpty()) {
             for (SocketIONamespace n : namespaces) {
                 broadcast = n.getBroadcastOperations();
                 list.add(broadcast);
@@ -135,7 +134,7 @@ public class SocketIOServer implements ClientListeners {
         Collection<SocketIONamespace> namespaces = namespacesHub.getAllNamespaces();
         List<BroadcastOperations> list = new ArrayList<BroadcastOperations>();
         BroadcastOperations broadcast = null;
-        if (namespaces != null && namespaces.size() > 0) {
+        if (namespaces != null && !namespaces.isEmpty()) {
             for (SocketIONamespace n : namespaces) {
                 for (String room : rooms) {
                     broadcast = n.getRoomOperations(room);
@@ -181,7 +180,9 @@ public class SocketIOServer implements ClientListeners {
             if (configCopy.isUseLinuxNativeEpoll()) {
                 channelClass = EpollServerSocketChannel.class;
             }
-
+            if (configCopy.isUseLinuxNativeIoUring()) {
+                channelClass = IoUringServerSocketChannel.class;
+            }
             ServerBootstrap b = new ServerBootstrap();
             b.group(bossGroup, workerGroup)
                     .channel(channelClass)
@@ -237,12 +238,15 @@ public class SocketIOServer implements ClientListeners {
     }
 
     protected void initGroups() {
-        if (configCopy.isUseLinuxNativeEpoll()) {
-            bossGroup = new EpollEventLoopGroup(configCopy.getBossThreads());
-            workerGroup = new EpollEventLoopGroup(configCopy.getWorkerThreads());
+        if (configCopy.isUseLinuxNativeIoUring()) { //IOUring higher priority than epoll
+            bossGroup = new MultiThreadIoEventLoopGroup(configCopy.getBossThreads(), IoUringIoHandler.newFactory());
+            workerGroup = new MultiThreadIoEventLoopGroup(configCopy.getWorkerThreads(), IoUringIoHandler.newFactory());
+        } else if (configCopy.isUseLinuxNativeEpoll()) {
+            bossGroup = new MultiThreadIoEventLoopGroup(configCopy.getBossThreads(), EpollIoHandler.newFactory());
+            workerGroup = new MultiThreadIoEventLoopGroup(configCopy.getWorkerThreads(), EpollIoHandler.newFactory());
         } else {
-            bossGroup = new NioEventLoopGroup(configCopy.getBossThreads());
-            workerGroup = new NioEventLoopGroup(configCopy.getWorkerThreads());
+            bossGroup = new MultiThreadIoEventLoopGroup(configCopy.getBossThreads(), NioIoHandler.newFactory());
+            workerGroup = new MultiThreadIoEventLoopGroup(configCopy.getWorkerThreads(), NioIoHandler.newFactory());
         }
     }
 

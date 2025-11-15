@@ -72,6 +72,9 @@ public interface NettySocketIOBasicConfigMapping {
     @WithDefault("false")
     boolean useLinuxNativeEpoll();
 
+    @WithDefault("false")
+    boolean useLinuxNativeIoUring();
+
     /**
      * Allow requests other than Engine.IO protocol
      * @see BasicConfiguration#isAllowCustomRequests()

@@ -31,6 +31,7 @@ public abstract class BasicConfiguration {
     protected int bossThreads = 0; // 0 = current_processors_amount * 2
     protected int workerThreads = 0; // 0 = current_processors_amount * 2
     protected boolean useLinuxNativeEpoll;
+    protected boolean useLinuxNativeIoUring;
 
     protected boolean allowCustomRequests = false;
 
@@ -73,7 +74,7 @@ public abstract class BasicConfiguration {
         setBossThreads(conf.getBossThreads());
         setWorkerThreads(conf.getWorkerThreads());
         setUseLinuxNativeEpoll(conf.isUseLinuxNativeEpoll());
-
+        setUseLinuxNativeIoUring(conf.isUseLinuxNativeIoUring());
         setPingInterval(conf.getPingInterval());
         setPingTimeout(conf.getPingTimeout());
         setFirstDataTimeout(conf.getFirstDataTimeout());
@@ -355,6 +356,14 @@ public abstract class BasicConfiguration {
 
     public void setUseLinuxNativeEpoll(boolean useLinuxNativeEpoll) {
         this.useLinuxNativeEpoll = useLinuxNativeEpoll;
+    }
+
+    public boolean isUseLinuxNativeIoUring() {
+        return useLinuxNativeIoUring;
+    }
+
+    public void setUseLinuxNativeIoUring(boolean useLinuxNativeIoUring) {
+        this.useLinuxNativeIoUring = useLinuxNativeIoUring;
     }
 
     /**

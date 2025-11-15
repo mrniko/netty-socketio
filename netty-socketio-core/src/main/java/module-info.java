@@ -30,4 +30,5 @@ module netty.socketio.core {
   requires io.netty.handler;
   requires io.netty.codec.http;
   requires org.slf4j;
+    requires io.netty.transport.classes.io_uring;
 }
