@@ -23,8 +23,10 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
 import io.netty.channel.*;
+import io.netty.channel.epoll.Epoll;
 import io.netty.channel.epoll.EpollIoHandler;
 import io.netty.channel.nio.NioIoHandler;
+import io.netty.channel.uring.IoUring;
 import io.netty.channel.uring.IoUringIoHandler;
 import io.netty.channel.uring.IoUringServerSocketChannel;
 import org.slf4j.Logger;
@@ -177,11 +179,26 @@ public class SocketIOServer implements ClientListeners {
             pipelineFactory.start(configCopy, namespacesHub);
 
             Class<? extends ServerChannel> channelClass = NioServerSocketChannel.class;
+
+            if (configCopy.isUseLinuxNativeIoUring() && configCopy.isUseLinuxNativeEpoll()) {
+                throw new RuntimeException("Set either Epoll/Iouring, not both");
+            }
+
             if (configCopy.isUseLinuxNativeEpoll()) {
-                channelClass = EpollServerSocketChannel.class;
+                if (Epoll.isAvailable()) {
+                    channelClass = EpollServerSocketChannel.class;
+                } else {
+                    log.warn("Epoll is not available, falling back to NIO");
+                }
+
             }
             if (configCopy.isUseLinuxNativeIoUring()) {
-                channelClass = IoUringServerSocketChannel.class;
+                if (IoUring.isAvailable()) {
+                    channelClass = IoUringServerSocketChannel.class;
+                } else {
+                    log.warn("IOuring is not available, falling back to NIO");
+                }
+
             }
             ServerBootstrap b = new ServerBootstrap();
             b.group(bossGroup, workerGroup)
@@ -238,10 +255,13 @@ public class SocketIOServer implements ClientListeners {
     }
 
     protected void initGroups() {
-        if (configCopy.isUseLinuxNativeIoUring()) { //IOUring higher priority than epoll
+        if (configCopy.isUseLinuxNativeIoUring() && configCopy.isUseLinuxNativeEpoll()) {
+            throw new RuntimeException("Set either Epoll/Iouring, not both");
+        }
+        if (configCopy.isUseLinuxNativeIoUring() && IoUring.isAvailable()) { //IOUring higher priority than epoll
             bossGroup = new MultiThreadIoEventLoopGroup(configCopy.getBossThreads(), IoUringIoHandler.newFactory());
             workerGroup = new MultiThreadIoEventLoopGroup(configCopy.getWorkerThreads(), IoUringIoHandler.newFactory());
-        } else if (configCopy.isUseLinuxNativeEpoll()) {
+        } else if (configCopy.isUseLinuxNativeEpoll() &&  Epoll.isAvailable()) {
             bossGroup = new MultiThreadIoEventLoopGroup(configCopy.getBossThreads(), EpollIoHandler.newFactory());
             workerGroup = new MultiThreadIoEventLoopGroup(configCopy.getWorkerThreads(), EpollIoHandler.newFactory());
         } else {
