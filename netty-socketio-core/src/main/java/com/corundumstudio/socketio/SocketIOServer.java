@@ -179,8 +179,6 @@ public class SocketIOServer implements ClientListeners {
 
             pipelineFactory.start(configCopy, namespacesHub);
 
-            Class<? extends ServerChannel> channelClass = NioServerSocketChannel.class;
-
             configCopy.validate();
 
             Class<? extends ServerChannel> channelClass = NioServerSocketChannel.class;
