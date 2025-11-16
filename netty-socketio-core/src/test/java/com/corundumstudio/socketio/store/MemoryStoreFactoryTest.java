@@ -115,8 +115,8 @@ public class MemoryStoreFactoryTest extends StoreFactoryTest {
             assertEquals("value1", store.get("key1"));
             assertTrue(store.has("key2"));
             assertEquals("value2", store.get("key2"));
-        assertTrue(store.has("key3"));
-        assertEquals(Integer.valueOf(123), store.get("key3"));
+            assertTrue(store.has("key3"));
+            assertEquals(Integer.valueOf(123), store.get("key3"));
             
             // Create a mock ClientHead
             ClientHead clientHead = Mockito.mock(ClientHead.class);
