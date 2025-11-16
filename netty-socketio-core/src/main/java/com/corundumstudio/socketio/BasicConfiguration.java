@@ -15,6 +15,7 @@
  */
 package com.corundumstudio.socketio;
 
+
 import java.util.Arrays;
 import java.util.List;
 
@@ -33,6 +34,7 @@ public abstract class BasicConfiguration {
     protected boolean useLinuxNativeEpoll;
     protected boolean useLinuxNativeIoUring;
 
+    protected boolean useUnixNativeKqueue;
     protected boolean allowCustomRequests = false;
 
     protected int upgradeTimeout = 10000;
@@ -75,6 +77,7 @@ public abstract class BasicConfiguration {
         setWorkerThreads(conf.getWorkerThreads());
         setUseLinuxNativeEpoll(conf.isUseLinuxNativeEpoll());
         setUseLinuxNativeIoUring(conf.isUseLinuxNativeIoUring());
+        setUseUnixNativeKqueue(conf.isUseUnixNativeKqueue());
         setPingInterval(conf.getPingInterval());
         setPingTimeout(conf.getPingTimeout());
         setFirstDataTimeout(conf.getFirstDataTimeout());
@@ -366,6 +369,13 @@ public abstract class BasicConfiguration {
         this.useLinuxNativeIoUring = useLinuxNativeIoUring;
     }
 
+    public boolean isUseUnixNativeKqueue() {
+        return useUnixNativeKqueue;
+    }
+
+    public void setUseUnixNativeKqueue(boolean useUnixNativeKqueue) {
+        this.useUnixNativeKqueue = useUnixNativeKqueue;
+    }
     /**
      * Set the response Access-Control-Allow-Headers
      *
@@ -450,4 +460,51 @@ public abstract class BasicConfiguration {
     public boolean isNeedClientAuth() {
         return needClientAuth;
     }
+
+    /**
+     * Validates the native transport configuration.
+     * <p>
+     * Only one native transport may be enabled at a time. The supported native
+     * transports are:
+     * <ul>
+     *     <li>io_uring (Linux)</li>
+     *     <li>epoll (Linux)</li>
+     *     <li>kqueue (macOS / BSD)</li>
+     * </ul>
+     * <p>
+     * This method performs a bitmask-based check to ensure that at most one of the
+     * transport flags is enabled. If more than one flag is set, an
+     * {@link IllegalArgumentException} is thrown detailing which transports were
+     * simultaneously enabled.
+     *
+     * @throws IllegalArgumentException
+     *         if more than one native transport is configured at the same time
+     */
+    public void validate() {
+        int bits = 0;
+        if (isUseLinuxNativeIoUring()) bits |= 1;
+        if (isUseLinuxNativeEpoll())   bits |= 2;
+        if (isUseUnixNativeKqueue())   bits |= 4;
+
+        if (Integer.bitCount(bits) > 1) {
+            throw new IllegalArgumentException(
+                    "Only one native transport MUST be enabled: " + enabledTransports(bits)
+            );
+        }
+    }
+
+
+    private String enabledTransports(int bits) {
+        StringBuilder sb = new StringBuilder();
+
+        sb.append("[");
+        if ((bits & 1) != 0) sb.append("io_uring ");
+        if ((bits & 2) != 0) sb.append("epoll ");
+        if ((bits & 4) != 0) sb.append("kqueue ");
+        sb.append("]");
+
+        return sb.toString().trim();
+    }
+
+
 }

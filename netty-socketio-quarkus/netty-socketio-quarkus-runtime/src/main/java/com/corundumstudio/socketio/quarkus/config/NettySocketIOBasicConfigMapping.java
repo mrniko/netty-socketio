@@ -66,14 +66,43 @@ public interface NettySocketIOBasicConfigMapping {
     int workerThreads();
 
     /**
-     * Enable use of Linux native epoll transport if available
+     * Enables use of the Linux native epoll transport when available.
+     * <p>
+     * Epoll provides low-latency, high-throughput I/O on Linux systems and is
+     * preferred over the NIO transport when supported. This option has no effect
+     * on non-Linux platforms.
+     *
+     * @return {@code true} to use the native epoll transport if available
      * @see BasicConfiguration#isUseLinuxNativeEpoll()
      */
     @WithDefault("false")
     boolean useLinuxNativeEpoll();
 
+    /**
+     * Enables use of the Linux native io_uring transport when available.
+     * <p>
+     * io_uring is a modern Linux I/O interface that can provide significantly
+     * higher performance than epoll on supported kernels (Linux 5.10+). This
+     * option has no effect on non-Linux platforms.
+     *
+     * @return {@code true} to use the native io_uring transport if available
+     * @see BasicConfiguration#isUseLinuxNativeIoUring()
+     */
     @WithDefault("false")
     boolean useLinuxNativeIoUring();
+
+    /**
+     * Enables use of the native kqueue transport when available.
+     * <p>
+     * kqueue is the high-performance event notification system used on macOS and
+     * BSD-based operating systems. This option has no effect on Linux or Windows.
+     *
+     * @return {@code true} to use the native kqueue transport if available
+     * @see BasicConfiguration#isUseUnixNativeKqueue()
+     */
+    @WithDefault("false")
+    boolean useUnixNativeKqueue();
+
 
     /**
      * Allow requests other than Engine.IO protocol

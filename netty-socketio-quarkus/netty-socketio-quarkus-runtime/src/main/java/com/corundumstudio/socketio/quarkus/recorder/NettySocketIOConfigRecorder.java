@@ -76,6 +76,7 @@ public class NettySocketIOConfigRecorder {
         configuration.setWorkerThreads(nettySocketIOBasicConfigMapping.workerThreads());
         configuration.setUseLinuxNativeEpoll(nettySocketIOBasicConfigMapping.useLinuxNativeEpoll());
         configuration.setUseLinuxNativeIoUring(nettySocketIOBasicConfigMapping.useLinuxNativeIoUring());
+        configuration.setUseUnixNativeKqueue(nettySocketIOBasicConfigMapping.useUnixNativeKqueue());
         configuration.setAllowCustomRequests(nettySocketIOBasicConfigMapping.allowCustomRequests());
         configuration.setUpgradeTimeout(nettySocketIOBasicConfigMapping.upgradeTimeout());
         configuration.setPingTimeout(nettySocketIOBasicConfigMapping.pingTimeout());

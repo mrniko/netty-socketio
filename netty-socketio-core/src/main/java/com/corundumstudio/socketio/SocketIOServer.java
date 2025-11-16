@@ -25,6 +25,9 @@ import java.util.concurrent.atomic.AtomicReference;
 import io.netty.channel.*;
 import io.netty.channel.epoll.Epoll;
 import io.netty.channel.epoll.EpollIoHandler;
+import io.netty.channel.kqueue.KQueue;
+import io.netty.channel.kqueue.KQueueIoHandler;
+import io.netty.channel.kqueue.KQueueServerSocketChannel;
 import io.netty.channel.nio.NioIoHandler;
 import io.netty.channel.uring.IoUring;
 import io.netty.channel.uring.IoUringIoHandler;
@@ -44,9 +47,7 @@ import com.corundumstudio.socketio.namespace.Namespace;
 import com.corundumstudio.socketio.namespace.NamespacesHub;
 
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.epoll.EpollServerSocketChannel;
-import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.FutureListener;
@@ -180,26 +181,21 @@ public class SocketIOServer implements ClientListeners {
 
             Class<? extends ServerChannel> channelClass = NioServerSocketChannel.class;
 
-            if (configCopy.isUseLinuxNativeIoUring() && configCopy.isUseLinuxNativeEpoll()) {
-                throw new RuntimeException("Set either Epoll/Iouring, not both");
+            configCopy.validate();
+
+            Class<? extends ServerChannel> channelClass = NioServerSocketChannel.class;
+
+            if (configCopy.isUseLinuxNativeIoUring() && IoUring.isAvailable()) {
+                channelClass = IoUringServerSocketChannel.class;
+            } else if (configCopy.isUseLinuxNativeEpoll() && Epoll.isAvailable()) {
+                channelClass = EpollServerSocketChannel.class;
+            } else if (configCopy.isUseUnixNativeKqueue() && KQueue.isAvailable()) {
+                channelClass = KQueueServerSocketChannel.class;
+            } else {
+                log.warn("No selected native transport is available. Falling back to NIO");
             }
 
-            if (configCopy.isUseLinuxNativeEpoll()) {
-                if (Epoll.isAvailable()) {
-                    channelClass = EpollServerSocketChannel.class;
-                } else {
-                    log.warn("Epoll is not available, falling back to NIO");
-                }
 
-            }
-            if (configCopy.isUseLinuxNativeIoUring()) {
-                if (IoUring.isAvailable()) {
-                    channelClass = IoUringServerSocketChannel.class;
-                } else {
-                    log.warn("IOuring is not available, falling back to NIO");
-                }
-
-            }
             ServerBootstrap b = new ServerBootstrap();
             b.group(bossGroup, workerGroup)
                     .channel(channelClass)
@@ -255,19 +251,22 @@ public class SocketIOServer implements ClientListeners {
     }
 
     protected void initGroups() {
-        if (configCopy.isUseLinuxNativeIoUring() && configCopy.isUseLinuxNativeEpoll()) {
-            throw new RuntimeException("Set either Epoll/Iouring, not both");
+
+        configCopy.validate();
+
+        IoHandlerFactory ioHandler = NioIoHandler.newFactory(); // default
+
+        if (configCopy.isUseLinuxNativeIoUring() && IoUring.isAvailable()) {
+            ioHandler = IoUringIoHandler.newFactory();
+        } else if (configCopy.isUseLinuxNativeEpoll() && Epoll.isAvailable()) {
+            ioHandler = EpollIoHandler.newFactory();
+        } else if (configCopy.isUseUnixNativeKqueue() && KQueue.isAvailable()) {
+            ioHandler = KQueueIoHandler.newFactory();
         }
-        if (configCopy.isUseLinuxNativeIoUring() && IoUring.isAvailable()) { //IOUring higher priority than epoll
-            bossGroup = new MultiThreadIoEventLoopGroup(configCopy.getBossThreads(), IoUringIoHandler.newFactory());
-            workerGroup = new MultiThreadIoEventLoopGroup(configCopy.getWorkerThreads(), IoUringIoHandler.newFactory());
-        } else if (configCopy.isUseLinuxNativeEpoll() &&  Epoll.isAvailable()) {
-            bossGroup = new MultiThreadIoEventLoopGroup(configCopy.getBossThreads(), EpollIoHandler.newFactory());
-            workerGroup = new MultiThreadIoEventLoopGroup(configCopy.getWorkerThreads(), EpollIoHandler.newFactory());
-        } else {
-            bossGroup = new MultiThreadIoEventLoopGroup(configCopy.getBossThreads(), NioIoHandler.newFactory());
-            workerGroup = new MultiThreadIoEventLoopGroup(configCopy.getWorkerThreads(), NioIoHandler.newFactory());
-        }
+
+        bossGroup   = new MultiThreadIoEventLoopGroup(configCopy.getBossThreads(), ioHandler);
+        workerGroup = new MultiThreadIoEventLoopGroup(configCopy.getWorkerThreads(), ioHandler);
+
     }
 
     /**

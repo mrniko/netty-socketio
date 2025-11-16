@@ -152,8 +152,46 @@
           <classifier>linux-aarch_64</classifier>
           <version>${netty.version}</version>
         </dependency>
+          <dependency>
+              <groupId>io.netty</groupId>
+              <artifactId>netty-transport-native-io_uring</artifactId>
+              <classifier>linux-x86_64</classifier>
+              <version>${netty.version}</version>
+          </dependency>
+          <dependency>
+              <groupId>io.netty</groupId>
+              <artifactId>netty-transport-native-io_uring</artifactId>
+              <classifier>linux-aarch_64</classifier>
+              <version>${netty.version}</version>
+          </dependency>
       </dependencies>
     </profile>
+      <profile>
+          <!-- Dynamically depend on kqueue only on macOS -->
+          <id>macOS</id>
+          <activation>
+              <os>
+                  <name>Mac OS X</name>
+                  <family>mac</family>
+              </os>
+          </activation>
+
+          <dependencies>
+              <dependency>
+                  <groupId>io.netty</groupId>
+                  <artifactId>netty-transport-native-kqueue</artifactId>
+                  <classifier>osx-x86_64</classifier>
+                  <version>${netty.version}</version>
+              </dependency>
+              <dependency>
+                  <groupId>io.netty</groupId>
+                  <artifactId>netty-transport-native-kqueue</artifactId>
+                  <classifier>osx-aarch_64</classifier>
+                  <version>${netty.version}</version>
+              </dependency>
+          </dependencies>
+      </profile>
+
   </profiles>
 
   <dependencyManagement>
@@ -204,6 +242,12 @@
         <dependency>
             <groupId>io.netty</groupId>
             <artifactId>netty-transport-native-io_uring</artifactId>
+            <version>${netty.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-transport-native-kqueue</artifactId>
             <version>${netty.version}</version>
             <scope>provided</scope>
         </dependency>
