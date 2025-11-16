@@ -105,7 +105,6 @@ public class HazelcastStoreFactoryTest extends StoreFactoryTest {
         Map<String, Object> map = storeFactory.createMap(mapName);
         
         assertNotNull(map, "Map should not be null");
-        assertTrue(map instanceof Map, "Map should implement Map interface");
         
         // Test that the map works
         map.put("testKey", "testValue");
