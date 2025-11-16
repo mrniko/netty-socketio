@@ -76,7 +76,8 @@
     </dependency>
     <dependency>
       <groupId>com.hazelcast</groupId>
-      <artifactId>hazelcast-client</artifactId>
+      <artifactId>hazelcast</artifactId>
+        <version>5.6.0</version>
       <scope>provided</scope>
     </dependency>
 

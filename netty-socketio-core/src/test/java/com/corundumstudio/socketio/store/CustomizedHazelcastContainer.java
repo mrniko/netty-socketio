@@ -34,7 +34,7 @@ public class CustomizedHazelcastContainer extends GenericContainer<CustomizedHaz
      * Default constructor that initializes the Hazelcast container with the official Hazelcast image.
      */
     public CustomizedHazelcastContainer() {
-        super("hazelcast/hazelcast:3.12.12");
+        super("hazelcast/hazelcast:5.6.0");
     }
 
     @Override

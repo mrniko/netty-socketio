@@ -18,8 +18,6 @@ module netty.socketio.core {
   requires com.fasterxml.jackson.databind;
 
   requires static com.hazelcast.core;
-  requires static com.hazelcast.client;
-
   requires static redisson;
 
   requires static io.netty.transport.classes.epoll;

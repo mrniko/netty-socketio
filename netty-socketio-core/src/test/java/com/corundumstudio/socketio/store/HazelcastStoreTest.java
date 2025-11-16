@@ -43,7 +43,7 @@ public class HazelcastStoreTest extends AbstractStoreTest {
     protected Store createStore(UUID sessionId) throws Exception {
         CustomizedHazelcastContainer customizedHazelcastContainer = (CustomizedHazelcastContainer) container;
         ClientConfig clientConfig = new ClientConfig();
-        clientConfig.getGroupConfig().setName("dev").setPassword("dev-pass");
+        //clientConfig.getGroupConfig().setName("dev").setPassword("dev-pass");
         clientConfig.getNetworkConfig().addAddress(
             customizedHazelcastContainer.getHost() + ":" + customizedHazelcastContainer.getHazelcastPort()
         );

@@ -40,7 +40,7 @@ public class HazelcastPubSubStoreTest extends AbstractPubSubStoreTest {
     protected PubSubStore createPubSubStore(Long nodeId) throws Exception {
         CustomizedHazelcastContainer customizedHazelcastContainer = (CustomizedHazelcastContainer) container;
         ClientConfig clientConfig = new ClientConfig();
-        clientConfig.getGroupConfig().setName("dev").setPassword("dev-pass");
+        //clientConfig.getGroupConfig().setName("dev").setPassword("dev-pass");
         clientConfig.getNetworkConfig().addAddress(
             customizedHazelcastContainer.getHost() + ":" + customizedHazelcastContainer.getHazelcastPort()
         );
