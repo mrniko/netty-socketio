@@ -47,4 +47,9 @@ public class MemoryStore implements Store {
         store.clear();
     }
 
+    @Override
+    public void destroy() {
+        store.clear();
+    }
+
 }

@@ -19,18 +19,12 @@ import java.util.Map;
 import java.util.UUID;
 
 import org.redisson.Redisson;
-import org.redisson.api.RMap;
 import org.redisson.api.RedissonClient;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import com.corundumstudio.socketio.handler.ClientHead;
 import com.corundumstudio.socketio.store.pubsub.BaseStoreFactory;
 import com.corundumstudio.socketio.store.pubsub.PubSubStore;
 
 public class RedissonStoreFactory extends BaseStoreFactory {
-
-    private static final Logger log = LoggerFactory.getLogger(RedissonStoreFactory.class);
 
     private final RedissonClient redisClient;
     private final RedissonClient redisPub;
@@ -78,18 +72,6 @@ public class RedissonStoreFactory extends BaseStoreFactory {
     @Override
     public <K, V> Map<K, V> createMap(String name) {
         return redisClient.getMap(name);
-    }
-
-    @Override
-    public void onDisconnect(ClientHead client) {
-        UUID sessionId = client.getSessionId();
-        try {
-            RMap<String, Object> map = redisClient.getMap(sessionId.toString());
-            map.delete();
-            log.debug("Deleted Redisson store for sessionId: {}", sessionId);
-        } catch (Exception e) {
-            log.warn("Failed to delete Redisson store for sessionId: {}", sessionId, e);
-        }
     }
 
 }

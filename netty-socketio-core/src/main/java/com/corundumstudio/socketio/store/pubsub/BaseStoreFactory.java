@@ -25,6 +25,7 @@ import com.corundumstudio.socketio.handler.ClientHead;
 import com.corundumstudio.socketio.namespace.Namespace;
 import com.corundumstudio.socketio.namespace.NamespacesHub;
 import com.corundumstudio.socketio.protocol.JsonSupport;
+import com.corundumstudio.socketio.store.Store;
 import com.corundumstudio.socketio.store.StoreFactory;
 
 public abstract class BaseStoreFactory implements StoreFactory {
@@ -127,8 +128,28 @@ public abstract class BaseStoreFactory implements StoreFactory {
     @Override
     public abstract PubSubStore pubSubStore();
 
+    /**
+     * Handles client disconnection by destroying the associated store.
+     * <p>
+     * This method retrieves the store from the client and calls its destroy()
+     * method to clean up all stored data. The implementation is common for all
+     * store factory types, as the actual cleanup logic is encapsulated within
+     * each Store implementation.
+     * </p>
+     *
+     * @param client the client that is disconnecting
+     */
     @Override
     public void onDisconnect(ClientHead client) {
+        Store store = client.getStore();
+        if (store != null) {
+            try {
+                store.destroy();
+                log.debug("Destroyed store for sessionId: {}", client.getSessionId());
+            } catch (Exception e) {
+                log.warn("Failed to destroy store for sessionId: {}", client.getSessionId(), e);
+            }
+        }
     }
 
     @Override

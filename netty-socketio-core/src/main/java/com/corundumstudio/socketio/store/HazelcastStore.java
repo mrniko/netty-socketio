@@ -49,4 +49,9 @@ public class HazelcastStore implements Store {
         map.delete(key);
     }
 
+    @Override
+    public void destroy() {
+        map.destroy();
+    }
+
 }

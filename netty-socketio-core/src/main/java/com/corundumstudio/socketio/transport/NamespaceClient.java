@@ -226,6 +226,11 @@ public class NamespaceClient implements SocketIOClient {
     }
 
     @Override
+    public void destroy() {
+        baseClient.getStore().destroy();
+    }
+
+    @Override
     public Set<String> getAllRooms() {
         return namespace.getRooms(this);
     }

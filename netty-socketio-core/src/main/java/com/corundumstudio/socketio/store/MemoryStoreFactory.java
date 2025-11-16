@@ -18,18 +18,12 @@ package com.corundumstudio.socketio.store;
 import java.util.Map;
 import java.util.UUID;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.corundumstudio.socketio.handler.ClientHead;
 import com.corundumstudio.socketio.store.pubsub.BaseStoreFactory;
 import com.corundumstudio.socketio.store.pubsub.PubSubStore;
 
 import io.netty.util.internal.PlatformDependent;
 
 public class MemoryStoreFactory extends BaseStoreFactory {
-
-    private static final Logger log = LoggerFactory.getLogger(MemoryStoreFactory.class);
 
     private final MemoryPubSubStore pubSubMemoryStore = new MemoryPubSubStore();
 
@@ -55,17 +49,6 @@ public class MemoryStoreFactory extends BaseStoreFactory {
     @Override
     public <K, V> Map<K, V> createMap(String name) {
         return PlatformDependent.newConcurrentHashMap();
-    }
-
-    @Override
-    public void onDisconnect(ClientHead client) {
-        UUID sessionId = client.getSessionId();
-        Store store = client.getStore();
-        if (store instanceof MemoryStore) {
-            MemoryStore memoryStore = (MemoryStore) store;
-            memoryStore.clear();
-            log.debug("Cleared MemoryStore for sessionId: {}", sessionId);
-        }
     }
 
 }

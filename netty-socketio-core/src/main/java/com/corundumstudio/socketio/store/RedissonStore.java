@@ -15,14 +15,14 @@
  */
 package com.corundumstudio.socketio.store;
 
-import java.util.Map;
 import java.util.UUID;
 
+import org.redisson.api.RMap;
 import org.redisson.api.RedissonClient;
 
 public class RedissonStore implements Store {
 
-    private final Map<String, Object> map;
+    private final RMap<String, Object> map;
 
     public RedissonStore(UUID sessionId, RedissonClient redisson) {
         this.map = redisson.getMap(sessionId.toString());
@@ -46,6 +46,11 @@ public class RedissonStore implements Store {
     @Override
     public void del(String key) {
         map.remove(key);
+    }
+
+    @Override
+    public void destroy() {
+        map.delete();
     }
 
 }
