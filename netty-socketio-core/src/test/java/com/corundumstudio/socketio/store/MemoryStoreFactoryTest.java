@@ -15,10 +15,14 @@
  */
 package com.corundumstudio.socketio.store;
 
+import java.util.Map;
 import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 
+import com.corundumstudio.socketio.handler.ClientHead;
 import com.corundumstudio.socketio.store.pubsub.PubSubStore;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -26,6 +30,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.when;
 
 /**
  * Test class for MemoryStoreFactory - no container needed as it's in-memory
@@ -62,10 +67,10 @@ public class MemoryStoreFactoryTest extends StoreFactoryTest {
     @Test
     public void testMemoryMapCreation() {
         String mapName = "testMemoryMap";
-        java.util.Map<String, Object> map = storeFactory.createMap(mapName);
+        Map<String, Object> map = storeFactory.createMap(mapName);
         
         assertNotNull(map, "Map should not be null");
-        assertTrue(map instanceof java.util.Map, "Map should implement Map interface");
+        assertTrue(map instanceof Map, "Map should implement Map interface");
         
         // Test that the map works
         map.put("testKey", "testValue");
@@ -91,5 +96,51 @@ public class MemoryStoreFactoryTest extends StoreFactoryTest {
         // Store1 should still have the data
         assertTrue(store1.has("isolatedKey"), "Store1 should have its data");
         assertEquals(store1.get("isolatedKey"), "store1Value", "Store1 should return its data");
+    }
+
+    @Test
+    public void testOnDisconnect() {
+        AutoCloseable closeableMocks = MockitoAnnotations.openMocks(this);
+        try {
+            UUID sessionId = UUID.randomUUID();
+            Store store = storeFactory.createStore(sessionId);
+            
+            // Add some data to the store
+            store.set("key1", "value1");
+            store.set("key2", "value2");
+            store.set("key3", 123);
+            
+            // Verify data exists
+            assertTrue(store.has("key1"));
+            assertEquals("value1", store.get("key1"));
+            assertTrue(store.has("key2"));
+            assertEquals("value2", store.get("key2"));
+        assertTrue(store.has("key3"));
+        assertEquals(Integer.valueOf(123), store.get("key3"));
+            
+            // Create a mock ClientHead
+            ClientHead clientHead = Mockito.mock(ClientHead.class);
+            when(clientHead.getSessionId()).thenReturn(sessionId);
+            when(clientHead.getStore()).thenReturn(store);
+            
+            // Call onDisconnect
+            storeFactory.onDisconnect(clientHead);
+            
+            // Verify the MemoryStore is cleared
+            assertFalse(store.has("key1"), "Store should not have key1 after clear");
+            assertNull(store.get("key1"), "Store should return null for key1 after clear");
+            assertFalse(store.has("key2"), "Store should not have key2 after clear");
+            assertNull(store.get("key2"), "Store should return null for key2 after clear");
+            assertFalse(store.has("key3"), "Store should not have key3 after clear");
+            assertNull(store.get("key3"), "Store should return null for key3 after clear");
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        } finally {
+            try {
+                closeableMocks.close();
+            } catch (Exception e) {
+                // Ignore
+            }
+        }
     }
 }

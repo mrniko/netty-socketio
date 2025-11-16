@@ -15,20 +15,26 @@
  */
 package com.corundumstudio.socketio.store;
 
+import java.util.Map;
 import java.util.UUID;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 import org.testcontainers.containers.GenericContainer;
 
+import com.corundumstudio.socketio.handler.ClientHead;
 import com.corundumstudio.socketio.store.pubsub.PubSubStore;
 import com.hazelcast.client.HazelcastClient;
 import com.hazelcast.client.config.ClientConfig;
 import com.hazelcast.core.HazelcastInstance;
+import com.hazelcast.core.IMap;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.when;
 
 /**
  * Test class for HazelcastStoreFactory using testcontainers
@@ -37,6 +43,7 @@ public class HazelcastStoreFactoryTest extends StoreFactoryTest {
 
     private GenericContainer<?> container;
     private HazelcastInstance hazelcastInstance;
+    private AutoCloseable closeableMocks;
 
     @Override
     protected StoreFactory createStoreFactory() throws Exception {
@@ -56,6 +63,9 @@ public class HazelcastStoreFactoryTest extends StoreFactoryTest {
 
     @AfterEach
     public void tearDown() throws Exception {
+        if (closeableMocks != null) {
+            closeableMocks.close();
+        }
         if (storeFactory != null) {
             storeFactory.shutdown();
         }
@@ -92,13 +102,47 @@ public class HazelcastStoreFactoryTest extends StoreFactoryTest {
     @Test
     public void testHazelcastMapCreation() {
         String mapName = "testHazelcastMap";
-        java.util.Map<String, Object> map = storeFactory.createMap(mapName);
+        Map<String, Object> map = storeFactory.createMap(mapName);
         
         assertNotNull(map, "Map should not be null");
-        assertTrue(map instanceof java.util.Map, "Map should implement Map interface");
+        assertTrue(map instanceof Map, "Map should implement Map interface");
         
         // Test that the map works
         map.put("testKey", "testValue");
         assertEquals("testValue", map.get("testKey"));
+    }
+
+    @Test
+    public void testOnDisconnect() {
+        closeableMocks = MockitoAnnotations.openMocks(this);
+        
+        UUID sessionId = UUID.randomUUID();
+        Store store = storeFactory.createStore(sessionId);
+        
+        // Add some data to the store
+        store.set("key1", "value1");
+        store.set("key2", "value2");
+        store.set("key3", 123);
+        
+        // Verify data exists
+        assertTrue(store.has("key1"));
+        assertEquals("value1", store.get("key1"));
+        assertTrue(store.has("key2"));
+        assertEquals("value2", store.get("key2"));
+        assertTrue(store.has("key3"));
+        assertEquals(Integer.valueOf(123), store.get("key3"));
+        
+        // Create a mock ClientHead
+        ClientHead clientHead = Mockito.mock(ClientHead.class);
+        when(clientHead.getSessionId()).thenReturn(sessionId);
+        when(clientHead.getStore()).thenReturn(store);
+        
+        // Call onDisconnect
+        storeFactory.onDisconnect(clientHead);
+        
+        // Verify the Hazelcast map is destroyed
+        // After destroy, the map should be empty or not accessible
+        IMap<String, Object> map = hazelcastInstance.getMap(sessionId.toString());
+        assertTrue(map.isEmpty() || map.size() == 0, "Map should be empty after destroy");
     }
 }

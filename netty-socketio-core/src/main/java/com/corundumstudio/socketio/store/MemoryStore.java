@@ -43,4 +43,8 @@ public class MemoryStore implements Store {
         store.remove(key);
     }
 
+    public void clear() {
+        store.clear();
+    }
+
 }

@@ -18,16 +18,23 @@ package com.corundumstudio.socketio.store;
 import java.util.Map;
 import java.util.UUID;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.corundumstudio.socketio.handler.ClientHead;
 import com.corundumstudio.socketio.store.pubsub.BaseStoreFactory;
 import com.corundumstudio.socketio.store.pubsub.PubSubStore;
 import com.hazelcast.client.HazelcastClient;
 import com.hazelcast.core.HazelcastInstance;
+import com.hazelcast.core.IMap;
 
 /**
  * WARN: It's necessary to add netty-socketio.jar in hazelcast server classpath.
  *
  */
 public class HazelcastStoreFactory extends BaseStoreFactory {
+
+    private static final Logger log = LoggerFactory.getLogger(HazelcastStoreFactory.class);
 
     private final HazelcastInstance hazelcastClient;
     private final HazelcastInstance hazelcastPub;
@@ -75,6 +82,18 @@ public class HazelcastStoreFactory extends BaseStoreFactory {
     @Override
     public <K, V> Map<K, V> createMap(String name) {
         return hazelcastClient.getMap(name);
+    }
+
+    @Override
+    public void onDisconnect(ClientHead client) {
+        UUID sessionId = client.getSessionId();
+        try {
+            IMap<String, Object> map = hazelcastClient.getMap(sessionId.toString());
+            map.destroy();
+            log.debug("Destroyed Hazelcast store for sessionId: {}", sessionId);
+        } catch (Exception e) {
+            log.warn("Failed to destroy Hazelcast store for sessionId: {}", sessionId, e);
+        }
     }
 
 }
