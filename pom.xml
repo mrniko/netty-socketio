@@ -61,7 +61,7 @@
     <testcontainers.version>1.21.3</testcontainers.version>
     <netty.version>4.2.7.Final</netty.version>
     <jmockit.version>1.49</jmockit.version>
-    <byte-buddy.version>1.14.13</byte-buddy.version>
+    <byte-buddy.version>1.18.1</byte-buddy.version>
     <junit.version>5.10.1</junit.version>
     <junit-platform-launcher.version>1.10.1</junit-platform-launcher.version>
     <slf4j.version>2.0.16</slf4j.version>
@@ -528,6 +528,8 @@
         <configuration>
           <argLine>
             -javaagent:"${settings.localRepository}"/org/jmockit/jmockit/${jmockit.version}/jmockit-${jmockit.version}.jar
+            <!--For Java 25 support of byte-buddy. Byte-buddy is currently only used in mockito on unit tests within this project, so mitigate this problem by enable this property-->
+            -Dnet.bytebuddy.experimental=true
             -javaagent:"${settings.localRepository}"/net/bytebuddy/byte-buddy-agent/${byte-buddy.version}/byte-buddy-agent-${byte-buddy.version}.jar
             --add-opens netty.socketio/com.corundumstudio.socketio.store.pubsub=ALL-UNNAMED
             --add-opens netty.socketio/com.corundumstudio.socketio.store=ALL-UNNAMED

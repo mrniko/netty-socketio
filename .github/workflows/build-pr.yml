@@ -21,6 +21,7 @@ jobs:
         java-version:
           - 17
           - 21
+          - 25
     uses: ./.github/workflows/build.yml
     with:
       javaVersion: "${{ matrix.java-version }}"
