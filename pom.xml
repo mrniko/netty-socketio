@@ -528,7 +528,7 @@
         <configuration>
           <argLine>
             -javaagent:"${settings.localRepository}"/org/jmockit/jmockit/${jmockit.version}/jmockit-${jmockit.version}.jar
-            <!--For Java 25 support of byte-buddy. Byte-buddy is currently only used in mockito on unit tests within this project, so mitigate this problem by enable this property-->
+            <!--For Java 25 support of byte-buddy. Byte-buddy is currently only used in mockito on unit tests within this project, so mitigate this problem by enabling this property-->
             -Dnet.bytebuddy.experimental=true
             -javaagent:"${settings.localRepository}"/net/bytebuddy/byte-buddy-agent/${byte-buddy.version}/byte-buddy-agent-${byte-buddy.version}.jar
             --add-opens netty.socketio/com.corundumstudio.socketio.store.pubsub=ALL-UNNAMED
