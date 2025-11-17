@@ -1,0 +1,67 @@
+name: Daily Performance Test
+
+on:
+  workflow_call:
+    inputs:
+      javaVersion:
+        required: true
+        type: string
+  workflow_dispatch:
+     inputs:
+       javaVersion:
+         description: java version to test against
+         required: true
+         type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  performance-test:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+      
+    - name: Set up JDK ${{ inputs.javaVersion }}
+      uses: actions/setup-java@v4
+      with:
+        java-version: ${{ inputs.javaVersion }}
+        distribution: 'temurin'
+        
+    - name: Cache Maven dependencies
+      uses: actions/cache@v4
+      with:
+        path: ~/.m2
+        key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+        restore-keys: ${{ runner.os }}-m2
+        
+    - name: Build and run smoke test module
+      run: |
+        ./run-performance-test.sh
+        
+    - name: Create commit and push changes
+      run: |
+        git config --local user.email "15627489+NeatGuyCoding@users.noreply.github.com"
+        git config --local user.name "NeatGuyCoding"
+
+        cd netty-socketio-smoke-test
+        git add PERFORMANCE_REPORT.md
+        git add performance-results/*
+
+        COMMIT_MSG="🤖 Auto-update Performance Test Results
+
+        - Updated by GitHub Actions
+        - Generated from config.yaml
+        - Triggered by: ${{ github.event_name }}
+        - Workflow run: ${{ github.run_id }}
+        - Timestamp: $(date -u '+%Y-%m-%d %H:%M:%S UTC')
+
+        Changes:
+        $(git diff --cached --stat)"
+
+        git commit -m "$COMMIT_MSG"
+        git push

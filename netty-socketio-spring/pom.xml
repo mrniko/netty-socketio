@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>com.corundumstudio.socketio</groupId>
+    <artifactId>netty-socketio-parent</artifactId>
+    <version>2.0.14-SNAPSHOT</version>
+  </parent>
+
+  <artifactId>netty-socketio-spring</artifactId>
+  <packaging>bundle</packaging>
+  <name>NettySocketIO Spring</name>
+  <description>Socket.IO server Spring integration</description>
+
+  <properties>
+    <spring-framework.version>6.2.12</spring-framework.version>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>com.corundumstudio.socketio</groupId>
+      <artifactId>netty-socketio-core</artifactId>
+      <version>2.0.14-SNAPSHOT</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-beans</artifactId>
+      <version>${spring-framework.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-core</artifactId>
+      <version>${spring-framework.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>commons-logging</groupId>
+          <artifactId>commons-logging</artifactId>
+        </exclusion>
+      </exclusions>
+      <scope>provided</scope>
+    </dependency>
+  </dependencies>
+
+</project>
