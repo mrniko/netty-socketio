@@ -22,8 +22,10 @@ import com.corundumstudio.socketio.store.pubsub.PubSubType;
 import com.hazelcast.core.HazelcastInstance;
 import io.netty.util.internal.PlatformDependent;
 
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
 import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.Objects;
@@ -35,8 +37,6 @@ import java.util.function.Consumer;
 
 /**
  * Hazelcast PubSubStore implementation compatible with Hazelcast 3.x, 4.x, and 5.x.
- * <p>
- * Uses reflection to handle API differences between versions:
  * <ul>
  *   <li>Hazelcast 3.x: com.hazelcast.core.{ITopic, Message, MessageListener}, registration ID is String</li>
  *   <li>Hazelcast 4.x/5.x: com.hazelcast.topic.{ITopic, Message, MessageListener}, registration ID is UUID</li>
@@ -58,20 +58,20 @@ public class HazelcastPubSubStore implements PubSubStore {
     @Override
     public void publish(PubSubType type, PubSubMessage message) {
         message.setNodeId(nodeId);
-        Object topic = HazelcastReflection.getTopic(hazelcastPub, type.toString());
-        HazelcastReflection.publish(topic, message);
+        Object topic = HazelcastMethodHandles.getTopic(hazelcastPub, type.toString());
+        HazelcastMethodHandles.publish(topic, message);
     }
 
     @Override
     public <T extends PubSubMessage> void subscribe(PubSubType type, PubSubListener<T> listener, Class<T> clazz) {
         String topicName = type.toString();
-        Object topic = HazelcastReflection.getTopic(hazelcastSub, topicName);
+        Object topic = HazelcastMethodHandles.getTopic(hazelcastSub, topicName);
 
-        Object hazelcastListener = HazelcastReflection.createMessageListener(
+        Object hazelcastListener = HazelcastMethodHandles.createMessageListener(
                 new FilteredMessageHandler<>(nodeId, listener)
         );
 
-        String registrationId = HazelcastReflection.addMessageListener(topic, hazelcastListener);
+        String registrationId = HazelcastMethodHandles.addMessageListener(topic, hazelcastListener);
 
         listenerRegistrations
                 .computeIfAbsent(topicName, k -> new ConcurrentLinkedQueue<>())
@@ -89,9 +89,9 @@ public class HazelcastPubSubStore implements PubSubStore {
             return;
         }
 
-        Object topic = HazelcastReflection.getTopic(hazelcastSub, topicName);
+        Object topic = HazelcastMethodHandles.getTopic(hazelcastSub, topicName);
         for (String registrationId : registrationIds) {
-            HazelcastReflection.removeMessageListener(topic, registrationId);
+            HazelcastMethodHandles.removeMessageListener(topic, registrationId);
         }
     }
 
@@ -120,7 +120,7 @@ public class HazelcastPubSubStore implements PubSubStore {
         }
     }
 
-    static final class HazelcastReflection {
+    static final class HazelcastMethodHandles {
 
         private static final String HAZELCAST_4_MESSAGE_LISTENER = "com.hazelcast.topic.MessageListener";
         private static final String HAZELCAST_4_MESSAGE = "com.hazelcast.topic.Message";
@@ -130,203 +130,264 @@ public class HazelcastPubSubStore implements PubSubStore {
         private static final String HAZELCAST_3_MESSAGE = "com.hazelcast.core.Message";
         private static final String HAZELCAST_3_TOPIC = "com.hazelcast.core.ITopic";
 
-        private static final String METHOD_GET_TOPIC = "getTopic";
-        private static final String METHOD_PUBLISH = "publish";
-        private static final String METHOD_ADD_LISTENER = "addMessageListener";
-        private static final String METHOD_REMOVE_LISTENER = "removeMessageListener";
-        private static final String METHOD_GET_MESSAGE_OBJECT = "getMessageObject";
+        private static final MethodHandles.Lookup LOOKUP = MethodHandles.publicLookup();
 
         private final Class<?> messageListenerClass;
-        private final Method getMessageObjectMethod;
-        private final Method getTopicMethod;
-        private final Method publishMethod;
-        private final Method addMessageListenerMethod;
-        private final Method removeMessageListenerMethod;
+        private final MethodHandle getMessageObjectHandle;
+        private final MethodHandle getTopicHandle;
+        private final MethodHandle publishHandle;
+        private final MethodHandle addMessageListenerHandle;
+        private final MethodHandle removeMessageListenerHandle;
         private final boolean usesUuidForRegistration;
 
         private static final class Holder {
-            static final HazelcastReflection INSTANCE = new HazelcastReflection();
+            static final HazelcastMethodHandles INSTANCE = new HazelcastMethodHandles();
         }
 
-        private HazelcastReflection() {
+        private HazelcastMethodHandles() {
             HazelcastVersion version = detectVersion();
 
             this.messageListenerClass = version.messageListenerClass;
-            this.getMessageObjectMethod = version.getMessageObjectMethod;
-            this.getTopicMethod = resolveGetTopicMethod();
-            this.publishMethod = resolveMethod(version.topicClass, METHOD_PUBLISH, Object.class);
-            this.addMessageListenerMethod = resolveMethod(version.topicClass, METHOD_ADD_LISTENER, messageListenerClass);
-            this.removeMessageListenerMethod = resolveRemoveListenerMethod(version.topicClass);
-            this.usesUuidForRegistration = removeMessageListenerMethod.getParameterTypes()[0] == UUID.class;
+            this.getMessageObjectHandle = version.getMessageObjectHandle;
+            this.getTopicHandle = findGetTopicHandle(version.topicClass);
+            this.publishHandle = findPublishHandle(version.topicClass);
+            this.addMessageListenerHandle = findAddListenerHandle(version.topicClass, messageListenerClass);
+
+            MethodHandleWithType removeResult = findRemoveListenerHandle(version.topicClass);
+            this.removeMessageListenerHandle = removeResult.handle;
+            this.usesUuidForRegistration = removeResult.usesUuid;
         }
 
-        private static HazelcastReflection getInstance() {
+        private static HazelcastMethodHandles getInstance() {
             return Holder.INSTANCE;
         }
 
         public static Object getTopic(HazelcastInstance hazelcast, String name) {
-            return invoke(getInstance().getTopicMethod, hazelcast, name);
+            try {
+                return getInstance().getTopicHandle.invoke(hazelcast, name);
+            } catch (Throwable t) {
+                throw propagate(t, "Failed to get topic: " + name);
+            }
         }
 
         public static void publish(Object topic, Object message) {
-            invoke(getInstance().publishMethod, topic, message);
+            try {
+                getInstance().publishHandle.invoke(topic, message);
+            } catch (Throwable t) {
+                throw propagate(t, "Failed to publish message");
+            }
         }
 
         public static <T> Object createMessageListener(Consumer<T> handler) {
-            HazelcastReflection instance = getInstance();
+            HazelcastMethodHandles instance = getInstance();
             return Proxy.newProxyInstance(
                     instance.messageListenerClass.getClassLoader(),
                     new Class<?>[]{instance.messageListenerClass},
-                    new MessageListenerInvocationHandler<>(handler, instance.getMessageObjectMethod)
+                    new MessageListenerInvocationHandler<>(handler, instance.getMessageObjectHandle)
             );
         }
 
         public static String addMessageListener(Object topic, Object listener) {
-            Object registrationId = invoke(getInstance().addMessageListenerMethod, topic, listener);
-            return registrationId.toString();
+            try {
+                Object registrationId = getInstance().addMessageListenerHandle.invoke(topic, listener);
+                return registrationId.toString();
+            } catch (Throwable t) {
+                throw propagate(t, "Failed to add message listener");
+            }
         }
 
         public static boolean removeMessageListener(Object topic, String registrationId) {
-            HazelcastReflection instance = getInstance();
-            Object param = instance.usesUuidForRegistration
-                    ? UUID.fromString(registrationId)
-                    : registrationId;
+            HazelcastMethodHandles instance = getInstance();
+            try {
+                Object param = instance.usesUuidForRegistration
+                        ? UUID.fromString(registrationId)
+                        : registrationId;
 
-            Object result = invoke(instance.removeMessageListenerMethod, topic, param);
-            return result instanceof Boolean ? (Boolean) result : true;
+                Object result = instance.removeMessageListenerHandle.invoke(topic, param);
+                return result instanceof Boolean ? (Boolean) result : true;
+            } catch (Throwable t) {
+                throw propagate(t, "Failed to remove message listener: " + registrationId);
+            }
         }
 
         private static HazelcastVersion detectVersion() {
             // Try Hazelcast 4.x/5.x first
+            HazelcastVersion version = tryLoadVersion(HAZELCAST_4_MESSAGE_LISTENER, HAZELCAST_4_MESSAGE, HAZELCAST_4_TOPIC);
+            if (version != null) {
+                return version;
+            }
+
+            // Fall back to Hazelcast 3.x
+            version = tryLoadVersion(HAZELCAST_3_MESSAGE_LISTENER, HAZELCAST_3_MESSAGE, HAZELCAST_3_TOPIC);
+            if (version != null) {
+                return version;
+            }
+
+            throw new IllegalStateException(
+                    "Hazelcast not found on classpath. Ensure Hazelcast 3.x, 4.x, or 5.x is available.");
+        }
+
+        private static HazelcastVersion tryLoadVersion(String listenerClassName, String messageClassName, String topicClassName) {
             try {
-                return loadVersion(HAZELCAST_4_MESSAGE_LISTENER, HAZELCAST_4_MESSAGE, HAZELCAST_4_TOPIC);
-            } catch (ReflectiveOperationException e) {
-                // Fall back to Hazelcast 3.x
+                Class<?> listenerClass = Class.forName(listenerClassName);
+                Class<?> messageClass = Class.forName(messageClassName);
+                Class<?> topicClass = Class.forName(topicClassName);
+
+                MethodHandle getMessageObject = LOOKUP.findVirtual(
+                        messageClass,
+                        "getMessageObject",
+                        MethodType.methodType(Object.class)
+                );
+
+                return new HazelcastVersion(listenerClass, topicClass, getMessageObject);
+            } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException e) {
+                return null;
+            }
+        }
+
+        private static MethodHandle findGetTopicHandle(Class<?> topicClass) {
+            try {
+                return LOOKUP.findVirtual(
+                        HazelcastInstance.class,
+                        "getTopic",
+                        MethodType.methodType(topicClass, String.class)
+                );
+            } catch (NoSuchMethodException | IllegalAccessException e) {
+                throw new IllegalStateException("Method not found: HazelcastInstance.getTopic", e);
+            }
+        }
+
+        private static MethodHandle findPublishHandle(Class<?> topicClass) {
+            try {
+                return LOOKUP.findVirtual(
+                        topicClass,
+                        "publish",
+                        MethodType.methodType(void.class, Object.class)
+                );
+            } catch (NoSuchMethodException | IllegalAccessException e) {
+                throw new IllegalStateException("Method not found: ITopic.publish", e);
+            }
+        }
+
+        private static MethodHandle findAddListenerHandle(Class<?> topicClass, Class<?> listenerClass) {
+            try {
+                // Try UUID return type first (Hazelcast 4.x/5.x)
+                return LOOKUP.findVirtual(
+                        topicClass,
+                        "addMessageListener",
+                        MethodType.methodType(UUID.class, listenerClass)
+                );
+            } catch (NoSuchMethodException | IllegalAccessException e) {
+                // Fall back to String return type (Hazelcast 3.x)
                 try {
-                    return loadVersion(HAZELCAST_3_MESSAGE_LISTENER, HAZELCAST_3_MESSAGE, HAZELCAST_3_TOPIC);
-                } catch (ReflectiveOperationException ex) {
-                    throw new IllegalStateException(
-                            "Hazelcast not found on classpath. Ensure Hazelcast 3.x, 4.x, or 5.x is available.", ex);
+                    return LOOKUP.findVirtual(
+                            topicClass,
+                            "addMessageListener",
+                            MethodType.methodType(String.class, listenerClass)
+                    );
+                } catch (NoSuchMethodException | IllegalAccessException ex) {
+                    throw new IllegalStateException("Method not found: ITopic.addMessageListener", ex);
                 }
             }
         }
 
-        private static HazelcastVersion loadVersion(String listenerClassName, String messageClassName, String topicClassName) throws ReflectiveOperationException {
-            Class<?> listenerClass = Class.forName(listenerClassName);
-            Class<?> messageClass = Class.forName(messageClassName);
-            Class<?> topicClass = Class.forName(topicClassName);
-            Method getMessageObject = messageClass.getMethod(METHOD_GET_MESSAGE_OBJECT);
-
-            return new HazelcastVersion(listenerClass, messageClass, topicClass, getMessageObject);
-        }
-
-        private static Method resolveGetTopicMethod() {
-            try {
-                return HazelcastInstance.class.getMethod(METHOD_GET_TOPIC, String.class);
-            } catch (NoSuchMethodException e) {
-                throw new IllegalStateException("Method not found: HazelcastInstance." + METHOD_GET_TOPIC, e);
-            }
-        }
-
-        private static Method resolveMethod(Class<?> clazz, String methodName, Class<?>... paramTypes) {
-            try {
-                return clazz.getMethod(methodName, paramTypes);
-            } catch (NoSuchMethodException e) {
-                throw new IllegalStateException("Method not found: " + clazz.getSimpleName() + "." + methodName, e);
-            }
-        }
-
-        private static Method resolveRemoveListenerMethod(Class<?> topicClass) {
+        private static MethodHandleWithType findRemoveListenerHandle(Class<?> topicClass) {
             // Try UUID parameter first (Hazelcast 4.x/5.x)
             try {
-                return topicClass.getMethod(METHOD_REMOVE_LISTENER, UUID.class);
-            } catch (NoSuchMethodException e) {
+                MethodHandle handle = LOOKUP.findVirtual(
+                        topicClass,
+                        "removeMessageListener",
+                        MethodType.methodType(boolean.class, UUID.class)
+                );
+                return new MethodHandleWithType(handle, true);
+            } catch (NoSuchMethodException | IllegalAccessException e) {
                 // Fall back to String parameter (Hazelcast 3.x)
-                return resolveMethod(topicClass, METHOD_REMOVE_LISTENER, String.class);
+                try {
+                    MethodHandle handle = LOOKUP.findVirtual(
+                            topicClass,
+                            "removeMessageListener",
+                            MethodType.methodType(boolean.class, String.class)
+                    );
+                    return new MethodHandleWithType(handle, false);
+                } catch (NoSuchMethodException | IllegalAccessException ex) {
+                    throw new IllegalStateException("Method not found: ITopic.removeMessageListener", ex);
+                }
             }
         }
 
-        private static Object invoke(Method method, Object target, Object... args) {
-            try {
-                return method.invoke(target, args);
-            } catch (IllegalAccessException e) {
-                throw new IllegalStateException("Cannot access method: " + method.getName(), e);
-            } catch (InvocationTargetException e) {
-                throw unwrapException(e);
+        private static RuntimeException propagate(Throwable t, String message) {
+            if (t instanceof RuntimeException) {
+                return (RuntimeException) t;
             }
-        }
-
-        private static RuntimeException unwrapException(InvocationTargetException e) {
-            Throwable cause = e.getCause();
-            if (cause instanceof RuntimeException) {
-                return (RuntimeException) cause;
+            if (t instanceof Error) {
+                throw (Error) t;
             }
-            if (cause instanceof Error) {
-                throw (Error) cause;
-            }
-            return new IllegalStateException("Invocation failed", cause != null ? cause : e);
+            return new IllegalStateException(message, t);
         }
 
         private static final class HazelcastVersion {
             final Class<?> messageListenerClass;
-            final Class<?> messageClass;
             final Class<?> topicClass;
-            final Method getMessageObjectMethod;
+            final MethodHandle getMessageObjectHandle;
 
-            HazelcastVersion(Class<?> messageListenerClass, Class<?> messageClass,
-                             Class<?> topicClass, Method getMessageObjectMethod) {
+            HazelcastVersion(Class<?> messageListenerClass, Class<?> topicClass, MethodHandle getMessageObjectHandle) {
                 this.messageListenerClass = messageListenerClass;
-                this.messageClass = messageClass;
                 this.topicClass = topicClass;
-                this.getMessageObjectMethod = getMessageObjectMethod;
+                this.getMessageObjectHandle = getMessageObjectHandle;
+            }
+        }
+
+        private static final class MethodHandleWithType {
+            final MethodHandle handle;
+            final boolean usesUuid;
+
+            MethodHandleWithType(MethodHandle handle, boolean usesUuid) {
+                this.handle = handle;
+                this.usesUuid = usesUuid;
             }
         }
 
         private static final class MessageListenerInvocationHandler<T> implements InvocationHandler {
 
             private final Consumer<T> handler;
-            private final Method getMessageObjectMethod;
+            private final MethodHandle getMessageObjectHandle;
 
-            MessageListenerInvocationHandler(Consumer<T> handler, Method getMessageObjectMethod) {
+            MessageListenerInvocationHandler(Consumer<T> handler, MethodHandle getMessageObjectHandle) {
                 this.handler = handler;
-                this.getMessageObjectMethod = getMessageObjectMethod;
+                this.getMessageObjectHandle = getMessageObjectHandle;
             }
 
             @Override
-            @SuppressWarnings("unchecked")
             public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-                switch (method.getName()) {
-                    case "onMessage":
-                        if (args != null && args.length == 1) {
-                            handleMessage(args[0]);
-                        }
-                        return null;
+                String methodName = method.getName();
 
-                    case "equals":
-                        return proxy == args[0];
-
-                    case "hashCode":
-                        return System.identityHashCode(proxy);
-
-                    case "toString":
-                        return "HazelcastMessageListenerProxy@" + Integer.toHexString(System.identityHashCode(proxy));
-
-                    default:
-                        return null;
+                if ("onMessage".equals(methodName)) {
+                    if (args != null && args.length == 1) {
+                        handleMessage(args[0]);
+                    }
+                    return null;
                 }
+
+                if ("equals".equals(methodName)) {
+                    return args != null && args.length == 1 && proxy == args[0];
+                }
+
+                if ("hashCode".equals(methodName)) {
+                    return System.identityHashCode(proxy);
+                }
+
+                if ("toString".equals(methodName)) {
+                    return "HazelcastMessageListenerProxy@" + Integer.toHexString(System.identityHashCode(proxy));
+                }
+
+                return null;
             }
 
             @SuppressWarnings("unchecked")
             private void handleMessage(Object message) throws Throwable {
-                try {
-                    T messageObject = (T) getMessageObjectMethod.invoke(message);
-                    handler.accept(messageObject);
-                } catch (InvocationTargetException e) {
-                    Throwable cause = e.getCause();
-                    throw cause != null ? cause : e;
-                }
+                T messageObject = (T) getMessageObjectHandle.invoke(message);
+                handler.accept(messageObject);
             }
         }
     }
-
 }

@@ -15,18 +15,28 @@
  */
 package com.corundumstudio.socketio.store;
 
+import com.hazelcast.core.HazelcastInstance;
+
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.util.UUID;
 
-import com.hazelcast.core.HazelcastInstance;
-import com.hazelcast.core.IMap;
-
-
+/**
+ * Hazelcast Store implementation compatible with Hazelcast 3.x, 4.x, and 5.x.
+ */
 public class HazelcastStore implements Store {
 
-    private final IMap<String, Object> map;
+    private final MapOperations map;
 
     public HazelcastStore(UUID sessionId, HazelcastInstance hazelcastInstance) {
-        map = hazelcastInstance.getMap(sessionId.toString());
+        try {
+            Method getMapMethod = HazelcastInstance.class.getMethod("getMap", String.class);
+            this.map = MapOperations.wrap(getMapMethod.invoke(hazelcastInstance, sessionId.toString()));
+        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+            throw new IllegalStateException("Failed to get map: " + sessionId, e);
+        }
     }
 
     @Override
@@ -35,6 +45,7 @@ public class HazelcastStore implements Store {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public <T> T get(String key) {
         return (T) map.get(key);
     }
@@ -49,4 +60,35 @@ public class HazelcastStore implements Store {
         map.delete(key);
     }
 
+    /**
+     * Version-independent interface for Hazelcast IMap operations.
+     */
+    interface MapOperations {
+
+        Object put(Object key, Object value);
+        Object get(Object key);
+        boolean containsKey(Object key);
+        void delete(Object key);
+
+        static MapOperations wrap(Object map) {
+            return (MapOperations) Proxy.newProxyInstance(
+                    MapOperations.class.getClassLoader(),
+                    new Class<?>[]{MapOperations.class},
+                    new InvocationHandler() {
+                        @Override
+                        public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+                            try {
+                                Method targetMethod = map.getClass().getMethod(method.getName(), method.getParameterTypes());
+                                return targetMethod.invoke(map, args);
+                            } catch (InvocationTargetException e) {
+                                Throwable cause = e.getCause();
+                                throw cause != null ? cause : e;
+                            } catch (NoSuchMethodException | IllegalAccessException e) {
+                                throw new IllegalStateException("Failed to invoke " + method.getName(), e);
+                            }
+                        }
+                    }
+            );
+        }
+    }
 }
