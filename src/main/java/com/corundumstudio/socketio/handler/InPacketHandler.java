@@ -65,7 +65,11 @@ public class InPacketHandler extends SimpleChannelInboundHandler<PacketsMessage>
             try {
                 Packet packet = decoder.decodePackets(content, client);
 
-                Namespace ns = namespacesHub.get(packet.getNsp());
+                String namespace = packet.getNsp();
+                Namespace ns = namespacesHub.get(namespace);
+                if (ns == null && namespace.charAt(0) == '/') 
+                	ns = namespacesHub.get(namespace.substring(1));
+                	
                 if (ns == null) {
                     if (packet.getSubType() == PacketType.CONNECT) {
                         Packet p = new Packet(PacketType.MESSAGE, client.getEngineIOVersion());
