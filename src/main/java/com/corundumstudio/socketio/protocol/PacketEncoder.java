@@ -305,6 +305,7 @@ public class PacketEncoder {
                     if (packet.getSubType() == PacketType.CONNECT) {
                         if (!packet.getNsp().isEmpty()) {
                             buf.writeBytes(packet.getNsp().getBytes(CharsetUtil.UTF_8));
+                            buf.writeByte(',');
                         }
                         //:TODO lyjnew tmp change V4 add “,”
                         if (EngineIOVersion.V4.equals(packet.getEngineIOVersion())
