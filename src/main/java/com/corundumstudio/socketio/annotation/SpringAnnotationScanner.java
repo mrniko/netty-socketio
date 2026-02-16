@@ -54,7 +54,13 @@ public class SpringAnnotationScanner implements BeanPostProcessor {
     @Override
     public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
         if (originalBeanClass != null) {
-            socketIOServer.addListeners(originalBean, originalBeanClass);
+                if(bean.getClass().isAnnotationPresent(OnNamespace.class)){
+                    String namespace=bean.getClass().getAnnotation(OnNamespace.class).value();
+                    socketIOServer.getNamespace(namespace).addListeners(originalBean,originalBeanClass);
+                }else {
+                    socketIOServer.addListeners(originalBean, originalBeanClass);
+
+                }
             log.info("{} bean listeners added", originalBeanName);
             originalBeanClass = null;
             originalBeanName = null;
