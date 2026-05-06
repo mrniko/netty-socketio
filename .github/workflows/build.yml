@@ -10,7 +10,10 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
     steps:
       - name: 'Checkout'
         uses: actions/checkout@v4
@@ -21,6 +24,6 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
       - name: 'Build Project'
-        run: |
-          export MAVEN_OPTS="-Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=WARN"
-          mvn --batch-mode --errors --fail-at-end test
+        run: mvn --batch-mode --errors --fail-at-end test
+        env:
+          MAVEN_OPTS: "-Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=WARN"
